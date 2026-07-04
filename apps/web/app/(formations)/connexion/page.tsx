@@ -1,33 +1,168 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { signIn, getSession, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
 import {
-  PlayCircle,
-  RefreshCw,
-  Smartphone,
-  Star,
   AlertCircle,
-  Mail,
-  Lock,
+  ArrowRight,
+  CheckCircle2,
   Eye,
   EyeOff,
   Loader2,
-  LogIn,
+  Lock,
+  Mail,
   ShoppingBag,
-  ArrowRight,
 } from "lucide-react";
 import { getDashboardForFormationsRole } from "@/lib/formations/role-routing";
 
-const HERO_ICONS = { play_circle: PlayCircle, autorenew: RefreshCw, phone_android: Smartphone } as const;
+/* ─────────────────────────── Contenu statique ─────────────────────────── */
+
+const REASSURANCES = [
+  "Retrouvez vos formations, vos ventes et vos statistiques",
+  "Encaissez par Mobile Money et carte bancaire",
+  "Suivez vos résultats en temps réel, où que vous soyez",
+  "Vos données sont chiffrées et protégées",
+] as const;
+
+const STATS = [
+  { value: "100 %", label: "Paiements sécurisés" },
+  { value: "24 h/24", label: "Ventes automatisées" },
+  { value: "3", label: "Réseaux Mobile Money" },
+] as const;
+
+const INPUT_BASE =
+  "w-full rounded-xl border border-[#e2e8f0] bg-white py-3 pl-11 text-sm text-[#191c1e] placeholder-[#9aa3b5] transition-all duration-300 focus:border-[#006e2f] focus:outline-none focus:ring-4 focus:ring-[#006e2f]/10";
+
+/* ─────────────────────────── Composants internes ─────────────────────────── */
+
+function BrandMark({ variant }: { variant: "hero" | "card" }) {
+  if (variant === "hero") {
+    return (
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/25 bg-white/15 backdrop-blur-sm">
+          <span className="text-sm font-extrabold tracking-tight text-white">NK</span>
+        </div>
+        <span className="text-lg font-bold text-white">Novakou</span>
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-center gap-2.5">
+      <div
+        className="flex h-10 w-10 items-center justify-center rounded-xl shadow-[0_8px_16px_-6px_rgba(0,110,47,0.45)]"
+        style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
+      >
+        <span className="text-xs font-extrabold text-white">NK</span>
+      </div>
+      <span className="text-lg font-bold text-[#191c1e]">Novakou</span>
+    </div>
+  );
+}
+
+function GoogleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <path
+        d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"
+        fill="#4285F4"
+      />
+      <path
+        d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"
+        fill="#34A853"
+      />
+      <path
+        d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"
+        fill="#FBBC05"
+      />
+      <path
+        d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"
+        fill="#EA4335"
+      />
+    </svg>
+  );
+}
+
+/** Panneau héro immersif — masqué sous lg, jumeau visuel de la page d'inscription. */
+function HeroPanel() {
+  return (
+    <aside
+      className="relative hidden flex-col justify-between overflow-hidden p-12 lg:flex lg:w-1/2 xl:w-[55%] xl:p-16"
+      style={{ background: "linear-gradient(135deg, #003d1a 0%, #006e2f 50%, #22c55e 100%)" }}
+    >
+      {/* Décor — motifs en CSS pur */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <div
+          className="absolute inset-0 opacity-[0.06]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)",
+            backgroundSize: "52px 52px",
+          }}
+        />
+        <div className="absolute -right-40 -top-40 h-[26rem] w-[26rem] rounded-full bg-[#22c55e]/30 blur-3xl" />
+        <div className="absolute -bottom-36 -left-32 h-96 w-96 rounded-full bg-[#00240f]/60 blur-3xl" />
+        <div className="absolute right-16 top-28 h-44 w-44 rounded-full border border-white/10" />
+        <div className="absolute right-28 top-40 h-44 w-44 rounded-full border border-white/[0.07]" />
+      </div>
+
+      <div className="relative z-10">
+        <BrandMark variant="hero" />
+      </div>
+
+      <div className="relative z-10 max-w-xl py-10">
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 backdrop-blur-sm">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#4ade80]" />
+          <span className="text-xs font-semibold tracking-wide text-white/90">
+            Espace créateur Novakou
+          </span>
+        </div>
+
+        <h1 className="mb-4 text-4xl font-extrabold leading-[1.12] tracking-tight text-white xl:text-[2.75rem]">
+          Bon retour
+          <br />
+          parmi{" "}
+          <span className="bg-gradient-to-r from-[#86efac] to-[#4ade80] bg-clip-text text-transparent">
+            nous
+          </span>
+        </h1>
+        <p className="mb-8 max-w-md text-[15px] leading-relaxed text-white/75">
+          Connectez-vous pour retrouver vos produits, vos ventes et votre communauté.
+        </p>
+
+        <ul className="space-y-3.5">
+          {REASSURANCES.map((text) => (
+            <li key={text} className="flex items-start gap-3">
+              <CheckCircle2 size={19} className="mt-0.5 flex-shrink-0 text-[#86efac]" />
+              <span className="text-sm leading-relaxed text-white/85">{text}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="relative z-10 grid grid-cols-3 gap-3">
+        {STATS.map((stat) => (
+          <div
+            key={stat.label}
+            className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-md transition-colors duration-300 hover:bg-white/15"
+          >
+            <p className="text-xl font-extrabold text-white xl:text-2xl">{stat.value}</p>
+            <p className="mt-1 text-[11px] font-medium leading-snug text-white/70">{stat.label}</p>
+          </div>
+        ))}
+      </div>
+    </aside>
+  );
+}
+
+/* ─────────────────────────── Page ─────────────────────────── */
 
 function ConnexionInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrlParam = searchParams.get("callbackUrl");
+  const registered = searchParams.get("registered") === "1";
   const { data: existingSession, status } = useSession();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -57,7 +192,10 @@ function ConnexionInner() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email || !password) { setError("Email et mot de passe requis."); return; }
+    if (!email || !password) {
+      setError("Veuillez renseigner votre adresse e-mail et votre mot de passe.");
+      return;
+    }
     setLoading(true);
     setError(null);
 
@@ -97,7 +235,7 @@ function ConnexionInner() {
         }
         setError(
           result.error === "CredentialsSignin"
-            ? "Email ou mot de passe incorrect."
+            ? "E-mail ou mot de passe incorrect."
             : result.error
         );
         setLoading(false);
@@ -183,118 +321,67 @@ function ConnexionInner() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-96px)] flex">
-      {/* ── Left hero panel ─────────────────────────────────────────── */}
-      <div
-        className="hidden lg:flex lg:w-1/2 xl:w-[55%] flex-col justify-between p-12 relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #003d1a 0%, #006e2f 50%, #22c55e 100%)" }}
-      >
-        <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-white/5" />
-        <div className="absolute bottom-10 -left-16 w-64 h-64 rounded-full bg-white/5" />
-        <div className="absolute top-1/2 right-10 w-32 h-32 rounded-full bg-white/10" />
+    <div className="flex min-h-[calc(100vh-96px)]">
+      <HeroPanel />
 
-        <div className="relative z-10 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-[10px] bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
-            <span className="text-white font-extrabold text-sm tracking-tight">NK</span>
-          </div>
-          <span className="text-white font-bold text-lg">Novakou</span>
-        </div>
-
-        <div className="relative z-10">
-          <p className="text-white/70 text-sm font-medium mb-4 uppercase tracking-wider">Plateforme de formations en ligne</p>
-          <h1 className="text-3xl xl:text-4xl font-extrabold text-white leading-tight mb-8">
-            Rejoignez des créateurs<br />
-            qui vendent<br />
-            en ligne
-          </h1>
-          <div className="space-y-4">
-            {([
-              { icon: "play_circle" as const, text: "Vendez formations, ebooks et services numériques" },
-              { icon: "autorenew" as const, text: "Processus 100% automatisé — encaissez pendant que vous dormez" },
-              { icon: "phone_android" as const, text: "Paiement Mobile Money (Orange, Wave, MTN) dès le départ" },
-            ]).map((item, i) => {
-              const Icon = HERO_ICONS[item.icon];
-              return (
-                <div key={i} className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Icon size={18} className="text-white" />
-                  </div>
-                  <p className="text-white/85 text-sm leading-relaxed">{item.text}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="relative z-10 bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20">
-          <div className="flex items-center gap-1 mb-2">
-            {[1,2,3,4,5].map((s) => (
-              <Star key={s} size={14} className="text-amber-300 fill-amber-300" />
-            ))}
-          </div>
-          <p className="text-white/90 text-sm italic leading-relaxed mb-3">
-            &quot;J&apos;ai généré 480 000 FCFA en 3 semaines avec ma première formation. Novakou a tout changé pour moi.&quot;
-          </p>
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">AD</div>
-            <div>
-              <p className="text-white text-xs font-semibold">Aminata Diallo</p>
-              <p className="text-white/60 text-[10px]">Formatrice · Dakar, Sénégal</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Right form panel ────────────────────────────────────────── */}
-      <div className="w-full lg:w-1/2 xl:w-[45%] flex items-center justify-center px-5 py-10 bg-[#f7f9fb]">
+      {/* ── Volet formulaire ────────────────────────────────────────── */}
+      <main className="flex w-full items-center justify-center bg-[#f7f9fb] px-5 py-10 lg:w-1/2 xl:w-[45%]">
         <div className="w-full max-w-md">
-          <div className="flex items-center gap-2.5 mb-8 lg:hidden">
-            <div className="w-9 h-9 rounded-[9px] flex items-center justify-center" style={{ background: "#006e2f" }}>
-              <span className="text-white font-extrabold text-xs">NK</span>
-            </div>
-            <span className="font-bold text-[#191c1e] text-base">Novakou</span>
+          {/* Logo mobile (héro masqué sous lg) */}
+          <div className="mb-8 flex justify-center lg:hidden">
+            <BrandMark variant="card" />
           </div>
 
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+          <div className="rounded-[28px] border border-[#e7ecf2] bg-white p-7 shadow-[0_24px_60px_-28px_rgba(0,61,26,0.18)] sm:p-9">
             <div className="mb-7">
-              <h2 className="text-2xl font-extrabold text-[#191c1e] mb-1.5">Bon retour parmi nous 👋</h2>
-              <p className="text-sm text-[#5c647a]">Connectez-vous à votre espace Novakou</p>
+              <h2 className="mb-1.5 text-2xl font-extrabold tracking-tight text-[#191c1e]">
+                Connexion
+              </h2>
+              <p className="text-sm text-[#5c647a]">Accédez à votre espace créateur Novakou.</p>
             </div>
 
-            {/* Google OAuth */}
-            <button
-              onClick={handleGoogle}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2.5 border border-gray-200 rounded-xl py-2.5 text-sm font-semibold text-[#191c1e] hover:bg-gray-50 transition-colors mb-4 disabled:opacity-50"
-            >
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
-                <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
-                <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-                <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
-              </svg>
-              Continuer avec Google
-            </button>
-
-            <div className="relative flex items-center gap-3 mb-6">
-              <div className="flex-1 h-px bg-gray-100" />
-              <span className="text-xs text-[#5c647a] font-medium flex-shrink-0">ou continuez avec votre email</span>
-              <div className="flex-1 h-px bg-gray-100" />
-            </div>
-
-            {/* Error */}
-            {error && (
-              <div id="login-error" role="alert" aria-live="polite" className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-2">
-                <AlertCircle size={18} className="text-red-500 flex-shrink-0" />
-                <p className="text-sm text-red-700 font-medium">{error}</p>
+            {/* Bandeau succès après inscription (?registered=1) */}
+            {registered && !error && (
+              <div
+                role="status"
+                className="mb-5 flex items-start gap-2.5 rounded-xl border border-[#bbf7d0] bg-[#f0fdf4] px-4 py-3"
+              >
+                <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-[#16a34a]" />
+                <div>
+                  <p className="text-sm font-semibold text-[#166534]">Compte créé&nbsp;!</p>
+                  <p className="text-xs text-[#166534]/80">
+                    Connectez-vous avec vos identifiants pour continuer.
+                  </p>
+                </div>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Erreur */}
+            {error && (
+              <div
+                id="login-error"
+                role="alert"
+                aria-live="polite"
+                className="mb-5 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3"
+              >
+                <AlertCircle size={18} className="mt-0.5 flex-shrink-0 text-red-500" />
+                <p className="text-sm font-medium text-red-700">{error}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label htmlFor="login-email" className="block text-xs font-semibold text-[#191c1e] mb-1.5">Adresse email</label>
-                <div className="relative">
-                  <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5c647a]" />
+                <label
+                  htmlFor="login-email"
+                  className="mb-1.5 block text-[13px] font-semibold text-[#191c1e]"
+                >
+                  Adresse e-mail
+                </label>
+                <div className="group relative">
+                  <Mail
+                    size={18}
+                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9aa3b5] transition-colors duration-300 group-focus-within:text-[#006e2f]"
+                  />
                   <input
                     id="login-email"
                     type="email"
@@ -306,20 +393,31 @@ function ConnexionInner() {
                     aria-required="true"
                     aria-invalid={!!error}
                     aria-describedby={error ? "login-error" : undefined}
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] transition-all bg-white"
+                    className={`${INPUT_BASE} pr-4`}
                   />
                 </div>
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label htmlFor="login-password" className="block text-xs font-semibold text-[#191c1e]">Mot de passe</label>
-                  <Link href="/mot-de-passe-oublie" className="text-xs text-[#006e2f] font-semibold hover:underline">
-                    Mot de passe oublié ?
+                <div className="mb-1.5 flex items-center justify-between">
+                  <label
+                    htmlFor="login-password"
+                    className="block text-[13px] font-semibold text-[#191c1e]"
+                  >
+                    Mot de passe
+                  </label>
+                  <Link
+                    href="/mot-de-passe-oublie"
+                    className="text-xs font-semibold text-[#006e2f] transition-colors duration-300 hover:text-[#005a26] hover:underline"
+                  >
+                    Mot de passe oublié&nbsp;?
                   </Link>
                 </div>
-                <div className="relative">
-                  <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5c647a]" />
+                <div className="group relative">
+                  <Lock
+                    size={18}
+                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9aa3b5] transition-colors duration-300 group-focus-within:text-[#006e2f]"
+                  />
                   <input
                     id="login-password"
                     type={showPassword ? "text" : "password"}
@@ -331,9 +429,14 @@ function ConnexionInner() {
                     aria-required="true"
                     aria-invalid={!!error}
                     aria-describedby={error ? "login-error" : undefined}
-                    className="w-full pl-10 pr-12 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] transition-all bg-white"
+                    className={`${INPUT_BASE} pr-12`}
                   />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#5c647a] hover:text-[#191c1e]" aria-label="Afficher le mot de passe">
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-[#9aa3b5] transition-colors duration-300 hover:bg-[#f1f5f9] hover:text-[#191c1e] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#006e2f]/40"
+                    aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                  >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
@@ -342,49 +445,88 @@ function ConnexionInner() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90 flex items-center justify-center gap-2 mt-2 disabled:opacity-50"
-                style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+                className="group mt-1 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgba(0,110,47,0.55)] transition-all duration-300 hover:shadow-[0_14px_28px_-10px_rgba(0,110,47,0.65)] hover:brightness-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#006e2f] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                style={{ background: "linear-gradient(135deg, #006e2f 0%, #16a34a 55%, #22c55e 100%)" }}
               >
                 {loading ? (
-                  <><Loader2 size={18} className="animate-spin" />Connexion…</>
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    Connexion en cours…
+                  </>
                 ) : (
-                  <><LogIn size={18} />Se connecter</>
+                  <>
+                    Se connecter
+                    <ArrowRight
+                      size={17}
+                      className="transition-transform duration-300 group-hover:translate-x-0.5"
+                    />
+                  </>
                 )}
               </button>
             </form>
 
-            <p className="text-center text-sm text-[#5c647a] mt-6">
-              Pas encore de compte ?{" "}
-              <Link href="/inscription" className="text-[#006e2f] font-bold hover:underline">
-                Créer un compte gratuitement
+            {/* Séparateur */}
+            <div className="my-6 flex items-center gap-3" aria-hidden="true">
+              <span className="h-px flex-1 bg-[#e7ecf2]" />
+              <span className="text-xs font-medium text-[#5c647a]">ou</span>
+              <span className="h-px flex-1 bg-[#e7ecf2]" />
+            </div>
+
+            {/* Google OAuth */}
+            <button
+              type="button"
+              onClick={handleGoogle}
+              disabled={loading}
+              className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-[#e2e8f0] bg-white py-3 text-sm font-semibold text-[#191c1e] transition-all duration-300 hover:border-[#cbd5e1] hover:bg-[#f8fafc] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#006e2f]/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <GoogleIcon />
+              Continuer avec Google
+            </button>
+
+            <p className="mt-7 text-center text-sm text-[#5c647a]">
+              Pas encore de compte&nbsp;?{" "}
+              <Link
+                href="/inscription"
+                className="font-bold text-[#006e2f] transition-colors duration-300 hover:text-[#005a26] hover:underline"
+              >
+                S’inscrire gratuitement
               </Link>
             </p>
           </div>
 
-          {/* ── Séparateur + accès acheteurs (ceux qui ont acheté sans créer de compte vendeur) ── */}
-          <div className="mt-6 bg-[#f0fdf4] border border-[#bbf7d0] rounded-2xl p-5 text-center">
-            <p className="text-sm text-[#191c1e] font-semibold mb-1">
-              Vous avez déjà effectué un achat sur Novakou ?
-            </p>
-            <p className="text-xs text-[#5c647a] mb-3">
-              Accédez à vos formations et produits sans créer de compte vendeur.
-            </p>
-            <Link
-              href="/acheteur/connexion"
-              className="inline-flex items-center gap-1.5 text-sm font-bold text-[#006e2f] hover:underline"
-            >
-              <ShoppingBag size={16} />
-              Accéder à mes achats
-              <ArrowRight size={14} />
-            </Link>
+          {/* ── Accès acheteurs (achat sans compte vendeur) ── */}
+          <div className="mt-6 rounded-2xl border border-[#e7ecf2] bg-white p-5 transition-shadow duration-300 hover:shadow-sm">
+            <div className="flex items-start gap-3.5">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-[#bbf7d0] bg-[#f0fdf4]">
+                <ShoppingBag size={18} className="text-[#006e2f]" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-[#191c1e]">
+                  Vous avez déjà effectué un achat sur Novakou&nbsp;?
+                </p>
+                <p className="mb-2 mt-0.5 text-xs leading-relaxed text-[#5c647a]">
+                  Accédez à vos formations et produits sans créer de compte vendeur.
+                </p>
+                <Link
+                  href="/acheteur/connexion"
+                  className="group inline-flex items-center gap-1.5 text-sm font-bold text-[#006e2f] transition-colors duration-300 hover:text-[#005a26]"
+                >
+                  Accéder à mes achats
+                  <ArrowRight
+                    size={15}
+                    className="transition-transform duration-300 group-hover:translate-x-0.5"
+                  />
+                </Link>
+              </div>
+            </div>
           </div>
 
-          <p className="text-center text-[11px] text-[#5c647a] mt-4 flex items-center justify-center gap-1.5">
-            <Lock size={13} />
-            Connexion sécurisée SSL 256-bit
+          <p className="mt-5 flex items-center justify-center gap-1.5 text-xs text-[#5c647a]">
+            <Lock size={13} aria-hidden="true" />
+            Connexion chiffrée · SSL 256 bits
           </p>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
