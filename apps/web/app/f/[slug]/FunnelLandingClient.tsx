@@ -1513,7 +1513,9 @@ function ScarcityBlock({ data, theme, salesLimit, salesCount }: { data: Record<s
 // a textColor, that color is passed down as `parentColor`, which becomes the
 // effective theme.textColor for the children. This way, atomic blocks (text,
 // list, icon-box, heading) inside a dark section automatically use light text.
-function renderBlock(block: Block, theme: Theme, onCta: () => void, parentColor?: string, funnelSlug?: string, salesLimit?: number | null, salesCount?: number): ReactElement | null {
+// Exporté : l'éditeur de tunnels s'en sert pour afficher un canvas WYSIWYG
+// (rendu RÉEL de la page, identique au public — façon Système.io).
+export function renderBlock(block: Block, theme: Theme, onCta: () => void, parentColor?: string, funnelSlug?: string, salesLimit?: number | null, salesCount?: number): ReactElement | null {
   // If parent set a color, override theme.textColor for this subtree
   const effTheme: Theme = parentColor ? { ...theme, textColor: parentColor } : theme;
   switch (block.type) {

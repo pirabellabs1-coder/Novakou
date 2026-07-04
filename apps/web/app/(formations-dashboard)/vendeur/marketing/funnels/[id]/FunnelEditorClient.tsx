@@ -70,8 +70,14 @@ import {
   Video,
   Mail,
   Download,
+  Undo2,
+  Redo2,
+  Monitor,
+  Smartphone,
+  Save,
   type LucideIcon,
 } from "lucide-react";
+import { renderBlock as renderPublicBlock } from "@/app/f/[slug]/FunnelLandingClient";
 import { MediaUpload } from "@/components/funnels/MediaUpload";
 import { IconPicker } from "@/components/funnels/IconPicker";
 import { ColorPicker, ColumnPicker } from "@/components/funnels/ColorPicker";
@@ -1967,6 +1973,13 @@ export default function FunnelEditorClient({ id }: { id: string }) {
   const [showGallery, setShowGallery] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showLeads, setShowLeads] = useState(false);
+  // ── Canvas WYSIWYG (façon Système.io) ──
+  const [selectedId, setSelectedId] = useState<string | null>(null); // bloc sélectionné sur le canvas
+  const [sidebarTab, setSidebarTab] = useState<"elements" | "blocks">("elements");
+  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+  // Historique annuler/rétablir, par étape
+  const historyRef = useRef<Record<string, { past: Block[][]; future: Block[][] }>>({});
+  const [, setHistVersion] = useState(0);
   const [pendingTemplate, setPendingTemplate] = useState<{ kind: "step" | "landing"; data: Block[] } | null>(null);
 
   const load = useCallback(async () => {
@@ -2040,15 +2053,57 @@ export default function FunnelEditorClient({ id }: { id: string }) {
   const activeStep = funnel.steps.find((s) => s.id === activeStepId) ?? funnel.steps[0];
   const blocks = (activeStep?.blocks as Block[]) ?? [];
 
-  function persistBlocks(updated: Block[]) {
+  // Historique de l'étape active (annuler/rétablir)
+  function hist() {
+    const k = activeStep?.id ?? "_";
+    if (!historyRef.current[k]) historyRef.current[k] = { past: [], future: [] };
+    return historyRef.current[k];
+  }
+
+  // Applique + sauvegarde SANS toucher l'historique (utilisé par undo/redo)
+  function applyBlocks(updated: Block[]) {
     if (!activeStep) return;
     save({ steps: [{ id: activeStep.id, blocks: updated as unknown as Block[] }] });
     setFunnel((f) => f ? { ...f, steps: f.steps.map((s) => s.id === activeStep.id ? { ...s, blocks: updated } : s) } : f);
   }
 
+  function persistBlocks(updated: Block[]) {
+    if (!activeStep) return;
+    const h = hist();
+    h.past.push(blocks);
+    if (h.past.length > 50) h.past.shift();
+    h.future = [];
+    setHistVersion((v) => v + 1);
+    applyBlocks(updated);
+  }
+
+  function undo() {
+    const h = hist();
+    const prev = h.past.pop();
+    if (!prev) return;
+    h.future.push(blocks);
+    setHistVersion((v) => v + 1);
+    applyBlocks(prev);
+  }
+  function redo() {
+    const h = hist();
+    const next = h.future.pop();
+    if (!next) return;
+    h.past.push(blocks);
+    setHistVersion((v) => v + 1);
+    applyBlocks(next);
+  }
+  const canUndo = hist().past.length > 0;
+  const canRedo = hist().future.length > 0;
+
   function updateBlock(idx: number, block: Block) { persistBlocks(blocks.map((b, i) => i === idx ? block : b)); }
-  function deleteBlock(idx: number) { persistBlocks(blocks.filter((_, j) => j !== idx)); }
-  function addBlock(key: PaletteKey) { persistBlocks([...blocks, createFromPaletteKey(key)]); setShowAddBlock(false); }
+  function deleteBlock(idx: number) { persistBlocks(blocks.filter((_, j) => j !== idx)); setSelectedId(null); }
+  function addBlock(key: PaletteKey) {
+    const nb = createFromPaletteKey(key);
+    persistBlocks([...blocks, nb]);
+    setShowAddBlock(false);
+    setSelectedId(nb.id); // sélection immédiate → l'inspecteur s'ouvre à gauche
+  }
   function duplicateBlock(idx: number) {
     const src = blocks[idx];
     if (!src) return;
@@ -2063,13 +2118,29 @@ export default function FunnelEditorClient({ id }: { id: string }) {
     persistBlocks(next);
   }
 
+  // Bloc sélectionné (canvas → inspecteur dans la barre latérale)
+  const selectedIdx = blocks.findIndex((b) => b.id === selectedId);
+  const selectedBlock = selectedIdx >= 0 ? blocks[selectedIdx] : null;
+
+  // Thème « live » du canvas (mêmes défauts que la page publique)
+  const liveTheme = {
+    primaryColor: funnel.theme?.primaryColor || "#006e2f",
+    accentColor: funnel.theme?.accentColor || "#22c55e",
+    textColor: funnel.theme?.textColor || "#191c1e",
+    bgColor: funnel.theme?.bgColor || "#ffffff",
+    font: funnel.theme?.font || "Manrope",
+    logoUrl: funnel.theme?.logoUrl,
+  };
+
   return (
-    <div className="min-h-screen bg-[#f7f9fb]">
+    <div className="h-screen flex flex-col overflow-hidden bg-[#eef1f4]">
       {/* Top bar */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-20">
-        <div className="px-5 md:px-8 h-14 flex items-center gap-3 max-w-7xl mx-auto">
-          <Link href="/vendeur/marketing/funnels" className="text-[#5c647a] hover:text-[#191c1e]">
-            <ArrowLeft size={20} />
+      <div className="bg-white border-b border-gray-100 z-20 flex-shrink-0">
+        <div className="px-4 md:px-6 h-14 flex items-center gap-3">
+          <Link href="/vendeur/marketing/funnels"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-[#5c647a] hover:text-[#191c1e] hover:bg-gray-100 transition-colors"
+            title="Sortir de l'éditeur">
+            <ArrowLeft size={16} />Sortir
           </Link>
           <input type="text" value={funnel.name}
             onChange={(e) => setFunnel({ ...funnel, name: e.target.value })}
@@ -2081,6 +2152,16 @@ export default function FunnelEditorClient({ id }: { id: string }) {
               : savedAt ? (<><CheckCircle2 size={14} className="text-green-500" />Sauvegardé</>)
               : null}
           </div>
+          {/* Annuler / Rétablir */}
+          <div className="flex items-center gap-0.5">
+            <button onClick={undo} disabled={!canUndo} className="p-1.5 rounded-lg text-[#5c647a] hover:bg-gray-100 disabled:opacity-30 transition-colors" title="Annuler"><Undo2 size={16} /></button>
+            <button onClick={redo} disabled={!canRedo} className="p-1.5 rounded-lg text-[#5c647a] hover:bg-gray-100 disabled:opacity-30 transition-colors" title="Rétablir"><Redo2 size={16} /></button>
+          </div>
+          {/* Aperçu ordinateur / mobile */}
+          <div className="hidden md:flex items-center bg-gray-100 rounded-lg p-0.5">
+            <button onClick={() => setDevice("desktop")} className={`p-1.5 rounded-md transition-colors ${device === "desktop" ? "bg-white text-[#006e2f] shadow-sm" : "text-[#5c647a]"}`} title="Aperçu ordinateur"><Monitor size={15} /></button>
+            <button onClick={() => setDevice("mobile")} className={`p-1.5 rounded-md transition-colors ${device === "mobile" ? "bg-white text-[#006e2f] shadow-sm" : "text-[#5c647a]"}`} title="Aperçu mobile"><Smartphone size={15} /></button>
+          </div>
           <button onClick={() => setShowLeads(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors">
             <Mail size={14} />Leads
@@ -2088,6 +2169,10 @@ export default function FunnelEditorClient({ id }: { id: string }) {
           <button onClick={() => setShowSettings(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors">
             <SlidersHorizontal size={14} />Réglages
+          </button>
+          <button onClick={() => activeStep && save({ steps: [{ id: activeStep.id, blocks }] })}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors">
+            <Save size={14} />Sauvegarder
           </button>
           <a href={`/f/${funnel.slug}${funnel.isActive ? "" : "?preview=1"}`} target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors">
@@ -2103,7 +2188,7 @@ export default function FunnelEditorClient({ id }: { id: string }) {
         {/* ── Étapes du tunnel : stepper HORIZONTAL en haut (remplace l'ancienne
              sidebar verticale) — pills animées, défilables sur mobile. ── */}
         <div className="border-t border-gray-100 bg-white/60">
-          <div className="max-w-7xl mx-auto px-4 md:px-8 py-2.5 flex items-center gap-1.5 overflow-x-auto">
+          <div className="px-4 md:px-6 py-2.5 flex items-center gap-1.5 overflow-x-auto">
             {funnel.steps.map((s, i) => {
               const info = STEP_INFO[s.stepType] ?? STEP_INFO.LANDING;
               const isActive = s.id === activeStepId;
@@ -2111,7 +2196,7 @@ export default function FunnelEditorClient({ id }: { id: string }) {
               return (
                 <div key={s.id} className="flex items-center gap-1.5 flex-shrink-0">
                   {i > 0 && <ArrowRight size={14} className="text-gray-300 flex-shrink-0" />}
-                  <button onClick={() => setActiveStepId(s.id)}
+                  <button onClick={() => { setActiveStepId(s.id); setSelectedId(null); }}
                     className={`group flex items-center gap-2 pl-1.5 pr-3.5 py-1.5 rounded-full border transition-all duration-300 ease-out ${
                       isActive
                         ? "text-white shadow-lg scale-[1.05]"
@@ -2205,7 +2290,78 @@ export default function FunnelEditorClient({ id }: { id: string }) {
       {/* ── Panneau Leads (emails capturés par les formulaires) ── */}
       {showLeads && <LeadsPanel funnelId={id} onClose={() => setShowLeads(false)} />}
 
-      <main className="max-w-5xl mx-auto px-4 md:px-6 py-6 space-y-4">
+      <div className="flex-1 flex overflow-hidden">
+        {/* ══ BARRE LATÉRALE GAUCHE : Éléments / Blocs / Inspecteur (façon Système.io) ══ */}
+        <aside className="w-[330px] flex-shrink-0 bg-white border-r border-gray-200 overflow-y-auto">
+          {selectedBlock ? (
+            /* ── Inspecteur du bloc sélectionné ── */
+            <div className="p-3">
+              <div className="flex items-center justify-between mb-3">
+                <button onClick={() => setSelectedId(null)}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold text-[#191c1e] border border-gray-200 hover:bg-gray-50 transition-colors">
+                  <ArrowLeft size={14} />Retour
+                </button>
+                <div className="flex items-center gap-0.5">
+                  <button onClick={() => moveBlock(selectedIdx, -1)} disabled={selectedIdx === 0} className="p-1.5 rounded-lg text-[#5c647a] hover:bg-gray-100 disabled:opacity-30 transition-colors" title="Monter"><ArrowUp size={15} /></button>
+                  <button onClick={() => moveBlock(selectedIdx, 1)} disabled={selectedIdx === blocks.length - 1} className="p-1.5 rounded-lg text-[#5c647a] hover:bg-gray-100 disabled:opacity-30 transition-colors" title="Descendre"><ArrowDown size={15} /></button>
+                  <button onClick={() => duplicateBlock(selectedIdx)} className="p-1.5 rounded-lg text-[#5c647a] hover:bg-gray-100 transition-colors" title="Dupliquer"><Copy size={15} /></button>
+                </div>
+              </div>
+              <BlockEditor compact block={selectedBlock} onChange={(b) => updateBlock(selectedIdx, b)} onDelete={() => deleteBlock(selectedIdx)} />
+            </div>
+          ) : (
+            /* ── Palette : Éléments | Blocs ── */
+            <div className="p-3">
+              <div className="flex gap-1 bg-gray-100 rounded-lg p-1 mb-4">
+                {(["elements", "blocks"] as const).map((t) => (
+                  <button key={t} onClick={() => setSidebarTab(t)}
+                    className={`flex-1 px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${sidebarTab === t ? "bg-white text-[#006e2f] shadow-sm" : "text-[#5c647a] hover:text-[#191c1e]"}`}>
+                    {t === "elements" ? "Éléments" : "Blocs"}
+                  </button>
+                ))}
+              </div>
+              {sidebarTab === "elements" ? (
+                PALETTE_CATEGORIES.filter((c) => c.label !== "Sections prêtes").map((cat) => (
+                  <div key={cat.label} className="mb-5">
+                    <p className="text-[11px] font-extrabold text-[#191c1e] mb-2">{cat.label}</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {cat.items.map((it) => {
+                        const ItIcon = it.icon;
+                        return (
+                          <button key={it.key} onClick={() => addBlock(it.key)}
+                            className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white px-1 py-3 hover:border-[#006e2f] hover:shadow-sm hover:-translate-y-0.5 transition-all"
+                            title={`Ajouter : ${it.label}`}>
+                            <ItIcon size={18} className="text-[#5c647a]" />
+                            <span className="text-[10px] font-semibold text-[#191c1e] leading-tight text-center">{it.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-[10.5px] text-[#5c647a] mb-2">Sections complètes prêtes à l&apos;emploi — cliquez pour les ajouter en bas de la page.</p>
+                  {(PALETTE_CATEGORIES.find((c) => c.label === "Sections prêtes")?.items ?? []).map((it) => {
+                    const ItIcon = it.icon;
+                    return (
+                      <button key={it.key} onClick={() => addBlock(it.key)}
+                        className="w-full flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3.5 py-3 hover:border-[#006e2f] hover:shadow-sm transition-all text-left">
+                        <ItIcon size={18} className="text-[#006e2f] flex-shrink-0" />
+                        <span className="text-xs font-bold text-[#191c1e]">{it.label}</span>
+                        <Plus size={14} className="ml-auto text-[#5c647a]" />
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </aside>
+
+        {/* ══ CANVAS : rendu RÉEL de la page — cliquez un élément pour le régler ══ */}
+        <main className="flex-1 overflow-y-auto" onClick={() => setSelectedId(null)}>
+          <div className="max-w-4xl mx-auto px-4 md:px-6 pt-5 space-y-4">
           {(() => {
             const info = STEP_INFO[activeStep?.stepType ?? "LANDING"] ?? STEP_INFO.LANDING;
             const InfoIcon = info.icon;
@@ -2271,7 +2427,12 @@ export default function FunnelEditorClient({ id }: { id: string }) {
               </div>
             );
           })()}
+          </div>
 
+          {/* Zone de rendu réel (thème du tunnel appliqué) */}
+          <div className={device === "mobile" ? "max-w-[400px] mx-auto my-5 rounded-[30px] border-[10px] border-gray-900 overflow-hidden shadow-2xl" : "max-w-4xl mx-auto px-4 md:px-6 my-5"}>
+            <div className={device === "mobile" ? "" : "rounded-2xl border border-gray-200 shadow-sm overflow-hidden"}>
+              <div className="min-h-[50vh] pb-10" style={{ background: liveTheme.bgColor, fontFamily: `'${liveTheme.font}', sans-serif`, color: liveTheme.textColor }}>
           {blocks.length === 0 ? (
             <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-12 text-center">
               <Boxes size={48} className="text-gray-300 mx-auto" />
@@ -2286,38 +2447,45 @@ export default function FunnelEditorClient({ id }: { id: string }) {
               <DndBlockCanvas
                 blocks={blocks}
                 onReorder={persistBlocks}
-                renderBlock={(block, i) => (
-                  <>
-                    {/* Floating toolbar */}
-                    <div className="absolute -top-3 right-4 z-10 flex items-center gap-0.5 bg-white rounded-lg shadow-md border border-gray-200 opacity-0 group-hover/block:opacity-100 transition-opacity">
-                      <button onClick={() => moveBlock(i, -1)} disabled={i === 0}
-                        className="p-1.5 text-[#5c647a] hover:text-[#006e2f] hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed rounded-l-lg transition-colors"
-                        title="Monter">
-                        <ArrowUp size={16} />
-                      </button>
-                      <button onClick={() => moveBlock(i, 1)} disabled={i === blocks.length - 1}
-                        className="p-1.5 text-[#5c647a] hover:text-[#006e2f] hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                        title="Descendre">
-                        <ArrowDown size={16} />
-                      </button>
-                      <div className="w-px h-4 bg-gray-200" />
-                      <button onClick={() => duplicateBlock(i)}
-                        className="p-1.5 text-[#5c647a] hover:text-[#006e2f] hover:bg-gray-50 rounded-r-lg transition-colors"
-                        title="Dupliquer">
-                        <Copy size={16} />
-                      </button>
+                renderBlock={(block, i) => {
+                  const isSel = selectedId === block.id;
+                  const tpl = BLOCK_TEMPLATES[block.type];
+                  return (
+                    <div
+                      onClick={(e) => { e.stopPropagation(); setSelectedId(block.id); }}
+                      className={`relative cursor-pointer transition-all ${isSel ? "ring-2 ring-[#006e2f]" : "hover:ring-2 hover:ring-[#006e2f]/35"}`}>
+                      {/* Étiquette du type + actions rapides */}
+                      <div className={`absolute -top-3 right-3 z-20 flex items-center gap-0.5 bg-white rounded-lg shadow-md border border-gray-200 transition-opacity ${isSel ? "opacity-100" : "opacity-0 group-hover/block:opacity-100"}`}>
+                        <span className="px-2 text-[10px] font-bold text-[#006e2f] whitespace-nowrap">{tpl?.label ?? block.type}</span>
+                        <div className="w-px h-4 bg-gray-200" />
+                        <button onClick={(e) => { e.stopPropagation(); moveBlock(i, -1); }} disabled={i === 0}
+                          className="p-1.5 text-[#5c647a] hover:text-[#006e2f] hover:bg-gray-50 disabled:opacity-30 transition-colors" title="Monter"><ArrowUp size={15} /></button>
+                        <button onClick={(e) => { e.stopPropagation(); moveBlock(i, 1); }} disabled={i === blocks.length - 1}
+                          className="p-1.5 text-[#5c647a] hover:text-[#006e2f] hover:bg-gray-50 disabled:opacity-30 transition-colors" title="Descendre"><ArrowDown size={15} /></button>
+                        <button onClick={(e) => { e.stopPropagation(); duplicateBlock(i); }}
+                          className="p-1.5 text-[#5c647a] hover:text-[#006e2f] hover:bg-gray-50 transition-colors" title="Dupliquer"><Copy size={15} /></button>
+                        <button onClick={(e) => { e.stopPropagation(); deleteBlock(i); }}
+                          className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-r-lg transition-colors" title="Supprimer"><Trash2 size={15} /></button>
+                      </div>
+                      {/* Rendu RÉEL du bloc — identique à la page publique, inerte dans l'éditeur */}
+                      <div className="pointer-events-none select-none">
+                        {renderPublicBlock(block, liveTheme, () => {}, undefined, funnel.slug, funnel.salesLimit, funnel.salesCount)}
+                      </div>
                     </div>
-                    <BlockEditor block={block} onChange={(b) => updateBlock(i, b)} onDelete={() => deleteBlock(i)} />
-                  </>
-                )}
+                  );
+                }}
               />
-              <button onClick={() => setShowAddBlock(true)}
-                className="w-full py-3.5 rounded-2xl border-2 border-dashed border-gray-300 text-sm font-bold text-[#5c647a] hover:border-[#006e2f] hover:text-[#006e2f] transition-colors flex items-center justify-center gap-2">
+              <button onClick={(e) => { e.stopPropagation(); setShowAddBlock(true); }}
+                className="mx-4 md:mx-6 mt-4 w-[calc(100%-2rem)] md:w-[calc(100%-3rem)] py-3.5 rounded-2xl border-2 border-dashed border-gray-300 text-sm font-bold text-[#5c647a] hover:border-[#006e2f] hover:text-[#006e2f] transition-colors flex items-center justify-center gap-2">
                 <Plus size={18} />Ajouter un élément
               </button>
             </>
           )}
-      </main>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
 
       {showAddBlock && <PalettePicker onPick={addBlock} onClose={() => setShowAddBlock(false)} />}
 
