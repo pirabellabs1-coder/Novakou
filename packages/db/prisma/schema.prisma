@@ -2419,6 +2419,8 @@ model FunnelLead {
   name          String?
   email         String
   phone         String?
+  // Réponses des champs personnalisés du formulaire ({ "Libellé": "valeur" })
+  data          Json?
 
   funnel SalesFunnel @relation(fields: [funnelId], references: [id], onDelete: Cascade)
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactElement, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactElement, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import {
   Activity,
@@ -288,12 +288,24 @@ function MaterialIcon({
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// LINK RESOLUTION
+// LINK RESOLUTION + NAVIGATION ENTRE ÉTAPES DU TUNNEL
 // ═══════════════════════════════════════════════════════════════════════════
+// Navigateur d'étapes posé par le composant principal (une seule page de
+// tunnel rendue à la fois → un module-level suffit). Permet aux liens
+// « #etape-suivante » / « #etape-2 » et aux formulaires de changer d'étape.
+export const funnelNav: { next: () => void; goTo: (idx: number) => void } = {
+  next: () => {},
+  goTo: () => {},
+};
+
 function useLink(raw: string | undefined, onDefault: () => void) {
   return () => {
     const link = (raw ?? "").trim();
     if (!link) { onDefault(); return; }
+    // Navigation interne au tunnel
+    if (link === "#etape-suivante" || link === "#next") { funnelNav.next(); return; }
+    const mStep = link.match(/^#etape-(\d+)$/i);
+    if (mStep) { funnelNav.goTo(Number(mStep[1]) - 1); return; }
     if (link.startsWith("#")) {
       const el = document.querySelector(link);
       el?.scrollIntoView({ behavior: "smooth" });
@@ -307,6 +319,34 @@ function useLink(raw: string | undefined, onDefault: () => void) {
     // Fallback: treat as external
     window.open(`https://${link}`, "_blank", "noopener,noreferrer");
   };
+}
+
+// Événement pixel côté client (Facebook / GA4 / TikTok déjà injectés par
+// PixelInjector au niveau vendeur) — ex. "Lead" à la capture d'un email.
+function firePixelEvent(name: string, params?: Record<string, unknown>) {
+  try {
+    const w = window as unknown as {
+      fbq?: (a: string, e: string, p?: Record<string, unknown>) => void;
+      gtag?: (...args: unknown[]) => void;
+      ttq?: { track: (e: string, p?: Record<string, unknown>) => void };
+    };
+    w.fbq?.("track", name, params);
+    w.gtag?.("event", name, params ?? {});
+    w.ttq?.track(name, params);
+  } catch { /* pixels absents : silencieux */ }
+}
+
+// Tracking public (vues d'étapes…) — fire-and-forget.
+function trackFunnel(slug: string | undefined, type: string, stepId?: string) {
+  if (!slug) return;
+  try {
+    void fetch("/api/formations/public/funnel-track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug, type, stepId }),
+      keepalive: true,
+    }).catch(() => null);
+  } catch { /* silencieux */ }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -764,6 +804,9 @@ function ProductBlock({ data, theme }: { data: Record<string, unknown>; theme: T
 // READY-MADE SECTION RENDERERS
 // ═══════════════════════════════════════════════════════════════════════════
 // ─── LEAD FORM (page de capture) ────────────────────────────────────────────
+// Champ personnalisé d'un formulaire de capture (défini par le vendeur)
+type LeadField = { label: string; type?: string; required?: boolean; placeholder?: string };
+
 function LeadFormBlock({ data, theme, onCta, funnelSlug }: { data: Record<string, unknown>; theme: Theme; onCta: () => void; funnelSlug?: string }) {
   const title = (data.title as string) ?? "";
   const subtitle = (data.subtitle as string) ?? "";
@@ -772,14 +815,19 @@ function LeadFormBlock({ data, theme, onCta, funnelSlug }: { data: Record<string
   const collectPhone = data.collectPhone === true;
   const successMessage = (data.successMessage as string) || "Merci ! Vérifiez votre boîte mail.";
   const goNextStep = data.goNextStep === true;
+  const confetti = data.confetti !== false; // bonus : pluie de confettis (désactivable)
   const bgColor = (data.bgColor as string) || "#ffffff";
   const align = (data.align as string) ?? "center";
+  // Champs personnalisés illimités définis par le vendeur (en plus de l'email)
+  const customFields = (Array.isArray(data.fields) ? data.fields : []) as LeadField[];
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [extra, setExtra] = useState<Record<string, string>>({});
   const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [burst, setBurst] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -789,15 +837,29 @@ function LeadFormBlock({ data, theme, onCta, funnelSlug }: { data: Record<string
     }
     setState("loading"); setError(null);
     try {
+      const cleanExtra: Record<string, string> = {};
+      for (const f of customFields) {
+        const v = (extra[f.label] ?? "").trim();
+        if (v) cleanExtra[f.label] = v;
+      }
       const res = await fetch("/api/formations/public/funnel-lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug: funnelSlug, email: email.trim(), name: name.trim() || undefined, phone: phone.trim() || undefined }),
+        body: JSON.stringify({
+          slug: funnelSlug,
+          email: email.trim(),
+          name: name.trim() || undefined,
+          phone: phone.trim() || undefined,
+          extra: Object.keys(cleanExtra).length ? cleanExtra : undefined,
+        }),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Une erreur est survenue. Réessayez.");
       setState("done");
-      if (goNextStep) setTimeout(() => onCta(), 900);
+      firePixelEvent("Lead");
+      void onCta; // conservé dans la signature (compat renderBlockInner)
+      if (confetti) { setBurst(true); setTimeout(() => setBurst(false), 1600); }
+      if (goNextStep) setTimeout(() => funnelNav.next(), confetti ? 1200 : 500);
     } catch (err) {
       setState("error");
       setError(err instanceof Error ? err.message : "Une erreur est survenue. Réessayez.");
@@ -805,9 +867,37 @@ function LeadFormBlock({ data, theme, onCta, funnelSlug }: { data: Record<string
   }
 
   const inputCls = "w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-shadow";
+  const ringStyle = { "--tw-ring-color": `${theme.primaryColor}40` } as CSSProperties;
+  const CONFETTI_COLORS = [theme.primaryColor, theme.accentColor, "#f59e0b", "#ec4899", "#3b82f6", "#8b5cf6"];
+
+  function renderField(f: LeadField, i: number) {
+    const common = {
+      value: extra[f.label] ?? "",
+      onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setExtra((p) => ({ ...p, [f.label]: e.target.value })),
+      placeholder: f.placeholder || f.label,
+      required: f.required === true,
+      className: inputCls,
+      style: ringStyle,
+    };
+    if ((f.type ?? "text") === "textarea") return <textarea key={i} rows={3} {...common} className={`${inputCls} resize-none`} />;
+    return <input key={i} type={f.type === "number" ? "number" : f.type === "tel" ? "tel" : "text"} {...common} />;
+  }
 
   return (
-    <div className="max-w-md w-full mx-auto my-4">
+    <div className="max-w-md w-full mx-auto my-4 relative">
+      {/* Confettis (bonus) au succès */}
+      {burst && (
+        <div className="absolute inset-x-0 -top-2 h-0 z-20" aria-hidden>
+          {Array.from({ length: 26 }, (_, i) => (
+            <span key={i} className="fh-confetti" style={{
+              left: `${(i * 137) % 100}%`,
+              background: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+              animationDelay: `${(i % 7) * 70}ms`,
+              transform: `rotate(${(i * 53) % 360}deg)`,
+            }} />
+          ))}
+        </div>
+      )}
       <div className="rounded-2xl border border-gray-100 shadow-xl p-6 md:p-7" style={{ background: bgColor, textAlign: align as "left" | "center" | "right" }}>
         {state === "done" && !goNextStep ? (
           <div className="py-6 text-center">
@@ -821,14 +911,15 @@ function LeadFormBlock({ data, theme, onCta, funnelSlug }: { data: Record<string
             <form onSubmit={submit} className="space-y-2.5 text-left">
               {collectName && (
                 <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Votre prénom"
-                  className={inputCls} style={{ "--tw-ring-color": `${theme.primaryColor}40` } as CSSProperties} />
+                  className={inputCls} style={ringStyle} />
               )}
               <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Votre meilleure adresse email"
-                className={inputCls} style={{ "--tw-ring-color": `${theme.primaryColor}40` } as CSSProperties} />
+                className={inputCls} style={ringStyle} />
               {collectPhone && (
                 <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Votre numéro WhatsApp"
-                  className={inputCls} style={{ "--tw-ring-color": `${theme.primaryColor}40` } as CSSProperties} />
+                  className={inputCls} style={ringStyle} />
               )}
+              {customFields.map(renderField)}
               {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
               <button type="submit" disabled={state === "loading"}
                 className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-white text-sm font-extrabold shadow-lg active:scale-[0.98] transition-transform disabled:opacity-70"
@@ -1765,7 +1856,13 @@ export function renderBlock(block: Block, theme: Theme, onCta: () => void, paren
   }
 
   return (
-    <AnimatedBlock key={block.id} animation={anim} className={visClass}>
+    <AnimatedBlock
+      key={block.id}
+      animation={anim}
+      className={visClass}
+      delay={Math.max(0, Number(d._animDelay ?? 0))}
+      duration={Math.max(100, Number(d._animDuration ?? 600))}
+    >
       {customCss ? (
         <style dangerouslySetInnerHTML={{ __html: customCss.replace(/\.block/g, `#fh-block-${block.id}`) }} />
       ) : null}
@@ -1831,6 +1928,28 @@ function renderBlockInner(block: Block, theme: Theme, onCta: () => void, parentC
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// BARRE DE PROGRESSION DE LECTURE (bonus, activable dans les réglages)
+// ═══════════════════════════════════════════════════════════════════════════
+function ReadingProgressBar({ color }: { color: string }) {
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    const onScroll = () => {
+      const h = document.documentElement;
+      const max = h.scrollHeight - h.clientHeight;
+      setProgress(max > 0 ? Math.min(100, (h.scrollTop / max) * 100) : 0);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  return (
+    <div className="fixed top-0 left-0 right-0 h-1 z-[60] bg-transparent" aria-hidden>
+      <div className="h-full transition-[width] duration-150 ease-out" style={{ width: `${progress}%`, background: color }} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // MAIN
 // ═══════════════════════════════════════════════════════════════════════════
 const DEFAULT_THEME: Theme = {
@@ -1845,6 +1964,8 @@ export default function FunnelLandingClient({ slug }: { slug: string }) {
   const [funnel, setFunnel] = useState<Funnel | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  // Étape du tunnel affichée (0 = page d'entrée) — navigation multi-étapes
+  const [stepIdx, setStepIdx] = useState(0);
 
   useEffect(() => {
     async function load() {
@@ -1900,11 +2021,35 @@ export default function FunnelLandingClient({ slug }: { slug: string }) {
     }
   }, [fontFamily, blockFonts]);
 
+  // ── Navigation multi-étapes : les liens « #etape-suivante », « #etape-N »
+  //    et les formulaires de capture font avancer le visiteur dans le tunnel.
+  const goToStep = useCallback((idx: number) => {
+    setStepIdx((prev) => {
+      const total = funnel?.steps.length ?? 1;
+      const next = Math.max(0, Math.min(idx, total - 1));
+      return next === prev ? prev : next;
+    });
+  }, [funnel]);
+
+  useEffect(() => {
+    funnelNav.goTo = goToStep;
+    funnelNav.next = () => setStepIdx((i) => Math.min(i + 1, (funnel?.steps.length ?? 1) - 1));
+    return () => { funnelNav.goTo = () => {}; funnelNav.next = () => {}; };
+  }, [funnel, goToStep]);
+
+  // Changement d'étape → remonter en haut + compter la vue de l'étape
+  useEffect(() => {
+    if (!funnel || stepIdx === 0) return;
+    window.scrollTo({ top: 0, behavior: "auto" });
+    trackFunnel(funnel.slug, "step_view", funnel.steps[stepIdx]?.id);
+  }, [stepIdx, funnel]);
+
   function handleCta() {
     if (!funnel) return;
-    const landing = funnel.steps[0];
-    if (landing?.formationId) router.push(`/checkout?fids=${landing.formationId}`);
-    else if (landing?.productId) router.push(`/checkout?pids=${landing.productId}`);
+    const step = funnel.steps[stepIdx] ?? funnel.steps[0];
+    if (step?.formationId) router.push(`/checkout?fids=${step.formationId}`);
+    else if (step?.productId) router.push(`/checkout?pids=${step.productId}`);
+    else if (stepIdx < funnel.steps.length - 1) setStepIdx(stepIdx + 1);
     else router.push("/explorer");
   }
 
@@ -1929,12 +2074,14 @@ export default function FunnelLandingClient({ slug }: { slug: string }) {
   }
 
   const theme = { ...DEFAULT_THEME, ...(funnel.theme ?? {}) };
-  const landingStep = funnel.steps.find((s) => s.stepType === "LANDING") ?? funnel.steps[0];
-  const blocks = (landingStep?.blocks as Block[] | null) ?? [];
+  const currentStep = funnel.steps[Math.min(stepIdx, funnel.steps.length - 1)] ?? funnel.steps[0];
+  const blocks = (currentStep?.blocks as Block[] | null) ?? [];
+  const showProgressBar = (funnel.theme as Record<string, unknown> | null)?.progressBar === true;
 
   return (
     <div style={{ background: theme.bgColor, color: theme.textColor, fontFamily: `'${fontFamily}', sans-serif` }}>
       <PixelInjector pixels={funnel.instructeur.marketingPixels ?? []} event={{ name: "PageView" }} />
+      {showProgressBar && <ReadingProgressBar color={theme.primaryColor ?? "#006e2f"} />}
 
       {blocks.length === 0 ? (
         <div className="min-h-screen flex items-center justify-center px-6">

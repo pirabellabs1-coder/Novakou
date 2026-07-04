@@ -34,7 +34,7 @@ export async function GET(_req: Request, { params }: Params) {
       where: { funnelId: id },
       orderBy: { createdAt: "desc" },
       take: 500,
-      select: { id: true, name: true, email: true, phone: true, createdAt: true },
+      select: { id: true, name: true, email: true, phone: true, data: true, createdAt: true },
     });
     return NextResponse.json({ data: leads });
   } catch (err) {

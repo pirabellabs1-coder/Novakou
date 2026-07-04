@@ -165,10 +165,63 @@
 .fh-anim-zoom {
   animation: fh-zoom var(--anim-duration, 600ms) ease-out forwards;
 }
+.fh-anim-slide-right {
+  animation: fh-slide-right var(--anim-duration, 600ms) ease-out forwards;
+}
+.fh-anim-slide-down {
+  animation: fh-slide-down var(--anim-duration, 600ms) ease-out forwards;
+}
+.fh-anim-flip {
+  animation: fh-flip var(--anim-duration, 700ms) ease-out forwards;
+}
+.fh-anim-pulse {
+  animation: fh-fade-in var(--anim-duration, 400ms) ease-out forwards, fh-pulse 2s ease-in-out 0.5s infinite;
+}
+.fh-anim-shake {
+  animation: fh-fade-in var(--anim-duration, 400ms) ease-out forwards, fh-shake 0.8s ease-in-out 0.6s 2;
+}
 
 @keyframes fh-fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+@keyframes fh-slide-right {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes fh-slide-down {
+  from { opacity: 0; transform: translateY(-40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fh-flip {
+  from { opacity: 0; transform: perspective(600px) rotateX(-60deg); }
+  to { opacity: 1; transform: perspective(600px) rotateX(0); }
+}
+@keyframes fh-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.035); }
+}
+@keyframes fh-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+/* Confettis à la capture d'un lead (bonus) */
+@keyframes fh-confetti-fall {
+  0% { opacity: 1; transform: translateY(-10px) rotate(0deg); }
+  100% { opacity: 0; transform: translateY(130px) rotate(540deg); }
+}
+.fh-confetti {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 12px;
+  border-radius: 2px;
+  pointer-events: none;
+  animation: fh-confetti-fall 1.4s ease-in forwards;
 }
 @keyframes fh-slide-up {
   from { opacity: 0; transform: translateY(40px); }

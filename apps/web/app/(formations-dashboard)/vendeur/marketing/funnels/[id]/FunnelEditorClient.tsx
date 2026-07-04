@@ -35,6 +35,7 @@ import {
   Sparkles,
   CheckCircle2,
   BarChart3,
+  TrendingUp,
   Quote,
   HelpCircle,
   Timer,
@@ -680,6 +681,10 @@ function dropTargetFromEvent(t: HTMLElement | null): { owner: string; col: numbe
   return null;
 }
 
+// Étapes du tunnel courant (posées par le composant principal) — permet à
+// l'inspecteur des boutons de proposer « Aller à l'étape N » sans prop drilling.
+let EDITOR_STEPS: Array<{ title: string }> = [];
+
 // Pour le DÉPLACEMENT d'éléments existants, on filtre par TYPE de bloc
 // (les clés palette "row-2"… correspondent toutes au type "row").
 const COLUMN_ALLOWED_TYPES: string[] = COLUMN_ALLOWED_KEYS as string[];
@@ -946,6 +951,25 @@ function StringInput({ label, value, onChange, multiline, placeholder }: { label
   );
 }
 
+// Input texte qui ne committe qu'au BLUR (pour les champs qui déclenchent une
+// sauvegarde serveur — évite un PATCH par frappe).
+function DeferredStringInput({ label, value, onCommit, multiline, placeholder }: { label: string; value: string; onCommit: (v: string) => void; multiline?: boolean; placeholder?: string }) {
+  const [v, setV] = useState(value ?? "");
+  useEffect(() => { setV(value ?? ""); }, [value]);
+  const commit = () => { if (v !== (value ?? "")) onCommit(v); };
+  const cls = "w-full text-sm text-[#191c1e] placeholder-gray-400 bg-white px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]";
+  return (
+    <div className="min-w-0">
+      <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">{label}</label>
+      {multiline ? (
+        <textarea value={v} onChange={(e) => setV(e.target.value)} onBlur={commit} rows={3} placeholder={placeholder} className={`${cls} resize-none`} />
+      ) : (
+        <input type="text" value={v} onChange={(e) => setV(e.target.value)} onBlur={commit} placeholder={placeholder} className={cls} />
+      )}
+    </div>
+  );
+}
+
 function NumberInput({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
   return (
     <div className="min-w-0">
@@ -1148,12 +1172,24 @@ function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>
           </div>
         </div>
       );
-    case "button":
+    case "button": {
+      const curLink = (block.data.link as string) ?? "";
+      const stepValues = EDITOR_STEPS.map((_, i) => `#etape-${i + 1}`);
+      const actionValue = curLink === "#etape-suivante" ? "#etape-suivante" : stepValues.includes(curLink) ? curLink : "custom";
       return (
         <div className="space-y-2.5">
           <StringInput label="Texte du bouton" value={(block.data.text as string) ?? ""} onChange={(v) => update({ text: v })} />
-          <StringInput label="Lien (URL de destination) *" value={(block.data.link as string) ?? ""} onChange={(v) => update({ link: v })} placeholder="https://... ou /formations/explorer" />
-          <p className="text-[10px] text-[#5c647a] -mt-1.5">URL externe, interne (commence par /), ou #ancre-sur-cette-page</p>
+          <SelectInput label="Action au clic" value={actionValue} options={[
+            { value: "custom", label: "URL personnalisée" },
+            { value: "#etape-suivante", label: "→ Étape suivante du tunnel" },
+            ...EDITOR_STEPS.map((s, i) => ({ value: `#etape-${i + 1}`, label: `Étape ${i + 1} — ${s.title}` })),
+          ]} onChange={(v) => update({ link: v === "custom" ? "" : v })} />
+          {actionValue === "custom" && (
+            <>
+              <StringInput label="Lien (URL de destination) *" value={curLink} onChange={(v) => update({ link: v })} placeholder="https://... ou /formations/explorer" />
+              <p className="text-[10px] text-[#5c647a] -mt-1.5">URL externe, interne (commence par /), ou #ancre-sur-cette-page</p>
+            </>
+          )}
           <div>
             <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">Icône (optionnel)</label>
             <IconPicker value={(block.data.icon as string) ?? ""} onChange={(ic) => update({ icon: ic })} />
@@ -1171,6 +1207,7 @@ function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>
           </label>
         </div>
       );
+    }
     case "icon-box":
       return (
         <div className="space-y-2.5">
@@ -1249,12 +1286,35 @@ function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>
             <SelectInput label="Champ prénom" value={(block.data.collectName ? "oui" : "non")} options={[{ value: "oui", label: "Afficher" }, { value: "non", label: "Masquer" }]} onChange={(v) => update({ collectName: v === "oui" })} />
             <SelectInput label="Champ téléphone" value={(block.data.collectPhone ? "oui" : "non")} options={[{ value: "oui", label: "Afficher" }, { value: "non", label: "Masquer" }]} onChange={(v) => update({ collectPhone: v === "oui" })} />
           </div>
+          {/* Champs personnalisés ILLIMITÉS — le vendeur ajoute ce qu'il veut */}
+          <ListEditor
+            label="Champs personnalisés (illimités)"
+            items={(block.data.fields as Array<{ label: string; type: string; required?: boolean; placeholder?: string }>) ?? []}
+            template={{ label: "Votre question", type: "text", required: false, placeholder: "" }}
+            onChange={(items) => update({ fields: items })}
+            renderItem={(item, patch) => (
+              <div className="space-y-2">
+                <StringInput label="Libellé du champ" value={item.label} onChange={(v) => patch({ label: v })} />
+                <div className="grid grid-cols-2 gap-2">
+                  <SelectInput label="Type" value={item.type ?? "text"} options={[
+                    { value: "text", label: "Texte" },
+                    { value: "textarea", label: "Texte long" },
+                    { value: "tel", label: "Téléphone" },
+                    { value: "number", label: "Nombre" },
+                  ]} onChange={(v) => patch({ type: v })} />
+                  <SelectInput label="Obligatoire" value={item.required ? "oui" : "non"} options={[{ value: "non", label: "Non" }, { value: "oui", label: "Oui" }]} onChange={(v) => patch({ required: v === "oui" })} />
+                </div>
+                <StringInput label="Placeholder (optionnel)" value={item.placeholder ?? ""} onChange={(v) => patch({ placeholder: v })} />
+              </div>
+            )}
+          />
           <SelectInput label="Après l'envoi" value={(block.data.goNextStep ? "next" : "message")} options={[{ value: "message", label: "Afficher le message de succès" }, { value: "next", label: "Aller à l'étape suivante" }]} onChange={(v) => update({ goNextStep: v === "next" })} />
           <StringInput label="Message de succès" value={(block.data.successMessage as string) ?? ""} onChange={(v) => update({ successMessage: v })} multiline />
           <div className="grid grid-cols-2 gap-2">
+            <SelectInput label="Confettis au succès 🎉" value={block.data.confetti === false ? "non" : "oui"} options={[{ value: "oui", label: "Oui" }, { value: "non", label: "Non" }]} onChange={(v) => update({ confetti: v === "oui" })} />
             <SelectInput label="Alignement" value={(block.data.align as string) ?? "center"} options={ALIGN_OPTS} onChange={(v) => update({ align: v })} />
-            <ColorPicker label="Fond de la carte" value={(block.data.bgColor as string) ?? null} onChange={(c) => update({ bgColor: c })} />
           </div>
+          <ColorPicker label="Fond de la carte" value={(block.data.bgColor as string) ?? null} onChange={(c) => update({ bgColor: c })} />
         </div>
       );
     case "audio":
@@ -2254,14 +2314,25 @@ function BlockEditor({ block, onChange, onDelete, compact }: { block: Block; onC
           <ChevronDown size={14} className="ml-auto" />
         </summary>
         <div className="px-4 pb-3 space-y-2">
-          <SelectInput label="Animation" value={animValue} options={[
+          <SelectInput label="Animation à l'apparition" value={animValue} options={[
             { value: "none", label: "Aucune" },
             { value: "fade-in", label: "Fondu" },
             { value: "slide-up", label: "Glisser ↑" },
+            { value: "slide-down", label: "Glisser ↓" },
             { value: "slide-left", label: "Glisser ←" },
-            { value: "bounce", label: "Rebond" },
+            { value: "slide-right", label: "Glisser →" },
             { value: "zoom", label: "Zoom" },
+            { value: "bounce", label: "Rebond" },
+            { value: "flip", label: "Bascule 3D" },
+            { value: "pulse", label: "Pulsation (boucle)" },
+            { value: "shake", label: "Secousse (attention)" },
           ]} onChange={(v) => update({ _animation: v })} />
+          {animValue !== "none" && (
+            <div className="grid grid-cols-2 gap-2">
+              <SliderInput label="Délai" unit="ms" min={0} max={2000} step={100} value={Number(block.data._animDelay ?? 0)} onChange={(v) => update({ _animDelay: v })} />
+              <SliderInput label="Durée" unit="ms" min={100} max={2000} step={100} value={Number(block.data._animDuration ?? 600)} onChange={(v) => update({ _animDuration: v })} />
+            </div>
+          )}
           <SelectInput label="Visible sur" value={visValue} options={[
             { value: "all", label: "Tous" },
             { value: "desktop", label: "Desktop" },
@@ -2346,7 +2417,16 @@ function LeadsPanel({ funnelId, onClose }: { funnelId: string; onClose: () => vo
   }, [funnelId]);
 
   function exportCsv() {
-    const rows = [["Nom", "Email", "Téléphone", "Date"], ...leads.map((l) => [l.name ?? "", l.email, l.phone ?? "", new Date(l.createdAt).toLocaleString("fr-FR")])];
+    // Colonnes personnalisées : union de toutes les clés `data` rencontrées
+    const extraKeys = Array.from(new Set(leads.flatMap((l) => Object.keys((l.data as Record<string, string>) ?? {}))));
+    const rows = [
+      ["Nom", "Email", "Téléphone", ...extraKeys, "Date"],
+      ...leads.map((l) => [
+        l.name ?? "", l.email, l.phone ?? "",
+        ...extraKeys.map((k) => ((l.data as Record<string, string>) ?? {})[k] ?? ""),
+        new Date(l.createdAt).toLocaleString("fr-FR"),
+      ]),
+    ];
     const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";")).join("\n");
     const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
@@ -2393,9 +2473,113 @@ function LeadsPanel({ funnelId, onClose }: { funnelId: string; onClose: () => vo
                   </div>
                   <p className="text-xs text-[#006e2f] font-semibold truncate">{l.email}</p>
                   {l.phone && <p className="text-[11px] text-[#5c647a]">{l.phone}</p>}
+                  {l.data && Object.keys(l.data as Record<string, string>).length > 0 && (
+                    <div className="mt-1 pt-1 border-t border-gray-100 space-y-0.5">
+                      {Object.entries(l.data as Record<string, string>).map(([k, v]) => (
+                        <p key={k} className="text-[10.5px] text-[#5c647a]"><span className="font-semibold">{k} :</span> {v}</p>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATS PANEL — vues, leads, ventes, conversion, détail par étape
+// ═══════════════════════════════════════════════════════════════════════════
+function StatsPanel({ funnelId, onClose }: { funnelId: string; onClose: () => void }) {
+  const [stats, setStats] = useState<{
+    totalViews: number; salesCount: number; totalRevenue: number; leadsCount: number;
+    clicksCount: number; conversionRate: number; leadRate: number;
+    steps: Array<{ id: string; title: string; stepType: string; views: number; conversions: number }>;
+    daily: Array<{ day: string; views: number }>;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`/api/formations/vendeur/funnels/${funnelId}/stats`)
+      .then((r) => r.json())
+      .then((j) => setStats(j.data ?? null))
+      .catch(() => setStats(null))
+      .finally(() => setLoading(false));
+  }, [funnelId]);
+
+  const maxDaily = Math.max(1, ...(stats?.daily ?? []).map((d) => d.views));
+
+  return (
+    <div className="fixed inset-0 z-[9990]" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] animate-in fade-in duration-200" />
+      <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl overflow-y-auto overflow-x-hidden animate-in slide-in-from-right duration-300" onClick={(e) => e.stopPropagation()}>
+        <div className="sticky top-0 bg-white border-b border-gray-100 px-5 py-4 flex items-center justify-between z-10">
+          <h3 className="text-sm font-extrabold text-[#191c1e] flex items-center gap-2">
+            <TrendingUp size={16} className="text-[#006e2f]" />Statistiques du tunnel
+          </h3>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-[#5c647a] hover:bg-gray-100 transition-colors"><X size={18} /></button>
+        </div>
+        <div className="p-4 space-y-4">
+          {loading ? (
+            <div className="space-y-2">{[0, 1, 2].map((i) => <div key={i} className="h-20 rounded-xl bg-gray-100 animate-pulse" />)}</div>
+          ) : !stats ? (
+            <p className="text-xs text-[#5c647a] text-center py-10">Impossible de charger les statistiques.</p>
+          ) : (
+            <>
+              {/* Cartes principales */}
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { label: "Vues totales", value: stats.totalViews.toLocaleString("fr-FR"), color: "#3b82f6" },
+                  { label: "Leads capturés", value: stats.leadsCount.toLocaleString("fr-FR"), color: "#8b5cf6" },
+                  { label: "Ventes", value: stats.salesCount.toLocaleString("fr-FR"), color: "#006e2f" },
+                  { label: "Revenu", value: `${Math.round(stats.totalRevenue).toLocaleString("fr-FR")} FCFA`, color: "#f59e0b" },
+                ].map((c) => (
+                  <div key={c.label} className="rounded-xl border border-gray-100 p-3">
+                    <p className="text-[10px] font-bold text-[#5c647a] uppercase tracking-wide">{c.label}</p>
+                    <p className="text-xl font-extrabold mt-0.5" style={{ color: c.color }}>{c.value}</p>
+                  </div>
+                ))}
+              </div>
+              {/* Taux */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-xl bg-purple-50 border border-purple-100 p-3">
+                  <p className="text-[10px] font-bold text-purple-700 uppercase">Taux de capture</p>
+                  <p className="text-lg font-extrabold text-purple-700">{stats.leadRate}%</p>
+                </div>
+                <div className="rounded-xl bg-green-50 border border-green-100 p-3">
+                  <p className="text-[10px] font-bold text-green-700 uppercase">Taux de conversion</p>
+                  <p className="text-lg font-extrabold text-green-700">{stats.conversionRate}%</p>
+                </div>
+              </div>
+              {/* Mini graphique 14 jours */}
+              <div>
+                <p className="text-[10px] font-bold text-[#5c647a] uppercase tracking-wide mb-2">Vues — 14 derniers jours</p>
+                <div className="flex items-end gap-1 h-20 rounded-xl border border-gray-100 p-2">
+                  {stats.daily.map((d) => (
+                    <div key={d.day} className="flex-1 h-full flex flex-col justify-end items-center" title={`${d.day} : ${d.views} vue(s)`}>
+                      <div className="w-full rounded-sm bg-[#006e2f]/80 transition-all" style={{ height: `${Math.max(4, (d.views / maxDaily) * 100)}%`, opacity: d.views === 0 ? 0.15 : 1 }} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Détail par étape */}
+              <div>
+                <p className="text-[10px] font-bold text-[#5c647a] uppercase tracking-wide mb-2">Par étape</p>
+                <div className="space-y-1.5">
+                  {stats.steps.map((s, i) => (
+                    <div key={s.id} className="flex items-center gap-2 rounded-xl border border-gray-100 px-3 py-2">
+                      <span className="w-5 h-5 rounded-full bg-gray-100 text-[10px] font-extrabold text-[#5c647a] flex items-center justify-center flex-shrink-0">{i + 1}</span>
+                      <p className="text-xs font-bold text-[#191c1e] truncate flex-1">{s.title}</p>
+                      <span className="text-[10.5px] text-[#5c647a] tabular-nums flex-shrink-0">{s.views.toLocaleString("fr-FR")} vues</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] text-[#5c647a] mt-2">Les vues d&apos;étapes se comptent quand un visiteur avance dans le tunnel (boutons « étape suivante », formulaires…).</p>
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -2417,6 +2601,7 @@ export default function FunnelEditorClient({ id }: { id: string }) {
   const [showGallery, setShowGallery] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showLeads, setShowLeads] = useState(false);
+  const [showStats, setShowStats] = useState(false);
   // ── Canvas WYSIWYG (façon Système.io) ──
   const [selectedId, setSelectedId] = useState<string | null>(null); // bloc sélectionné sur le canvas
   const [sidebarTab, setSidebarTab] = useState<"elements" | "blocks">("elements");
@@ -2475,6 +2660,12 @@ export default function FunnelEditorClient({ id }: { id: string }) {
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Étapes exposées à l'inspecteur des boutons (« Aller à l'étape N »)
+  useEffect(() => {
+    EDITOR_STEPS = (funnel?.steps ?? []).map((s) => ({ title: s.title }));
+    return () => { EDITOR_STEPS = []; };
+  }, [funnel]);
 
   // Funnel vide (fraîchement créé) → ouvre la galerie de templates une seule fois,
   // pour que le vendeur parte d'un design pro au lieu d'une page blanche.
@@ -2696,6 +2887,10 @@ export default function FunnelEditorClient({ id }: { id: string }) {
             className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-xl text-xs font-semibold bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors flex-shrink-0" title="Leads capturés">
             <Mail size={14} /><span className="hidden lg:inline">Leads</span>
           </button>
+          <button onClick={() => setShowStats(true)}
+            className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-xl text-xs font-semibold bg-green-50 text-green-700 hover:bg-green-100 transition-colors flex-shrink-0" title="Statistiques du tunnel">
+            <TrendingUp size={14} /><span className="hidden lg:inline">Stats</span>
+          </button>
           <button onClick={() => setShowSettings(true)}
             className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors flex-shrink-0" title="Réglages du tunnel">
             <SlidersHorizontal size={14} /><span className="hidden lg:inline">Réglages</span>
@@ -2805,6 +3000,25 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                       ))}
                     </select>
                   </div>
+                  <div className="flex items-center justify-between">
+                    <label className="text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug">Barre de progression de lecture</label>
+                    <button onClick={() => save({ theme: { ...funnel.theme, progressBar: !funnel.theme?.progressBar } })}
+                      className={`w-9 h-5 rounded-full transition-colors relative ${funnel.theme?.progressBar ? "bg-[#006e2f]" : "bg-gray-300"}`}>
+                      <span className={`block w-4 h-4 rounded-full bg-white shadow absolute top-0.5 transition-all ${funnel.theme?.progressBar ? "left-4" : "left-0.5"}`} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              {/* ── SEO & partage (bonus) : titre/description/image quand le lien
+                   est partagé sur WhatsApp, Facebook… ── */}
+              <div>
+                <p className="text-[10px] font-bold text-[#5c647a] uppercase tracking-wider mb-2 flex items-center gap-1">
+                  <ExternalLink size={12} />SEO &amp; partage (WhatsApp, Facebook…)
+                </p>
+                <div className="space-y-3">
+                  <DeferredStringInput label="Titre affiché au partage" value={funnel.theme?.seo?.title ?? ""} onCommit={(v) => save({ theme: { ...funnel.theme, seo: { ...(funnel.theme?.seo ?? {}), title: v } } })} placeholder={funnel.name} />
+                  <DeferredStringInput label="Description" value={funnel.theme?.seo?.description ?? ""} onCommit={(v) => save({ theme: { ...funnel.theme, seo: { ...(funnel.theme?.seo ?? {}), description: v } } })} multiline placeholder="Ce que verront les gens avant de cliquer" />
+                  <MediaUpload label="Image de partage (1200×630 conseillé)" value={funnel.theme?.seo?.image ?? null} onChange={(url) => save({ theme: { ...funnel.theme, seo: { ...(funnel.theme?.seo ?? {}), image: url ?? "" } } })} accept="image" aspectRatio="landscape" />
                 </div>
               </div>
               <div className="pt-4 border-t border-gray-100">
@@ -2819,6 +3033,9 @@ export default function FunnelEditorClient({ id }: { id: string }) {
 
       {/* ── Panneau Leads (emails capturés par les formulaires) ── */}
       {showLeads && <LeadsPanel funnelId={id} onClose={() => setShowLeads(false)} />}
+
+      {/* ── Panneau Statistiques (vues, leads, ventes, conversion) ── */}
+      {showStats && <StatsPanel funnelId={id} onClose={() => setShowStats(false)} />}
 
       <div className="flex-1 flex overflow-hidden">
         {/* Voile derrière le tiroir (mobile uniquement) */}

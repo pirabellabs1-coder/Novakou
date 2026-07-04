@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState, type ReactNode, type ReactElement } from "react";
 
-export type AnimationType = "none" | "fade-in" | "slide-up" | "slide-left" | "bounce" | "zoom";
+export type AnimationType =
+  | "none" | "fade-in" | "slide-up" | "slide-left" | "bounce" | "zoom"
+  | "slide-right" | "slide-down" | "flip" | "pulse" | "shake";
 
 interface AnimatedBlockProps {
   animation?: AnimationType;
@@ -57,7 +59,9 @@ export default function AnimatedBlock({
     <div
       ref={ref}
       className={`${animClass} ${className}`.trim()}
-      style={{ animationDuration: `${duration}ms` }}
+      // Var CSS (pas animation-duration inline) : pulse/shake combinent une
+      // animation d'entrée ET une boucle — l'inline écraserait les deux.
+      style={{ ["--anim-duration" as string]: `${duration}ms` }}
     >
       {children}
     </div>

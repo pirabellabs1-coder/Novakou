@@ -14,6 +14,7 @@ import {
   PlusCircle,
   Info,
   AlertCircle,
+  Copy,
 } from "lucide-react";
 import {
   StCard,
@@ -97,6 +98,24 @@ export default function FunnelsListPage() {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur inconnue");
       setCreating(false);
+    }
+  }
+
+  const [duplicating, setDuplicating] = useState<string | null>(null);
+  async function handleDuplicate(e: React.MouseEvent, funnelId: string) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (duplicating) return;
+    setDuplicating(funnelId);
+    try {
+      const res = await fetch(`/api/formations/vendeur/funnels/${funnelId}/duplicate`, { method: "POST" });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error || "Duplication échouée");
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Duplication échouée");
+    } finally {
+      setDuplicating(null);
     }
   }
 
@@ -186,7 +205,19 @@ export default function FunnelsListPage() {
                         </div>
                         <p className="text-[12px] font-semibold truncate" style={{ color: ST.textSecondary }}>/{f.slug}</p>
                       </div>
-                      <ArrowRight className="w-5 h-5 transition-colors flex-shrink-0" style={{ color: ST.textFaint }} />
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <button
+                          type="button"
+                          onClick={(e) => handleDuplicate(e, f.id)}
+                          disabled={duplicating !== null}
+                          title="Dupliquer ce tunnel (copie en brouillon)"
+                          className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-40"
+                          style={{ color: ST.textFaint }}
+                        >
+                          {duplicating === f.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Copy className="w-4 h-4" />}
+                        </button>
+                        <ArrowRight className="w-5 h-5 transition-colors" style={{ color: ST.textFaint }} />
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-1 mb-4 overflow-x-auto">
