@@ -88,6 +88,26 @@ export async function PATCH(request: Request, { params }: Params) {
       await prisma.salesFunnel.update({ where: { id }, data: funnelUpdate });
     }
 
+    // Réordonner les étapes : body.stepsOrder = [stepId, stepId, …] dans le
+    // nouvel ordre. Tous les ids doivent appartenir au tunnel (intégrité).
+    if (Array.isArray(body.stepsOrder) && body.stepsOrder.length > 0) {
+      const ownedSteps = await prisma.funnelStep.findMany({
+        where: { funnelId: id },
+        select: { id: true },
+      });
+      const ownedIds = new Set(ownedSteps.map((s) => s.id));
+      const order = body.stepsOrder.map(String);
+      const valid = order.length === ownedIds.size && order.every((sid: string) => ownedIds.has(sid)) && new Set(order).size === order.length;
+      if (!valid) {
+        return NextResponse.json({ error: "stepsOrder invalide (ids manquants ou en double)" }, { status: 400 });
+      }
+      await prisma.$transaction(
+        order.map((sid: string, i: number) =>
+          prisma.funnelStep.update({ where: { id: sid }, data: { stepOrder: i + 1 } })
+        )
+      );
+    }
+
     // Update individual steps
     if (Array.isArray(body.steps)) {
       for (const step of body.steps) {

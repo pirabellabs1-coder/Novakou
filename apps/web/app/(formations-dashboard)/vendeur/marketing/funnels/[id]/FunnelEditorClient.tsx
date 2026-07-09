@@ -50,6 +50,7 @@ import {
   BadgePercent,
   PartyPopper,
   Trash2,
+  Pencil,
   X,
   Info,
   Plus,
@@ -2602,6 +2603,15 @@ export default function FunnelEditorClient({ id }: { id: string }) {
   const [showSettings, setShowSettings] = useState(false);
   const [showLeads, setShowLeads] = useState(false);
   const [showStats, setShowStats] = useState(false);
+  // ── Gestion des ÉTAPES (ajout, renommage, suppression, réordonnancement) ──
+  const [showAddStep, setShowAddStep] = useState(false);
+  const [addStepType, setAddStepType] = useState<string>("LANDING");
+  const [addStepTitle, setAddStepTitle] = useState("");
+  const [addingStep, setAddingStep] = useState(false);
+  const [renamingStepId, setRenamingStepId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [stepDragIdx, setStepDragIdx] = useState<number | null>(null);
+  const [stepDropIdx, setStepDropIdx] = useState<number | null>(null);
   // ── Canvas WYSIWYG (façon Système.io) ──
   const [selectedId, setSelectedId] = useState<string | null>(null); // bloc sélectionné sur le canvas
   const [sidebarTab, setSidebarTab] = useState<"elements" | "blocks">("elements");
@@ -2716,6 +2726,75 @@ export default function FunnelEditorClient({ id }: { id: string }) {
     if (!ok) return;
     await fetch(`/api/formations/vendeur/funnels/${id}`, { method: "DELETE" });
     router.push("/vendeur/marketing/funnels");
+  }
+
+  // ── ÉTAPES PERSONNALISABLES : ajouter / renommer / supprimer / réordonner ──
+  async function handleAddStep() {
+    if (addingStep) return;
+    setAddingStep(true);
+    try {
+      const res = await fetch(`/api/formations/vendeur/funnels/${id}/steps`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stepType: addStepType, title: addStepTitle.trim() || (STEP_INFO[addStepType]?.title ?? "Nouvelle étape") }),
+      });
+      const j = await res.json();
+      if (res.ok && j.data) {
+        setFunnel((f) => (f ? { ...f, steps: [...f.steps, j.data] } : f));
+        setActiveStepId(j.data.id);
+        setSelectedId(null);
+        setShowAddStep(false);
+        setAddStepTitle("");
+      }
+    } finally {
+      setAddingStep(false);
+    }
+  }
+
+  async function handleDeleteStep(stepId: string) {
+    if (!funnel || funnel.steps.length <= 1) return;
+    const step = funnel.steps.find((s) => s.id === stepId);
+    const ok = await confirmAction({
+      title: `Supprimer l'étape « ${step?.title ?? ""} » ?`,
+      message: "Tout le contenu de cette page sera définitivement supprimé.",
+      confirmLabel: "Supprimer l'étape",
+      confirmVariant: "danger",
+      icon: "delete",
+    });
+    if (!ok) return;
+    const res = await fetch(`/api/formations/vendeur/funnels/${id}/steps/${stepId}`, { method: "DELETE" });
+    if (res.ok) {
+      setFunnel((f) => (f ? { ...f, steps: f.steps.filter((s) => s.id !== stepId) } : f));
+      if (activeStepId === stepId) {
+        setActiveStepId(funnel.steps.find((s) => s.id !== stepId)?.id ?? null);
+        setSelectedId(null);
+      }
+    }
+  }
+
+  function startRenameStep(stepId: string, current: string) {
+    setRenamingStepId(stepId);
+    setRenameValue(current);
+  }
+
+  function commitRenameStep() {
+    const sid = renamingStepId;
+    const title = renameValue.trim();
+    setRenamingStepId(null);
+    if (!sid || !title || !funnel) return;
+    if (funnel.steps.find((s) => s.id === sid)?.title === title) return;
+    // Optimiste (les PATCH peuvent être lents) puis sauvegarde serveur
+    setFunnel((f) => (f ? { ...f, steps: f.steps.map((s) => (s.id === sid ? { ...s, title } : s)) } : f));
+    save({ steps: [{ id: sid, title }] });
+  }
+
+  function reorderSteps(from: number, to: number) {
+    if (!funnel || from === to || from < 0 || to < 0) return;
+    const arr = [...funnel.steps];
+    const [moved] = arr.splice(from, 1);
+    arr.splice(to, 0, moved);
+    setFunnel((f) => (f ? { ...f, steps: arr } : f));
+    save({ stepsOrder: arr.map((s) => s.id) });
   }
 
   if (loading || !funnel) {
@@ -2910,35 +2989,109 @@ export default function FunnelEditorClient({ id }: { id: string }) {
           </button>
         </div>
 
-        {/* ── Étapes du tunnel : stepper HORIZONTAL en haut (remplace l'ancienne
-             sidebar verticale) — pills animées, défilables sur mobile. ── */}
+        {/* ── Étapes du tunnel : stepper HORIZONTAL, entièrement PERSONNALISABLE —
+             clic = ouvrir, double-clic ou crayon = renommer, glisser = réordonner,
+             croix = supprimer, « + Étape » = ajouter. ── */}
         <div className="border-t border-gray-100 bg-white/60">
           <div className="px-4 md:px-6 py-2.5 flex items-center gap-1.5 overflow-x-auto">
             {funnel.steps.map((s, i) => {
               const info = STEP_INFO[s.stepType] ?? STEP_INFO.LANDING;
               const isActive = s.id === activeStepId;
+              const isRenaming = renamingStepId === s.id;
               const StepIcon = info.icon;
               return (
                 <div key={s.id} className="flex items-center gap-1.5 flex-shrink-0">
                   {i > 0 && <ArrowRight size={14} className="text-gray-300 flex-shrink-0" />}
-                  <button onClick={() => { setActiveStepId(s.id); setSelectedId(null); }}
-                    className={`group flex items-center gap-2 pl-1.5 pr-3.5 py-1.5 rounded-full border transition-all duration-300 ease-out ${
+                  {/* Ligne d'insertion pendant le drag d'étape */}
+                  {stepDragIdx !== null && stepDropIdx === i && stepDragIdx !== i && (
+                    <span className="w-1 h-8 rounded-full bg-[#006e2f] flex-shrink-0" />
+                  )}
+                  <div
+                    draggable={!isRenaming}
+                    onDragStart={(e) => { e.dataTransfer.setData("application/x-nk-step", s.id); e.dataTransfer.effectAllowed = "move"; setStepDragIdx(i); }}
+                    onDragEnd={() => { setStepDragIdx(null); setStepDropIdx(null); }}
+                    onDragOver={(e) => {
+                      // Le type MIME est lisible pendant le survol — plus fiable que
+                      // l'état React (asynchrone) pour autoriser le drop.
+                      if (stepDragIdx === null && !e.dataTransfer.types?.includes("application/x-nk-step")) return;
+                      e.preventDefault(); e.dataTransfer.dropEffect = "move"; setStepDropIdx(i);
+                    }}
+                    onDrop={(e) => {
+                      const sid = e.dataTransfer.getData("application/x-nk-step");
+                      if (!sid) return;
+                      e.preventDefault();
+                      const from = funnel.steps.findIndex((x) => x.id === sid);
+                      if (from !== -1) reorderSteps(from, i);
+                      setStepDragIdx(null); setStepDropIdx(null);
+                    }}
+                    onClick={() => { if (!isRenaming) { setActiveStepId(s.id); setSelectedId(null); } }}
+                    onDoubleClick={() => startRenameStep(s.id, s.title)}
+                    className={`group flex items-center gap-2 pl-1.5 pr-2.5 py-1.5 rounded-full border transition-all duration-300 ease-out cursor-pointer ${
                       isActive
                         ? "text-white shadow-lg scale-[1.05]"
                         : "bg-white text-[#191c1e] border-gray-200 hover:border-gray-300 hover:bg-gray-50 hover:-translate-y-0.5"
-                    }`}
-                    style={isActive ? { background: info.color, borderColor: info.color, boxShadow: `0 6px 18px ${info.color}55` } : undefined}>
+                    } ${stepDragIdx === i ? "opacity-40" : ""}`}
+                    style={isActive ? { background: info.color, borderColor: info.color, boxShadow: `0 6px 18px ${info.color}55` } : undefined}
+                    title="Clic : ouvrir · Double-clic : renommer · Glisser : réordonner">
                     <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-extrabold transition-colors duration-300 ${
                       isActive ? "bg-white/25 text-white" : "bg-gray-100 text-[#5c647a] group-hover:bg-gray-200"
                     }`}>
                       {i + 1}
                     </span>
                     <StepIcon size={14} className={`transition-colors duration-300 ${isActive ? "text-white" : "text-[#5c647a]"}`} />
-                    <span className="text-xs font-bold whitespace-nowrap max-w-[150px] truncate">{s.title}</span>
-                  </button>
+                    {isRenaming ? (
+                      <input
+                        autoFocus
+                        value={renameValue}
+                        onChange={(e) => setRenameValue(e.target.value)}
+                        onBlur={commitRenameStep}
+                        onKeyDown={(e) => { if (e.key === "Enter") commitRenameStep(); if (e.key === "Escape") setRenamingStepId(null); }}
+                        onClick={(e) => e.stopPropagation()}
+                        className={`text-xs font-bold bg-transparent outline-none border-b w-[120px] ${isActive ? "text-white border-white/60 placeholder-white/50" : "text-[#191c1e] border-gray-300"}`}
+                        maxLength={80}
+                      />
+                    ) : (
+                      <span className="text-xs font-bold whitespace-nowrap max-w-[150px] truncate">{s.title}</span>
+                    )}
+                    {/* Actions de l'étape active : renommer / supprimer */}
+                    {isActive && !isRenaming && (
+                      <span className="flex items-center gap-0.5 ml-0.5">
+                        <button onClick={(e) => { e.stopPropagation(); startRenameStep(s.id, s.title); }}
+                          className="p-1 rounded-full hover:bg-white/25 transition-colors" title="Renommer l'étape">
+                          <Pencil size={11} className="text-white/90" />
+                        </button>
+                        {funnel.steps.length > 1 && (
+                          <button onClick={(e) => { e.stopPropagation(); handleDeleteStep(s.id); }}
+                            className="p-1 rounded-full hover:bg-white/25 transition-colors" title="Supprimer l'étape">
+                            <X size={12} className="text-white/90" />
+                          </button>
+                        )}
+                      </span>
+                    )}
+                  </div>
                 </div>
               );
             })}
+            {/* Zone de drop en fin de liste */}
+            {stepDragIdx !== null && (
+              <span
+                onDragOver={(e) => { e.preventDefault(); setStepDropIdx(funnel.steps.length - 1); }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const sid = e.dataTransfer.getData("application/x-nk-step");
+                  const from = sid ? funnel.steps.findIndex((x) => x.id === sid) : stepDragIdx;
+                  if (from !== null && from !== -1) reorderSteps(from, funnel.steps.length - 1);
+                  setStepDragIdx(null); setStepDropIdx(null);
+                }}
+                className="w-8 h-8 flex-shrink-0"
+              />
+            )}
+            {/* Ajouter une étape */}
+            <button onClick={() => { setAddStepType("LANDING"); setAddStepTitle(""); setShowAddStep(true); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 border-dashed border-gray-300 text-xs font-bold text-[#5c647a] hover:border-[#006e2f] hover:text-[#006e2f] transition-colors flex-shrink-0"
+              title="Ajouter une étape au tunnel">
+              <Plus size={14} />Étape
+            </button>
           </div>
         </div>
       </div>
@@ -3027,6 +3180,55 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modale « Ajouter une étape » : type + titre ── */}
+      {showAddStep && (
+        <div className="fixed inset-0 z-[10000] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setShowAddStep(false)}>
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-lg font-extrabold text-[#191c1e]">Ajouter une étape</h2>
+              <button onClick={() => setShowAddStep(false)} className="p-1.5 rounded-lg text-[#5c647a] hover:bg-gray-100 transition-colors"><X size={18} /></button>
+            </div>
+            <p className="text-xs text-[#5c647a] mb-4">L&apos;étape est ajoutée à la fin du tunnel — glissez sa pilule pour la déplacer. Elle démarre vide : construisez-la bloc par bloc ou avec un template.</p>
+            <div className="space-y-2 mb-4">
+              {Object.entries(STEP_INFO).map(([type, info]) => {
+                const TypeIcon = info.icon;
+                const selected = addStepType === type;
+                return (
+                  <button key={type} onClick={() => setAddStepType(type)}
+                    className={`w-full flex items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left transition-all ${selected ? "shadow-md" : "border-gray-200 hover:border-gray-300 opacity-80 hover:opacity-100"}`}
+                    style={selected ? { borderColor: info.color, background: info.bgTint } : undefined}>
+                    <span className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${info.color}18` }}>
+                      <TypeIcon size={18} style={{ color: info.color }} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-extrabold text-[#191c1e]">{info.title}</span>
+                      <span className="block text-[11px] text-[#5c647a] truncate">{info.subtitle}</span>
+                    </span>
+                    {selected && <CheckCircle2 size={18} style={{ color: info.color }} className="flex-shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+            <label className="block text-[10px] font-bold text-[#5c647a] uppercase tracking-wider mb-1.5">Nom de l&apos;étape</label>
+            <input
+              type="text"
+              value={addStepTitle}
+              onChange={(e) => setAddStepTitle(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleAddStep(); }}
+              placeholder={STEP_INFO[addStepType]?.title ?? "Nouvelle étape"}
+              maxLength={80}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] mb-4"
+            />
+            <button onClick={handleAddStep} disabled={addingStep}
+              className="w-full py-3 rounded-xl text-white text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-60"
+              style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}>
+              {addingStep ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+              {addingStep ? "Ajout en cours…" : "Ajouter l'étape"}
+            </button>
           </div>
         </div>
       )}
