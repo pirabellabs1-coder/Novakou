@@ -38,7 +38,7 @@ const nextConfig: NextConfig = {
   typescript: { ignoreBuildErrors: true },
   // Monorepo: indiquer la racine pour que Next.js trace les fichiers Prisma
   outputFileTracingRoot: path.join(__dirname, "../../"),
-  serverExternalPackages: ["@prisma/client", "prisma"],
+  serverExternalPackages: ["@prisma/client", "prisma", "@sparticuz/chromium", "playwright-core"],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "res.cloudinary.com" },

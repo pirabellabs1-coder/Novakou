@@ -6,8 +6,9 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { extractViaBrowser } from "@/lib/import/browser-extract";
 
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 /**
  * POST /api/marketing/funnels/import-systeme
@@ -654,27 +655,58 @@ export async function POST(request: Request) {
     }
 
     // ── Importer chaque page (1 URL = 1 étape du tunnel) ──
-    const pages: Array<{ url: URL; blocks: ImportedBlock[]; title: string; ogTitle: string | null; ogDesc: string | null; fullImport: boolean }> = [];
+    const pages: Array<{ url: URL; blocks: ImportedBlock[]; title: string; ogTitle: string | null; ogDesc: string | null; fullImport: boolean; engine: string }> = [];
     for (const pageUrl of parsedUrls) {
-      let html = "", rawHtml = "", cssVars: CssVars = new Map();
+      let blocks: ImportedBlock[] = [];
+      let engine = "browser";
+      let browserTitle: string | null = null;
+
+      // 1) MÉTHODE FIDÈLE : rendu par navigateur réel (styles calculés, images,
+      //    vidéos JS). C'est la voie principale.
       try {
-        ({ html, rawHtml, cssVars } = await fetchInlinedPage(pageUrl));
-      } catch {
-        return NextResponse.json(
-          { error: `Impossible de récupérer ${pageUrl.hostname}${pageUrl.pathname}. Vérifiez que l'URL est bien PUBLIQUE (l'adresse que voient vos visiteurs, pas celle de votre tableau de bord).` },
-          { status: 502 },
-        );
+        const br = await extractViaBrowser(pageUrl.toString());
+        if (br && br.blocks.length >= 3) {
+          blocks = br.blocks as ImportedBlock[];
+          browserTitle = br.title || null;
+        }
+      } catch (e) {
+        console.error("[import-systeme] browser extract failed:", e);
       }
 
-      const ogTitle = extractMeta(rawHtml, "og:title");
-      const ogDesc = extractMeta(rawHtml, "og:description") || extractMeta(rawHtml, "description");
-      const htmlTitle = rawHtml.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1]?.trim() ?? null;
+      // Métadonnées (toujours utiles pour le nom/SEO), + fallback HTML si besoin.
+      let rawHtml = "";
+      let ogTitle: string | null = null, ogDesc: string | null = null, htmlTitle: string | null = null;
 
-      let blocks: ImportedBlock[] = [];
-      try {
-        blocks = extractPage(html, pageUrl, cssVars);
-      } catch (e) {
-        console.error("[import-systeme] extract error:", e);
+      // 2) FILET DE SÉCURITÉ : si le navigateur n'a rien donné, analyse HTML statique.
+      if (blocks.length < 3) {
+        engine = "static";
+        let html = "", cssVars: CssVars = new Map();
+        try {
+          ({ html, rawHtml, cssVars } = await fetchInlinedPage(pageUrl));
+        } catch {
+          return NextResponse.json(
+            { error: `Impossible de récupérer ${pageUrl.hostname}${pageUrl.pathname}. Vérifiez que l'URL est bien PUBLIQUE (l'adresse que voient vos visiteurs, pas celle de votre tableau de bord).` },
+            { status: 502 },
+          );
+        }
+        ogTitle = extractMeta(rawHtml, "og:title");
+        ogDesc = extractMeta(rawHtml, "og:description") || extractMeta(rawHtml, "description");
+        htmlTitle = rawHtml.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1]?.trim() ?? null;
+        try {
+          blocks = extractPage(html, pageUrl, cssVars);
+        } catch (e) {
+          console.error("[import-systeme] extract error:", e);
+        }
+      } else {
+        // Navigateur OK : on récupère juste les métadonnées (léger) pour le nom/SEO.
+        try {
+          const meta = await fetchInlinedPage(pageUrl);
+          rawHtml = meta.rawHtml;
+          ogTitle = extractMeta(rawHtml, "og:title");
+          ogDesc = extractMeta(rawHtml, "og:description") || extractMeta(rawHtml, "description");
+          htmlTitle = rawHtml.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1]?.trim() ?? null;
+        } catch { /* métadonnées non critiques */ }
+        if (!ogTitle && browserTitle) htmlTitle = browserTitle;
       }
 
       const fullImport = blocks.length >= 3;
@@ -709,7 +741,7 @@ export async function POST(request: Request) {
         url: pageUrl,
         blocks,
         title: (cleanTitle(ogTitle) || cleanTitle(firstHeading) || cleanTitle(htmlTitle) || `Étape ${pages.length + 1}`).slice(0, 60),
-        ogTitle, ogDesc, fullImport,
+        ogTitle, ogDesc, fullImport, engine,
       });
     }
 
@@ -766,6 +798,7 @@ export async function POST(request: Request) {
         blocksCount: totalBlocks,
         styledCount,
         rowsCount,
+        engine: pages.every((p) => p.engine === "browser") ? "browser" : pages.some((p) => p.engine === "browser") ? "mixed" : "static",
         fullImport: pages.every((p) => p.fullImport),
         types: allTypes,
       },
