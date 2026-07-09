@@ -11,6 +11,9 @@ import type { Browser } from "playwright-core";
 export type ExtractedBlock = { id: string; type: string; data: Record<string, unknown> };
 export type BrowserExtractResult = { blocks: ExtractedBlock[]; title: string; sections: number };
 
+// Dernière erreur du navigateur (diagnostic — exposé temporairement dans l'API).
+export let lastBrowserError: string | null = null;
+
 async function launchBrowser(): Promise<Browser> {
   const { chromium } = await import("playwright-core");
   const serverless = !!process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.VERCEL === "1";
@@ -41,6 +44,7 @@ async function launchBrowser(): Promise<Browser> {
  */
 export async function extractViaBrowser(url: string): Promise<BrowserExtractResult | null> {
   let browser: Browser | null = null;
+  lastBrowserError = null;
   try {
     browser = await launchBrowser();
     const ctx = await browser.newContext({
@@ -67,6 +71,7 @@ export async function extractViaBrowser(url: string): Promise<BrowserExtractResu
     if (!result || !Array.isArray(result.blocks) || result.blocks.length < 2) return null;
     return result;
   } catch (err) {
+    lastBrowserError = err instanceof Error ? `${err.message}`.slice(0, 300) : String(err).slice(0, 300);
     console.error("[browser-extract]", err);
     try { await browser?.close(); } catch { /* noop */ }
     return null;

@@ -39,6 +39,14 @@ const nextConfig: NextConfig = {
   // Monorepo: indiquer la racine pour que Next.js trace les fichiers Prisma
   outputFileTracingRoot: path.join(__dirname, "../../"),
   serverExternalPackages: ["@prisma/client", "prisma", "@sparticuz/chromium", "playwright-core"],
+  // Force l'inclusion du binaire Chromium (@sparticuz) dans la fonction
+  // serverless de l'import — sinon Next.js ne le trace pas et le navigateur
+  // ne démarre pas sur Vercel.
+  outputFileTracingIncludes: {
+    "/api/marketing/funnels/import-systeme": [
+      "../../node_modules/.pnpm/@sparticuz+chromium@*/node_modules/@sparticuz/chromium/**",
+    ],
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "res.cloudinary.com" },
