@@ -51,6 +51,7 @@
     "dompurify": "^3.3.3",
     "isomorphic-dompurify": "^2.36.0",
     "jspdf": "^2.5.2",
+    "juice": "^12.1.1",
     "lucide-react": "^0.468.0",
     "marked": "^18.0.5",
     "next": "15.5.12",

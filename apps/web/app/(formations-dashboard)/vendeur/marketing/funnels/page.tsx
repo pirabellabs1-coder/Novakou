@@ -122,8 +122,8 @@ export default function FunnelsListPage() {
   async function importFromSysteme() {
     const url = await promptAction({
       title: "Importer depuis Systeme.io",
-      message: "Collez l'URL PUBLIQUE de votre page (celle que voient vos visiteurs). On importe son contenu — titres, textes, listes, images, boutons, vidéos, formulaire — dans l'ordre de la page, en brouillon. Les couleurs exactes ne sont pas reprises : votre thème Novakou s'applique.",
-      placeholder: "https://votre-funnel.systeme.io/...",
+      message: "Collez l'URL PUBLIQUE de votre page (celle que voient vos visiteurs). Tout est importé : titres, textes, listes, images, boutons, vidéos, formulaire — AVEC les couleurs, fonds et tailles d'origine. Tunnel à plusieurs pages ? Collez plusieurs URLs séparées par des espaces : chaque page devient une étape.",
+      placeholder: "https://votre-funnel.systeme.io/page-1 https://…/page-2",
       confirmLabel: "Importer",
       cancelLabel: "Annuler",
       icon: "download",
