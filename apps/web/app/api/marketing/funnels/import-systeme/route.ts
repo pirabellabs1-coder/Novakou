@@ -6,7 +6,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
-import { extractViaBrowser, lastBrowserError } from "@/lib/import/browser-extract";
+import { extractViaBrowser } from "@/lib/import/browser-extract";
 
 export const maxDuration = 300;
 
@@ -799,7 +799,6 @@ export async function POST(request: Request) {
         styledCount,
         rowsCount,
         engine: pages.every((p) => p.engine === "browser") ? "browser" : pages.some((p) => p.engine === "browser") ? "mixed" : "static",
-        browserError: lastBrowserError, // TEMP diagnostic
         fullImport: pages.every((p) => p.fullImport),
         types: allTypes,
       },
