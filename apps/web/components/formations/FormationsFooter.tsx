@@ -66,6 +66,7 @@ export function FormationsFooter() {
             <li><Link href="/partenaires" className="hover:text-[#006e2f] transition-colors">Partenaires</Link></li>
             <li><Link href="/contact" className="hover:text-[#006e2f] transition-colors">Contact</Link></li>
             <li><Link href="/aide" className="hover:text-[#006e2f] transition-colors">Centre d&apos;aide</Link></li>
+            <li><Link href="/documentation-paiements" className="hover:text-[#006e2f] transition-colors">Documentation paiements</Link></li>
           </ul>
         </div>
 

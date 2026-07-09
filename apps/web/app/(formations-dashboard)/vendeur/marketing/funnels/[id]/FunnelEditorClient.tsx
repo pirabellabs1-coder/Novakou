@@ -105,6 +105,8 @@ type BlockType =
   | "video" | "image-gallery"
   // Product picker (pulls from vendor catalog)
   | "product"
+  // Checkout — vraie page de paiement (order bump, promo, Moneroo)
+  | "checkout"
   // Ready-made sections
   | "hero" | "features" | "countdown" | "testimonials" | "faq" | "cta" | "stats" | "pricing"
   // Conversion & Trust
@@ -350,6 +352,22 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
       textColor: "",
       accentColor: "",
       align: "center",
+    },
+  },
+  checkout: {
+    label: "Paiement (checkout)",
+    icon: CreditCard,
+    atomic: true,
+    default: {
+      kind: "",           // "formation" | "product"
+      id: "",             // produit à vendre
+      title: "Finalisez votre commande",
+      ctaText: "",        // vide = libellé auto selon le prix
+      showBump: true,     // afficher l'order bump applicable
+      showPromo: true,    // champ code promo
+      showPhone: true,    // champ téléphone (Mobile Money)
+      accentColor: "",
+      bgColor: "#ffffff",
     },
   },
   // ─── Media ──────────────────────────────────────────────────────────────
@@ -621,6 +639,7 @@ const PALETTE_CATEGORIES: Array<{ label: string; icon: LucideIcon; items: Palett
       { key: "whatsapp", label: "Bouton WhatsApp", icon: MessageCircle },
       { key: "social-share", label: "Partage social", icon: Share2 },
       { key: "product", label: "Produit / Formation", icon: ShoppingBag },
+      { key: "checkout", label: "Paiement (checkout)", icon: CreditCard },
       { key: "scarcity", label: "Rareté / Limite", icon: Flame },
       { key: "guarantee", label: "Garantie", icon: ShieldCheck },
       { key: "floating-cta", label: "CTA flottant", icon: ArrowDownToLine },
@@ -651,7 +670,7 @@ const PALETTE_CATEGORIES: Array<{ label: string; icon: LucideIcon; items: Palett
 
 // Which palette keys are allowed inside a column (no infinite nesting: no row/section inside column)
 const COLUMN_ALLOWED_KEYS: PaletteKey[] = [
-  "heading", "text", "image", "button", "icon-box", "divider", "spacer", "list", "video", "html", "product", "content-box", "lead-form",
+  "heading", "text", "image", "button", "icon-box", "divider", "spacer", "list", "video", "html", "product", "checkout", "content-box", "lead-form",
   "audio", "badge", "quote", "rating", "progress", "whatsapp",
 ];
 
@@ -887,22 +906,25 @@ function getStepTemplate(stepType: string): Block[] {
     case "LANDING":
       return [createBlock("hero"), createBlock("features"), createBlock("stats"), createBlock("testimonials"), createBlock("pricing"), createBlock("faq"), createBlock("cta")];
     case "PRODUCT":
+    case "CHECKOUT":
       return [
-        { id: newBlockId(), type: "heading", data: { content: "Vous allez être redirigé vers le paiement sécurisé", level: 2, align: "center", color: "" } },
-        { id: newBlockId(), type: "spacer", data: { height: 16 } },
+        { id: newBlockId(), type: "heading", data: { content: "Finalisez votre commande en toute sécurité", level: 2, align: "center", color: "" } },
+        { id: newBlockId(), type: "text", data: { content: "Encore une étape : renseignez vos coordonnées et payez par carte bancaire ou Mobile Money. Accès immédiat après confirmation.", align: "center", size: 16, color: "#5c647a" } },
+        { id: newBlockId(), type: "checkout", data: { kind: "", id: "", title: "Votre commande", ctaText: "", showBump: true, showPromo: true, showPhone: true, accentColor: "", bgColor: "#ffffff" } },
         { id: newBlockId(), type: "row", data: { columns: [
-          { blocks: [{ id: newBlockId(), type: "icon-box", data: { icon: "verified_user", title: "Paiement sécurisé", desc: "Cryptage SSL 256-bit. Vos données bancaires ne sont jamais stockées.", align: "center", color: "#2563eb" } }] },
-          { blocks: [{ id: newBlockId(), type: "icon-box", data: { icon: "lock", title: "Accès immédiat", desc: "Dès la confirmation du paiement, votre contenu est débloqué.", align: "center", color: "#2563eb" } }] },
-          { blocks: [{ id: newBlockId(), type: "icon-box", data: { icon: "local_atm", title: "Garantie 14 jours", desc: "Satisfait ou remboursé sans condition pendant 14 jours.", align: "center", color: "#2563eb" } }] },
+          { blocks: [{ id: newBlockId(), type: "icon-box", data: { icon: "verified_user", title: "Paiement sécurisé", desc: "Vos données bancaires sont chiffrées et ne transitent jamais par notre site.", align: "center", color: "#006e2f" } }] },
+          { blocks: [{ id: newBlockId(), type: "icon-box", data: { icon: "bolt", title: "Accès immédiat", desc: "Dès la confirmation du paiement, votre contenu est débloqué.", align: "center", color: "#006e2f" } }] },
+          { blocks: [{ id: newBlockId(), type: "icon-box", data: { icon: "verified", title: "Satisfait ou remboursé", desc: "Une garantie claire pour acheter l'esprit tranquille.", align: "center", color: "#006e2f" } }] },
         ], gap: 16, padding: 24, bgColor: "" } },
       ];
     case "UPSELL":
+    case "DOWNSELL":
       return [
-        { id: newBlockId(), type: "heading", data: { content: "🎁 ATTENDEZ ! Une offre unique pour vous", level: 1, align: "center", color: "#f59e0b" } },
+        { id: newBlockId(), type: "heading", data: { content: "Attendez ! Une offre unique pour vous", level: 1, align: "center", color: "#f59e0b" } },
         { id: newBlockId(), type: "text", data: { content: "Avant de finaliser, profitez de cette offre disponible UNIQUEMENT sur cette page :", align: "center", size: 18, color: "" } },
-        { id: newBlockId(), type: "product", data: { kind: "", id: "", layout: "hero", showImage: true, showRating: true, showPrice: true, showCount: true, showDescription: true, ctaText: "OUI, j'ajoute à ma commande", ctaIcon: "shopping_cart", bgColor: "", textColor: "", accentColor: "#f59e0b", align: "center" } },
+        { id: newBlockId(), type: "checkout", data: { kind: "", id: "", title: "Ajoutez cette offre à votre commande", ctaText: "OUI, je l'ajoute", showBump: false, showPromo: false, showPhone: true, accentColor: "#f59e0b", bgColor: "#ffffff" } },
         { id: newBlockId(), type: "countdown", data: { title: "Cette offre expire dans :", endsInHours: 1, subtitle: "Après cela, le prix revient à son tarif normal." } },
-        { id: newBlockId(), type: "button", data: { text: "Non merci, continuer sans cette offre", link: "", linkType: "external", style: "secondary", size: "sm", align: "center", bgColor: "", textColor: "#6b7280", fullWidth: false, icon: "" } },
+        { id: newBlockId(), type: "button", data: { text: "Non merci, continuer sans cette offre", link: "#etape-suivante", style: "secondary", size: "sm", align: "center", bgColor: "", textColor: "#6b7280", fullWidth: false, icon: "" } },
       ];
     case "CAPTURE":
       return [
@@ -913,6 +935,7 @@ function getStepTemplate(stepType: string): Block[] {
         { id: newBlockId(), type: "social-proof", data: { text: "Déjà téléchargé par des centaines de personnes", avatars: 5, rating: 5 } },
       ];
     case "THANK_YOU":
+    case "CONFIRMATION":
       return [
         { id: newBlockId(), type: "icon-box", data: { icon: "celebration", title: "Merci pour votre achat !", desc: "Votre commande est confirmée. Un email récapitulatif vient de vous être envoyé.", align: "center", color: "#22c55e" } },
         { id: newBlockId(), type: "heading", data: { content: "Comment accéder à votre contenu", level: 2, align: "center", color: "" } },
@@ -1406,6 +1429,8 @@ function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>
       );
     case "product":
       return <ProductEditor block={block} update={update} />;
+    case "checkout":
+      return <CheckoutEditor block={block} update={update} />;
     default:
       return null;
   }
@@ -2209,6 +2234,65 @@ function ProductEditor({ block, update }: { block: Block; update: (data: Record<
         <IconPicker value={(block.data.ctaIcon as string) ?? "shopping_cart"} onChange={(ic) => update({ ctaIcon: ic })} />
       </div>
 
+      <div className="grid grid-cols-2 gap-2">
+        <ColorPicker label="Couleur de fond" value={(block.data.bgColor as string) || null} onChange={(c) => update({ bgColor: c ?? "" })} />
+        <ColorPicker label="Couleur accent" value={(block.data.accentColor as string) || null} onChange={(c) => update({ accentColor: c ?? "" })} />
+      </div>
+    </div>
+  );
+}
+
+// Éditeur du bloc PAIEMENT (checkout) — produit + order bump + promo + options.
+function CheckoutEditor({ block, update }: { block: Block; update: (data: Record<string, unknown>) => void }) {
+  const [catalog, setCatalog] = useState<CatalogItem[]>([]);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  useEffect(() => {
+    fetch("/api/formations/vendeur/catalog").then((r) => r.json()).then((j) => setCatalog(j.data ?? [])).finally(() => setCatalogLoading(false));
+  }, []);
+  const selectedKind = (block.data.kind as string) ?? "";
+  const selectedId = (block.data.id as string) ?? "";
+  const selected = catalog.find((c) => c.kind === selectedKind && c.id === selectedId);
+
+  return (
+    <div className="space-y-2.5">
+      <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-[10px] text-green-800 flex items-start gap-1.5">
+        <Info size={12} className="mt-0.5 flex-shrink-0" />
+        Vraie page de paiement : le client paie directement (carte ou Mobile Money via Moneroo). L&apos;order bump, le code promo et l&apos;affiliation s&apos;appliquent automatiquement.
+      </div>
+      <div>
+        <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">Produit à vendre *</label>
+        {catalogLoading ? (
+          <div className="text-xs text-[#5c647a] px-3 py-2 bg-white rounded-lg border border-gray-200">Chargement du catalogue…</div>
+        ) : catalog.length === 0 ? (
+          <div className="text-xs text-[#5c647a] px-3 py-2 bg-amber-50 rounded-lg border border-amber-200">Aucun produit dans votre catalogue. Créez d&apos;abord une formation ou un produit.</div>
+        ) : (
+          <select value={selectedId ? `${selectedKind}::${selectedId}` : ""}
+            onChange={(e) => { const v = e.target.value; if (!v) { update({ kind: "", id: "" }); return; } const [k, id] = v.split("::"); update({ kind: k, id }); }}
+            className="w-full text-sm text-[#191c1e] bg-white px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30">
+            <option value="">— Sélectionnez —</option>
+            <optgroup label="Formations">
+              {catalog.filter((c) => c.kind === "formation").map((c) => (<option key={c.id} value={`formation::${c.id}`}>{c.title} — {c.isFree ? "Gratuit" : `${c.price} FCFA`}</option>))}
+            </optgroup>
+            <optgroup label="Produits digitaux">
+              {catalog.filter((c) => c.kind === "product").map((c) => (<option key={c.id} value={`product::${c.id}`}>{c.title} — {c.isFree ? "Gratuit" : `${c.price} FCFA`}</option>))}
+            </optgroup>
+          </select>
+        )}
+      </div>
+      {selected && (
+        <div className="flex items-center gap-3 px-3 py-2 bg-[#006e2f]/5 rounded-lg">
+          {selected.image && <img src={selected.image} alt="" className="w-10 h-10 rounded-lg object-cover" />}
+          <div className="flex-1 min-w-0"><p className="text-xs font-bold text-[#191c1e] truncate">{selected.title}</p><p className="text-[10px] text-[#5c647a]">{selected.kind === "formation" ? "Formation" : "Produit digital"}</p></div>
+        </div>
+      )}
+      <StringInput label="Titre du bloc" value={(block.data.title as string) ?? ""} onChange={(v) => update({ title: v })} />
+      <StringInput label="Texte du bouton (vide = auto)" value={(block.data.ctaText as string) ?? ""} onChange={(v) => update({ ctaText: v })} />
+      <div className="space-y-1.5 pt-1">
+        <label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={block.data.showBump !== false} onChange={(e) => update({ showBump: e.target.checked })} className="accent-[#006e2f]" /> Afficher l&apos;order bump (offre additionnelle)</label>
+        <label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={block.data.showPromo !== false} onChange={(e) => update({ showPromo: e.target.checked })} className="accent-[#006e2f]" /> Champ code promo</label>
+        <label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={block.data.showPhone !== false} onChange={(e) => update({ showPhone: e.target.checked })} className="accent-[#006e2f]" /> Champ téléphone (Mobile Money)</label>
+      </div>
+      <p className="text-[10px] text-[#5c647a] leading-snug">L&apos;order bump se configure dans <strong>Marketing → Order bumps</strong>. Les codes promo dans <strong>Marketing → Codes promo</strong>.</p>
       <div className="grid grid-cols-2 gap-2">
         <ColorPicker label="Couleur de fond" value={(block.data.bgColor as string) || null} onChange={(c) => update({ bgColor: c ?? "" })} />
         <ColorPicker label="Couleur accent" value={(block.data.accentColor as string) || null} onChange={(c) => update({ accentColor: c ?? "" })} />

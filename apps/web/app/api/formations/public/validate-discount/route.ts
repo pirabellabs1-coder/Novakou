@@ -10,7 +10,8 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const codeStr = String(body.code ?? "").trim().toUpperCase();
-    const subTotal = Number(body.subTotal ?? 0);
+    // Le checkout envoie `orderAmount`, d'autres appelants `subTotal` : accepter les deux.
+    const subTotal = Number(body.subTotal ?? body.orderAmount ?? 0);
 
     if (!codeStr) {
       return NextResponse.json({ valid: false, error: "Code requis" }, { status: 400 });

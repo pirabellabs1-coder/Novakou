@@ -101,6 +101,7 @@ export default function FunnelsListPage() {
     }
   }
 
+  const [importing, setImporting] = useState(false);
   const [duplicating, setDuplicating] = useState<string | null>(null);
   async function handleDuplicate(e: React.MouseEvent, funnelId: string) {
     e.preventDefault();
@@ -130,6 +131,8 @@ export default function FunnelsListPage() {
       validate: (s) => (!/^https?:\/\/.+/.test(s.trim()) ? "Entrez une URL complète (https://…)." : null),
     });
     if (url === null) return;
+    setError(null);
+    setImporting(true);
     try {
       const res = await fetch("/api/marketing/funnels/import-systeme", {
         method: "POST",
@@ -140,12 +143,27 @@ export default function FunnelsListPage() {
       if (!res.ok) throw new Error(j.error || "Import échoué");
       router.push(`/vendeur/marketing/funnels/${j.funnelId}`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Import échoué");
+      setImporting(false);
+      setError(e instanceof Error ? e.message : "Import échoué. Vérifiez que l'URL est bien publique.");
     }
   }
 
   return (
     <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      {/* Overlay pendant l'import Systeme.io (peut durer 15-30 s : sans retour
+          visuel, le vendeur croit que rien ne se passe) */}
+      {importing && (
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-8 text-center shadow-2xl">
+            <Loader2 className="w-12 h-12 mx-auto animate-spin" style={{ color: ST.green }} />
+            <h3 className="text-lg font-extrabold mt-4" style={{ color: ST.text }}>Import en cours…</h3>
+            <p className="text-sm font-semibold mt-2" style={{ color: ST.textSecondary }}>
+              On récupère votre page, ses images, ses couleurs et ses fonds. Cela prend
+              généralement 15 à 30 secondes — ne fermez pas cette fenêtre.
+            </p>
+          </div>
+        </div>
+      )}
       <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1200px] mx-auto">
         <StPageHeader
           title="Mes funnels de vente"

@@ -39,6 +39,7 @@ const PUBLIC_ROUTES = [
   "/confidentialite",
   "/cookies",
   "/aide",
+  "/documentation-paiements", // Documentation publique des paiements
   "/certificat",
   "/panier",
   "/checkout",

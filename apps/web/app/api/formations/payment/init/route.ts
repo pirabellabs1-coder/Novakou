@@ -162,6 +162,27 @@ export async function POST(request: Request) {
 
     const totalAmount = Math.max(0, subTotal - discountAmount);
 
+    // ── Affiliation : résolution du cookie fh_ref pour TOUTES les ventes ──
+    // (avant, seule la branche "commande gratuite" le faisait → les ventes
+    // PAYÉES via Moneroo ne créaient jamais de commission d'affiliation.)
+    let affiliateProfile: { profileId: string; commissionRate: number } | null = null;
+    try {
+      const cookieStore = await cookies();
+      const affCookie = cookieStore.get("fh_ref")?.value ?? cookieStore.get("fh_aff_code")?.value;
+      if (affCookie) {
+        const prof = await prisma.affiliateProfile.findUnique({
+          where: { affiliateCode: affCookie },
+          select: { id: true, status: true, userId: true, program: { select: { commissionPct: true, isActive: true } } },
+        });
+        // Un affilié ne peut pas toucher de commission sur son propre achat.
+        if (prof && prof.status === "ACTIVE" && prof.program.isActive && prof.userId !== userId) {
+          affiliateProfile = { profileId: prof.id, commissionRate: (prof.program.commissionPct ?? 0) / 100 };
+        }
+      }
+    } catch (err) {
+      console.warn("[payment/init affiliate cookie]", err);
+    }
+
     // Free order? Skip Moneroo and fulfill the order immediately.
     // Anciennement on retournait juste une URL "/payment/return?free=1" qui se
     // contentait d'afficher un toast de succès — sans rien créer en base. Du
@@ -171,32 +192,6 @@ export async function POST(request: Request) {
     // utilise après un paiement réel).
     if (totalAmount === 0) {
       const sessionRef = `free:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
-
-      // Lecture du cookie d'affiliation pour traquer la conversion (même si la
-      // commission est à 0 sur une commande gratuite, ça compte une conversion).
-      let affiliateProfile: { profileId: string; commissionRate: number } | null = null;
-      try {
-        const cookieStore = await cookies();
-        const affCookie =
-          cookieStore.get("fh_ref")?.value ?? cookieStore.get("fh_aff_code")?.value;
-        if (affCookie) {
-          const prof = await prisma.affiliateProfile.findUnique({
-            where: { affiliateCode: affCookie },
-            select: {
-              id: true, status: true,
-              program: { select: { commissionPct: true, isActive: true } },
-            },
-          });
-          if (prof && prof.status === "ACTIVE" && prof.program.isActive) {
-            affiliateProfile = {
-              profileId: prof.id,
-              commissionRate: (prof.program.commissionPct ?? 0) / 100,
-            };
-          }
-        }
-      } catch (err) {
-        console.warn("[payment/init free affiliate cookie]", err);
-      }
 
       try {
         const result = await fulfillCheckout({
@@ -313,6 +308,9 @@ export async function POST(request: Request) {
       internalRef,
       attemptId: attempt.id,
       paymentProvider: provider,
+      // Affiliation : le webhook lit ces clés pour créer la commission après paiement.
+      affiliateProfileId: affiliateProfile?.profileId ?? "",
+      affiliateCommissionRate: affiliateProfile?.commissionRate ?? 0,
     };
 
     const returnUrl = `${appUrl}/payment/return?ref=${encodeURIComponent(internalRef)}&attempt=${attempt.id}&provider=${provider}`;

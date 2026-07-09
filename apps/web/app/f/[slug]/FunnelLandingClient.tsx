@@ -68,6 +68,7 @@ import {
   PiggyBank,
   PlayCircle,
   PlusCircle,
+  Plus,
   Puzzle,
   QrCode,
   RefreshCw,
@@ -797,6 +798,196 @@ function ProductBlock({ data, theme }: { data: Record<string, unknown>; theme: T
           <MaterialIcon name={ctaIcon || "shopping_cart"} size={20} />
         </a>
       </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CHECKOUT BLOCK — vraie page de paiement inline (récap + order bump + promo +
+// coordonnées → payment/init → page sécurisée Moneroo)
+// ═══════════════════════════════════════════════════════════════════════════
+type BumpInfo = { id: string; title: string; description: string | null; imageUrl: string | null; price: number; originalPrice: number | null };
+
+function CheckoutBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
+  const {
+    kind, id, title: customTitle, ctaText, accentColor, bgColor,
+    showBump = true, showPromo = true, showPhone = true,
+  } = data as {
+    kind?: string; id?: string; title?: string; ctaText?: string; accentColor?: string; bgColor?: string;
+    showBump?: boolean; showPromo?: boolean; showPhone?: boolean;
+  };
+
+  const [info, setInfo] = useState<ProductInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [bump, setBump] = useState<BumpInfo | null>(null);
+  const [bumpAccepted, setBumpAccepted] = useState(false);
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [promo, setPromo] = useState("");
+  const [promoState, setPromoState] = useState<{ status: "idle" | "checking" | "ok" | "bad"; amount?: number; msg?: string }>({ status: "idle" });
+  const [paying, setPaying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const accent = accentColor || theme.primaryColor;
+  const bg = bgColor || "#ffffff";
+
+  useEffect(() => {
+    if (!kind || !id) { setLoading(false); return; }
+    fetch(`/api/formations/public/funnel-item?kind=${encodeURIComponent(kind)}&id=${encodeURIComponent(id)}`)
+      .then((r) => (r.ok ? r.json() : { data: null }))
+      .then((j) => setInfo(j.data))
+      .catch(() => setInfo(null))
+      .finally(() => setLoading(false));
+    if (showBump) {
+      const param = kind === "formation" ? `formationIds=${id}` : `productIds=${id}`;
+      fetch(`/api/formations/public/order-bumps?${param}`)
+        .then((r) => (r.ok ? r.json() : { data: null }))
+        .then((j) => setBump(Array.isArray(j.data) ? j.data[0] ?? null : j.data ?? null))
+        .catch(() => setBump(null));
+    }
+  }, [kind, id, showBump]);
+
+  const basePrice = info?.price ?? 0;
+  const bumpPrice = bumpAccepted && bump ? bump.price : 0;
+  const subTotal = basePrice + bumpPrice;
+
+  async function applyPromo() {
+    const code = promo.trim();
+    if (!code || subTotal <= 0) return;
+    setPromoState({ status: "checking" });
+    try {
+      const res = await fetch("/api/formations/public/validate-discount", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, subTotal }),
+      });
+      const j = await res.json();
+      if (j.valid) setPromoState({ status: "ok", amount: j.discountAmount, msg: `-${fmt(j.discountAmount)} FCFA` });
+      else setPromoState({ status: "bad", msg: j.error || "Code invalide" });
+    } catch {
+      setPromoState({ status: "bad", msg: "Erreur réseau" });
+    }
+  }
+
+  const discount = promoState.status === "ok" ? promoState.amount ?? 0 : 0;
+  const total = Math.max(0, subTotal - discount);
+
+  async function pay(e: React.FormEvent) {
+    e.preventDefault();
+    if (paying || !info) return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { setError("Entrez une adresse email valide."); return; }
+    setError(null); setPaying(true);
+    try {
+      const formationIds: string[] = [];
+      const productIds: string[] = [];
+      (info.kind === "formation" ? formationIds : productIds).push(info.id);
+      const bumpIds = bumpAccepted && bump ? [bump.id] : [];
+      const res = await fetch("/api/formations/payment/init", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          formationIds, productIds, bumpIds,
+          discountCode: promoState.status === "ok" ? promo.trim() : undefined,
+          guestEmail: email.trim(), guestName: name.trim() || undefined,
+          phone: phone.trim() || undefined,
+        }),
+      });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error || "Le paiement n'a pas pu démarrer.");
+      const url = j.data?.checkout_url;
+      if (url) window.location.href = url;
+      else throw new Error("Aucune page de paiement retournée.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur lors du paiement.");
+      setPaying(false);
+    }
+  }
+
+  if (!kind || !id) {
+    return (
+      <div className="max-w-lg mx-auto bg-amber-50 border-2 border-dashed border-amber-300 rounded-2xl p-6 text-center">
+        <CreditCard size={36} className="text-amber-600 mx-auto" />
+        <p className="text-sm text-amber-700 mt-2 font-semibold">Choisissez le produit à vendre dans les réglages du bloc Paiement.</p>
+      </div>
+    );
+  }
+  if (loading) return <div className="max-w-lg mx-auto h-96 bg-gray-100 rounded-3xl animate-pulse" />;
+  if (!info) return <div className="max-w-lg mx-auto bg-red-50 border border-red-200 rounded-2xl p-6 text-center text-sm text-red-600">Produit introuvable ou non publié.</div>;
+
+  const inputCls = "w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-shadow";
+  const ring = { "--tw-ring-color": `${accent}40` } as CSSProperties;
+
+  return (
+    <div className="max-w-lg w-full mx-auto my-4">
+      <form onSubmit={pay} className="rounded-3xl border border-gray-100 shadow-xl overflow-hidden" style={{ background: bg }}>
+        <div className="px-6 md:px-7 pt-6 pb-4 border-b border-gray-100">
+          <p className="text-lg font-extrabold text-gray-900">{customTitle || "Finalisez votre commande"}</p>
+          {/* Récapitulatif produit */}
+          <div className="flex items-center gap-3 mt-4">
+            {info.image && <img src={info.image} alt="" className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-gray-900 truncate">{info.title}</p>
+              <p className="text-xs text-gray-500">Accès immédiat après paiement</p>
+            </div>
+            <p className="text-base font-extrabold flex-shrink-0" style={{ color: accent }}>{info.isFree ? "Gratuit" : `${fmt(basePrice)} FCFA`}</p>
+          </div>
+        </div>
+
+        <div className="px-6 md:px-7 py-5 space-y-3">
+          {/* Order bump */}
+          {showBump && bump && (
+            <label className="flex items-start gap-3 p-3.5 rounded-2xl border-2 border-dashed cursor-pointer transition-colors" style={{ borderColor: bumpAccepted ? accent : "#fcd34d", background: bumpAccepted ? `${accent}0D` : "#fffbeb" }}>
+              <input type="checkbox" checked={bumpAccepted} onChange={(e) => setBumpAccepted(e.target.checked)} className="mt-1 w-5 h-5 flex-shrink-0" style={{ accentColor: accent }} />
+              <div className="min-w-0">
+                <p className="text-sm font-extrabold text-gray-900 flex items-center gap-1.5"><Plus size={14} style={{ color: accent }} />{bump.title}</p>
+                {bump.description && <p className="text-xs text-gray-600 mt-0.5 leading-snug">{bump.description}</p>}
+                <p className="text-sm font-bold mt-1" style={{ color: accent }}>
+                  +{fmt(bump.price)} FCFA
+                  {bump.originalPrice && bump.originalPrice > bump.price && <span className="text-xs text-gray-400 line-through ml-2">{fmt(bump.originalPrice)} FCFA</span>}
+                </p>
+              </div>
+            </label>
+          )}
+
+          {/* Coordonnées */}
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Votre prénom" className={inputCls} style={ring} />
+          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Votre adresse email" className={inputCls} style={ring} />
+          {showPhone && <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Votre numéro (Mobile Money)" className={inputCls} style={ring} />}
+
+          {/* Code promo */}
+          {showPromo && (
+            <div>
+              <div className="flex gap-2">
+                <input type="text" value={promo} onChange={(e) => { setPromo(e.target.value); setPromoState({ status: "idle" }); }} placeholder="Code promo" className={`${inputCls} uppercase`} style={ring} />
+                <button type="button" onClick={applyPromo} disabled={!promo.trim() || promoState.status === "checking"} className="px-4 rounded-xl text-sm font-bold text-white flex-shrink-0 disabled:opacity-50" style={{ background: accent }}>
+                  {promoState.status === "checking" ? <Loader2 size={16} className="animate-spin" /> : "OK"}
+                </button>
+              </div>
+              {promoState.status === "ok" && <p className="text-xs font-semibold text-green-600 mt-1.5 flex items-center gap-1"><CheckCircle2 size={13} />Code appliqué : {promoState.msg}</p>}
+              {promoState.status === "bad" && <p className="text-xs font-semibold text-red-500 mt-1.5">{promoState.msg}</p>}
+            </div>
+          )}
+
+          {/* Récap montants */}
+          <div className="pt-2 space-y-1 text-sm">
+            <div className="flex justify-between text-gray-500"><span>Sous-total</span><span>{fmt(subTotal)} FCFA</span></div>
+            {discount > 0 && <div className="flex justify-between text-green-600 font-semibold"><span>Remise</span><span>-{fmt(discount)} FCFA</span></div>}
+            <div className="flex justify-between text-gray-900 font-extrabold text-base pt-1"><span>Total</span><span style={{ color: accent }}>{total === 0 ? "Gratuit" : `${fmt(total)} FCFA`}</span></div>
+          </div>
+
+          {error && <div className="bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-xs font-semibold text-red-700">{error}</div>}
+
+          <button type="submit" disabled={paying} className="w-full flex items-center justify-center gap-2 px-5 py-4 rounded-2xl text-white font-extrabold shadow-lg active:scale-[0.98] transition-transform disabled:opacity-70" style={{ background: `linear-gradient(135deg, ${accent}, ${theme.accentColor})` }}>
+            {paying ? <Loader2 size={18} className="animate-spin" /> : <Lock size={18} />}
+            {paying ? "Redirection sécurisée…" : (ctaText || (total === 0 ? "Obtenir gratuitement" : "Procéder au paiement sécurisé"))}
+          </button>
+
+          {/* Confiance + méthodes */}
+          <div className="flex items-center justify-center gap-2 text-[11px] text-gray-400 pt-1">
+            <Lock size={12} />Paiement 100 % sécurisé · Carte bancaire &amp; Mobile Money
+          </div>
+        </div>
+      </form>
     </div>
   );
 }
@@ -1884,6 +2075,8 @@ function renderBlockInner(block: Block, theme: Theme, onCta: () => void, parentC
     case "content-box": return <ContentBoxBlock key={block.id} data={block.data} theme={effTheme} onCta={onCta} parentColor={parentColor} funnelSlug={funnelSlug} salesLimit={salesLimit} salesCount={salesCount} ownerId={block.id} />;
     // Product
     case "product": return <ProductBlock key={block.id} data={block.data} theme={effTheme} />;
+    // Checkout — vraie page de paiement inline (order bump, promo, Moneroo)
+    case "checkout": return <CheckoutBlock key={block.id} data={block.data} theme={effTheme} />;
     // Lead capture (page de capture)
     case "lead-form": return <LeadFormBlock key={block.id} data={block.data} theme={effTheme} onCta={onCta} funnelSlug={funnelSlug} />;
     // Nouveaux éléments (v3)
