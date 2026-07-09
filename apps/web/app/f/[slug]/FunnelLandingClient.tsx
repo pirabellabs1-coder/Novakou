@@ -573,10 +573,11 @@ function SectionBlock({ data, theme, onCta, funnelSlug, salesLimit, salesCount, 
   };
   // Paddings via variables CSS (.nk-section dans globals.css) : la règle
   // mobile les plafonne avec min() pour un rendu propre sur téléphone.
+  // Couleur ET image séparées : la couleur reste une couche de secours SOUS
+  // l'image (si celle-ci est lente ou cassée, le texte reste lisible).
   const style: React.CSSProperties = {
-    background: bgImage
-      ? `${bgColor ? bgColor + "," : ""} url(${bgImage}) center/cover no-repeat`
-      : bgColor || undefined,
+    ...(bgColor ? { backgroundColor: bgColor } : {}),
+    ...(bgImage ? { backgroundImage: `url(${bgImage})`, backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" } : {}),
     backgroundAttachment: parallax && bgImage ? "fixed" : undefined,
     ["--nk-pad-y" as string]: `${paddingY}px`,
     ["--nk-pad-x" as string]: `${paddingX}px`,

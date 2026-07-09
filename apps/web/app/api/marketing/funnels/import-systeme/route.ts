@@ -150,6 +150,68 @@ function backgroundOf(st: Record<string, string>, baseUrl: URL, vars: CssVars): 
   return { color: bgColor, image };
 }
 
+// Luminance perçue (0 = noir, 1 = blanc) d'une couleur CSS, ou null si inconnue.
+function luminance(color: string | null | undefined): number | null {
+  if (!color) return null;
+  const c = color.trim().toLowerCase();
+  let r: number, g: number, b: number;
+  const hex = c.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/);
+  if (hex) {
+    const h = hex[1].length === 3 ? hex[1].split("").map((x) => x + x).join("") : hex[1];
+    r = parseInt(h.slice(0, 2), 16); g = parseInt(h.slice(2, 4), 16); b = parseInt(h.slice(4, 6), 16);
+  } else {
+    const rgb = c.match(/rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/);
+    if (!rgb) return null;
+    r = parseFloat(rgb[1]); g = parseFloat(rgb[2]); b = parseFloat(rgb[3]);
+  }
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+}
+
+// Garantit un contraste lisible : tout texte de la section dont la couleur est
+// trop proche du fond est basculé en blanc (fond sombre) ou noir (fond clair).
+// Les couleurs d'accent (orange, vert…) suffisamment contrastées sont gardées.
+function fixContrast(inner: ImportedBlock[], bgLum: number | null): void {
+  if (bgLum === null) return;
+  const target = bgLum < 0.5 ? "#ffffff" : "#111827";
+  for (const b of inner) {
+    if (b.type !== "heading" && b.type !== "text") continue;
+    const d = b.data as Record<string, unknown>;
+    const tl = luminance(d.color as string | undefined);
+    // Pas de couleur définie → héritera de la section (déjà correcte)
+    if (tl === null) continue;
+    if (Math.abs(tl - bgLum) < 0.4) d.color = target;
+  }
+}
+
+// Fond EFFECTIF d'une section : la section elle-même n'a souvent qu'un fond
+// clair, l'image/overlay réel étant sur un div enfant (cas Systeme.io). On
+// scanne donc la section + ses descendants pour trouver le vrai fond.
+function deepBackground(sec: ParsedElement, baseUrl: URL, vars: CssVars): { color: string | null; image: string | null; darkOverlay: boolean } {
+  const own = backgroundOf(styleOf(sec), baseUrl, vars);
+  let image = own.image;
+  let color = own.color;
+  let darkOverlay = false;
+
+  // Chercher parmi les descendants : image de fond substantielle + overlay sombre
+  const descendants = sec.querySelectorAll("div, figure, span");
+  for (const el of descendants.slice(0, 120)) {
+    const st = styleOf(el);
+    const { color: c, image: img } = backgroundOf(st, baseUrl, vars);
+    if (img && !image) image = img; // 1re image de fond rencontrée
+    // Overlay sombre semi-transparent (rgba(0,0,0,.x)) posé par-dessus l'image
+    if (c && /rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*0?\.[1-9]/i.test(c)) {
+      const lum = luminance(c);
+      if (lum !== null && lum < 0.5) darkOverlay = true;
+    }
+    // Fond de couleur sombre sur un enfant qui remplit la section
+    if (c && !color) {
+      const lum = luminance(c);
+      if (lum !== null && lum < 0.3) color = c;
+    }
+  }
+  return { color, image, darkOverlay };
+}
+
 function weightOf(st: Record<string, string>): number | null {
   const w = st["font-weight"];
   if (!w) return null;
@@ -340,19 +402,49 @@ function extractPage(html: string, baseUrl: URL, vars: CssVars): ImportedBlock[]
     for (const sec of containers) {
       const inner = extractLinear(sec, baseUrl, ctx, vars);
       if (!inner.length) continue;
-      const st = styleOf(sec);
-      const { color: bgColor, image: bgImage } = backgroundOf(st, baseUrl, vars);
+      // Fond effectif (section + descendants : image/overlay souvent sur un enfant)
+      let { color: bgColor, image: bgImage, darkOverlay } = deepBackground(sec, baseUrl, vars);
+      const secText = usableColor(styleOf(sec)["color"], vars);
+
+      // ── Filet de sécurité CONTRASTE : jamais de texte invisible ──
+      // On regarde la couleur dominante des textes de la section.
+      const textColors = inner
+        .filter((b) => b.type === "heading" || b.type === "text")
+        .map((b) => luminance((b.data as Record<string, string>).color))
+        .filter((l): l is number => l !== null);
+      const lightText = textColors.length > 0 && textColors.filter((l) => l > 0.6).length >= textColors.length / 2;
+      const darkText = textColors.length > 0 && textColors.filter((l) => l < 0.4).length >= textColors.length / 2;
+      const bgLum = bgImage ? (darkOverlay ? 0.15 : 0.5) : luminance(bgColor);
+
+      // Texte clair mais fond clair (ou absent) → forcer un fond sombre lisible.
+      if (lightText && !bgImage && (bgLum === null || bgLum > 0.5)) {
+        bgColor = "#111827";
+      }
+      // Texte sombre mais fond sombre → forcer un fond clair.
+      if (darkText && !bgImage && bgLum !== null && bgLum < 0.3) {
+        bgColor = "#ffffff";
+      }
+      // Image de fond avec du texte clair → texte blanc + overlay sombre +
+      // couleur de secours sombre (texte lisible même si l'image ne charge pas).
+      const imageWithLightText = bgImage && (darkOverlay || lightText || !darkText);
+      const forceWhite = imageWithLightText;
+      const fallbackDark = bgImage ? (bgColor && luminance(bgColor) !== null && luminance(bgColor)! < 0.3 ? bgColor : "#111827") : bgColor;
+
+      // Normalisation de contraste par texte (garantie « jamais invisible »).
+      const effLum = bgImage ? (imageWithLightText ? 0.12 : 0.5) : luminance(bgColor);
+      fixContrast(inner, effLum);
+
       if (bgColor || bgImage) {
-        const secText = usableColor(st["color"], vars);
         blocks.push({
           id: rid("section"),
           type: "section",
           data: {
             blocks: inner,
-            ...(bgColor ? { bgColor } : {}),
+            ...(bgImage ? { bgColor: fallbackDark } : bgColor ? { bgColor } : {}),
             ...(bgImage ? { bgImage } : {}),
-            ...(secText ? { textColor: secText } : {}),
-            paddingY: 48,
+            ...(bgImage && imageWithLightText ? { overlayColor: "rgba(0,0,0,0.55)" } : {}),
+            ...(forceWhite ? { textColor: "#ffffff" } : secText ? { textColor: secText } : {}),
+            paddingY: 56,
             paddingX: 16,
             maxWidth: 1152,
           },
@@ -502,10 +594,24 @@ export async function POST(request: Request) {
         ];
       }
 
+      // Titre de l'étape : og:title, sinon <title>, sinon le 1er vrai titre de
+      // la page importée (les pages Systeme.io ont souvent un <title> générique).
+      const firstHeading = (() => {
+        const flat: ImportedBlock[] = [];
+        const walk = (bs: ImportedBlock[]) => bs.forEach((b) => { flat.push(b); if (Array.isArray((b.data as Record<string, unknown>).blocks)) walk((b.data as { blocks: ImportedBlock[] }).blocks); });
+        walk(blocks);
+        const h = flat.find((b) => b.type === "heading");
+        return h ? String((h.data as Record<string, string>).content ?? "") : null;
+      })();
+      const cleanTitle = (t: string | null) => {
+        if (!t) return null;
+        const c = decodeEntities(clean(t));
+        return /systeme\.io|page|sans titre|untitled/i.test(c) && c.length < 20 ? null : c;
+      };
       pages.push({
         url: pageUrl,
         blocks,
-        title: decodeEntities(clean(ogTitle || htmlTitle || `Étape ${pages.length + 1}`)).slice(0, 60),
+        title: (cleanTitle(ogTitle) || cleanTitle(firstHeading) || cleanTitle(htmlTitle) || `Étape ${pages.length + 1}`).slice(0, 60),
         ogTitle, ogDesc, fullImport,
       });
     }
