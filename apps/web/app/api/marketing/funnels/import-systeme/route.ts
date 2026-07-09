@@ -174,11 +174,16 @@ function fixContrast(inner: ImportedBlock[], bgLum: number | null): void {
   if (bgLum === null) return;
   const target = bgLum < 0.5 ? "#ffffff" : "#111827";
   for (const b of inner) {
-    if (b.type !== "heading" && b.type !== "text") continue;
     const d = b.data as Record<string, unknown>;
+    // Récursion dans les rangées (colonnes) et boîtes de contenu.
+    if (b.type === "row" && Array.isArray(d.columns)) {
+      for (const c of d.columns as Array<{ blocks: ImportedBlock[] }>) fixContrast(c.blocks ?? [], bgLum);
+      continue;
+    }
+    if (Array.isArray(d.blocks)) { fixContrast(d.blocks as ImportedBlock[], bgLum); continue; }
+    if (b.type !== "heading" && b.type !== "text") continue;
     const tl = luminance(d.color as string | undefined);
-    // Pas de couleur définie → héritera de la section (déjà correcte)
-    if (tl === null) continue;
+    if (tl === null) continue; // pas de couleur → héritera de la section
     if (Math.abs(tl - bgLum) < 0.4) d.color = target;
   }
 }
@@ -236,140 +241,232 @@ type ExtractCtx = {
   total: number;
 };
 
-function extractLinear(scope: ParsedElement, baseUrl: URL, ctx: ExtractCtx, vars: CssVars): ImportedBlock[] {
-  const blocks: ImportedBlock[] = [];
-  const push = (type: string, data: Record<string, unknown>) => {
-    if (ctx.total >= 80) return;
-    ctx.total++;
-    blocks.push({ id: rid(type), type, data });
-  };
+// Un seul ÉLÉMENT feuille (titre/texte/liste/image/bouton/vidéo/champ) → 1 bloc,
+// ou null s'il n'y a rien d'exploitable. Applique la déduplication via ctx.
+function atomicBlockFor(el: ParsedElement, baseUrl: URL, ctx: ExtractCtx, vars: CssVars): ImportedBlock | null {
+  const tag = el.tagName?.toLowerCase();
+  const st = styleOf(el);
+  const mk = (type: string, data: Record<string, unknown>): ImportedBlock => ({ id: rid(type), type, data });
 
-  const nodes = scope.querySelectorAll("h1, h2, h3, p, ul, ol, img, button, a, iframe, input");
-  for (const el of nodes) {
-    if (ctx.total >= 80) break;
-    const tag = el.tagName?.toLowerCase();
-    const st = styleOf(el);
-
-    if (tag === "h1" || tag === "h2" || tag === "h3") {
-      const text = decodeEntities(clean(el.text));
-      if (text.length < 3 || text.length > 220 || BOILERPLATE_RE.test(text)) continue;
-      const key = `h:${text}`;
-      if (ctx.seenTexts.has(key)) continue;
-      ctx.seenTexts.add(key);
-      const hColor = effectiveColor(el, vars);
-      push("heading", {
-        content: text,
-        level: tag === "h1" ? 1 : tag === "h2" ? 2 : 3,
-        align: alignOf(st) ?? "center",
-        ...(hColor ? { color: hColor } : {}),
-        ...(pxSize(st["font-size"]) ? { size: pxSize(st["font-size"]) } : {}),
-        ...(weightOf(st) ? { weight: weightOf(st) } : {}),
-      });
-      continue;
+  if (tag === "h1" || tag === "h2" || tag === "h3") {
+    const text = decodeEntities(clean(el.text));
+    if (text.length < 3 || text.length > 220 || BOILERPLATE_RE.test(text)) return null;
+    const key = `h:${text}`;
+    if (ctx.seenTexts.has(key)) return null;
+    ctx.seenTexts.add(key);
+    const hColor = effectiveColor(el, vars);
+    return mk("heading", {
+      content: text,
+      level: tag === "h1" ? 1 : tag === "h2" ? 2 : 3,
+      align: alignOf(st) ?? "center",
+      ...(hColor ? { color: hColor } : {}),
+      ...(pxSize(st["font-size"]) ? { size: pxSize(st["font-size"]) } : {}),
+      ...(weightOf(st) ? { weight: weightOf(st) } : {}),
+    });
+  }
+  if (tag === "p") {
+    const text = decodeEntities(clean(el.text));
+    if (text.length < 12 || text.length > 1200 || BOILERPLATE_RE.test(text)) return null;
+    const key = `p:${text.slice(0, 80)}`;
+    if (ctx.seenTexts.has(key)) return null;
+    ctx.seenTexts.add(key);
+    const pColor = effectiveColor(el, vars);
+    return mk("text", {
+      content: text,
+      align: alignOf(st) ?? "left",
+      size: pxSize(st["font-size"]) ?? 16,
+      ...(pColor ? { color: pColor } : {}),
+    });
+  }
+  if (tag === "ul" || tag === "ol") {
+    if (ctx.processedLists.has(el)) return null;
+    ctx.processedLists.add(el);
+    const items = el.querySelectorAll("li")
+      .map((li) => decodeEntities(clean(li.text)))
+      .filter((t) => t.length >= 3 && t.length <= 300 && !BOILERPLATE_RE.test(t))
+      .slice(0, 12);
+    if (items.length < 2) return null;
+    const key = `ul:${items[0]}`;
+    if (ctx.seenTexts.has(key)) return null;
+    ctx.seenTexts.add(key);
+    return mk("list", { items, icon: "check_circle" });
+  }
+  if (tag === "img") {
+    let src = el.getAttribute("src") || el.getAttribute("data-src") || "";
+    if (!src || src.startsWith("data:")) return null;
+    try { src = new URL(src, baseUrl).toString(); } catch { return null; }
+    if (!/^https?:\/\//.test(src)) return null;
+    if (/logo|favicon|icon|pixel|badge|avatar/i.test(src)) return null;
+    const w = Number(el.getAttribute("width") || 0);
+    const h = Number(el.getAttribute("height") || 0);
+    if ((w > 0 && w < 80) || (h > 0 && h < 80)) return null;
+    if (ctx.seenImages.has(src)) return null;
+    ctx.seenImages.add(src);
+    const radius = pxSize(st["border-radius"]);
+    return mk("image", { url: src, alt: decodeEntities(clean(el.getAttribute("alt") || "")), align: "center", radius: radius !== null ? Math.min(radius, 60) : 12 });
+  }
+  if (tag === "iframe") {
+    const src = el.getAttribute("src") || "";
+    if (/youtube\.com|youtu\.be|vimeo\.com/i.test(src)) return mk("video", { url: src.startsWith("//") ? `https:${src}` : src });
+    return null;
+  }
+  if (tag === "input") {
+    if (ctx.leadFormAdded) return null;
+    const type = (el.getAttribute("type") || "").toLowerCase();
+    const nameAttr = (el.getAttribute("name") || "").toLowerCase();
+    if (type === "email" || nameAttr.includes("email")) {
+      ctx.leadFormAdded = true;
+      return mk("lead-form", { title: "Recevez votre accès", subtitle: "", buttonText: "Je m'inscris", collectName: true, collectPhone: false, successMessage: "Merci ! Vérifiez votre boîte mail.", confetti: true });
     }
+    return null;
+  }
+  if (tag === "button" || tag === "a") {
+    if (ctx.buttonsCount >= 6) return null;
+    const cls = (el.getAttribute("class") || "").toLowerCase();
+    if (!(tag === "button" || /btn|button|cta/.test(cls))) return null;
+    const text = decodeEntities(clean(el.text));
+    if (text.length < 2 || text.length > 60 || BOILERPLATE_RE.test(text)) return null;
+    const key = text.toLowerCase();
+    if (ctx.seenButtons.has(key)) return null;
+    ctx.seenButtons.add(key);
+    ctx.buttonsCount++;
+    const { color: btnBg } = backgroundOf(st, baseUrl, vars);
+    const radius = pxSize(st["border-radius"]);
+    const btnColor = usableColor(st["color"], vars);
+    return mk("button", {
+      text, link: "", style: "primary", size: "lg", align: "center",
+      ...(btnBg ? { bgColor: btnBg } : {}),
+      ...(btnColor ? { textColor: btnColor } : {}),
+      ...(radius !== null ? { _borderRadius: Math.min(radius, 60) } : {}),
+    });
+  }
+  return null;
+}
 
-    if (tag === "p") {
-      const text = decodeEntities(clean(el.text));
-      if (text.length < 12 || text.length > 1200 || BOILERPLATE_RE.test(text)) continue;
-      const key = `p:${text.slice(0, 80)}`;
-      if (ctx.seenTexts.has(key)) continue;
-      ctx.seenTexts.add(key);
-      const pColor = effectiveColor(el, vars);
-      push("text", {
-        content: text,
-        align: alignOf(st) ?? "left",
-        size: pxSize(st["font-size"]) ?? 16,
-        ...(pColor ? { color: pColor } : {}),
-      });
-      continue;
-    }
+const ATOMIC_TAGS = new Set(["h1", "h2", "h3", "p", "ul", "ol", "img", "iframe", "input", "button", "a"]);
+const INLINE_TAGS = new Set(["span", "b", "i", "em", "strong", "a", "br", "small", "u", "mark", "sub", "sup", "font"]);
 
-    if (tag === "ul" || tag === "ol") {
-      if (ctx.processedLists.has(el)) continue;
-      ctx.processedLists.add(el);
-      const items = el.querySelectorAll("li")
-        .map((li) => decodeEntities(clean(li.text)))
-        .filter((t) => t.length >= 3 && t.length <= 300 && !BOILERPLATE_RE.test(t))
-        .slice(0, 12);
-      if (items.length < 2) continue;
-      const key = `ul:${items[0]}`;
-      if (ctx.seenTexts.has(key)) continue;
-      ctx.seenTexts.add(key);
-      push("list", { items, icon: "check_circle" });
-      continue;
-    }
+// Un div/span est une « feuille de texte » si tout son texte est local (ses
+// enfants ne sont qu'inline). Systeme.io met titres/paragraphes dans des divs,
+// pas des <h>/<p> : sans ça, tout le contenu des cartes est invisible.
+function isTextLeaf(el: ParsedElement): boolean {
+  for (const c of el.childNodes as ParsedElement[]) {
+    if (!c.tagName) continue;
+    if (INLINE_TAGS.has(c.tagName.toLowerCase())) continue;
+    if (clean(c.text).length > 0) return false; // un enfant bloc porte son propre texte
+  }
+  return clean(el.text).length > 0;
+}
 
-    if (tag === "img") {
-      let src = el.getAttribute("src") || el.getAttribute("data-src") || "";
-      if (!src || src.startsWith("data:")) continue;
-      try { src = new URL(src, baseUrl).toString(); } catch { continue; }
-      if (!/^https?:\/\//.test(src)) continue;
-      if (/logo|favicon|icon|pixel|badge|avatar/i.test(src)) continue;
-      const w = Number(el.getAttribute("width") || 0);
-      const h = Number(el.getAttribute("height") || 0);
-      if ((w > 0 && w < 80) || (h > 0 && h < 80)) continue;
-      if (ctx.seenImages.has(src)) continue;
-      ctx.seenImages.add(src);
-      const radius = pxSize(st["border-radius"]);
-      push("image", { url: src, alt: decodeEntities(clean(el.getAttribute("alt") || "")), align: "center", radius: radius !== null ? Math.min(radius, 60) : 12 });
-      continue;
-    }
+// Convertit un div/span « feuille de texte » en bloc heading ou text.
+function textLeafBlock(el: ParsedElement, ctx: ExtractCtx, vars: CssVars): ImportedBlock | null {
+  const text = decodeEntities(clean(el.text));
+  if (text.length < 2 || text.length > 900 || BOILERPLATE_RE.test(text)) return null;
+  const key = `t:${text.slice(0, 80)}`;
+  if (ctx.seenTexts.has(key)) return null;
+  ctx.seenTexts.add(key);
+  const st = styleOf(el);
+  const size = pxSize(st["font-size"]);
+  const weight = weightOf(st);
+  const color = effectiveColor(el, vars);
+  // Gros ou gras et court → titre ; sinon paragraphe.
+  const isHeading = (size !== null && size >= 22) || ((weight ?? 0) >= 600 && text.length <= 70);
+  if (isHeading) {
+    return { id: rid("heading"), type: "heading", data: {
+      content: text, level: size && size >= 32 ? 2 : 3, align: alignOf(st) ?? "left",
+      ...(color ? { color } : {}), ...(size ? { size } : {}), ...(weight ? { weight } : {}),
+    } };
+  }
+  return { id: rid("text"), type: "text", data: {
+    content: text, align: alignOf(st) ?? "left", size: size ?? 16, ...(color ? { color } : {}),
+  } };
+}
 
-    if (tag === "iframe") {
-      const src = el.getAttribute("src") || "";
-      if (/youtube\.com|youtu\.be|vimeo\.com/i.test(src)) {
-        push("video", { url: src.startsWith("//") ? `https:${src}` : src });
+// Détecte un conteneur MULTI-COLONNES (grid ou flex-row) et renvoie les groupes
+// d'éléments par colonne (2 à 4 colonnes), ou null. Gère l'écoulement d'une
+// grille N-colonnes qui « enroule » plus d'enfants (répartition en ligne).
+function detectColumns(el: ParsedElement, vars: CssVars): ParsedElement[][] | null {
+  const st = styleOf(el);
+  const disp = (st["display"] || "").toLowerCase();
+  const kids = (el.childNodes as ParsedElement[]).filter((c) => c.tagName && clean(c.text).length > 8);
+  if (kids.length < 2) return null;
+
+  if (disp.includes("grid")) {
+    const gtc = resolveVars(st["grid-template-columns"] || "", vars).trim();
+    if (!gtc || /^(none|1fr)$/.test(gtc)) return null;
+    let nCols = 0;
+    const rep = gtc.match(/repeat\(\s*(\d+)/);
+    if (rep) nCols = parseInt(rep[1], 10);
+    else nCols = gtc.split(/\s+(?![^()]*\))/).filter(Boolean).length;
+    if (nCols < 2 || nCols > 4) return null; // ignore les grilles 12-col (footer) etc.
+    // Répartition ligne par ligne : enfant i → colonne i % nCols
+    const cols: ParsedElement[][] = Array.from({ length: nCols }, () => []);
+    kids.forEach((k, i) => cols[i % nCols].push(k));
+    return cols.every((c) => c.length) ? cols : null;
+  }
+
+  if (disp.includes("flex") && !(st["flex-direction"] || "").includes("column")) {
+    if (kids.length < 2 || kids.length > 4) return null;
+    // Chaque enfant direct = une colonne
+    return kids.map((k) => [k]);
+  }
+  return null;
+}
+
+// Extraction RÉCURSIVE : reproduit les grilles/flex en RANGÉES Novakou avec
+// colonnes, tout en gardant l'ordre de la page. `allowColumns=false` à
+// l'intérieur d'une colonne (Novakou n'imbrique pas de rangée dans une colonne).
+function extractTree(el: ParsedElement, baseUrl: URL, ctx: ExtractCtx, vars: CssVars, allowColumns = true, depth = 0): ImportedBlock[] {
+  if (ctx.total >= 80 || depth > 40) return [];
+  const tag = el.tagName?.toLowerCase();
+
+  // Élément feuille (titre, texte, image, bouton…) → un bloc, pas de descente.
+  if (tag && ATOMIC_TAGS.has(tag)) {
+    const b = atomicBlockFor(el, baseUrl, ctx, vars);
+    if (b) { ctx.total++; return [b]; }
+    return [];
+  }
+
+  // Div/span « feuille de texte » (contenu des cartes Systeme.io) → bloc texte.
+  if ((tag === "div" || tag === "span" || tag === "li" || tag === "figcaption" || tag === "label") && isTextLeaf(el)) {
+    const b = textLeafBlock(el, ctx, vars);
+    if (b) { ctx.total++; return [b]; }
+    return [];
+  }
+
+  // Conteneur multi-colonnes → rangée avec colonnes.
+  if (allowColumns) {
+    const cols = detectColumns(el, vars);
+    if (cols) {
+      const columns = cols.map((colEls) => ({
+        blocks: colEls.flatMap((ce) => extractTree(ce, baseUrl, ctx, vars, false, depth + 1)),
+      }));
+      const filled = columns.filter((c) => c.blocks.length);
+      // Au moins 2 colonnes remplies → vraie rangée.
+      if (filled.length >= 2) {
+        ctx.total++;
+        return [{ id: rid("row"), type: "row", data: { columns, gap: 24, padding: 8, stackMobile: true } }];
       }
-      continue;
-    }
-
-    if (tag === "input") {
-      if (ctx.leadFormAdded) continue;
-      const type = (el.getAttribute("type") || "").toLowerCase();
-      const nameAttr = (el.getAttribute("name") || "").toLowerCase();
-      if (type === "email" || nameAttr.includes("email")) {
-        ctx.leadFormAdded = true;
-        push("lead-form", {
-          title: "Recevez votre accès",
-          subtitle: "",
-          buttonText: "Je m'inscris",
-          collectName: true,
-          collectPhone: false,
-          successMessage: "Merci ! Vérifiez votre boîte mail.",
-          confetti: true,
-        });
-      }
-      continue;
-    }
-
-    if (tag === "button" || tag === "a") {
-      if (ctx.buttonsCount >= 6) continue;
-      const cls = (el.getAttribute("class") || "").toLowerCase();
-      const isButtonLike = tag === "button" || /btn|button|cta/.test(cls);
-      if (!isButtonLike) continue;
-      const text = decodeEntities(clean(el.text));
-      if (text.length < 2 || text.length > 60 || BOILERPLATE_RE.test(text)) continue;
-      const key = text.toLowerCase();
-      if (ctx.seenButtons.has(key)) continue;
-      ctx.seenButtons.add(key);
-      ctx.buttonsCount++;
-      const { color: btnBg } = backgroundOf(st, baseUrl, vars);
-      const radius = pxSize(st["border-radius"]);
-      const btnColor = usableColor(st["color"], vars);
-      push("button", {
-        text,
-        link: "",
-        style: "primary",
-        size: "lg",
-        align: "center",
-        ...(btnBg ? { bgColor: btnBg } : {}),
-        ...(btnColor ? { textColor: btnColor } : {}),
-        ...(radius !== null ? { _borderRadius: Math.min(radius, 60) } : {}),
-      });
-      continue;
+      // 1 seule colonne remplie : PAS de rangée, mais le contenu a déjà été
+      // extrait (dédup pollué) → on le renvoie à plat pour ne rien perdre.
+      const flat = columns.flatMap((c) => c.blocks);
+      if (flat.length) return flat;
     }
   }
-  return blocks;
+
+  // Sinon : descendre dans les enfants, dans l'ordre.
+  const out: ImportedBlock[] = [];
+  for (const child of el.childNodes as ParsedElement[]) {
+    if (!child.tagName) continue;
+    out.push(...extractTree(child, baseUrl, ctx, vars, allowColumns, depth + 1));
+    if (ctx.total >= 80) break;
+  }
+  return out;
+}
+
+// Compat : extraction d'un périmètre (avec colonnes activées).
+function extractLinear(scope: ParsedElement, baseUrl: URL, ctx: ExtractCtx, vars: CssVars): ImportedBlock[] {
+  return extractTree(scope, baseUrl, ctx, vars, true, 0);
 }
 
 // ── Extraction d'une page complète : sections avec leurs fonds si possible ──
@@ -644,6 +741,15 @@ export async function POST(request: Request) {
     });
 
     const totalBlocks = pages.reduce((n, p) => n + p.blocks.length, 0);
+    // Compte récursif des rangées (colonnes) reproduites — diagnostic fidélité.
+    const countRows = (bs: ImportedBlock[]): number => bs.reduce((n, b) => {
+      const d = b.data as Record<string, unknown>;
+      let sub = 0;
+      if (Array.isArray(d.blocks)) sub += countRows(d.blocks as ImportedBlock[]);
+      if (Array.isArray(d.columns)) sub += (d.columns as Array<{ blocks: ImportedBlock[] }>).reduce((m, c) => m + countRows(c.blocks ?? []), 0);
+      return n + (b.type === "row" ? 1 : 0) + sub;
+    }, 0);
+    const rowsCount = pages.reduce((n, p) => n + countRows(p.blocks), 0);
     const allTypes = [...new Set(pages.flatMap((p) => p.blocks.map((b) => b.type)))];
     const styledCount = pages.flatMap((p) => p.blocks).filter((b) => {
       const d = b.data as Record<string, unknown>;
@@ -659,6 +765,7 @@ export async function POST(request: Request) {
         pagesCount: pages.length,
         blocksCount: totalBlocks,
         styledCount,
+        rowsCount,
         fullImport: pages.every((p) => p.fullImport),
         types: allTypes,
       },
