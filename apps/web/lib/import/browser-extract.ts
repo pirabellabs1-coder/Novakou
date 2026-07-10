@@ -132,6 +132,26 @@ const EXTRACT_FN = () => {
     return { color: gradient || color, image };
   };
   const colorOf = (el: Element) => { let cur: Element | null = el; for (let i = 0; i < 6 && cur; i++) { const c = usable(getComputedStyle(cur).color); if (c) return c; cur = cur.parentElement; } return null; };
+  // Couleur du TEXTE réellement affiché : la couleur du wrapper ment quand tout
+  // le texte vit dans un unique <span> stylé (cas Systeme.io : <p noir><span blanc>).
+  // On pèse la couleur du parent de chaque nœud texte par sa longueur.
+  const textColorOf = (el: Element): string | null => {
+    const weights = new Map<string, number>();
+    const walkT = (n: Node): void => {
+      if (n.nodeType === Node.TEXT_NODE) {
+        const t = (n.textContent || "").trim(); if (!t) return;
+        const p = n.parentElement; if (!p) return;
+        const c = usable(getComputedStyle(p).color); if (!c) return;
+        weights.set(c, (weights.get(c) ?? 0) + t.length);
+        return;
+      }
+      if (n.nodeType === Node.ELEMENT_NODE) { const e = n as Element; if (e.tagName === "SCRIPT" || e.tagName === "STYLE") return; for (const c of e.childNodes) walkT(c); }
+    };
+    walkT(el);
+    let best: string | null = null, bw = 0;
+    for (const [c, n] of weights) if (n > bw) { bw = n; best = c; }
+    return best || colorOf(el);
+  };
   const alignOf = (el: Element) => { const a = getComputedStyle(el).textAlign; return ["center", "right", "left"].includes(a) ? a : null; };
 
   // ── Ombre calculée → palier du contrat ("none" | "sm" | "md" | "lg") ──
@@ -219,13 +239,16 @@ const EXTRACT_FN = () => {
   };
 
   const seen = new Set<string>();
+  // Un enfant inline est sauté SAUF s'il transporte un média (les captures
+  // d'avis Systeme.io sont des <a><img></a> — les sauter perdait les images).
+  const skipChild = (c: Element) => INLINE.has(c.tagName) && !((c.tagName === "A" || c.tagName === "SPAN") && !!c.querySelector("img, iframe, video"));
   // Répétitions LÉGITIMES (le même CTA « S'INSCRIRE » revient souvent 4-5×
   // sur une page de vente) : compteur avec plafond au lieu d'un dédoublonnage
   // strict. Les variantes desktop/mobile cachées sont déjà écartées par vis().
   const times = new Map<string, number>();
   const over = (k: string, max: number) => { const n = (times.get(k) ?? 0) + 1; times.set(k, n); return n > max; };
   let budget = 240;
-  const isTextLeaf = (el: Element) => { for (const c of el.children) { if (INLINE.has(c.tagName)) continue; if (clean(c.textContent || "").length > 0) return false; if (c.querySelector && c.querySelector("img,iframe,video")) return false; } return clean(el.textContent || "").length > 0; };
+  const isTextLeaf = (el: Element) => { for (const c of el.children) { if (skipChild(c)) continue; if (clean(c.textContent || "").length > 0) return false; if (c.querySelector && c.querySelector("img,iframe,video")) return false; } return clean(el.textContent || "").length > 0; };
 
   type B = { id: string; type: string; data: Record<string, unknown> };
 
@@ -234,7 +257,7 @@ const EXTRACT_FN = () => {
     const t = clean(el.textContent || ""); if (t.length < 2 || t.length > 900 || BOIL.test(t)) return [];
     const k = "t:" + t.slice(0, 80); if (over(k, 3)) return [];
     const size = px(cs.fontSize); const w = parseInt(cs.fontWeight) || 400;
-    const heading = (size !== null && size >= 22) || (w >= 600 && t.length <= 70); budget--; const color = colorOf(el);
+    const heading = (size !== null && size >= 22) || (w >= 600 && t.length <= 70); budget--; const color = textColorOf(el);
     const spans = spanify(el); const f = mapFont(cs.fontFamily);
     if (heading) return [{ id: rid("h"), type: "heading", data: { content: t, level: size && size >= 30 ? 2 : 3, align: alignOf(el) ?? "left", ...(color ? { color } : {}), ...(size ? { size } : {}), ...(spans ? { spans } : {}), ...(f ? { font: f } : {}) } }];
     return [{ id: rid("p"), type: "text", data: { content: t, align: alignOf(el) ?? "left", size: size ?? 16, ...(color ? { color } : {}), ...(spans ? { spans } : {}), ...(f && f !== pageFont ? { font: f } : {}) } }];
@@ -358,8 +381,8 @@ const EXTRACT_FN = () => {
     if (/^H[1-6]$/.test(tag)) {
       const t = clean(el.textContent || ""); if (t.length < 2 || t.length > 220 || BOIL.test(t)) return [];
       const k = "t:" + t.slice(0, 80); if (over(k, 3)) return []; const size = px(cs.fontSize); budget--;
-      const spans = spanify(el); const f = mapFont(cs.fontFamily);
-      return [{ id: rid("h"), type: "heading", data: { content: t, level: +tag[1] <= 2 ? +tag[1] : 3, align: alignOf(el) ?? "left", ...(colorOf(el) ? { color: colorOf(el) } : {}), ...(size ? { size } : {}), ...(spans ? { spans } : {}), ...(f ? { font: f } : {}) } }];
+      const spans = spanify(el); const f = mapFont(cs.fontFamily); const hc = textColorOf(el);
+      return [{ id: rid("h"), type: "heading", data: { content: t, level: +tag[1] <= 2 ? +tag[1] : 3, align: alignOf(el) ?? "left", ...(hc ? { color: hc } : {}), ...(size ? { size } : {}), ...(spans ? { spans } : {}), ...(f ? { font: f } : {}) } }];
     }
     if (tag === "P" || tag === "DIV" || tag === "BLOCKQUOTE") {
       const q = quoteOf(el, cs);
@@ -372,7 +395,7 @@ const EXTRACT_FN = () => {
       if (isTextLeaf(el)) {
         inner.push(...textBlocks(el, cs));
       } else {
-        for (const c of el.children) { if (INLINE.has(c.tagName)) continue; inner.push(...extract(c, true, depth + 1, false)); if (budget <= 0) break; }
+        for (const c of el.children) { if (skipChild(c)) continue; inner.push(...extract(c, true, depth + 1, false)); if (budget <= 0) break; }
       }
       if (inner.length) { budget--; return [{ id: rid("card"), type: "content-box", data: cardData(el, cs, inner) }]; }
     }
@@ -388,7 +411,7 @@ const EXTRACT_FN = () => {
       return textBlocks(el, cs);
     }
     const out: B[] = [];
-    for (const c of el.children) { if (INLINE.has(c.tagName)) continue; out.push(...extract(c, allowCols, depth + 1, allowCard)); if (budget <= 0) break; }
+    for (const c of el.children) { if (skipChild(c)) continue; out.push(...extract(c, allowCols, depth + 1, allowCard)); if (budget <= 0) break; }
     return out;
   };
 
@@ -481,7 +504,7 @@ const EXTRACT_FN = () => {
     const scs = getComputedStyle(sec);
     const secText = usable(scs.color);
     // Ne jamais recolorer l'intérieur d'une content-box : son fond est indépendant de la section.
-    const fix = (bs: B[], bl: number | null) => { if (bl === null) return; const target = bl < 0.5 ? "#ffffff" : "#111827"; bs.forEach((b) => { if (b.type === "content-box") return; const d = b.data as Record<string, unknown>; if (Array.isArray(d.columns)) { (d.columns as Array<{ blocks: B[] }>).forEach((c) => fix(c.blocks, bl)); return; } if (Array.isArray(d.blocks)) { fix(d.blocks as B[], bl); return; } if ((b.type === "heading" || b.type === "text") && d.color) { const l = lum(d.color as string); if (l !== null && Math.abs(l - bl) < 0.4) d.color = target; } }); };
+    const fix = (bs: B[], bl: number | null) => { if (bl === null) return; const target = bl < 0.5 ? "#ffffff" : "#111827"; bs.forEach((b) => { if (b.type === "content-box") return; const d = b.data as Record<string, unknown>; if (Array.isArray(d.columns)) { (d.columns as Array<{ blocks: B[] }>).forEach((c) => fix(c.blocks, bl)); return; } if (Array.isArray(d.blocks)) { fix(d.blocks as B[], bl); return; } if (b.type === "heading" || b.type === "text") { if (d.color) { const l = lum(d.color as string); if (l !== null && Math.abs(l - bl) < 0.4) d.color = target; } if (Array.isArray(d.spans)) for (const s of d.spans as Array<{ c?: string }>) { if (s.c) { const l = lum(s.c); if (l !== null && Math.abs(l - bl) < 0.4) s.c = target; } } } }); };
     fix(inner, image ? (forceWhite ? 0.12 : 0.5) : lum(color));
     const paddingY = clamp(px(scs.paddingTop) ?? 56, 16, 120);
     const paddingX = clamp(px(scs.paddingLeft) ?? 16, 0, 64);
