@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { promptAction } from "@/store/prompt";
+import { confirmAction } from "@/store/confirm";
 import {
   Network,
   Sparkles,
@@ -15,6 +16,7 @@ import {
   Info,
   AlertCircle,
   Copy,
+  Trash2,
 } from "lucide-react";
 import {
   StCard,
@@ -103,6 +105,37 @@ export default function FunnelsListPage() {
 
   const [importing, setImporting] = useState(false);
   const [duplicating, setDuplicating] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  async function handleDelete(e: React.MouseEvent, funnel: Funnel) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (deleting) return;
+    const ok = await confirmAction({
+      title: "Supprimer ce tunnel ?",
+      message: `« ${funnel.name} » et toutes ses étapes seront définitivement supprimés. Cette action est irréversible.`,
+      confirmLabel: "Supprimer",
+      cancelLabel: "Annuler",
+      confirmVariant: "danger",
+    });
+    if (!ok) return;
+    setDeleting(funnel.id);
+    setError(null);
+    // Retrait optimiste ; on recharge en cas d'échec pour rétablir l'état réel.
+    setFunnels((prev) => prev.filter((x) => x.id !== funnel.id));
+    try {
+      const res = await fetch(`/api/formations/vendeur/funnels/${funnel.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error || "Suppression échouée");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Suppression échouée");
+      await load();
+    } finally {
+      setDeleting(null);
+    }
+  }
   async function handleDuplicate(e: React.MouseEvent, funnelId: string) {
     e.preventDefault();
     e.stopPropagation();
@@ -233,6 +266,16 @@ export default function FunnelsListPage() {
                           style={{ color: ST.textFaint }}
                         >
                           {duplicating === f.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Copy className="w-4 h-4" />}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => handleDelete(e, f)}
+                          disabled={deleting !== null}
+                          title="Supprimer ce tunnel"
+                          className="p-1.5 rounded-lg hover:bg-rose-50 transition-colors disabled:opacity-40"
+                          style={{ color: ST.roseText }}
+                        >
+                          {deleting === f.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                         </button>
                         <ArrowRight className="w-5 h-5 transition-colors" style={{ color: ST.textFaint }} />
                       </div>

@@ -57,13 +57,29 @@ export async function extractViaBrowser(url: string): Promise<BrowserExtractResu
       await page.goto(url, { waitUntil: "load", timeout: 45_000 });
     });
     await page.waitForTimeout(2500);
-    // Défilement pour déclencher le lazy-load (images/vidéos), puis retour en haut.
+    // Défilement lent + complet pour déclencher le lazy-load (images/vidéos).
     await page.evaluate(async () => {
       const h = document.body.scrollHeight;
-      for (let y = 0; y < h; y += 700) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 100)); }
+      for (let y = 0; y < h; y += 350) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 130)); }
+      window.scrollTo(0, document.body.scrollHeight); await new Promise((r) => setTimeout(r, 300));
       window.scrollTo(0, 0);
+      // Forcer le chargement immédiat + recopier les data-src restants.
+      for (const im of Array.from(document.querySelectorAll("img"))) {
+        const el = im as HTMLImageElement;
+        el.loading = "eager";
+        const ds = el.getAttribute("data-src") || el.getAttribute("data-lazy-src") || "";
+        if (ds && (!el.src || el.src.startsWith("data:"))) el.src = ds;
+      }
     });
-    await page.waitForTimeout(1200);
+    // Attendre que toutes les images finissent de charger (plafond par image).
+    await page.evaluate(() => Promise.all(
+      Array.from(document.querySelectorAll("img")).map((im) => {
+        const el = im as HTMLImageElement;
+        if (el.complete && el.naturalWidth > 0) return null;
+        return new Promise((res) => { el.addEventListener("load", () => res(null), { once: true }); el.addEventListener("error", () => res(null), { once: true }); setTimeout(() => res(null), 4000); });
+      }),
+    ));
+    await page.waitForTimeout(600);
 
     const result = (await page.evaluate(EXTRACT_FN)) as BrowserExtractResult;
     await browser.close();
@@ -319,12 +335,27 @@ const EXTRACT_FN = () => {
 
     if (tag === "IMG") {
       const img = el as HTMLImageElement;
-      let src = img.currentSrc || img.src || img.getAttribute("data-src") || "";
-      if (!src || src.startsWith("data:")) return [];
-      src = absU(src);
-      if (/logo|favicon|sprite|pixel/i.test(src)) return [];
       const r = el.getBoundingClientRect(); if (r.width < 40 || r.height < 40) return [];
-      if (over("img:" + src, 2)) return []; budget--;
+      let src = img.currentSrc || img.src || "";
+      // Lazy-load : si le src visible est un placeholder data:, chercher la vraie URL http.
+      if (!src || src.startsWith("data:")) {
+        const real = img.getAttribute("data-src") || img.getAttribute("data-lazy-src") || img.getAttribute("data-original")
+          || (img.getAttribute("srcset") || "").split(",")[0]?.trim().split(" ")[0] || "";
+        if (real && !real.startsWith("data:")) src = real;
+      }
+      if (!src) return [];
+      if (src.startsWith("data:")) {
+        // Image RASTER embarquée en base64 (ex. photo de profil Systeme.io) : la
+        // garder si elle a une vraie taille de contenu et un poids raisonnable
+        // (évite les spacers/placeholders et le gonflement de la base).
+        if (!/^data:image\/(png|jpe?g|webp|gif)/i.test(src)) return [];
+        if (r.width < 64 || r.height < 64) return [];
+        if (src.length > 700_000) return [];
+      } else {
+        src = absU(src);
+        if (/logo|favicon|sprite|pixel/i.test(src)) return [];
+      }
+      if (over("img:" + src.slice(0, 120), 2)) return []; budget--;
       return [{ id: rid("image"), type: "image", data: { url: src, alt: clean(img.alt), align: "center", radius: px(cs.borderTopLeftRadius) ?? 12 } }];
     }
     if (tag === "IFRAME") {
