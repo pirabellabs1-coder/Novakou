@@ -3304,12 +3304,25 @@ model MentorSubscription {
 model SavedPaymentMethod {
   id           String   @id @default(cuid())
   userId       String
-  provider     String   // "moneroo" | "stripe"
-  token        String   // Stored provider token (NEVER raw card/phone)
+  // Type de moyen : "momo" (Mobile Money) | "card" | "bank" | "paypal"
+  type         String   @default("momo")
+  // Libellé affiché à l'utilisateur (ex : "Orange Money perso", "Visa pro")
+  label        String?
+  // momo : "orange_money" | "wave" | "mtn_momo" | "moov_money"
+  // card : passerelle ("moneroo" | "stripe")
+  provider     String?
+  token        String?  // Stored provider token (NEVER raw card/phone)
   brand        String?  // "visa" | "mastercard" | "orange" | "wave" | "mtn"
   last4        String?  // displayable tail (e.g. "4242" or "**78")
   expMonth     Int?
   expYear      Int?
+  // momo : numéro Mobile Money (jamais un numéro de carte)
+  phone        String?
+  // paypal : adresse email du compte
+  email        String?
+  // bank : nom de la banque + IBAN
+  bankName     String?
+  iban         String?
   isDefault    Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

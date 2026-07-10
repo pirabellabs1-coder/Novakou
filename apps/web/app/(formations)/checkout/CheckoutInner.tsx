@@ -28,6 +28,7 @@ import {
   Waves,
   Phone,
   CreditCard,
+  Landmark,
   type LucideIcon,
 } from "lucide-react";
 import { PixelInjector } from "@/components/formations/PixelInjector";
@@ -45,7 +46,38 @@ const COUNTRIES = ALL_COUNTRIES.map((c) => ({
   iso: c.code,
 }));
 
-type PaymentMethod = "orange_money" | "wave" | "mtn" | "card";
+// Identifiants alignés sur Instructeur.acceptedPaymentMethods (côté vendeur).
+type PaymentMethod =
+  | "orange_money"
+  | "wave"
+  | "mtn_momo"
+  | "moov_money"
+  | "card"
+  | "paypal"
+  | "bank_transfer";
+
+// Ordre canonique + libellé/icône d'affichage des méthodes proposées au client.
+const METHOD_ORDER: PaymentMethod[] = [
+  "orange_money",
+  "wave",
+  "mtn_momo",
+  "moov_money",
+  "card",
+  "paypal",
+  "bank_transfer",
+];
+const METHOD_DISPLAY: Record<PaymentMethod, { label: string; Icon: LucideIcon }> = {
+  orange_money: { label: "Orange Money", Icon: Smartphone },
+  wave: { label: "Wave", Icon: Waves },
+  mtn_momo: { label: "MTN MoMo", Icon: Phone },
+  moov_money: { label: "Moov Money", Icon: Smartphone },
+  card: { label: "Carte bancaire", Icon: CreditCard },
+  paypal: { label: "PayPal", Icon: Wallet },
+  bank_transfer: { label: "Virement bancaire", Icon: Landmark },
+};
+// Repli quand aucun vendeur ne précise ses méthodes (liste historique).
+const DEFAULT_METHODS: PaymentMethod[] = ["orange_money", "wave", "mtn_momo", "card"];
+
 type PaymentProvider = "moneroo" | "paygenius";
 type ProviderInfo = { id: PaymentProvider; label: string; available: boolean; description: string };
 type CartItem = {
@@ -58,6 +90,22 @@ type CartItem = {
 
 function formatFCFA(n: number) {
   return n.toLocaleString("fr-FR") + " FCFA";
+}
+
+// Sépare un numéro complet (« +2250700000000 ») en indicatif + numéro local,
+// en s'appuyant sur les indicatifs connus. Utilisé pour préremplir le champ
+// téléphone depuis un moyen Mobile Money enregistré.
+function splitDial(full: string): { dial: string; local: string } {
+  const trimmed = full.trim();
+  if (trimmed.startsWith("+")) {
+    // Cherche l'indicatif le plus long qui préfixe le numéro.
+    let best = "";
+    for (const c of COUNTRIES) {
+      if (trimmed.startsWith(c.code) && c.code.length > best.length) best = c.code;
+    }
+    if (best) return { dial: best, local: trimmed.slice(best.length).replace(/\D/g, "") };
+  }
+  return { dial: "", local: trimmed.replace(/\D/g, "") };
 }
 
 export default function CheckoutInner() {
@@ -76,6 +124,8 @@ export default function CheckoutInner() {
   const [countryCode, setCountryCode] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:countryCode`, "+221");
   const [countryOpen, setCountryOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("orange_money");
+  // Méthodes acceptées par le(s) vendeur(s) du panier (intersection côté API).
+  const [acceptedMethods, setAcceptedMethods] = useState<PaymentMethod[]>([]);
   const [provider, setProvider] = useState<PaymentProvider>("moneroo");
   const [availableProviders, setAvailableProviders] = useState<ProviderInfo[]>([]);
   const [countrySearch, setCountrySearch] = useState("");
@@ -297,6 +347,47 @@ export default function CheckoutInner() {
       .catch(() => setCheckoutPixels([]));
   }, [cartItems]);
 
+  // ── Méthodes de paiement acceptées par le(s) vendeur(s) du panier ──────
+  // Intersection calculée côté API ; on n'affiche au client que ces méthodes.
+  useEffect(() => {
+    if (cartItems.length === 0) { setAcceptedMethods([]); return; }
+    const fIds = cartItems.filter((i) => i.kind === "formation").map((i) => i.id);
+    const pIds = cartItems.filter((i) => i.kind === "product").map((i) => i.id);
+    const qs = new URLSearchParams();
+    if (fIds.length) qs.set("formationIds", fIds.join(","));
+    if (pIds.length) qs.set("productIds", pIds.join(","));
+    fetch(`/api/formations/public/accepted-methods?${qs.toString()}`)
+      .then((r) => r.json())
+      .then((j) => {
+        const list = (Array.isArray(j.methods) ? (j.methods as string[]) : []).filter(
+          (m): m is PaymentMethod => (METHOD_ORDER as string[]).includes(m),
+        );
+        setAcceptedMethods(list);
+      })
+      .catch(() => setAcceptedMethods([]));
+  }, [cartItems]);
+
+  // ── Préremplissage : téléphone du moyen Mobile Money par défaut ────────
+  // Fetch silencieux — un visiteur non connecté reçoit 401 et on ignore.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/payment-methods")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        if (cancelled || !j?.methods || !Array.isArray(j.methods)) return;
+        const momos = (j.methods as Array<{ type: string; provider?: string; phone?: string; isDefault: boolean }>)
+          .filter((m) => m.type === "momo" && m.phone);
+        const def = momos.find((m) => m.isDefault) ?? momos[0];
+        if (!def?.phone) return;
+        const { dial, local } = splitDial(def.phone);
+        if (local) setPhone((cur) => cur || local);
+        if (dial) setCountryCode((cur) => cur || dial);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const subTotal = cartItems.reduce((s, i) => s + i.price, 0);
   const bumpsTotal = availableBumps
     .filter((b) => acceptedBumpIds.includes(b.id))
@@ -343,7 +434,7 @@ export default function CheckoutInner() {
   const formationIds = cartItems.filter((i) => i.kind === "formation").map((i) => i.id);
   const productIds = cartItems.filter((i) => i.kind === "product").map((i) => i.id);
 
-  const isMobileMoney = paymentMethod === "orange_money" || paymentMethod === "wave" || paymentMethod === "mtn";
+  const isMobileMoney = paymentMethod === "orange_money" || paymentMethod === "wave" || paymentMethod === "mtn_momo" || paymentMethod === "moov_money";
 
   async function handlePay() {
     if (!termsAccepted) { setError("Veuillez accepter les conditions générales."); return; }
@@ -409,7 +500,7 @@ export default function CheckoutInner() {
   const paymentMethods: { id: PaymentMethod; label: string; Icon: LucideIcon }[] = [
     { id: "orange_money", label: "Orange Money", Icon: Smartphone },
     { id: "wave", label: "Wave", Icon: Waves },
-    { id: "mtn", label: "MTN MoMo", Icon: Phone },
+    { id: "mtn_momo", label: "MTN MoMo", Icon: Phone },
     { id: "card", label: "Carte bancaire", Icon: CreditCard },
   ];
 
@@ -977,6 +1068,27 @@ export default function CheckoutInner() {
                 <p className="text-xl font-extrabold text-[#006e2f] tracking-tight">{formatFCFA(totalAmount)}</p>
               </div>
             </div>
+
+            {/* Moyens de paiement acceptés (réassurance — la sélection réelle se
+                fait sur la page sécurisée du prestataire). */}
+            {(acceptedMethods.length > 0 ? acceptedMethods : DEFAULT_METHODS).length > 0 && (
+              <div className="mb-5">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Paiements acceptés</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {(acceptedMethods.length > 0 ? acceptedMethods : DEFAULT_METHODS).map((m) => {
+                    const meta = METHOD_DISPLAY[m];
+                    if (!meta) return null;
+                    const MIcon = meta.Icon;
+                    return (
+                      <span key={m} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-[11px] font-semibold text-slate-600">
+                        <MIcon size={14} className="text-[#006e2f]" />
+                        {meta.label}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Pay button — desktop / large screens */}
             <button

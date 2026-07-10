@@ -2293,8 +2293,9 @@ function CheckoutEditor({ block, update }: { block: Block; update: (data: Record
         <label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={block.data.showBump !== false} onChange={(e) => update({ showBump: e.target.checked })} className="accent-[#006e2f]" /> Afficher l&apos;order bump (offre additionnelle)</label>
         <label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={block.data.showPromo !== false} onChange={(e) => update({ showPromo: e.target.checked })} className="accent-[#006e2f]" /> Champ code promo</label>
         <label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={block.data.showPhone !== false} onChange={(e) => update({ showPhone: e.target.checked })} className="accent-[#006e2f]" /> Champ téléphone (Mobile Money)</label>
+        <label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={block.data.showMethods !== false} onChange={(e) => update({ showMethods: e.target.checked })} className="accent-[#006e2f]" /> Afficher le choix du moyen de paiement</label>
       </div>
-      <p className="text-[10px] text-[#5c647a] leading-snug">L&apos;order bump se configure dans <strong>Marketing → Order bumps</strong>. Les codes promo dans <strong>Marketing → Codes promo</strong>.</p>
+      <p className="text-[10px] text-[#5c647a] leading-snug">Les moyens de paiement proposés dépendent de ceux que vous acceptez dans <strong>Paramètres → Paiements</strong>. L&apos;order bump se configure dans <strong>Marketing → Order bumps</strong>, les codes promo dans <strong>Marketing → Codes promo</strong>.</p>
       <div className="grid grid-cols-2 gap-2">
         <ColorPicker label="Couleur de fond" value={(block.data.bgColor as string) || null} onChange={(c) => update({ bgColor: c ?? "" })} />
         <ColorPicker label="Couleur accent" value={(block.data.accentColor as string) || null} onChange={(c) => update({ accentColor: c ?? "" })} />

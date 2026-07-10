@@ -34,6 +34,7 @@ export async function GET(request: Request) {
           reviewsCount: true,
           studentsCount: true,
           status: true,
+          instructeur: { select: { acceptedPaymentMethods: true } },
         },
       });
       if (!f || f.status !== "ACTIF") {
@@ -53,6 +54,8 @@ export async function GET(request: Request) {
           reviewsCount: f.reviewsCount,
           count: f.studentsCount,
           countLabel: "élèves",
+          // Méthodes de paiement acceptées par le vendeur (checkout / tunnels).
+          acceptedPaymentMethods: f.instructeur?.acceptedPaymentMethods ?? [],
         },
       });
     }
@@ -72,6 +75,7 @@ export async function GET(request: Request) {
         reviewsCount: true,
         salesCount: true,
         status: true,
+        instructeur: { select: { acceptedPaymentMethods: true } },
       },
     });
     if (!p || p.status !== "ACTIF") {
@@ -91,6 +95,8 @@ export async function GET(request: Request) {
         reviewsCount: p.reviewsCount,
         count: p.salesCount,
         countLabel: "ventes",
+        // Méthodes de paiement acceptées par le vendeur (checkout / tunnels).
+        acceptedPaymentMethods: p.instructeur?.acceptedPaymentMethods ?? [],
       },
     });
   } catch (err) {

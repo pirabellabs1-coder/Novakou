@@ -7,7 +7,8 @@ import AccountDeletionPanel from "@/components/account/AccountDeletionPanel";
 import TwoFactorSetup from "@/components/account/TwoFactorSetup";
 import CountrySelect from "@/components/account/CountrySelect";
 import ActiveSessions from "@/components/account/ActiveSessions";
-import { StCard, StPageHeader, StButton, StChip, StSectionTitle, ST } from "@/components/stitch";
+import { StCard, StPageHeader, StButton, StSectionTitle, ST } from "@/components/stitch";
+import SavedPaymentMethodsPanel from "@/components/account/SavedPaymentMethodsPanel";
 import {
   User,
   Shield,
@@ -19,9 +20,6 @@ import {
   CheckCircle2,
   Mail,
   Lock,
-  Smartphone,
-  Waves,
-  Plus,
   Trash2,
   Download,
   Loader2,
@@ -585,38 +583,7 @@ export default function ParametresPage() {
             {/* PAIEMENTS TAB */}
             {activeTab === "paiements" && (
               <div className="space-y-5">
-                <StCard>
-                  <StSectionTitle>Méthodes de paiement sauvegardées</StSectionTitle>
-                  <div className="space-y-3 mb-4">
-                    {[
-                      { Icon: Smartphone, label: "Orange Money", detail: "+225 07 00 XX XX XX", primary: true, tone: { background: ST.amberSoft, color: ST.amberText } },
-                      { Icon: Waves, label: "Wave", detail: "+225 05 00 XX XX XX", primary: false, tone: { background: ST.blueSoft, color: ST.blueText } },
-                    ].map((method, i) => {
-                      const Icon = method.Icon;
-                      return (
-                        <div key={i} className="flex items-center gap-3 p-4 rounded-[12px] transition-colors" style={{ border: `1px solid ${ST.divider}` }}>
-                          <div className="w-10 h-10 rounded-[11px] flex items-center justify-center flex-shrink-0" style={method.tone}>
-                            <Icon size={20} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[13px] font-extrabold" style={{ color: ST.text }}>{method.label}</p>
-                            <p className="text-[11.5px] font-semibold" style={{ color: ST.textSecondary }}>{method.detail}</p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {method.primary && <StChip tone="green">Principale</StChip>}
-                            <button className="p-1 transition-colors" style={{ color: ST.textMuted }}>
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <button className="w-full flex items-center justify-center gap-2 py-3 rounded-[12px] text-[13px] font-extrabold transition-all" style={{ border: "2px dashed #bcd6c5", color: ST.green, background: "#fbfdfc" }}>
-                    <Plus size={16} />
-                    Ajouter une méthode de paiement
-                  </button>
-                </StCard>
+                <SavedPaymentMethodsPanel />
 
                 <StCard>
                   <StSectionTitle>Historique de facturation</StSectionTitle>

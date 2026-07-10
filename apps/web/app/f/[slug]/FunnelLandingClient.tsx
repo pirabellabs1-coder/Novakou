@@ -96,6 +96,9 @@ import {
   Users,
   Video,
   Wallet,
+  Waves,
+  Smartphone,
+  Landmark,
   Wrench,
   X,
   XCircle,
@@ -734,7 +737,21 @@ type ProductInfo = {
   reviewsCount: number;
   count: number;
   countLabel: string;
+  acceptedPaymentMethods?: string[];
 };
+
+// Moyens de paiement présentés à l'acheteur (checkout des tunnels).
+const PAY_METHOD_META: Record<string, { label: string; Icon: LucideIcon }> = {
+  orange_money: { label: "Orange Money", Icon: Smartphone },
+  wave: { label: "Wave", Icon: Waves },
+  mtn_momo: { label: "MTN MoMo", Icon: Phone },
+  moov_money: { label: "Moov Money", Icon: Smartphone },
+  card: { label: "Carte Visa / Mastercard", Icon: CreditCard },
+  paypal: { label: "PayPal", Icon: Wallet },
+  bank_transfer: { label: "Virement bancaire", Icon: Landmark },
+};
+const PAY_METHOD_ORDER = ["orange_money", "wave", "mtn_momo", "moov_money", "card", "paypal", "bank_transfer"];
+const DEFAULT_PAY_METHODS = ["orange_money", "wave", "mtn_momo", "card"];
 
 function ProductBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
   const { kind, id, layout = "card", showImage, showRating, showPrice, showCount, showDescription, ctaText, ctaIcon, bgColor, accentColor, textColor } = data as {
@@ -872,10 +889,10 @@ type BumpInfo = { id: string; title: string; description: string | null; imageUr
 function CheckoutBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
   const {
     kind, id, title: customTitle, ctaText, accentColor, bgColor,
-    showBump = true, showPromo = true, showPhone = true,
+    showBump = true, showPromo = true, showPhone = true, showMethods = true,
   } = data as {
     kind?: string; id?: string; title?: string; ctaText?: string; accentColor?: string; bgColor?: string;
-    showBump?: boolean; showPromo?: boolean; showPhone?: boolean;
+    showBump?: boolean; showPromo?: boolean; showPhone?: boolean; showMethods?: boolean;
   };
 
   const [info, setInfo] = useState<ProductInfo | null>(null);
@@ -886,6 +903,7 @@ function CheckoutBlock({ data, theme }: { data: Record<string, unknown>; theme: 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [payMethod, setPayMethod] = useState<string | null>(null);
   const [promo, setPromo] = useState("");
   const [promoState, setPromoState] = useState<{ status: "idle" | "checking" | "ok" | "bad"; amount?: number; msg?: string }>({ status: "idle" });
   const [paying, setPaying] = useState(false);
@@ -934,6 +952,14 @@ function CheckoutBlock({ data, theme }: { data: Record<string, unknown>; theme: 
   const discount = promoState.status === "ok" ? promoState.amount ?? 0 : 0;
   const total = Math.max(0, subTotal - discount);
 
+  // Méthodes acceptées par le vendeur (repli sur la liste par défaut si absent).
+  const acceptedRaw = info?.acceptedPaymentMethods && info.acceptedPaymentMethods.length > 0
+    ? info.acceptedPaymentMethods.map((m) => m.toLowerCase())
+    : DEFAULT_PAY_METHODS;
+  const payMethods = PAY_METHOD_ORDER.filter((m) => acceptedRaw.includes(m));
+  const visibleMethods = payMethods.length > 0 ? payMethods : DEFAULT_PAY_METHODS;
+  const selectedMethod = payMethod && visibleMethods.includes(payMethod) ? payMethod : visibleMethods[0];
+
   async function pay(e: React.FormEvent) {
     e.preventDefault();
     if (paying || !info) return;
@@ -951,6 +977,7 @@ function CheckoutBlock({ data, theme }: { data: Record<string, unknown>; theme: 
           discountCode: promoState.status === "ok" ? promo.trim() : undefined,
           guestEmail: email.trim(), guestName: name.trim() || undefined,
           phone: phone.trim() || undefined,
+          paymentMethod: selectedMethod,
         }),
       });
       const j = await res.json();
@@ -1036,6 +1063,35 @@ function CheckoutBlock({ data, theme }: { data: Record<string, unknown>; theme: 
             <div className="flex justify-between text-gray-900 font-extrabold text-base pt-1"><span>Total</span><span style={{ color: accent }}>{total === 0 ? "Gratuit" : `${fmt(total)} FCFA`}</span></div>
           </div>
 
+          {/* Moyens de paiement acceptés par le vendeur */}
+          {showMethods && !info.isFree && total > 0 && visibleMethods.length > 0 && (
+            <div className="pt-1">
+              <p className="text-xs font-bold text-gray-700 mb-2">Moyen de paiement</p>
+              <div className="grid grid-cols-2 gap-2">
+                {visibleMethods.map((m) => {
+                  const meta = PAY_METHOD_META[m];
+                  if (!meta) return null;
+                  const on = selectedMethod === m;
+                  const MIcon = meta.Icon;
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setPayMethod(m)}
+                      className="flex items-center gap-2 p-2.5 rounded-xl border-2 transition-all text-left"
+                      style={{ borderColor: on ? accent : "#e5e7eb", background: on ? `${accent}0D` : "#fff" }}
+                    >
+                      <MIcon size={18} style={{ color: on ? accent : "#6b7280" }} className="flex-shrink-0" />
+                      <span className="text-xs font-semibold" style={{ color: on ? accent : "#374151" }}>{meta.label}</span>
+                      {on && <CheckCircle2 size={14} style={{ color: accent }} className="ml-auto flex-shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-[10.5px] text-gray-400 mt-1.5">Vous finaliserez le paiement sur la page sécurisée du prestataire.</p>
+            </div>
+          )}
+
           {error && <div className="bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-xs font-semibold text-red-700">{error}</div>}
 
           <button type="submit" disabled={paying} className="w-full flex items-center justify-center gap-2 px-5 py-4 rounded-2xl text-white font-extrabold shadow-lg active:scale-[0.98] transition-transform disabled:opacity-70" style={{ background: `linear-gradient(135deg, ${accent}, ${theme.accentColor})` }}>
@@ -1043,9 +1099,9 @@ function CheckoutBlock({ data, theme }: { data: Record<string, unknown>; theme: 
             {paying ? "Redirection sécurisée…" : (ctaText || (total === 0 ? "Obtenir gratuitement" : "Procéder au paiement sécurisé"))}
           </button>
 
-          {/* Confiance + méthodes */}
+          {/* Confiance */}
           <div className="flex items-center justify-center gap-2 text-[11px] text-gray-400 pt-1">
-            <Lock size={12} />Paiement 100 % sécurisé · Carte bancaire &amp; Mobile Money
+            <Lock size={12} />Paiement 100 % sécurisé · SSL
           </div>
         </div>
       </form>
