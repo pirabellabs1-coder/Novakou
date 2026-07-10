@@ -245,12 +245,45 @@ const EXTRACT_FN = () => {
     const cs = getComputedStyle(el);
     const kids = [...el.children].filter((c) => vis(c) && (clean(c.textContent || "").length > 6 || c.querySelector("img,iframe,video")));
     if (kids.length < 2) return null;
-    if (cs.display.includes("grid")) {
+    const isGrid = cs.display.includes("grid");
+    const isRowFlex = cs.display.includes("flex") && !cs.flexDirection.includes("column");
+    const isMultiCol = cs.columnCount !== "auto" && cs.columnCount !== "";
+    if (!isGrid && !isRowFlex && !isMultiCol) return null;
+
+    // ── Détection VISUELLE par position X réelle des enfants. Robuste aux grilles
+    //    fines (Systeme.io pose "42.5px × 12" et fait s'étendre chaque cellule) où
+    //    le nombre de trames ne dit rien du nombre de colonnes VISIBLES. On regroupe
+    //    les enfants d'après leur position horizontale (avis 2 colonnes, footer 3…).
+    const withX = kids.map((k) => { const r = k.getBoundingClientRect(); return { k, x: Math.round(r.left), y: Math.round(r.top) }; });
+    const buckets: Array<{ x: number; n: number }> = [];
+    for (const o of withX) {
+      const b = buckets.find((bb) => Math.abs(bb.x - o.x) <= 24);
+      if (b) { b.x = Math.round((b.x * b.n + o.x) / (b.n + 1)); b.n++; } else buckets.push({ x: o.x, n: 1 });
+    }
+    buckets.sort((a, b) => a.x - b.x);
+    const maxN = Math.max(...buckets.map((b) => b.n));
+    // Colonnes dominantes = X partagés par ≥2 enfants (vraie grille) ; sinon (une
+    // seule rangée) chaque X est sa colonne. Fusion des colonnes trop rapprochées.
+    let colXs = (maxN >= 2 ? buckets.filter((b) => b.n >= 2) : buckets).map((b) => b.x);
+    colXs = colXs.filter((x, i, a) => i === 0 || x - a[i - 1] >= 120);
+    if (colXs.length >= 2 && colXs.length <= 4) {
+      const cols: Element[][] = Array.from({ length: colXs.length }, () => []);
+      withX.sort((a, b) => a.y - b.y || a.x - b.x);
+      for (const { k, x } of withX) {
+        let ci = 0, best = Infinity;
+        colXs.forEach((cx, i) => { const d = Math.abs(cx - x); if (d < best) { best = d; ci = i; } });
+        cols[ci].push(k);
+      }
+      if (cols.filter((c) => c.length).length >= 2) return cols;
+    }
+
+    // ── Repli : grille propre 2-4 trames, ou flex-row 2-4 enfants (ancienne logique) ──
+    if (isGrid) {
       const tracks = cs.gridTemplateColumns.split(" ").filter((x) => x && x !== "0px").length;
       if (tracks >= 2 && tracks <= 4) { const cols: Element[][] = Array.from({ length: tracks }, () => []); kids.forEach((k, i) => cols[i % tracks].push(k)); return cols; }
       return null;
     }
-    if (cs.display.includes("flex") && !cs.flexDirection.includes("column") && kids.length >= 2 && kids.length <= 4) return kids.map((k) => [k]);
+    if (isRowFlex && kids.length >= 2 && kids.length <= 4) return kids.map((k) => [k]);
     return null;
   };
 
