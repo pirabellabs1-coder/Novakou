@@ -1162,7 +1162,8 @@ function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>
     case "heading":
       return (
         <div className="space-y-2.5">
-          <StringInput label="Texte du titre" value={(block.data.content as string) ?? ""} onChange={(v) => update({ content: v })} />
+          {/* Éditer le texte plat invalide les fragments riches (spans) devenus obsolètes. */}
+          <StringInput label="Texte du titre" value={(block.data.content as string) ?? ""} onChange={(v) => update({ content: v, spans: undefined })} />
           <div className="grid grid-cols-2 gap-2">
             <SelectInput label="Niveau" value={((block.data.level as number) ?? 2).toString()} options={[{ value: "1", label: "H1" }, { value: "2", label: "H2" }, { value: "3", label: "H3" }]} onChange={(v) => update({ level: Number(v) })} />
             <SelectInput label="Alignement" value={(block.data.align as string) ?? "left"} options={ALIGN_OPTS} onChange={(v) => update({ align: v })} />
@@ -1176,7 +1177,8 @@ function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>
     case "text":
       return (
         <div className="space-y-2.5">
-          <StringInput label="Contenu" value={(block.data.content as string) ?? ""} onChange={(v) => update({ content: v })} multiline />
+          {/* Éditer le texte plat invalide les fragments riches (spans) devenus obsolètes. */}
+          <StringInput label="Contenu" value={(block.data.content as string) ?? ""} onChange={(v) => update({ content: v, spans: undefined })} multiline />
           <div className="grid grid-cols-2 gap-2">
             <SelectInput label="Alignement" value={(block.data.align as string) ?? "left"} options={ALIGN_OPTS} onChange={(v) => update({ align: v })} />
             <SliderInput label="Taille" unit="px" min={10} max={72} value={(block.data.size as number) ?? 16} onChange={(v) => update({ size: v })} />
@@ -3644,7 +3646,7 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                         <InlineTextEditor
                           block={block}
                           theme={liveTheme}
-                          onCommit={(content) => persistBlocks(treeUpdate(blocks, block.id, { ...block, data: { ...block.data, content } }))}
+                          onCommit={(content) => persistBlocks(treeUpdate(blocks, block.id, { ...block, data: { ...block.data, content, spans: undefined } }))}
                         />
                       ) : (
                         <div className="select-none">

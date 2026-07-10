@@ -656,6 +656,7 @@ export async function POST(request: Request) {
 
     // ── Importer chaque page (1 URL = 1 étape du tunnel) ──
     const pages: Array<{ url: URL; blocks: ImportedBlock[]; title: string; ogTitle: string | null; ogDesc: string | null; fullImport: boolean; engine: string }> = [];
+    let funnelFont: string | null = null; // police de la 1re page (thème du tunnel)
     for (const pageUrl of parsedUrls) {
       let blocks: ImportedBlock[] = [];
       let engine = "browser";
@@ -669,6 +670,7 @@ export async function POST(request: Request) {
           blocks = br.blocks as ImportedBlock[];
           browserTitle = br.title || null;
         }
+        if (pages.length === 0 && br?.pageFont) funnelFont = br.pageFont;
       } catch (e) {
         console.error("[import-systeme] browser extract failed:", e);
       }
@@ -745,6 +747,23 @@ export async function POST(request: Request) {
       });
     }
 
+    // Police du thème : celle du <body> si mappée, sinon la police la plus
+    // fréquente parmi les blocs de la 1re page (les pages Systeme.io laissent
+    // souvent le body en police par défaut alors que tout le texte est stylé).
+    if (!funnelFont && pages.length) {
+      const fontCounts = new Map<string, number>();
+      const countFonts = (bs: ImportedBlock[]) => {
+        for (const b of bs) {
+          const d = b.data as Record<string, unknown>;
+          if (typeof d.font === "string" && d.font) fontCounts.set(d.font, (fontCounts.get(d.font) ?? 0) + 1);
+          if (Array.isArray(d.blocks)) countFonts(d.blocks as ImportedBlock[]);
+          if (Array.isArray(d.columns)) for (const c of d.columns as Array<{ blocks?: ImportedBlock[] }>) countFonts(c.blocks ?? []);
+        }
+      };
+      countFonts(pages[0].blocks);
+      funnelFont = [...fontCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+    }
+
     const name = (pages[0].title || "Tunnel importé").slice(0, 120);
     let slug = slugify(name);
     if (await prisma.salesFunnel.findUnique({ where: { slug } })) {
@@ -758,6 +777,7 @@ export async function POST(request: Request) {
         slug,
         description: `Importé depuis ${parsedUrls[0].hostname} (${pages.length} page${pages.length > 1 ? "s" : ""})`,
         isActive: false, // brouillon : le vendeur relit, attache son produit puis active
+        ...(funnelFont ? { theme: { font: funnelFont } } : {}),
         steps: {
           create: pages.map((p, i) => ({
             stepOrder: i,

@@ -353,11 +353,52 @@ function trackFunnel(slug: string | undefined, type: string, stepId?: string) {
 // ═══════════════════════════════════════════════════════════════════════════
 // ATOMIC BLOCK RENDERERS
 // ═══════════════════════════════════════════════════════════════════════════
+
+// ─── Texte riche (fragments multicolores) ────────────────────────────────────
+// Un titre/texte peut porter data.spans : Array<{ t, c?, b?, i? }> — structure
+// pure (aucun HTML), rendue en <span> stylés via React (zéro injection).
+type RichSpan = { t: string; c?: string; b?: boolean; i?: boolean };
+
+// Validation défensive : ne conserve que les fragments dont t est une string ;
+// une couleur n'est retenue que si elle ressemble à du CSS légitime (#/rgb/hsl).
+function sanitizeSpans(raw: unknown): RichSpan[] {
+  if (!Array.isArray(raw)) return [];
+  const out: RichSpan[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const s = item as Record<string, unknown>;
+    if (typeof s.t !== "string") continue;
+    const c = typeof s.c === "string" && /^(#|rgb|hsl)/.test(s.c) ? s.c : undefined;
+    out.push({ t: s.t, c, b: s.b === true, i: s.i === true });
+  }
+  return out;
+}
+
+// Rend le contenu : fragments stylés si spans valides, texte plat sinon.
+function renderRichContent(content: string | undefined, spansRaw: unknown): React.ReactNode {
+  const spans = sanitizeSpans(spansRaw);
+  if (!spans.length) return content;
+  return spans.map((s, i) => (
+    <span
+      key={i}
+      style={{
+        color: s.c || undefined,
+        fontWeight: s.b ? 700 : undefined,
+        fontStyle: s.i ? "italic" : undefined,
+      }}
+    >
+      {s.t}
+    </span>
+  ));
+}
+
 function HeadingBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
-  const { content, level = 2, align = "left", color, gradient, size, lineHeight, letterSpacing, font, weight } = data as {
+  const { content, level = 2, align = "left", color, gradient, size, lineHeight, letterSpacing, font, weight, spans } = data as {
     content?: string; level?: number; align?: string; color?: string; gradient?: string;
-    size?: number; lineHeight?: number; letterSpacing?: number; font?: string; weight?: number;
+    size?: number; lineHeight?: number; letterSpacing?: number; font?: string; weight?: number; spans?: unknown;
   };
+  // Texte riche : fragments multicolores si spans est fourni, texte plat sinon.
+  const inner = renderRichContent(content, spans);
   const safeLevel = Math.min(Math.max(Number(level) || 2, 1), 6);
   // Taille personnalisée (px) → remplace les classes responsives ; 0/absent = auto.
   const customSize = Number(size ?? 0);
@@ -382,19 +423,21 @@ function HeadingBlock({ data, theme }: { data: Record<string, unknown>; theme: T
       ...gradientStyle,
     },
   };
-  if (safeLevel === 1) return <h1 {...commonProps}>{content}</h1>;
-  if (safeLevel === 2) return <h2 {...commonProps}>{content}</h2>;
-  if (safeLevel === 3) return <h3 {...commonProps}>{content}</h3>;
-  if (safeLevel === 4) return <h4 {...commonProps}>{content}</h4>;
-  if (safeLevel === 5) return <h5 {...commonProps}>{content}</h5>;
-  return <h6 {...commonProps}>{content}</h6>;
+  if (safeLevel === 1) return <h1 {...commonProps}>{inner}</h1>;
+  if (safeLevel === 2) return <h2 {...commonProps}>{inner}</h2>;
+  if (safeLevel === 3) return <h3 {...commonProps}>{inner}</h3>;
+  if (safeLevel === 4) return <h4 {...commonProps}>{inner}</h4>;
+  if (safeLevel === 5) return <h5 {...commonProps}>{inner}</h5>;
+  return <h6 {...commonProps}>{inner}</h6>;
 }
 
 function TextBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
-  const { content, align = "left", size = 16, color, lineHeight, letterSpacing, font, weight } = data as {
+  const { content, align = "left", size = 16, color, lineHeight, letterSpacing, font, weight, spans } = data as {
     content?: string; align?: string; size?: number; color?: string;
-    lineHeight?: number; letterSpacing?: number; font?: string; weight?: number;
+    lineHeight?: number; letterSpacing?: number; font?: string; weight?: number; spans?: unknown;
   };
+  // Texte riche : fragments multicolores si spans est fourni, texte plat sinon.
+  const inner = renderRichContent(content, spans);
   return (
     <p className="leading-relaxed whitespace-pre-wrap" style={{
       color: color || theme.textColor,
@@ -405,7 +448,7 @@ function TextBlock({ data, theme }: { data: Record<string, unknown>; theme: Them
       fontFamily: font ? `'${font}', sans-serif` : undefined,
       fontWeight: Number(weight ?? 0) > 0 ? Number(weight) : undefined,
     }}>
-      {content}
+      {inner}
     </p>
   );
 }
@@ -422,10 +465,12 @@ function ImageBlock({ data }: { data: Record<string, unknown> }) {
 }
 
 function ButtonBlock({ data, theme, onDefault }: { data: Record<string, unknown>; theme: Theme; onDefault: () => void }) {
-  const { text, link, style = "primary", size = "md", align = "center", bgColor, textColor, fullWidth, icon } = data as {
-    text?: string; link?: string; style?: string; size?: string; align?: string; bgColor?: string; textColor?: string; fullWidth?: boolean; icon?: string;
+  const { text, link, style = "primary", size = "md", align = "center", bgColor, textColor, fullWidth, icon, subText } = data as {
+    text?: string; link?: string; style?: string; size?: string; align?: string; bgColor?: string; textColor?: string; fullWidth?: boolean; icon?: string; subText?: string;
   };
   const handle = useLink(link, onDefault);
+  // Seconde ligne optionnelle du CTA (ex. « Pour ce Dimanche 07 Juin à 20H »).
+  const sub = typeof subText === "string" && subText.trim() ? subText : "";
   const padding = size === "sm" ? "px-4 py-2 text-xs" : size === "lg" ? "px-8 py-4 text-base" : "px-6 py-3 text-sm";
   const justify = align === "left" ? "justify-start" : align === "right" ? "justify-end" : "justify-center";
 
@@ -445,9 +490,21 @@ function ButtonBlock({ data, theme, onDefault }: { data: Record<string, unknown>
 
   return (
     <div className={`flex ${justify}`}>
-      <button onClick={handle} className={`${btnClass} ${padding} ${fullWidth ? "w-full justify-center" : ""}`} style={btnStyle}>
-        {icon && <MaterialIcon name={icon} size={18} />}
-        {text}
+      <button onClick={handle} className={`${btnClass} ${padding} ${sub ? "flex-col gap-0" : ""} ${fullWidth ? "w-full justify-center" : ""}`} style={btnStyle}>
+        {sub ? (
+          <>
+            <span className="inline-flex items-center gap-2">
+              {icon && <MaterialIcon name={icon} size={18} />}
+              {text}
+            </span>
+            <span className="block text-[11px] font-semibold opacity-80 mt-0.5">{sub}</span>
+          </>
+        ) : (
+          <>
+            {icon && <MaterialIcon name={icon} size={18} />}
+            {text}
+          </>
+        )}
       </button>
     </div>
   );
