@@ -9,7 +9,7 @@
 import type { Browser } from "playwright-core";
 
 export type ExtractedBlock = { id: string; type: string; data: Record<string, unknown> };
-export type BrowserExtractResult = { blocks: ExtractedBlock[]; title: string; sections: number; pageFont: string | null };
+export type BrowserExtractResult = { blocks: ExtractedBlock[]; title: string; sections: number; pageFont: string | null; pageBg: string | null };
 
 // Dernière erreur du navigateur (diagnostic — exposé temporairement dans l'API).
 export let lastBrowserError: string | null = null;
@@ -69,7 +69,7 @@ export async function extractViaBrowser(url: string): Promise<BrowserExtractResu
     await browser.close();
     browser = null;
     if (!result || !Array.isArray(result.blocks) || result.blocks.length < 2) return null;
-    return { ...result, pageFont: result.pageFont ?? null };
+    return { ...result, pageFont: result.pageFont ?? null, pageBg: result.pageBg ?? null };
   } catch (err) {
     lastBrowserError = err instanceof Error ? `${err.message}`.slice(0, 300) : String(err).slice(0, 300);
     console.error("[browser-extract]", err);
@@ -102,6 +102,20 @@ const EXTRACT_FN = () => {
   };
   const fontOf = (el: Element) => mapFont(getComputedStyle(el).fontFamily);
   const pageFont = mapFont(getComputedStyle(document.body).fontFamily);
+  // Fond de PAGE → deviendra theme.bgColor du tunnel. Cascade : body → html →
+  // wrapper racine pleine page → blanc (rendu réel d'un body transparent).
+  let pageBg = usable(getComputedStyle(document.body).backgroundColor) || usable(getComputedStyle(document.documentElement).backgroundColor);
+  if (!pageBg) {
+    for (const c of document.body.children) {
+      if (!vis(c)) continue;
+      const r = c.getBoundingClientRect();
+      if (r.width >= innerWidth * 0.9 && r.height >= innerHeight * 0.6) {
+        const b = usable(getComputedStyle(c).backgroundColor);
+        if (b) { pageBg = b; break; }
+      }
+    }
+  }
+  if (!pageBg) pageBg = "rgb(255, 255, 255)";
 
   const bgOf = (el: Element) => {
     const cs = getComputedStyle(el);
@@ -205,7 +219,12 @@ const EXTRACT_FN = () => {
   };
 
   const seen = new Set<string>();
-  let budget = 140;
+  // Répétitions LÉGITIMES (le même CTA « S'INSCRIRE » revient souvent 4-5×
+  // sur une page de vente) : compteur avec plafond au lieu d'un dédoublonnage
+  // strict. Les variantes desktop/mobile cachées sont déjà écartées par vis().
+  const times = new Map<string, number>();
+  const over = (k: string, max: number) => { const n = (times.get(k) ?? 0) + 1; times.set(k, n); return n > max; };
+  let budget = 240;
   const isTextLeaf = (el: Element) => { for (const c of el.children) { if (INLINE.has(c.tagName)) continue; if (clean(c.textContent || "").length > 0) return false; if (c.querySelector && c.querySelector("img,iframe,video")) return false; } return clean(el.textContent || "").length > 0; };
 
   type B = { id: string; type: string; data: Record<string, unknown> };
@@ -213,7 +232,7 @@ const EXTRACT_FN = () => {
   // ── Feuille de texte → bloc heading/text (avec spans + police par bloc) ──
   const textBlocks = (el: Element, cs: CSSStyleDeclaration): B[] => {
     const t = clean(el.textContent || ""); if (t.length < 2 || t.length > 900 || BOIL.test(t)) return [];
-    const k = "t:" + t.slice(0, 80); if (seen.has(k)) return []; seen.add(k);
+    const k = "t:" + t.slice(0, 80); if (over(k, 3)) return [];
     const size = px(cs.fontSize); const w = parseInt(cs.fontWeight) || 400;
     const heading = (size !== null && size >= 22) || (w >= 600 && t.length <= 70); budget--; const color = colorOf(el);
     const spans = spanify(el); const f = mapFont(cs.fontFamily);
@@ -232,7 +251,7 @@ const EXTRACT_FN = () => {
     const parentBg = el.parentElement ? usable(getComputedStyle(el.parentElement).backgroundColor) : null;
     const bgDiff = !!ownBg && ownBg !== parentBg;
     if (!italic && !bgDiff) return null;
-    const k = "t:" + t.slice(0, 80); if (seen.has(k)) return null; seen.add(k); budget--;
+    const k = "t:" + t.slice(0, 80); if (over(k, 2)) return null; budget--;
     return [{ id: rid("q"), type: "quote", data: { text: t, author: "" } }];
   };
 
@@ -282,7 +301,7 @@ const EXTRACT_FN = () => {
       src = absU(src);
       if (/logo|favicon|sprite|pixel/i.test(src)) return [];
       const r = el.getBoundingClientRect(); if (r.width < 40 || r.height < 40) return [];
-      if (seen.has("img:" + src)) return []; seen.add("img:" + src); budget--;
+      if (over("img:" + src, 2)) return []; budget--;
       return [{ id: rid("image"), type: "image", data: { url: src, alt: clean(img.alt), align: "center", radius: px(cs.borderTopLeftRadius) ?? 12 } }];
     }
     if (tag === "IFRAME") {
@@ -327,7 +346,7 @@ const EXTRACT_FN = () => {
         }
       }
       if (main.length < 2 || main.length > 60 || BOIL.test(main)) return [];
-      if (seen.has("btn:" + main.toLowerCase())) return []; seen.add("btn:" + main.toLowerCase());
+      if (over("btn:" + main.toLowerCase(), 8)) return [];
       const bg = bgOf(el); budget--;
       return [{ id: rid("btn"), type: "button", data: { text: main, link: "", style: "primary", size: "lg", align: "center", ...(subText ? { subText } : {}), ...(bg.color ? { bgColor: bg.color } : {}), ...(usable(cs.color) ? { textColor: cs.color } : {}), _borderRadius: Math.min(px(cs.borderTopLeftRadius) ?? 8, 60) } }];
     }
@@ -338,7 +357,7 @@ const EXTRACT_FN = () => {
     }
     if (/^H[1-6]$/.test(tag)) {
       const t = clean(el.textContent || ""); if (t.length < 2 || t.length > 220 || BOIL.test(t)) return [];
-      const k = "t:" + t.slice(0, 80); if (seen.has(k)) return []; seen.add(k); const size = px(cs.fontSize); budget--;
+      const k = "t:" + t.slice(0, 80); if (over(k, 3)) return []; const size = px(cs.fontSize); budget--;
       const spans = spanify(el); const f = mapFont(cs.fontFamily);
       return [{ id: rid("h"), type: "heading", data: { content: t, level: +tag[1] <= 2 ? +tag[1] : 3, align: alignOf(el) ?? "left", ...(colorOf(el) ? { color: colorOf(el) } : {}), ...(size ? { size } : {}), ...(spans ? { spans } : {}), ...(f ? { font: f } : {}) } }];
     }
@@ -390,11 +409,29 @@ const EXTRACT_FN = () => {
   };
 
   let sections: Element[] = [...document.querySelectorAll("section")].filter(vis);
-  if (sections.length < 2) {
-    const root = document.querySelector("main") || document.body;
-    sections = [...root.children].filter((c) => vis(c) && clean(c.textContent || "").length > 40);
-  }
   sections = sections.filter((s) => !sections.some((o) => o !== s && o.contains(s)));
+  const root0 = document.querySelector("main") || document.body;
+  const root = sections.length && !sections.every((s) => root0.contains(s)) ? document.body : root0;
+  if (sections.length >= 2) {
+    // Ramasser AUSSI le contenu hors <section> (barres, bandes et pieds en <div>) :
+    // descente depuis la racine — un conteneur qui renferme des <section> est
+    // traversé, ses frères porteurs de contenu sont gardés, ordre du document.
+    const tops: Element[] = [];
+    const collectTops = (host: Element, depth: number): void => {
+      if (depth > 8) return;
+      for (const c of host.children) {
+        if (!vis(c) || INLINE.has(c.tagName)) continue;
+        if (sections.includes(c)) { tops.push(c); continue; }
+        if (sections.some((s) => c.contains(s))) { collectTops(c, depth + 1); continue; }
+        if (clean(c.textContent || "").length > 40 || !!c.querySelector("img,iframe,video")) tops.push(c);
+      }
+    };
+    collectTops(root, 0);
+    if (tops.length >= sections.length) sections = tops;
+  } else {
+    sections = [...root.children].filter((c) => vis(c) && clean(c.textContent || "").length > 40);
+    sections = sections.filter((s) => !sections.some((o) => o !== s && o.contains(s)));
+  }
 
   const blocks: B[] = [];
   let first = true;
@@ -411,6 +448,27 @@ const EXTRACT_FN = () => {
     const bg = bgOf(sec);
     let image = bg.image, color = bg.color, overlay = false;
     if (!image) { for (const d of sec.querySelectorAll("div")) { const b = bgOf(d); if (b.image) { image = b.image; break; } } }
+    // Fond posé sur un wrapper INTERNE pleine largeur (styled-components pose
+    // souvent la couleur sur un div enfant, pas sur la <section> elle-même).
+    if (!color) {
+      const sr = sec.getBoundingClientRect();
+      for (const d of sec.querySelectorAll("div")) {
+        if (!vis(d)) continue;
+        const b = bgOf(d); if (!b.color) continue;
+        const r = d.getBoundingClientRect();
+        if (r.width >= sr.width * 0.85 && r.height >= sr.height * 0.6) { color = b.color; break; }
+      }
+    }
+    // Fond posé sur un ANCÊTRE (section transparente dans un wrapper coloré).
+    if (!color && !image) {
+      let a: Element | null = sec.parentElement;
+      while (a && a !== document.body) {
+        const b = bgOf(a);
+        if (b.color) { color = b.color; break; }
+        if (b.image) { image = b.image; break; }
+        a = a.parentElement;
+      }
+    }
     for (const d of sec.querySelectorAll("div")) { const c = usable(getComputedStyle(d).backgroundColor); if (c && /rgba\(\s*\d+,\s*\d+,\s*\d+,\s*0?\.[1-9]/.test(c) && (lum(c) ?? 1) < 0.5) overlay = true; }
     const txtLums: number[] = [];
     // Les content-box ont leur propre fond : ne pas compter leur texte dans le contraste de la section.
@@ -433,5 +491,5 @@ const EXTRACT_FN = () => {
       blocks.push(...inner);
     }
   }
-  return { blocks, title: document.title, sections: sections.length, pageFont };
+  return { blocks, title: document.title, sections: sections.length, pageFont, pageBg };
 };

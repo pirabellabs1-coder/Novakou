@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { getActiveShopId } from "@/lib/formations/active-shop";
 import { extractViaBrowser } from "@/lib/import/browser-extract";
 
 export const maxDuration = 300;
@@ -633,6 +634,9 @@ export async function POST(request: Request) {
     if (!session?.user && !IS_DEV) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     const ctx = await resolveVendorContext(session, { devFallback: IS_DEV ? "dev-instructeur-001" : undefined });
     if (!ctx?.instructeurId) return NextResponse.json({ error: "Profil vendeur introuvable" }, { status: 404 });
+    // Boutique active : SANS elle le tunnel importé n'apparaissait pas dans la
+    // liste (filtrée par boutique). getActiveShopId auto-sélectionne la primaire.
+    const activeShopId = await getActiveShopId(session, { devFallback: IS_DEV ? "dev-instructeur-001" : undefined });
 
     const body = await request.json().catch(() => ({}));
     const rawList: string[] = Array.isArray(body.urls)
@@ -657,6 +661,7 @@ export async function POST(request: Request) {
     // ── Importer chaque page (1 URL = 1 étape du tunnel) ──
     const pages: Array<{ url: URL; blocks: ImportedBlock[]; title: string; ogTitle: string | null; ogDesc: string | null; fullImport: boolean; engine: string }> = [];
     let funnelFont: string | null = null; // police de la 1re page (thème du tunnel)
+    let funnelBg: string | null = null; // fond de page de la 1re page (thème du tunnel)
     for (const pageUrl of parsedUrls) {
       let blocks: ImportedBlock[] = [];
       let engine = "browser";
@@ -671,6 +676,7 @@ export async function POST(request: Request) {
           browserTitle = br.title || null;
         }
         if (pages.length === 0 && br?.pageFont) funnelFont = br.pageFont;
+        if (pages.length === 0 && br?.pageBg && !br.pageBg.includes("gradient")) funnelBg = br.pageBg;
       } catch (e) {
         console.error("[import-systeme] browser extract failed:", e);
       }
@@ -773,11 +779,14 @@ export async function POST(request: Request) {
     const funnel = await prisma.salesFunnel.create({
       data: {
         instructeurId: ctx.instructeurId,
+        shopId: activeShopId,
         name,
         slug,
         description: `Importé depuis ${parsedUrls[0].hostname} (${pages.length} page${pages.length > 1 ? "s" : ""})`,
         isActive: false, // brouillon : le vendeur relit, attache son produit puis active
-        ...(funnelFont ? { theme: { font: funnelFont } } : {}),
+        ...(funnelFont || funnelBg
+          ? { theme: { ...(funnelFont ? { font: funnelFont } : {}), ...(funnelBg ? { bgColor: funnelBg } : {}) } }
+          : {}),
         steps: {
           create: pages.map((p, i) => ({
             stepOrder: i,

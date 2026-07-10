@@ -42,8 +42,10 @@ export async function GET() {
       devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
     });
 
+    // Les tunnels sans boutique (anciens imports) restent visibles partout :
+    // les cacher les rendait introuvables alors qu'ils appartiennent au vendeur.
     const funnels = await prisma.salesFunnel.findMany({
-      where: { instructeurId: inst.id, ...(activeShopId ? { shopId: activeShopId } : {}) },
+      where: { instructeurId: inst.id, ...(activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {}) },
       orderBy: { updatedAt: "desc" },
       include: {
         steps: { orderBy: { stepOrder: "asc" } },

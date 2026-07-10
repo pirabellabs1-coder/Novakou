@@ -633,9 +633,13 @@ function SectionBlock({ data, theme, onCta, funnelSlug, salesLimit, salesCount, 
   // mobile les plafonne avec min() pour un rendu propre sur téléphone.
   // Couleur ET image séparées : la couleur reste une couche de secours SOUS
   // l'image (si celle-ci est lente ou cassée, le texte reste lisible).
+  // Un DÉGRADÉ (import) arrive dans bgColor : CSS ne l'accepte que comme
+  // image de fond — l'empiler AVANT l'image éventuelle.
+  const isGradient = !!bgColor && bgColor.includes("gradient(");
+  const bgLayers = [...(isGradient && bgColor ? [bgColor] : []), ...(bgImage ? [`url(${bgImage})`] : [])];
   const style: React.CSSProperties = {
-    ...(bgColor ? { backgroundColor: bgColor } : {}),
-    ...(bgImage ? { backgroundImage: `url(${bgImage})`, backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" } : {}),
+    ...(bgColor && !isGradient ? { backgroundColor: bgColor } : {}),
+    ...(bgLayers.length ? { backgroundImage: bgLayers.join(", "), backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" } : {}),
     backgroundAttachment: parallax && bgImage ? "fixed" : undefined,
     ["--nk-pad-y" as string]: `${paddingY}px`,
     ["--nk-pad-x" as string]: `${paddingX}px`,
