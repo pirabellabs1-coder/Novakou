@@ -23,10 +23,15 @@ const securityHeaders = isDev
           "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://js.puter.com https://*.puter.com",
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.fontshare.com",
           "font-src 'self' https://fonts.gstatic.com https://cdn.fontshare.com",
-          "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://avatars.githubusercontent.com https://lh3.googleusercontent.com https://*.supabase.co https://*.puter.com https://flagcdn.com",
+          // img-src ouvert à tout HTTPS : les tunnels importés référencent des
+          // images depuis n'importe quel CDN externe (cloudfront Systeme.io, etc.).
+          // Ressource à faible risque ; script-src/connect-src restent verrouillés.
+          "img-src 'self' data: blob: https:",
           "connect-src 'self' ws: wss: https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://region1.google-analytics.com https://api.puter.com https://*.puter.com",
-          "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://www.loom.com https://puter.com https://*.puter.com",
-          "media-src 'self' blob: data: https://res.cloudinary.com https://*.supabase.co",
+          // frame-src : lecteurs vidéo (tunnels importés) — youtube/vimeo/loom/wistia.
+          "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://www.loom.com https://fast.wistia.net https://fast.wistia.com https://puter.com https://*.puter.com",
+          // media-src ouvert à tout HTTPS : vidéos/audios des tunnels importés.
+          "media-src 'self' blob: data: https:",
           "frame-ancestors 'self'",
         ].join("; "),
       },
