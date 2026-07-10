@@ -31,6 +31,10 @@ import {
   ShieldCheck,
   Building2,
   ArrowDownToLine,
+  ListOrdered,
+  IdCard,
+  PanelsTopLeft,
+  AppWindow,
   Megaphone,
   Sparkles,
   CheckCircle2,
@@ -114,7 +118,9 @@ type BlockType =
   // Lead capture (page de capture d'emails)
   | "lead-form"
   // Nouveaux éléments (v3)
-  | "audio" | "badge" | "quote" | "rating" | "progress" | "whatsapp" | "social-share";
+  | "audio" | "badge" | "quote" | "rating" | "progress" | "whatsapp" | "social-share"
+  // Nouveaux éléments (v4)
+  | "steps" | "team" | "accordion" | "tabs" | "embed" | "callout";
 
 interface Block {
   id: string;
@@ -592,6 +598,81 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
       lightbox: true,
     },
   },
+  // ─── Nouveaux éléments (v4) ───────────────────────────────────────────────
+  steps: {
+    label: "Étapes / Process",
+    icon: ListOrdered,
+    atomic: true,
+    default: {
+      title: "Comment ça marche",
+      items: [
+        { title: "Inscrivez-vous", desc: "Créez votre compte en 30 secondes." },
+        { title: "Suivez la formation", desc: "Accédez à tout le contenu immédiatement." },
+        { title: "Obtenez des résultats", desc: "Appliquez et transformez votre activité." },
+      ],
+      accentColor: "",
+      layout: "vertical", // vertical | horizontal
+    },
+  },
+  team: {
+    label: "Membre / Auteur",
+    icon: IdCard,
+    atomic: true,
+    default: {
+      name: "Votre Nom",
+      role: "Fondateur & Formateur",
+      bio: "Décrivez votre parcours, votre expertise et pourquoi les gens devraient vous faire confiance.",
+      imageUrl: "",
+      accentColor: "",
+      align: "center", // center | left
+      social: { website: "", linkedin: "", instagram: "", youtube: "" },
+    },
+  },
+  accordion: {
+    label: "Accordéon",
+    icon: ChevronDown,
+    atomic: true,
+    default: {
+      items: [
+        { q: "Première question ?", a: "La réponse à la première question." },
+        { q: "Deuxième question ?", a: "La réponse à la deuxième question." },
+      ],
+      accentColor: "",
+      openFirst: false,
+    },
+  },
+  tabs: {
+    label: "Onglets",
+    icon: PanelsTopLeft,
+    atomic: true,
+    default: {
+      tabs: [
+        { label: "Onglet 1", content: "Contenu du premier onglet." },
+        { label: "Onglet 2", content: "Contenu du deuxième onglet." },
+      ],
+      accentColor: "",
+    },
+  },
+  embed: {
+    label: "Intégration (iframe)",
+    icon: AppWindow,
+    atomic: true,
+    default: {
+      url: "",         // Calendly, Google Form, Maps, Typeform…
+      height: 500,
+      title: "",
+    },
+  },
+  callout: {
+    label: "Encadré / Note",
+    icon: Lightbulb,
+    atomic: true,
+    default: {
+      text: "Astuce importante : mettez en avant une information clé ici.",
+      icon: "lightbulb",
+      variant: "info", // info | success | warning | tip
+    },
+  },
 };
 
 // PaletteKey = either a BlockType or a preset (row with N columns)
@@ -620,6 +701,9 @@ const PALETTE_CATEGORIES: Array<{ label: string; icon: LucideIcon; items: Palett
       { key: "quote", label: "Citation", icon: Quote },
       { key: "rating", label: "Note (étoiles)", icon: Star },
       { key: "progress", label: "Progression", icon: BarChart3 },
+      { key: "callout", label: "Encadré / Note", icon: Lightbulb },
+      { key: "accordion", label: "Accordéon", icon: ChevronDown },
+      { key: "tabs", label: "Onglets", icon: PanelsTopLeft },
       { key: "divider", label: "Ligne", icon: Minus },
       { key: "spacer", label: "Espace", icon: MoveVertical },
     ],
@@ -657,6 +741,8 @@ const PALETTE_CATEGORIES: Array<{ label: string; icon: LucideIcon; items: Palett
       { key: "cta", label: "Appel à l'action", icon: MousePointerClick },
       { key: "pricing", label: "Pricing", icon: Tag },
       { key: "comparison", label: "Comparatif", icon: GitCompare },
+      { key: "steps", label: "Étapes / Process", icon: ListOrdered },
+      { key: "team", label: "Membre / Auteur", icon: IdCard },
     ],
   },
   {
@@ -672,6 +758,7 @@ const PALETTE_CATEGORIES: Array<{ label: string; icon: LucideIcon; items: Palett
 const COLUMN_ALLOWED_KEYS: PaletteKey[] = [
   "heading", "text", "image", "button", "icon-box", "divider", "spacer", "list", "video", "html", "product", "checkout", "content-box", "lead-form",
   "audio", "badge", "quote", "rating", "progress", "whatsapp",
+  "steps", "team", "accordion", "tabs", "embed", "callout",
 ];
 
 // Dans une SECTION ou une BOÎTE (slot), on autorise en plus les rangées de
@@ -1433,6 +1520,114 @@ function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>
       return <ProductEditor block={block} update={update} />;
     case "checkout":
       return <CheckoutEditor block={block} update={update} />;
+    case "steps":
+      return (
+        <div className="space-y-2.5">
+          <StringInput label="Titre (optionnel)" value={(block.data.title as string) ?? ""} onChange={(v) => update({ title: v })} />
+          <div className="grid grid-cols-2 gap-2">
+            <SelectInput label="Disposition" value={(block.data.layout as string) ?? "vertical"} options={[{ value: "vertical", label: "Verticale" }, { value: "horizontal", label: "Horizontale" }]} onChange={(v) => update({ layout: v })} />
+            <ColorPicker label="Couleur d'accent" value={(block.data.accentColor as string) ?? null} onChange={(c) => update({ accentColor: c })} />
+          </div>
+          <ListEditor
+            label="Étapes"
+            items={(block.data.items as Array<{ title: string; desc: string }>) ?? []}
+            template={{ title: "Nouvelle étape", desc: "" }}
+            onChange={(items) => update({ items })}
+            renderItem={(item, up) => (
+              <div className="space-y-2">
+                <StringInput label="Titre" value={item.title ?? ""} onChange={(v) => up({ title: v })} />
+                <StringInput label="Description" value={item.desc ?? ""} onChange={(v) => up({ desc: v })} multiline />
+              </div>
+            )}
+          />
+        </div>
+      );
+    case "team":
+      return (
+        <div className="space-y-2.5">
+          <MediaUpload label="Photo" value={(block.data.imageUrl as string) ?? null} onChange={(url) => update({ imageUrl: url ?? "" })} accept="image" aspectRatio="square" />
+          <div className="grid grid-cols-2 gap-2">
+            <StringInput label="Nom" value={(block.data.name as string) ?? ""} onChange={(v) => update({ name: v })} />
+            <StringInput label="Rôle / titre" value={(block.data.role as string) ?? ""} onChange={(v) => update({ role: v })} />
+          </div>
+          <StringInput label="Bio" value={(block.data.bio as string) ?? ""} onChange={(v) => update({ bio: v })} multiline />
+          <div className="grid grid-cols-2 gap-2">
+            <SelectInput label="Alignement" value={(block.data.align as string) ?? "center"} options={[{ value: "center", label: "Centré" }, { value: "left", label: "Gauche (photo à côté)" }]} onChange={(v) => update({ align: v })} />
+            <ColorPicker label="Couleur d'accent" value={(block.data.accentColor as string) ?? null} onChange={(c) => update({ accentColor: c })} />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <StringInput label="Site web" value={((block.data.social as Record<string, string>)?.website) ?? ""} onChange={(v) => update({ social: { ...(block.data.social as object), website: v } })} placeholder="https://…" />
+            <StringInput label="LinkedIn" value={((block.data.social as Record<string, string>)?.linkedin) ?? ""} onChange={(v) => update({ social: { ...(block.data.social as object), linkedin: v } })} placeholder="https://…" />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <StringInput label="Instagram" value={((block.data.social as Record<string, string>)?.instagram) ?? ""} onChange={(v) => update({ social: { ...(block.data.social as object), instagram: v } })} placeholder="https://…" />
+            <StringInput label="YouTube" value={((block.data.social as Record<string, string>)?.youtube) ?? ""} onChange={(v) => update({ social: { ...(block.data.social as object), youtube: v } })} placeholder="https://…" />
+          </div>
+        </div>
+      );
+    case "accordion":
+      return (
+        <div className="space-y-2.5">
+          <div className="grid grid-cols-2 gap-2">
+            <SelectInput label="Ouvrir le 1er" value={block.data.openFirst ? "oui" : "non"} options={[{ value: "non", label: "Non" }, { value: "oui", label: "Oui" }]} onChange={(v) => update({ openFirst: v === "oui" })} />
+            <ColorPicker label="Couleur d'accent" value={(block.data.accentColor as string) ?? null} onChange={(c) => update({ accentColor: c })} />
+          </div>
+          <ListEditor
+            label="Éléments"
+            items={(block.data.items as Array<{ q: string; a: string }>) ?? []}
+            template={{ q: "Nouvelle question ?", a: "" }}
+            onChange={(items) => update({ items })}
+            renderItem={(item, up) => (
+              <div className="space-y-2">
+                <StringInput label="Titre" value={item.q ?? ""} onChange={(v) => up({ q: v })} />
+                <StringInput label="Contenu" value={item.a ?? ""} onChange={(v) => up({ a: v })} multiline />
+              </div>
+            )}
+          />
+        </div>
+      );
+    case "tabs":
+      return (
+        <div className="space-y-2.5">
+          <ColorPicker label="Couleur d'accent" value={(block.data.accentColor as string) ?? null} onChange={(c) => update({ accentColor: c })} />
+          <ListEditor
+            label="Onglets"
+            items={(block.data.tabs as Array<{ label: string; content: string }>) ?? []}
+            template={{ label: "Nouvel onglet", content: "" }}
+            onChange={(tabs) => update({ tabs })}
+            renderItem={(item, up) => (
+              <div className="space-y-2">
+                <StringInput label="Libellé de l'onglet" value={item.label ?? ""} onChange={(v) => up({ label: v })} />
+                <StringInput label="Contenu" value={item.content ?? ""} onChange={(v) => up({ content: v })} multiline />
+              </div>
+            )}
+          />
+        </div>
+      );
+    case "embed":
+      return (
+        <div className="space-y-2.5">
+          <StringInput label="Lien à intégrer (Calendly, Google Form, Maps, Typeform…)" value={(block.data.url as string) ?? ""} onChange={(v) => update({ url: v })} placeholder="https://calendly.com/…" />
+          <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-[10px] text-blue-800 flex items-start gap-1">
+            <Info size={12} className="mt-0.5 flex-shrink-0" />
+            Collez l&apos;URL de la page à intégrer (prise de rendez-vous, formulaire, carte…). Elle s&apos;affichera dans un cadre sur votre page.
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <SliderInput label="Hauteur" unit="px" min={200} max={1000} step={20} value={(block.data.height as number) ?? 500} onChange={(v) => update({ height: v })} />
+            <StringInput label="Titre (accessibilité)" value={(block.data.title as string) ?? ""} onChange={(v) => update({ title: v })} />
+          </div>
+        </div>
+      );
+    case "callout":
+      return (
+        <div className="space-y-2.5">
+          <StringInput label="Texte" value={(block.data.text as string) ?? ""} onChange={(v) => update({ text: v })} multiline />
+          <div className="grid grid-cols-2 gap-2">
+            <SelectInput label="Style" value={(block.data.variant as string) ?? "info"} options={[{ value: "info", label: "Info (bleu)" }, { value: "success", label: "Succès (vert)" }, { value: "warning", label: "Attention (orange)" }, { value: "tip", label: "Astuce (violet)" }]} onChange={(v) => update({ variant: v })} />
+            <StringInput label="Icône (nom)" value={(block.data.icon as string) ?? ""} onChange={(v) => update({ icon: v })} placeholder="lightbulb, info, star…" />
+          </div>
+        </div>
+      );
     default:
       return null;
   }

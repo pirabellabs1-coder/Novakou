@@ -31,6 +31,9 @@ import {
   Flame,
   Gem,
   Globe,
+  Linkedin,
+  Instagram,
+  Youtube,
   GraduationCap,
   Handshake,
   Headphones,
@@ -2078,6 +2081,142 @@ function ScarcityBlock({ data, theme, salesLimit, salesCount }: { data: Record<s
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// NOUVEAUX BLOCS (v4) : Étapes, Membre/Auteur, Accordéon, Onglets, Embed, Callout
+// ═══════════════════════════════════════════════════════════════════════════
+function StepsBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
+  const title = (data.title as string) ?? "";
+  const items = (data.items as Array<{ title?: string; desc?: string }>) ?? [];
+  const accent = (data.accentColor as string) || theme.primaryColor;
+  const horizontal = data.layout === "horizontal";
+  if (!items.length) return null;
+  return (
+    <div className="max-w-4xl mx-auto my-6 px-4">
+      {title && <h3 className="text-2xl font-extrabold text-center mb-8" style={{ color: theme.textColor }}>{title}</h3>}
+      <div className={horizontal ? "grid gap-6" : "space-y-6"} style={horizontal ? { gridTemplateColumns: `repeat(${Math.min(items.length, 4)}, minmax(0, 1fr))` } : undefined}>
+        {items.map((it, i) => (
+          <div key={i} className={horizontal ? "text-center" : "flex items-start gap-4"}>
+            <div className={`flex items-center justify-center rounded-full text-white font-extrabold flex-shrink-0 ${horizontal ? "w-12 h-12 mx-auto mb-3 text-lg" : "w-10 h-10 text-base"}`} style={{ background: accent }}>{i + 1}</div>
+            <div className={horizontal ? "" : "flex-1 min-w-0"}>
+              {it.title && <p className="font-bold text-base" style={{ color: theme.textColor }}>{it.title}</p>}
+              {it.desc && <p className="text-sm mt-1 leading-relaxed" style={{ color: theme.textColor, opacity: 0.75 }}>{it.desc}</p>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TeamBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
+  const name = (data.name as string) ?? "";
+  const role = (data.role as string) ?? "";
+  const bio = (data.bio as string) ?? "";
+  const imageUrl = (data.imageUrl as string) ?? "";
+  const accent = (data.accentColor as string) || theme.primaryColor;
+  const left = data.align === "left";
+  const social = (data.social as Record<string, string>) ?? {};
+  const socials: Array<{ href: string; Icon: LucideIcon }> = [
+    { href: social.website, Icon: Globe }, { href: social.linkedin, Icon: Linkedin },
+    { href: social.instagram, Icon: Instagram }, { href: social.youtube, Icon: Youtube },
+  ].filter((s) => s.href) as Array<{ href: string; Icon: LucideIcon }>;
+  if (!name && !bio) return null;
+  return (
+    <div className={`max-w-3xl mx-auto my-6 px-4 ${left ? "flex flex-col sm:flex-row items-center gap-6" : "text-center"}`}>
+      {imageUrl && <img src={imageUrl} alt={name} className={`object-cover flex-shrink-0 ${left ? "w-32 h-32" : "w-28 h-28 mx-auto mb-4"} rounded-full`} style={{ border: `3px solid ${accent}` }} />}
+      <div className={left ? "flex-1 min-w-0" : ""}>
+        {name && <p className="text-xl font-extrabold" style={{ color: theme.textColor }}>{name}</p>}
+        {role && <p className="text-sm font-bold mb-2" style={{ color: accent }}>{role}</p>}
+        {bio && <p className="text-sm leading-relaxed" style={{ color: theme.textColor, opacity: 0.8 }}>{bio}</p>}
+        {socials.length > 0 && (
+          <div className={`flex gap-2 mt-3 ${left ? "" : "justify-center"}`}>
+            {socials.map((s, i) => (
+              <a key={i} href={s.href} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full flex items-center justify-center transition-transform hover:-translate-y-0.5" style={{ background: `${accent}15`, color: accent }}>
+                <s.Icon size={17} />
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AccordionBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
+  const items = (data.items as Array<{ q?: string; a?: string }>) ?? [];
+  const accent = (data.accentColor as string) || theme.primaryColor;
+  const [open, setOpen] = useState<number | null>(data.openFirst ? 0 : null);
+  if (!items.length) return null;
+  return (
+    <div className="max-w-2xl mx-auto my-6 px-4 space-y-2.5">
+      {items.map((it, i) => (
+        <div key={i} className="rounded-xl border border-gray-200 overflow-hidden bg-white">
+          <button type="button" onClick={() => setOpen(open === i ? null : i)} className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left">
+            <span className="font-bold text-sm" style={{ color: theme.textColor }}>{it.q}</span>
+            <ChevronDown size={18} className="flex-shrink-0 transition-transform" style={{ color: accent, transform: open === i ? "rotate(180deg)" : "none" }} />
+          </button>
+          {open === i && it.a && <div className="px-4 pb-4 text-sm leading-relaxed" style={{ color: theme.textColor, opacity: 0.8 }}>{it.a}</div>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TabsBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
+  const tabs = (data.tabs as Array<{ label?: string; content?: string }>) ?? [];
+  const accent = (data.accentColor as string) || theme.primaryColor;
+  const [active, setActive] = useState(0);
+  if (!tabs.length) return null;
+  const cur = tabs[Math.min(active, tabs.length - 1)];
+  return (
+    <div className="max-w-3xl mx-auto my-6 px-4">
+      <div className="flex flex-wrap gap-1.5 border-b border-gray-200 mb-4">
+        {tabs.map((t, i) => (
+          <button key={i} type="button" onClick={() => setActive(i)} className="px-4 py-2.5 text-sm font-bold -mb-px border-b-2 transition-colors" style={{ borderColor: active === i ? accent : "transparent", color: active === i ? accent : theme.textColor }}>
+            {t.label || `Onglet ${i + 1}`}
+          </button>
+        ))}
+      </div>
+      {cur?.content && <div className="text-sm leading-relaxed whitespace-pre-line" style={{ color: theme.textColor, opacity: 0.85 }}>{cur.content}</div>}
+    </div>
+  );
+}
+
+function EmbedBlock({ data }: { data: Record<string, unknown> }) {
+  const url = (data.url as string) ?? "";
+  const height = Math.max(200, Math.min(1000, Number(data.height ?? 500)));
+  const title = (data.title as string) || "Contenu intégré";
+  if (!url || !/^https?:\/\//.test(url)) return null;
+  return (
+    <div className="max-w-3xl mx-auto my-6 px-4">
+      <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-white">
+        <iframe src={url} title={title} className="w-full" style={{ height: `${height}px` }} loading="lazy" allow="fullscreen" />
+      </div>
+    </div>
+  );
+}
+
+const CALLOUT_VARIANTS: Record<string, { bg: string; border: string; text: string; icon: string }> = {
+  info: { bg: "#eff6ff", border: "#bfdbfe", text: "#1e3a8a", icon: "#2563eb" },
+  success: { bg: "#f0fdf4", border: "#bbf7d0", text: "#14532d", icon: "#16a34a" },
+  warning: { bg: "#fffbeb", border: "#fde68a", text: "#78350f", icon: "#d97706" },
+  tip: { bg: "#f5f3ff", border: "#ddd6fe", text: "#4c1d95", icon: "#7c3aed" },
+};
+function CalloutBlock({ data }: { data: Record<string, unknown> }) {
+  const text = (data.text as string) ?? "";
+  const variant = CALLOUT_VARIANTS[(data.variant as string) ?? "info"] ?? CALLOUT_VARIANTS.info;
+  const Icon = ICON_MAP[(data.icon as string) ?? "lightbulb"] ?? Lightbulb;
+  if (!text) return null;
+  return (
+    <div className="max-w-2xl mx-auto my-4 px-4">
+      <div className="flex items-start gap-3 rounded-xl px-4 py-3.5" style={{ background: variant.bg, border: `1px solid ${variant.border}` }}>
+        <Icon size={20} className="flex-shrink-0 mt-0.5" style={{ color: variant.icon }} />
+        <p className="text-sm font-semibold leading-relaxed" style={{ color: variant.text }}>{text}</p>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // BLOCK DISPATCHER
 // ═══════════════════════════════════════════════════════════════════════════
 // renderBlock supports color inheritance: when a Section/Row/ContentBox sets
@@ -2234,6 +2373,13 @@ function renderBlockInner(block: Block, theme: Theme, onCta: () => void, parentC
     case "comparison": return <ComparisonBlock key={block.id} data={block.data} theme={theme} />;
     case "floating-cta": return <FloatingCtaBlock key={block.id} data={block.data} theme={theme} onCta={onCta} />;
     case "image-gallery": return <ImageGalleryBlock key={block.id} data={block.data} />;
+    // Nouveaux éléments (v4)
+    case "steps": return <StepsBlock key={block.id} data={block.data} theme={effTheme} />;
+    case "team": return <TeamBlock key={block.id} data={block.data} theme={effTheme} />;
+    case "accordion": return <AccordionBlock key={block.id} data={block.data} theme={effTheme} />;
+    case "tabs": return <TabsBlock key={block.id} data={block.data} theme={effTheme} />;
+    case "embed": return <EmbedBlock key={block.id} data={block.data} />;
+    case "callout": return <CalloutBlock key={block.id} data={block.data} />;
     default: return null;
   }
 }
