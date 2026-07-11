@@ -28,6 +28,7 @@ export async function GET(_req: Request, { params }: Params) {
           },
         },
         category: { select: { id: true, slug: true, name: true } },
+        shop: { select: { slug: true, name: true, legalName: true, font: true, themeColor: true } },
         sections: {
           orderBy: { order: "asc" },
           include: {
@@ -101,6 +102,15 @@ export async function GET(_req: Request, { params }: Params) {
       viewsCount: formation.viewsCount,
       totalLessons,
       category: formation.category,
+      shop: formation.shop
+        ? {
+            slug: formation.shop.slug,
+            name: formation.shop.name,
+            legalName: formation.shop.legalName,
+            font: formation.shop.font,
+            themeColor: formation.shop.themeColor,
+          }
+        : null,
       instructeur: {
         id: formation.instructeur.id,
         userId: formation.instructeur.user.id,

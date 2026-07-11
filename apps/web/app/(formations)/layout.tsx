@@ -1,7 +1,7 @@
 import "./formations.css";
 import { Inter } from "next/font/google";
 import { FormationsNavbar } from "@/components/formations/FormationsNavbar";
-import { FormationsFooter } from "@/components/formations/FormationsFooter";
+import { ConditionalPlatformFooter } from "@/components/formations/ConditionalPlatformFooter";
 import { ToastContainer } from "@/components/ui/toast";
 
 const inter = Inter({
@@ -26,7 +26,7 @@ export default function FormationsLayout({
     >
       <FormationsNavbar />
       <main className="flex-1 pt-16 overflow-x-hidden">{children}</main>
-      <FormationsFooter />
+      <ConditionalPlatformFooter />
       <ToastContainer />
     </div>
   );

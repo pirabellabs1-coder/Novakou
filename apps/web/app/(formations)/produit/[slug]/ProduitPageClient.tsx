@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import ShopFooter from "@/components/formations/ShopFooter";
+import { FormationsFooter } from "@/components/formations/FormationsFooter";
 import { productImageSrc, avatarSrc } from "@/lib/utils/image-url";
 import {
   Star,
@@ -86,6 +88,7 @@ interface Product {
   category: { id: string; slug: string; name: string } | null;
   instructeur: Instructeur;
   reviews: Review[];
+  shop: { slug: string; name: string; legalName: string | null; font: string | null; themeColor: string | null } | null;
   createdAt: string;
 }
 
@@ -275,12 +278,18 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           {/* ── Main content ──────────────────────────────────────────── */}
           <div className="lg:col-span-2 space-y-5">
-            {/* Banner */}
-            <div className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-[#003d1a] to-[#22c55e]">
+            {/* Bannière — object-contain sur fond neutre : l'image du produit
+                s'affiche EN ENTIER (jamais rognée), quelle que soit sa taille,
+                y compris sur mobile. Un flou de l'image remplit joliment le fond. */}
+            <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-100">
               {(product.banner || product.thumbnail) ? (
-                <img src={productImageSrc(product.banner ?? product.thumbnail, 1000) ?? ""} alt={product.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                <>
+                  {/* Fond flouté pour combler les bords sans bandes vides */}
+                  <img src={productImageSrc(product.banner ?? product.thumbnail, 1000) ?? ""} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-40" />
+                  <img src={productImageSrc(product.banner ?? product.thumbnail, 1000) ?? ""} alt={product.title} loading="lazy" decoding="async" className="relative w-full h-full object-contain" />
+                </>
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#003d1a] to-[#22c55e]">
                   <TypeIcon size={100} className="text-white/30" />
                 </div>
               )}
@@ -581,6 +590,14 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
           <RelatedProducts categoryId={product.category?.id} excludeId={product.id} />
         </div>
       </div>
+
+      {/* Pied de page = celui de la BOUTIQUE du vendeur (identité = boutique).
+          Le footer plateforme est masqué sur cette route. */}
+      {product.shop ? (
+        <ShopFooter shopSlug={product.shop.slug} shopName={product.shop.name} legalName={product.shop.legalName} />
+      ) : (
+        <FormationsFooter />
+      )}
     </div>
   );
 }

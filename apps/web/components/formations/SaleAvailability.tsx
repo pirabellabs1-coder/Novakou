@@ -98,62 +98,48 @@ export function SaleAvailability({
   const parts = targetMs ? diffParts(targetMs) : null;
 
   return (
-    <div className="space-y-3 mt-4">
-      {/* Compte à rebours */}
-      {parts && targetMs && (
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <div className="flex items-center gap-1.5 mb-2.5">
-            <span className="material-symbols-outlined text-amber-600 text-[16px]">schedule</span>
-            <p className="text-[11px] font-bold uppercase tracking-wider text-[#5c647a]">
-              Offre limitée — fin de vente
-            </p>
+    <div className="space-y-4 mt-4">
+      {/* Barre de progression des ventes — Vendu / Restant (façon offre flash) */}
+      {hasMax && (
+        <div>
+          <div className="flex items-center justify-between text-[13px] font-bold text-[#191c1e] mb-1.5">
+            <span>Vendu&nbsp;: <span className="tabular-nums">{sold}</span></span>
+            <span>Restant&nbsp;: <span className="tabular-nums">{remaining}</span></span>
           </div>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all"
+              style={{ width: `${Math.max(4, percent)}%`, background: "linear-gradient(to right, #f59e0b, #fbbf24)" }}
+            />
+          </div>
+          <p className="text-[12px] font-bold text-red-600 mt-1.5">Offre à durée limitée</p>
+        </div>
+      )}
+
+      {/* Compte à rebours — carte propre avec en-tête */}
+      {parts && targetMs && (
+        <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm">
+          <div className="bg-gray-100 py-2.5 text-center">
+            <p className="text-[13px] font-extrabold text-[#191c1e]">L&apos;offre se termine dans</p>
+          </div>
+          <div className="flex items-start justify-center gap-1.5 md:gap-3 py-5 px-3">
             {[
               { label: "Jours", value: parts.days },
               { label: "Heures", value: parts.hours },
               { label: "Minutes", value: parts.minutes },
               { label: "Secondes", value: parts.seconds },
-            ].map((b) => (
-              <div key={b.label} className="rounded-lg bg-gradient-to-br from-[#191c1e] to-[#2a2f33] py-2 text-center">
-                <p className="text-lg font-extrabold text-white tabular-nums leading-none">
-                  {String(b.value).padStart(2, "0")}
-                </p>
-                <p className="text-[9px] uppercase tracking-wider text-white/60 mt-1">{b.label}</p>
+            ].map((b, i) => (
+              <div key={b.label} className="flex items-start gap-1.5 md:gap-3">
+                <div className="text-center min-w-[42px]">
+                  <p className="text-3xl md:text-4xl font-extrabold text-[#191c1e] tabular-nums leading-none">
+                    {String(b.value).padStart(2, "0")}
+                  </p>
+                  <p className="text-[10px] font-semibold text-[#5c647a] mt-1.5">{b.label}</p>
+                </div>
+                {i < 3 && <span className="text-2xl md:text-3xl font-extrabold text-gray-300 leading-none mt-0.5">:</span>}
               </div>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Barre de progression des ventes */}
-      {hasMax && (
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <div className="flex items-baseline justify-between mb-2">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-[#5c647a]">
-              Stock limité
-            </p>
-            <p className="text-[11px] font-bold" style={{ color: themeColor }}>
-              {remaining} restant{(remaining ?? 0) > 1 ? "s" : ""}
-            </p>
-          </div>
-          <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
-            <div
-              className="h-full transition-all rounded-full"
-              style={{
-                width: `${percent}%`,
-                background: `linear-gradient(to right, ${themeColor}, #22c55e)`,
-              }}
-            />
-          </div>
-          <p className="text-[11px] text-[#5c647a] mt-1.5">
-            <strong className="text-[#191c1e] tabular-nums">{sold}</strong> / {maxBuyers} vendus
-            {percent >= 80 && (
-              <span className="ml-1.5 text-amber-600 font-semibold">
-                · Plus que quelques places !
-              </span>
-            )}
-          </p>
         </div>
       )}
     </div>

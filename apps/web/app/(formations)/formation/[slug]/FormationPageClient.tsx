@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import ShopFooter from "@/components/formations/ShopFooter";
+import { FormationsFooter } from "@/components/formations/FormationsFooter";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -106,6 +108,7 @@ interface Formation {
   instructeur: Instructeur;
   sections: Section[];
   reviews: Review[];
+  shop: { slug: string; name: string; legalName: string | null; font: string | null; themeColor: string | null } | null;
   createdAt: string;
 }
 
@@ -665,6 +668,13 @@ export default function FormationPageClient({ slug }: { slug: string }) {
           <RelatedProducts categoryId={formation.category?.id} excludeId={formation.id} />
         </div>
       </div>
+
+      {/* Pied de page = celui de la boutique du vendeur (footer plateforme masqué). */}
+      {formation.shop ? (
+        <ShopFooter shopSlug={formation.shop.slug} shopName={formation.shop.name} legalName={formation.shop.legalName} />
+      ) : (
+        <FormationsFooter />
+      )}
     </div>
   );
 }
