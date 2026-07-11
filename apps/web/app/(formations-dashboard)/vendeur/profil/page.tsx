@@ -172,7 +172,7 @@ export default function ProfilPage() {
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-[#13241b] hover:bg-gray-50 transition-colors"
             >
               <ExternalLink size={18} className="text-[#5c647a]" />
-              Voir mon profil public
+              Voir ma boutique
             </Link>
           )}
           <button
@@ -404,7 +404,7 @@ export default function ProfilPage() {
                       className="block text-center w-full py-2.5 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90"
                       style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
                     >
-                      Voir mon profil public
+                      Voir ma boutique
                     </Link>
                   ) : (
                     <button

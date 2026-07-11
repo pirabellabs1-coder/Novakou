@@ -657,43 +657,6 @@ export default function FormationPageClient({ slug }: { slug: string }) {
               </div>
             </div>
 
-            {/* Instructeur card */}
-            <Link
-              href={`/instructeurs/${formation.instructeur.userId}`}
-              className="block bg-white rounded-2xl border border-gray-100 p-5 hover:border-[#006e2f]/30 transition-colors"
-            >
-              <p className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-2">Formateur</p>
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full overflow-hidden bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white font-bold flex-shrink-0">
-                  {formation.instructeur.image ? (
-                    <img src={formation.instructeur.image} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    initials(formation.instructeur.name)
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-[#191c1e] truncate flex items-center gap-1">
-                    {formation.instructeur.name ?? "Formateur"}
-                    {formation.instructeur.verified && (
-                      <span title="Formateur vérifié (identité confirmée)">
-                        <BadgeCheck size={15} className="text-[#006e2f] fill-[#e6f5eb]" />
-                      </span>
-                    )}
-                  </p>
-                  <p className="text-xs text-[#5c647a]">
-                    {formation.instructeur.yearsExp > 0
-                      ? `${formation.instructeur.yearsExp} an(s) d'expérience`
-                      : "Nouveau formateur"}
-                  </p>
-                </div>
-                <ChevronRight size={18} className="text-[#5c647a]" />
-              </div>
-              {formation.instructeur.bio && (
-                <p className="text-xs text-[#5c647a] mt-3 line-clamp-3 leading-relaxed">
-                  {formation.instructeur.bio}
-                </p>
-              )}
-            </Link>
           </div>
         </div>
 

@@ -315,39 +315,20 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
 
               <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e] leading-tight">{product.title}</h1>
 
-              {/* Vendor info row — avatar + name + sales + listing date,
-                  built on top of competitive marketplaces (Chariow, etc.) */}
-              <Link
-                href={`/instructeurs/${product.instructeur.userId}`}
-                className="flex items-center gap-3 mt-4 group"
-              >
-                <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                  {product.instructeur.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={avatarSrc(product.instructeur.image, 96) ?? product.instructeur.image ?? ""} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                  ) : (
-                    initials(product.instructeur.name)
-                  )}
-                </div>
-                <div className="flex items-center gap-3 flex-wrap text-xs text-[#5c647a]">
-                  <span className="font-bold text-[#191c1e] group-hover:text-[#006e2f] transition-colors">
-                    {product.instructeur.name ?? "Créateur"}
-                  </span>
-                  {product.salesCount > 0 && (
-                    <>
-                      <span className="text-zinc-300">·</span>
-                      <span>
-                        <span className="font-semibold text-[#191c1e]">{fmt(product.salesCount)}</span>
-                        {" "}vente{product.salesCount !== 1 ? "s" : ""}
-                      </span>
-                    </>
-                  )}
-                  <span className="text-zinc-300">·</span>
+              {/* Infos produit (ventes + date) — sans identité créateur : la
+                  boutique du vendeur suffit comme identité. */}
+              <div className="flex items-center gap-3 flex-wrap text-xs text-[#5c647a] mt-4">
+                {product.salesCount > 0 && (
                   <span>
-                    Listé le {new Date(product.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                    <span className="font-semibold text-[#191c1e]">{fmt(product.salesCount)}</span>
+                    {" "}vente{product.salesCount !== 1 ? "s" : ""}
                   </span>
-                </div>
-              </Link>
+                )}
+                {product.salesCount > 0 && <span className="text-zinc-300">·</span>}
+                <span>
+                  Ajouté le {new Date(product.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                </span>
+              </div>
 
               {/* Stats — note affichée uniquement si le produit a déjà des avis
                   (pas de « Nouveau » ni de second compteur de ventes en doublon) */}
@@ -476,39 +457,6 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
               </div>
             </div>
 
-            {/* Mini seller card */}
-            <Link
-              href={`/instructeurs/${product.instructeur.userId}`}
-              className="block bg-white rounded-2xl border border-gray-100 p-5 hover:border-[#006e2f]/30 transition-colors"
-            >
-              <p className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-2">Créé par</p>
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full overflow-hidden bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white font-bold flex-shrink-0">
-                  {product.instructeur.image ? (
-                    <img src={avatarSrc(product.instructeur.image, 96) ?? product.instructeur.image ?? ""} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                  ) : (
-                    initials(product.instructeur.name)
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-[#191c1e] truncate flex items-center gap-1">
-                    {product.instructeur.name ?? "Créateur"}
-                    {product.instructeur.verified && (
-                      <span title="Vendeur vérifié (identité confirmée)">
-                        <BadgeCheck size={15} className="text-[#006e2f] fill-[#e6f5eb]" />
-                      </span>
-                    )}
-                  </p>
-                  {product.rating > 0 && (
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <StarRating rating={product.rating} size={12} />
-                      <span className="text-[11px] text-[#5c647a]">({product.reviewsCount})</span>
-                    </div>
-                  )}
-                </div>
-                <ChevronRight size={18} className="text-[#5c647a]" />
-              </div>
-            </Link>
           </div>
         </div>
 
@@ -551,43 +499,6 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                     <p className="text-sm text-[#5c647a] mt-2">Aucune description fournie pour ce produit.</p>
                   </div>
                 )}
-
-                {/* Seller card */}
-                <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
-                  <h2 className="text-lg font-extrabold text-[#191c1e] mb-4">À propos du créateur</h2>
-                  <Link href={`/instructeurs/${product.instructeur.userId}`} className="flex items-start gap-4 group">
-                    <div className="w-14 h-14 rounded-full overflow-hidden bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                      {product.instructeur.image ? (
-                        <img src={avatarSrc(product.instructeur.image, 96) ?? product.instructeur.image ?? ""} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                      ) : (
-                        initials(product.instructeur.name)
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-[#191c1e] group-hover:text-[#006e2f] transition-colors">
-                        {product.instructeur.name ?? "Créateur"}
-                      </p>
-                      {product.instructeur.yearsExp > 0 && (
-                        <p className="text-xs text-[#5c647a] mt-0.5">
-                          {product.instructeur.yearsExp} an{product.instructeur.yearsExp > 1 ? "s" : ""} d&apos;expérience
-                        </p>
-                      )}
-                      {product.instructeur.bio && (
-                        <p className="text-xs text-[#5c647a] mt-2 leading-relaxed line-clamp-3">{product.instructeur.bio}</p>
-                      )}
-                      {product.instructeur.expertise && product.instructeur.expertise.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-3">
-                          {product.instructeur.expertise.slice(0, 4).map((e) => (
-                            <span key={e} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#006e2f]/10 text-[#006e2f]">
-                              {e}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <ChevronRight size={18} className="text-[#5c647a] group-hover:text-[#006e2f] transition-colors" />
-                  </Link>
-                </div>
               </div>
             )}
 

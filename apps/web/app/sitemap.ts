@@ -138,25 +138,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       console.error("[sitemap] mentors:", err);
     }
 
-    // ── Instructeurs (profils publics vendeurs) ──
-    try {
-      const instructeurs = await prisma.instructeurProfile.findMany({
-        where: { status: "APPROUVE" },
-        select: { id: true, updatedAt: true },
-        orderBy: { updatedAt: "desc" },
-        take: 2000,
-      });
-      for (const i of instructeurs) {
-        dynamicRoutes.push({
-          url: `${BASE_URL}/instructeurs/${i.id}`,
-          lastModified: i.updatedAt,
-          changeFrequency: "weekly",
-          priority: 0.65,
-        });
-      }
-    } catch (err) {
-      console.error("[sitemap] instructeurs:", err);
-    }
+    // Les profils /instructeurs/[id] n'existent plus (ils redirigent vers la
+    // boutique du vendeur) : seules les BOUTIQUES sont indexées ci-dessous.
 
     // ── Boutiques vendeurs (chaque shop = page publique) ──
     try {
