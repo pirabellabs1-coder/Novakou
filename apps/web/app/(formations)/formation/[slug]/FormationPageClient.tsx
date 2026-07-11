@@ -38,6 +38,7 @@ import {
 import { PixelInjector } from "@/components/formations/PixelInjector";
 import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
 import { RelatedProducts } from "@/components/formations/RelatedProducts";
+import ReviewsCarousel from "@/components/formations/ReviewsCarousel";
 import { InquiryWidget } from "@/components/formations/InquiryWidget";
 import AISupportWidget from "@/components/formations/AISupportWidget";
 
@@ -707,6 +708,13 @@ export default function FormationPageClient({ slug }: { slug: string }) {
 
           </div>
         </div>
+
+        {/* Carrousel d'avis — preuve sociale (affiché s'il y a ≥ 2 avis) */}
+        {formation.reviews.length >= 2 && (
+          <div className="mt-6">
+            <ReviewsCarousel reviews={formation.reviews} themeColor={formation.shop?.themeColor ?? "#006e2f"} />
+          </div>
+        )}
 
         {/* Recommandations « Vous aimerez aussi » (v2 Phase 2) */}
         <div className="mt-6">

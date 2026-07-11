@@ -41,6 +41,7 @@ import { InquiryWidget } from "@/components/formations/InquiryWidget";
 import AISupportWidget from "@/components/formations/AISupportWidget";
 import { SaleAvailability } from "@/components/formations/SaleAvailability";
 import { RelatedProducts } from "@/components/formations/RelatedProducts";
+import ReviewsCarousel from "@/components/formations/ReviewsCarousel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Review {
@@ -629,6 +630,13 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
               </div>
             )}
         </div>
+
+        {/* Carrousel d'avis — preuve sociale (affiché s'il y a ≥ 2 avis) */}
+        {product.reviews.length >= 2 && (
+          <div className="mt-6">
+            <ReviewsCarousel reviews={product.reviews} themeColor={product.shop?.themeColor ?? "#006e2f"} />
+          </div>
+        )}
 
         {/* Recommandations « Vous aimerez aussi » (v2 Phase 2) */}
         <div className="mt-6">
