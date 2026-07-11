@@ -36,9 +36,36 @@ import { CreatorsJoinBadge, HeroBadge } from "@/components/formations/PublicStat
 import { BestSellers } from "@/components/formations/BestSellers";
 
 export const metadata: Metadata = {
-  title: "Novakou | Vendez vos formations partout en Afrique francophone",
+  title: "Novakou | Vendre ses formations et produits digitaux en Afrique francophone",
   description:
-    "Boutique, paiements Mobile Money, tunnels de vente et assistants IA inclus. Lancez-vous en 3 minutes, 10 % de commission sur vos ventes, zéro abonnement.",
+    "Novakou est la plateforme des créateurs en Afrique francophone : vendez formations, ebooks, coaching et templates. Boutique en ligne, paiements Mobile Money (Wave, Orange, MTN), tunnels de vente et IA inclus. 10 % de commission, zéro abonnement.",
+  keywords: [
+    "vendre des formations en ligne Afrique",
+    "plateforme formation Afrique francophone",
+    "vendre produits digitaux Mobile Money",
+    "créer une boutique en ligne Sénégal Côte d'Ivoire Bénin",
+    "vendre ebook coaching template",
+    "alternative Gumroad Systeme.io Afrique",
+    "paiement Wave Orange Money MTN",
+    "Novakou",
+  ],
+  alternates: { canonical: "/" },
+  category: "business",
+  openGraph: {
+    title: "Novakou — Vendez vos formations et produits digitaux en Afrique francophone",
+    description:
+      "Boutique en ligne, paiements Mobile Money, tunnels de vente et assistant IA. Lancez-vous en 3 minutes, 10 % de commission, zéro abonnement.",
+    url: "/",
+    type: "website",
+    locale: "fr_FR",
+    siteName: "Novakou",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Novakou — Vendez vos formations en Afrique francophone",
+    description:
+      "Boutique, paiements Mobile Money, tunnels de vente et IA inclus. 10 % de commission, zéro abonnement.",
+  },
 };
 
 // ISR : la home est rendue UNE FOIS toutes les 5 minutes et mise en cache
@@ -83,15 +110,66 @@ function CategoryPill({ children }: { children: React.ReactNode }) {
   );
 }
 
+/* ─── FAQ (source unique : affichage + FAQPage JSON-LD) ───────── */
+const FAQ_ITEMS: { q: string; a: string }[] = [
+  { q: "Quels pays sont pris en charge pour les retraits ?", a: "Nous supportons actuellement les retraits vers le Sénégal, la Côte d'Ivoire, le Togo, le Bénin, le Mali et le Burkina Faso via les solutions Mobile Money locales." },
+  { q: "Dois-je payer un abonnement si je ne fais pas de ventes ?", a: "Non, l'utilisation de Novakou est sans abonnement fixe. Nous prélevons uniquement une commission de 10% sur vos ventes réussies." },
+  { q: "Puis-je héberger mes vidéos directement sur Novakou ?", a: "Oui, l'hébergement vidéo sécurisé est inclus dans toutes vos formations sans frais supplémentaires." },
+  { q: "Est-ce que je peux utiliser mon propre nom de domaine ?", a: "Oui, vous pouvez connecter votre propre nom de domaine personnalisé pour une image professionnelle." },
+  { q: "En combien de temps puis-je retirer mon argent ?", a: "Les retraits par Mobile Money sont traités sous 24 à 48 h ouvrées maximum." },
+  { q: "Comment fonctionne l'intelligence artificielle intégrée ?", a: "Notre IA vous assiste directement dans l'éditeur pour rédiger vos pages, structurer vos cours ou générer des quiz, en se basant sur le contexte de votre formation." },
+  { q: "Mes contenus sont-ils protégés contre le téléchargement ?", a: "Oui, nous utilisons des technologies de chiffrement pour empêcher le téléchargement direct de vos vidéos et documents." },
+  { q: "Proposez-vous un accompagnement pour débuter ?", a: "Absolument ! Notre équipe de support est là pour vous guider, et nous mettons à disposition une académie gratuite pour vous apprendre à vendre." },
+];
+
 export default async function FormationsPage() {
   return (
     <div style={{ backgroundColor: COLORS.surface, color: COLORS.dark, ...satoshi }}>
+      {/* FAQPage JSON-LD — aide le référencement Google (rich results) ET les
+          moteurs génératifs (GEO) à citer Novakou avec des réponses factuelles. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: FAQ_ITEMS.map((f) => ({
+              "@type": "Question",
+              name: f.q,
+              acceptedAnswer: { "@type": "Answer", text: f.a },
+            })),
+          }),
+        }}
+      />
       <main className="pb-16 md:pb-24 space-y-16 md:space-y-24 lg:space-y-32 overflow-x-hidden">
 
         {/* ═══════════════════════════════════════════════════════════ */}
         {/* 1. HERO — 1 colonne centrée                                  */}
         {/* ═══════════════════════════════════════════════════════════ */}
-        <section className="max-w-[1280px] mx-auto px-4 sm:px-6 text-center pt-8 md:pt-16 lg:pt-20">
+        <section className="relative max-w-[1280px] mx-auto px-4 sm:px-6 text-center pt-8 md:pt-16 lg:pt-20">
+          {/* Fond décoratif premium : mesh gradient + halo + grille estompée */}
+          <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden">
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `radial-gradient(at 50% 0%, ${COLORS.primary}14 0px, transparent 55%), radial-gradient(at 15% 15%, ${COLORS.accent}1f 0px, transparent 45%), radial-gradient(at 85% 12%, ${COLORS.primary}14 0px, transparent 45%)`,
+              }}
+            />
+            <div
+              className="absolute left-1/2 -top-24 -translate-x-1/2 w-[640px] h-[640px] rounded-full blur-3xl opacity-20"
+              style={{ background: COLORS.accent }}
+            />
+            <div
+              className="absolute inset-0 opacity-[0.04]"
+              style={{
+                backgroundImage:
+                  "linear-gradient(to right, #0f172a 1px, transparent 1px), linear-gradient(to bottom, #0f172a 1px, transparent 1px)",
+                backgroundSize: "40px 40px",
+                WebkitMaskImage: "radial-gradient(ellipse at 50% 25%, black 25%, transparent 72%)",
+                maskImage: "radial-gradient(ellipse at 50% 25%, black 25%, transparent 72%)",
+              }}
+            />
+          </div>
           <div className="flex justify-center mb-8">
             <div
               className="inline-flex items-center space-x-3 px-4 py-2 rounded-full border"
@@ -133,12 +211,15 @@ export default async function FormationsPage() {
             style={{ ...satoshiHeading, color: COLORS.dark }}
           >
             Vendez vos{" "}
+            <span style={{ color: COLORS.primary }}>formations</span> et{" "}
             <span style={{ color: COLORS.primary }}>produits digitaux</span>{" "}
-            en quelques minutes.
+            en Afrique francophone.
           </h1>
 
           <p className="text-lg md:text-xl max-w-3xl mx-auto mb-10 leading-[1.6]" style={{ color: COLORS.muted }}>
-            Formations, ebooks, coaching, templates. Boutique, paiements, tunnels de vente et assistants IA inclus. 10 % de commission, zéro abonnement.
+            Formations, ebooks, coaching et templates. Boutique en ligne, paiements
+            Mobile Money (Wave, Orange, MTN), tunnels de vente et assistant IA inclus.
+            Lancez-vous en 3 minutes — 10 % de commission, zéro abonnement.
           </p>
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
@@ -158,6 +239,20 @@ export default async function FormationsPage() {
               <Search size={20} />
               Explorer les formations
             </Link>
+          </div>
+
+          {/* Réassurance : signaux de confiance sous les CTA */}
+          <div className="mt-7 flex flex-wrap justify-center items-center gap-x-6 gap-y-2.5 text-sm" style={{ color: COLORS.muted }}>
+            {[
+              { Icon: Wallet, label: "Paiements Mobile Money & carte" },
+              { Icon: CheckCircle2, label: "Sans abonnement" },
+              { Icon: Rocket, label: "Boutique prête en 3 minutes" },
+            ].map(({ Icon, label }) => (
+              <span key={label} className="inline-flex items-center gap-1.5 font-medium">
+                <Icon size={16} style={{ color: COLORS.primary }} />
+                {label}
+              </span>
+            ))}
           </div>
 
           {/* Pont acheteur : un visiteur Instagram cherchant à apprendre
@@ -706,16 +801,7 @@ export default async function FormationsPage() {
             </h2>
           </div>
           <div className="space-y-4">
-            {[
-              { q: "Quels pays sont pris en charge pour les retraits ?", a: "Nous supportons actuellement les retraits vers le Sénégal, la Côte d'Ivoire, le Togo, le Bénin, le Mali et le Burkina Faso via les solutions Mobile Money locales." },
-              { q: "Dois-je payer un abonnement si je ne fais pas de ventes ?", a: "Non, l'utilisation de Novakou est sans abonnement fixe. Nous prélevons uniquement une commission de 10% sur vos ventes réussies." },
-              { q: "Puis-je héberger mes vidéos directement sur Novakou ?", a: "Oui, l'hébergement vidéo sécurisé est inclus dans toutes vos formations sans frais supplémentaires." },
-              { q: "Est-ce que je peux utiliser mon propre nom de domaine ?", a: "Oui, vous pouvez connecter votre propre nom de domaine personnalisé pour une image professionnelle." },
-              { q: "En combien de temps puis-je retirer mon argent ?", a: "Les retraits par Mobile Money sont traités sous 24 à 48 h ouvrées maximum." },
-              { q: "Comment fonctionne l'intelligence artificielle intégrée ?", a: "Notre IA vous assiste directement dans l'éditeur pour rédiger vos pages, structurer vos cours ou générer des quiz, en se basant sur le contexte de votre formation." },
-              { q: "Mes contenus sont-ils protégés contre le téléchargement ?", a: "Oui, nous utilisons des technologies de chiffrement pour empêcher le téléchargement direct de vos vidéos et documents." },
-              { q: "Proposez-vous un accompagnement pour débuter ?", a: "Absolument ! Notre équipe de support est là pour vous guider, et nous mettons à disposition une académie gratuite pour vous apprendre à vendre." },
-            ].map((item, i) => (
+            {FAQ_ITEMS.map((item, i) => (
               <details
                 key={i}
                 className="group bg-white rounded-xl border p-6 [&_summary::-webkit-details-marker]:hidden"
