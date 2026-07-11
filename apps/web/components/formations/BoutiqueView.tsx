@@ -63,6 +63,10 @@ export default function BoutiqueView({
     [formations, products, bundles, subscriptionPlans],
   );
 
+  // Préfixe des pages boutique auto-générées : "" sur domaine perso (la vue
+  // by-domain n'envoie pas shopSlug), "/boutique/{slug}" sur la plateforme.
+  const staticBase = shopSlug ? `/boutique/${shopSlug}` : "";
+
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "formation" | "product" | "bundle" | "subscription" | "free">("all");
   const [sort, setSort] = useState<"popular" | "price-asc" | "price-desc" | "rating">("popular");
@@ -556,20 +560,44 @@ export default function BoutiqueView({
 
       {/* ─── Footer ──────────────────────────────────────────────────────── */}
       <footer className="border-t border-slate-200 mt-12 bg-white">
-        <div className="max-w-6xl mx-auto px-5 md:px-8 py-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
-          <p>
-            © {new Date().getFullYear()} {owner.name}
-            {owner.domain ? ` · ${owner.domain}` : ""}
-          </p>
-          <a
-            href="https://novakou.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 font-semibold text-emerald-700 hover:text-emerald-800"
-          >
-            Créer ma boutique sur Novakou
-            <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-          </a>
+        <div className="max-w-6xl mx-auto px-5 md:px-8 py-10">
+          {/* Liens des pages boutique auto-générées.
+              base = "" sur domaine perso (by-domain n'envoie pas shopSlug),
+              sinon "/boutique/{slug}". */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 mb-8 text-sm">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-2.5">Boutique</p>
+              <ul className="space-y-2">
+                <li><a href={`${staticBase}/a-propos`} className="text-slate-600 hover:text-slate-900">À propos</a></li>
+                <li><a href={`${staticBase}/aide`} className="text-slate-600 hover:text-slate-900">Aide</a></li>
+                <li><a href={`${staticBase}/contact`} className="text-slate-600 hover:text-slate-900">Contact</a></li>
+                <li><a href={`${staticBase}/plan-du-site`} className="text-slate-600 hover:text-slate-900">Plan du site</a></li>
+              </ul>
+            </div>
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-2.5">Légales</p>
+              <ul className="space-y-2">
+                <li><a href={`${staticBase}/mentions-legales`} className="text-slate-600 hover:text-slate-900">Mentions légales</a></li>
+                <li><a href={`${staticBase}/conditions`} className="text-slate-600 hover:text-slate-900">Conditions d&apos;utilisation</a></li>
+                <li><a href={`${staticBase}/confidentialite`} className="text-slate-600 hover:text-slate-900">Politique de confidentialité</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500 pt-6 border-t border-slate-100">
+            <p>
+              © {new Date().getFullYear()} {owner.name}
+              {owner.domain ? ` · ${owner.domain}` : ""}
+            </p>
+            <a
+              href="https://novakou.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 font-semibold text-emerald-700 hover:text-emerald-800"
+            >
+              Créer ma boutique sur Novakou
+              <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+            </a>
+          </div>
         </div>
       </footer>
     </div>

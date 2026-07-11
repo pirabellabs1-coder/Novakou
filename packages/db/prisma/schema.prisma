@@ -1031,6 +1031,16 @@ model VendorShop {
   customDomainVerified Boolean    @default(false)
   customDomainAddedAt  DateTime?
 
+  // Informations légales — servent aux pages auto-générées (mentions légales,
+  // contact, à propos…). Vides = on retombe sur les infos du compte (email,
+  // téléphone, pays du propriétaire).
+  legalName    String?
+  legalAddress String?
+  legalPhone   String?
+  legalEmail   String?
+  legalCountry String?
+  aboutText    String? @db.Text // texte « À propos » personnalisé (optionnel)
+
   instructeur InstructeurProfile @relation("InstructeurShops", fields: [instructeurId], references: [id], onDelete: Cascade)
   formations  Formation[]        @relation("ShopFormations")
   products    DigitalProduct[]   @relation("ShopProducts")

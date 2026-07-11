@@ -19,6 +19,11 @@ interface Shop {
   isPrimary: boolean;
   customDomain: string | null;
   customDomainVerified: boolean;
+  legalName: string | null;
+  legalAddress: string | null;
+  legalPhone: string | null;
+  legalEmail: string | null;
+  legalCountry: string | null;
 }
 
 export default function VendorShopDetailPage() {
@@ -29,6 +34,11 @@ export default function VendorShopDetailPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [themeColor, setThemeColor] = useState("");
+  const [legalName, setLegalName] = useState("");
+  const [legalAddress, setLegalAddress] = useState("");
+  const [legalPhone, setLegalPhone] = useState("");
+  const [legalEmail, setLegalEmail] = useState("");
+  const [legalCountry, setLegalCountry] = useState("");
   const [saving, setSaving] = useState(false);
   const toast = useToastStore.getState().addToast;
 
@@ -41,6 +51,11 @@ export default function VendorShopDetailPage() {
       setName(json.data.name ?? "");
       setDescription(json.data.description ?? "");
       setThemeColor(json.data.themeColor ?? "");
+      setLegalName(json.data.legalName ?? "");
+      setLegalAddress(json.data.legalAddress ?? "");
+      setLegalPhone(json.data.legalPhone ?? "");
+      setLegalEmail(json.data.legalEmail ?? "");
+      setLegalCountry(json.data.legalCountry ?? "");
     } catch (e) {
       toast("error", e instanceof Error ? e.message : "Chargement impossible");
     } finally {
@@ -63,6 +78,11 @@ export default function VendorShopDetailPage() {
           name,
           description: description || null,
           themeColor: themeColor || null,
+          legalName: legalName || null,
+          legalAddress: legalAddress || null,
+          legalPhone: legalPhone || null,
+          legalEmail: legalEmail || null,
+          legalCountry: legalCountry || null,
         }),
       });
       const json = await res.json();
@@ -306,6 +326,41 @@ export default function VendorShopDetailPage() {
                 maxLength={7}
                 className="px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-[#191c1e] font-mono focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10 flex-1"
               />
+            </div>
+          </div>
+
+          {/* ── Infos légales — alimentent les pages auto-générées ── */}
+          <div className="pt-6 mt-2 border-t border-gray-100">
+            <p className="text-sm font-extrabold text-[#191c1e]">Informations légales</p>
+            <p className="text-xs text-[#5c647a] mt-1 mb-4">
+              Servent à générer automatiquement vos pages « Mentions légales », « Contact », « À propos »… Laissez vide pour utiliser les infos de votre compte.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-[#5c647a] mb-1">Raison sociale</label>
+                <input type="text" value={legalName} onChange={(e) => setLegalName(e.target.value)} placeholder={name || "Nom de l'entreprise"} maxLength={120}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[#5c647a] mb-1">Pays</label>
+                <input type="text" value={legalCountry} onChange={(e) => setLegalCountry(e.target.value)} placeholder="Bénin, France…" maxLength={60}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10" />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold text-[#5c647a] mb-1">Adresse</label>
+                <input type="text" value={legalAddress} onChange={(e) => setLegalAddress(e.target.value)} placeholder="Ville, quartier / rue…" maxLength={240}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[#5c647a] mb-1">Téléphone</label>
+                <input type="tel" value={legalPhone} onChange={(e) => setLegalPhone(e.target.value)} placeholder="+229 …" maxLength={40}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[#5c647a] mb-1">E-mail de contact</label>
+                <input type="email" value={legalEmail} onChange={(e) => setLegalEmail(e.target.value)} placeholder="contact@…" maxLength={120}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10" />
+              </div>
             </div>
           </div>
 

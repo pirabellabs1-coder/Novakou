@@ -43,6 +43,12 @@ export async function PATCH(req: Request, { params }: Params) {
     coverUrl?: string | null;
     themeColor?: string | null;
     isPrimary?: boolean;
+    legalName?: string | null;
+    legalAddress?: string | null;
+    legalPhone?: string | null;
+    legalEmail?: string | null;
+    legalCountry?: string | null;
+    aboutText?: string | null;
   };
   try {
     body = await req.json();
@@ -59,6 +65,14 @@ export async function PATCH(req: Request, { params }: Params) {
   if ("description" in body) data.description = body.description?.toString().slice(0, 600) ?? null;
   if ("logoUrl" in body) data.logoUrl = body.logoUrl ?? null;
   if ("coverUrl" in body) data.coverUrl = body.coverUrl ?? null;
+  // Infos légales (pages boutique auto-générées).
+  const trimOrNull = (v: unknown, max: number) => { const s = typeof v === "string" ? v.trim() : ""; return s ? s.slice(0, max) : null; };
+  if ("legalName" in body) data.legalName = trimOrNull(body.legalName, 120);
+  if ("legalAddress" in body) data.legalAddress = trimOrNull(body.legalAddress, 240);
+  if ("legalPhone" in body) data.legalPhone = trimOrNull(body.legalPhone, 40);
+  if ("legalEmail" in body) data.legalEmail = trimOrNull(body.legalEmail, 120);
+  if ("legalCountry" in body) data.legalCountry = trimOrNull(body.legalCountry, 60);
+  if ("aboutText" in body) data.aboutText = trimOrNull(body.aboutText, 4000);
   if ("themeColor" in body) {
     const c = body.themeColor;
     if (c === null || (typeof c === "string" && /^#?[0-9a-f]{6}$/i.test(c))) {
