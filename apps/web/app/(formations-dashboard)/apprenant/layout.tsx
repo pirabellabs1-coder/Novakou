@@ -33,6 +33,7 @@ import {
   Sparkles,
   Users,
   Gift,
+  Store,
   type LucideIcon,
 } from "lucide-react";
 
@@ -54,6 +55,12 @@ const navSections: NavSection[] = [
     items: [
       { icon: LayoutDashboard, label: "Tableau de bord", href: "/apprenant/dashboard" },
       { icon: TrendingUp,      label: "Progression",      href: "/apprenant/progression" },
+    ],
+  },
+  {
+    label: "Gagner de l'argent",
+    items: [
+      { icon: Store, label: "Devenir vendeur", href: "/devenir-vendeur" },
     ],
   },
   {

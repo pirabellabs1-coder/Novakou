@@ -44,6 +44,7 @@ const VENDOR_NAV: NavItem[] = [
 
 const MENTOR_NAV: NavItem[] = [
   { icon: "dashboard", label: "Tableau de bord", href: "/mentor/dashboard", section: "Vue" },
+  { icon: "storefront", label: "Devenir vendeur", href: "/devenir-vendeur", section: "Vue" },
   { icon: "groups", label: "Mes apprenants", href: "/mentor/apprenants", section: "Vue" },
   { icon: "event", label: "Mon calendrier", href: "/mentor/calendrier", section: "Vue" },
   { icon: "category", label: "Packs de sessions", href: "/mentor/packs", section: "Catalogue" },
@@ -57,6 +58,7 @@ const MENTOR_NAV: NavItem[] = [
 
 const APPRENANT_NAV: NavItem[] = [
   { icon: "dashboard", label: "Tableau de bord", href: "/apprenant/dashboard", section: "Général" },
+  { icon: "storefront", label: "Devenir vendeur", href: "/devenir-vendeur", section: "Général" },
   { icon: "school", label: "Mes formations", href: "/apprenant/mes-formations", section: "Général" },
   { icon: "inventory_2", label: "Mes produits", href: "/apprenant/mes-produits", section: "Général" },
   { icon: "workspace_premium", label: "Certificats", href: "/apprenant/certificats", section: "Général" },

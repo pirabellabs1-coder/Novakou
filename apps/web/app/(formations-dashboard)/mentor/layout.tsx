@@ -26,6 +26,7 @@ import {
   Menu,
   X,
   LogOut,
+  Store,
   type LucideIcon,
 } from "lucide-react";
 
@@ -44,6 +45,10 @@ const navSections: NavSection[] = [
   {
     label: "Vue",
     items: [{ icon: LayoutDashboard, label: "Tableau de bord", href: "/mentor/dashboard" }],
+  },
+  {
+    label: "Gagner de l'argent",
+    items: [{ icon: Store, label: "Devenir vendeur", href: "/devenir-vendeur" }],
   },
   {
     label: "Mentorat",

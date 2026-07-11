@@ -739,11 +739,17 @@ export const authOptions: NextAuthOptions = {
               const { prisma } = await import("@freelancehigh/db");
               const dbUser = await prisma.user.findUnique({
                 where: { id: token.id },
-                select: { kyc: true, plan: true, role: true },
+                select: { kyc: true, plan: true, role: true, formationsRole: true },
               });
               if (dbUser) {
                 token.kyc = dbUser.kyc;
                 token.plan = mapPlanName(dbUser.plan.toLowerCase());
+                // Resync formationsRole (ex : après « Devenir vendeur »,
+                // apprenant/affilié/mentor → instructeur) pour que la sidebar
+                // et les RoleGuard basculent sans re-login.
+                if (dbUser.formationsRole) {
+                  token.formationsRole = dbUser.formationsRole.toLowerCase();
+                }
                 if (token.role === "admin" || dbUser.role === "ADMIN") {
                   token.adminRole = "super_admin";
                 }
