@@ -5,7 +5,11 @@ import { cldUrl } from "@/lib/cloudinary-url";
 
 // Vignette carrée marketplace : 600px suffisent largement pour une carte
 // (~300px affichés, ×2 pour le retina). Cloudinary redimensionne + compresse.
-const CARD = { width: 600, height: 600, crop: "fill" as const };
+// Vignette de carte : on borne la LARGEUR (c_limit) sans imposer de carré.
+// Avant : width+height+crop:"fill" rognait toute image non carrée en 600×600
+// → une bannière large perdait ses bords. Maintenant l'image garde son ratio
+// d'origine et <AdaptiveImage/> l'affiche EN ENTIER (object-contain + fond flouté).
+const CARD = { width: 700, crop: "limit" as const };
 
 export async function GET(request: Request) {
   try {

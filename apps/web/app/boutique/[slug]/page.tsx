@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import BoutiqueView from "@/components/formations/BoutiqueView";
 import TrackPageView from "@/components/tracking/TrackPageView";
 import { shopFontHref } from "@/lib/formations/shop-fonts";
+import { productImageSrc } from "@/lib/utils/image-url";
 
 // ISR : 10min cache for public shop pages — vendors update infrequently
 export const revalidate = 600;
@@ -199,13 +200,13 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
       }}
       formations={formations.map((f) => ({
         kind: "formation" as const,
-        id: f.id, slug: f.slug, title: f.title, image: f.thumbnail,
+        id: f.id, slug: f.slug, title: f.title, image: productImageSrc(f.thumbnail, 800),
         price: f.price, isFree: f.isFree, rating: f.rating,
         count: f.studentsCount, reviewsCount: f.reviewsCount,
       }))}
       products={products.map((p) => ({
         kind: "product" as const,
-        id: p.id, slug: p.slug, title: p.title, image: p.banner,
+        id: p.id, slug: p.slug, title: p.title, image: productImageSrc(p.banner, 800),
         price: p.price, isFree: p.isFree, rating: p.rating,
         count: p.salesCount, reviewsCount: p.reviewsCount,
       }))}
@@ -213,7 +214,7 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
         kind: "bundle" as const,
         id: b.id, slug: b.slug, title: b.title,
         // Carte = vignette si dispo, sinon bannière
-        image: b.thumbnail ?? b.banner,
+        image: productImageSrc(b.thumbnail ?? b.banner, 800),
         price: b.priceXof, isFree: false,
         rating: b.rating,
         count: 0, // pas de "salesCount" sur ProductBundle, OK pour la card
@@ -224,7 +225,7 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
         // /abonnement/{id} (cf. ligne 311 du composant), donc on passe
         // l'id comme slug pour fallback éventuel.
         kind: "subscription" as const,
-        id: s.id, slug: s.id, title: s.name, image: s.imageUrl ?? s.bannerUrl,
+        id: s.id, slug: s.id, title: s.name, image: productImageSrc(s.imageUrl ?? s.bannerUrl, 800),
         price: s.price, isFree: false,
         rating: s.rating,
         count: s.activeCount,

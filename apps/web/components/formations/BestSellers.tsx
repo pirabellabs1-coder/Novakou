@@ -82,7 +82,7 @@ async function fetchBestSellers(): Promise<Item[]> {
       const isBestseller = f.studentsCount >= 20;
       return {
         href: `/formation/${f.slug}`,
-        img: cldUrl(f.thumbnail, { width: 700, height: 700, crop: "fill" }) ?? null,
+        img: cldUrl(f.thumbnail, { width: 700, crop: "limit" }) ?? null,
         badge: isBestseller ? "Bestseller" : isNew ? "Nouveau" : "Populaire",
         badgeBg: isBestseller
           ? "bg-[#22c55e] text-[#004b1e]"
@@ -107,7 +107,7 @@ async function fetchBestSellers(): Promise<Item[]> {
         href: `/produit/${p.slug}`,
         // Cards prefer the dedicated thumbnail; fall back to banner for
         // legacy products that only ever uploaded one image.
-        img: cldUrl(p.thumbnail ?? p.banner, { width: 700, height: 700, crop: "fill" }) ?? null,
+        img: cldUrl(p.thumbnail ?? p.banner, { width: 700, crop: "limit" }) ?? null,
         badge: isBestseller ? "Bestseller" : isNew ? "Nouveau" : "Populaire",
         badgeBg: isBestseller
           ? "bg-[#22c55e] text-[#004b1e]"

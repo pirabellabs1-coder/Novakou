@@ -39,6 +39,7 @@ export async function PATCH(req: Request, { params }: Params) {
 
   let body: {
     name?: string;
+    slug?: string;
     description?: string | null;
     logoUrl?: string | null;
     coverUrl?: string | null;
@@ -64,6 +65,25 @@ export async function PATCH(req: Request, { params }: Params) {
     if (n.length < 2) return NextResponse.json({ error: "Nom trop court" }, { status: 400 });
     data.name = n;
   }
+  // Slug personnalisable (URL publique de la boutique). Normalisé côté serveur :
+  // minuscules, tirets, accents retirés — pour rester une URL propre et valide.
+  if (typeof body.slug === "string") {
+    const normalized = body.slug
+      .normalize("NFD").replace(/[̀-ͯ]/g, "")   // retire les accents
+      .toLowerCase().trim()
+      .replace(/[^a-z0-9]+/g, "-")                          // tout le reste → tirets
+      .replace(/^-+|-+$/g, "")                              // trim tirets
+      .slice(0, 60);
+    if (normalized.length < 3) {
+      return NextResponse.json({ error: "L'URL doit contenir au moins 3 caractères (lettres/chiffres)." }, { status: 400 });
+    }
+    // RESERVED : évite de shadow les routes plateforme sous /boutique/[slug]/[page]
+    const RESERVED = new Set(["a-propos", "aide", "contact", "plan-du-site", "mentions-legales", "conditions", "confidentialite", "by-domain"]);
+    if (RESERVED.has(normalized)) {
+      return NextResponse.json({ error: "Cette URL est réservée, choisissez-en une autre." }, { status: 400 });
+    }
+    if (normalized !== r.shop.slug) data.slug = normalized;
+  }
   if ("description" in body) data.description = body.description?.toString().slice(0, 600) ?? null;
   if ("logoUrl" in body) data.logoUrl = body.logoUrl ?? null;
   if ("coverUrl" in body) data.coverUrl = body.coverUrl ?? null;
@@ -88,20 +108,28 @@ export async function PATCH(req: Request, { params }: Params) {
     }
   }
 
-  if (body.isPrimary === true) {
-    // Demote others, promote this one in a transaction
-    await prisma.$transaction([
-      prisma.vendorShop.updateMany({
-        where: { instructeurId: r.ctx.instructeurId, isPrimary: true },
-        data: { isPrimary: false },
-      }),
-      prisma.vendorShop.update({
-        where: { id: r.shop.id },
-        data: { ...data, isPrimary: true },
-      }),
-    ]);
-  } else {
-    await prisma.vendorShop.update({ where: { id: r.shop.id }, data });
+  try {
+    if (body.isPrimary === true) {
+      // Demote others, promote this one in a transaction
+      await prisma.$transaction([
+        prisma.vendorShop.updateMany({
+          where: { instructeurId: r.ctx.instructeurId, isPrimary: true },
+          data: { isPrimary: false },
+        }),
+        prisma.vendorShop.update({
+          where: { id: r.shop.id },
+          data: { ...data, isPrimary: true },
+        }),
+      ]);
+    } else {
+      await prisma.vendorShop.update({ where: { id: r.shop.id }, data });
+    }
+  } catch (e) {
+    // Collision d'unicité (slug déjà pris par une autre boutique).
+    if (e && typeof e === "object" && "code" in e && (e as { code?: string }).code === "P2002") {
+      return NextResponse.json({ error: "Cette URL est déjà utilisée par une autre boutique." }, { status: 409 });
+    }
+    throw e;
   }
 
   const updated = await prisma.vendorShop.findUnique({ where: { id: r.shop.id } });

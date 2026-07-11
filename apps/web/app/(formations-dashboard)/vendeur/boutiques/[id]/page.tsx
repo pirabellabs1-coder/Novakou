@@ -34,6 +34,7 @@ export default function VendorShopDetailPage() {
   const [shop, setShop] = useState<Shop | null>(null);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
   const [themeColor, setThemeColor] = useState("");
   const [legalName, setLegalName] = useState("");
@@ -52,6 +53,7 @@ export default function VendorShopDetailPage() {
       if (!res.ok) throw new Error(json.error ?? "Erreur");
       setShop(json.data);
       setName(json.data.name ?? "");
+      setSlug(json.data.slug ?? "");
       setDescription(json.data.description ?? "");
       setThemeColor(json.data.themeColor ?? "");
       setLegalName(json.data.legalName ?? "");
@@ -93,6 +95,7 @@ export default function VendorShopDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
+          slug,
           description: description || null,
           themeColor: themeColor || null,
           font: font || null,
@@ -110,6 +113,7 @@ export default function VendorShopDetailPage() {
       }
       toast("success", "Boutique mise à jour");
       setShop(json.data);
+      setSlug(json.data.slug ?? slug); // reflète la normalisation serveur
     } finally {
       setSaving(false);
     }
@@ -251,10 +255,29 @@ export default function VendorShopDetailPage() {
             <label className="block text-xs font-semibold uppercase tracking-wider text-[#5c647a] mb-1.5">
               Slug (URL Novakou)
             </label>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-[#5c647a] font-mono">novakou.com/boutique/</span>
-              <code className="text-sm text-[#191c1e] font-mono px-2 py-1 bg-gray-100 rounded">{shop.slug}</code>
+            <div className="flex items-stretch rounded-xl border border-gray-200 bg-white focus-within:border-[#006e2f] focus-within:ring-2 focus-within:ring-[#006e2f]/10 overflow-hidden">
+              <span className="inline-flex items-center px-3 text-sm text-[#5c647a] font-mono bg-gray-50 border-r border-gray-200 whitespace-nowrap">
+                novakou.com/boutique/
+              </span>
+              <input
+                type="text"
+                value={slug}
+                onChange={(e) =>
+                  setSlug(
+                    e.target.value
+                      .toLowerCase()
+                      .replace(/\s+/g, "-")
+                      .replace(/[^a-z0-9-]/g, "")
+                      .slice(0, 60),
+                  )
+                }
+                placeholder="ma-boutique"
+                className="flex-1 min-w-0 px-3 py-3 text-sm text-[#191c1e] font-mono focus:outline-none"
+              />
             </div>
+            <p className="text-[11px] text-[#5c647a] mt-1.5">
+              Lettres, chiffres et tirets uniquement. En changeant l&apos;URL, les anciens liens vers votre boutique cesseront de fonctionner.
+            </p>
           </div>
 
           <div>

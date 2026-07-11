@@ -74,6 +74,7 @@ export default function BoutiqueView({
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "formation" | "product" | "bundle" | "subscription" | "free">("all");
   const [sort, setSort] = useState<"popular" | "price-asc" | "price-desc" | "rating">("popular");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const filtered = useMemo(() => {
     let list = all;
@@ -134,11 +135,47 @@ export default function BoutiqueView({
             <a href={`${staticBase}/a-propos`} className="hover:text-slate-900 transition-colors">À propos</a>
             <a href={`${staticBase}/contact`} className="hover:text-slate-900 transition-colors">Contact</a>
           </div>
-          <a href="/apprenant/mes-produits" className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 hover:text-slate-900 transition-colors flex-shrink-0">
-            <span className="material-symbols-outlined text-[19px]">shopping_bag</span>
-            <span className="hidden xs:inline">Mes achats</span>
-          </a>
+          <div className="flex items-center gap-1">
+            <a href="/apprenant/mes-produits" className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 hover:text-slate-900 transition-colors flex-shrink-0 px-2 py-1">
+              <span className="material-symbols-outlined text-[19px]">shopping_bag</span>
+              <span className="hidden md:inline">Mes achats</span>
+            </a>
+            {/* Bouton hamburger — visible uniquement sur mobile */}
+            <button
+              type="button"
+              onClick={() => setMenuOpen((o) => !o)}
+              aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+              aria-expanded={menuOpen}
+              className="sm:hidden inline-flex items-center justify-center w-9 h-9 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[24px]">{menuOpen ? "close" : "menu"}</span>
+            </button>
+          </div>
         </div>
+
+        {/* Panneau déroulant mobile */}
+        {menuOpen && (
+          <div className="sm:hidden border-t border-slate-200/70 bg-white/95 backdrop-blur-md">
+            <div className="max-w-6xl mx-auto px-5 py-2 flex flex-col">
+              {[
+                { href: staticBase || "/", label: "Produits", icon: "storefront" },
+                { href: `${staticBase}/a-propos`, label: "À propos", icon: "info" },
+                { href: `${staticBase}/contact`, label: "Contact", icon: "mail" },
+                { href: "/apprenant/mes-produits", label: "Mes achats", icon: "shopping_bag" },
+              ].map((l) => (
+                <a
+                  key={l.label}
+                  href={l.href}
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-3 py-3 px-2 text-sm font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[20px]" style={{ color: themeColor }}>{l.icon}</span>
+                  {l.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* ─── Hero (cover-like) ────────────────────────────────────────────── */}
