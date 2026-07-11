@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import ShopFooter from "@/components/formations/ShopFooter";
 import { FormationsFooter } from "@/components/formations/FormationsFooter";
+import { shopFontStack, shopFontHref } from "@/lib/formations/shop-fonts";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -27,6 +28,7 @@ import {
   Zap,
   Loader2,
   Check,
+  ShieldCheck,
   ShoppingCart,
   Infinity as InfinityIcon,
   MonitorSmartphone,
@@ -241,6 +243,20 @@ export default function FormationPageClient({ slug }: { slug: string }) {
     load();
   }, [slug]);
 
+  // Police de la boutique du vendeur (identité typographique cohérente).
+  useEffect(() => {
+    const font = formation?.shop?.font;
+    const href = shopFontHref(font ?? null);
+    if (!href) return;
+    const id = `shopfont-${font}`;
+    if (document.getElementById(id)) return;
+    const link = document.createElement("link");
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href = href;
+    document.head.appendChild(link);
+  }, [formation?.shop?.font]);
+
   function handleBuyNow() {
     if (!formation) return;
     router.push(`/checkout?fids=${formation.id}`);
@@ -308,7 +324,10 @@ export default function FormationPageClient({ slug }: { slug: string }) {
     : 0;
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb]">
+    <div
+      className="min-h-screen bg-[#f7f9fb] pb-24 md:pb-0"
+      style={formation.shop?.font ? { fontFamily: shopFontStack(formation.shop.font) } : undefined}
+    >
       {/* Pixels vendeur (FB, Google, TikTok) — event ViewContent avec valeur */}
       <PixelInjector
         pixels={formation.instructeur.marketingPixels ?? []}
@@ -628,6 +647,23 @@ export default function FormationPageClient({ slug }: { slug: string }) {
                       )}
                     </button>
                   )}
+
+                  {/* Réassurance + moyens de paiement acceptés */}
+                  {!formation.isFree && (
+                    <div className="mt-3.5 pt-3.5 border-t border-gray-100">
+                      <div className="flex items-center justify-center gap-1.5 text-[#5c647a]">
+                        <ShieldCheck size={13} className="text-[#006e2f]" />
+                        <span className="text-[11px] font-semibold">Paiement 100% sécurisé</span>
+                      </div>
+                      <div className="flex items-center justify-center gap-1.5 flex-wrap mt-2">
+                        {["Carte", "Orange Money", "MTN", "Moov", "Wave"].map((m) => (
+                          <span key={m} className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-gray-100 text-[#5c647a]">
+                            {m}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-3">
@@ -684,6 +720,24 @@ export default function FormationPageClient({ slug }: { slug: string }) {
       ) : (
         <FormationsFooter />
       )}
+
+      {/* Barre d'achat collante — mobile uniquement. */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-4 py-3 flex items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] text-[#5c647a] leading-none">{formation.isFree ? "" : "Prix"}</p>
+          <p className="text-lg font-extrabold text-[#006e2f] leading-tight truncate">
+            {formation.isFree ? "Gratuit" : `${fmt(formation.price)} FCFA`}
+          </p>
+        </div>
+        <button
+          onClick={handleBuyNow}
+          className="flex-shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white font-bold text-sm shadow-md active:scale-95 transition-transform"
+          style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+        >
+          {formation.isFree ? <Play size={17} className="fill-white" /> : <Zap size={17} />}
+          {formation.isFree ? "Commencer" : "Acheter"}
+        </button>
+      </div>
     </div>
   );
 }

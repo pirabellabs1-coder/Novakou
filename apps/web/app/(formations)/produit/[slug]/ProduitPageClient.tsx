@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import ShopFooter from "@/components/formations/ShopFooter";
 import { FormationsFooter } from "@/components/formations/FormationsFooter";
 import { productImageSrc, avatarSrc } from "@/lib/utils/image-url";
+import { shopFontStack, shopFontHref } from "@/lib/formations/shop-fonts";
 import {
   Star,
   ShoppingBag,
@@ -164,6 +165,21 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
     load();
   }, [slug]);
 
+  // Charge la police de la boutique du vendeur (si définie) pour que la page
+  // produit adopte l'identité typographique de la boutique.
+  useEffect(() => {
+    const font = product?.shop?.font;
+    const href = shopFontHref(font ?? null);
+    if (!href) return;
+    const id = `shopfont-${font}`;
+    if (document.getElementById(id)) return;
+    const link = document.createElement("link");
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href = href;
+    document.head.appendChild(link);
+  }, [product?.shop?.font]);
+
   function handleBuyNow() {
     if (!product) return;
     router.push(`/checkout?pids=${product.id}`);
@@ -239,7 +255,10 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
     : null;
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb]">
+    <div
+      className="min-h-screen bg-[#f7f9fb] pb-24 md:pb-0"
+      style={product.shop?.font ? { fontFamily: shopFontStack(product.shop.font) } : undefined}
+    >
       {/* Pixels vendeur : FB, Google, TikTok — event ViewContent */}
       <PixelInjector
         pixels={product.instructeur.marketingPixels ?? []}
@@ -421,6 +440,23 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                     <ShoppingCart size={17} />
                     {addedCart ? "Ajouté au panier ✓" : addingCart ? "Ajout…" : "Ajouter au panier"}
                   </button>
+                )}
+
+                {/* Réassurance + moyens de paiement acceptés */}
+                {!isFree && (
+                  <div className="mt-3.5 pt-3.5 border-t border-gray-100">
+                    <div className="flex items-center justify-center gap-1.5 text-[#5c647a]">
+                      <ShieldCheck size={13} className="text-[#006e2f]" />
+                      <span className="text-[11px] font-semibold">Paiement 100% sécurisé</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-1.5 flex-wrap mt-2">
+                      {["Carte", "Orange Money", "MTN", "Moov", "Wave"].map((m) => (
+                        <span key={m} className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-gray-100 text-[#5c647a]">
+                          {m}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 )}
 
                 {/* Compte à rebours + barre de progression — affichés uniquement
@@ -606,6 +642,27 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
         <ShopFooter shopSlug={product.shop.slug} shopName={product.shop.name} legalName={product.shop.legalName} />
       ) : (
         <FormationsFooter />
+      )}
+
+      {/* Barre d'achat COLLANTE en bas — mobile uniquement (le desktop a la carte
+          d'achat sticky en colonne). Améliore la conversion sur petit écran. */}
+      {canBuy && (
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-4 py-3 flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] text-[#5c647a] leading-none">{isFree ? "" : "Prix"}</p>
+            <p className="text-lg font-extrabold text-[#006e2f] leading-tight truncate">
+              {isFree ? "Gratuit" : `${fmt(product.price)} FCFA`}
+            </p>
+          </div>
+          <button
+            onClick={handleBuyNow}
+            className="flex-shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white font-bold text-sm shadow-md active:scale-95 transition-transform"
+            style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+          >
+            {isFree ? <Download size={17} /> : <ShoppingCart size={17} />}
+            {isFree ? "Télécharger" : "Acheter"}
+          </button>
+        </div>
       )}
     </div>
   );
