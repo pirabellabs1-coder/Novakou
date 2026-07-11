@@ -102,6 +102,7 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
           select: {
             id: true, slug: true, title: true, price: true, productType: true, fileUrl: true,
             instructeurId: true, shopId: true,
+            isPaymentLink: true, allowCustomAmount: true,
             // Stock gate (vote 23).
             maxBuyers: true, currentBuyers: true, salesCount: true,
             instructeur: { select: { user: { select: { id: true, email: true, name: true } } } },
@@ -117,13 +118,25 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
 
   if (!user) throw new Error("Utilisateur introuvable");
 
-  const subTotal = formations.reduce((s, f) => s + f.price, 0) + products.reduce((s, p) => s + p.price, 0);
+  // Lien de paiement à PRIX LIBRE (commande d'un seul produit) : le montant
+  // « attendu » N'EST PAS le prix suggéré mais le montant réellement payé par
+  // l'acheteur (vérifié par Moneroo). On aligne subTotal dessus pour que le
+  // garde-fou anti-fraude ci-dessous et la ventilation restent cohérents.
+  const singleCustomLink =
+    formations.length === 0 && products.length === 1 &&
+    products[0].isPaymentLink && products[0].allowCustomAmount &&
+    typeof p.expectedAmountReceived === "number" && p.expectedAmountReceived > 0;
+
+  const subTotal = singleCustomLink
+    ? Math.round(p.expectedAmountReceived as number)
+    : formations.reduce((s, f) => s + f.price, 0) + products.reduce((s, p) => s + p.price, 0);
 
   // Apply discount code (idempotent : on récupère le code mais on incrémente
-  // usedCount seulement si on crée des enrollments)
+  // usedCount seulement si on crée des enrollments). Jamais de code sur un lien
+  // de paiement à prix libre.
   let discountAmount = 0;
   let appliedCode: { id: string; code: string } | null = null;
-  if (discountCodeStr) {
+  if (discountCodeStr && !singleCustomLink) {
     const code = await prisma.discountCode.findUnique({ where: { code: discountCodeStr } });
     if (code && code.isActive && (!code.expiresAt || code.expiresAt >= new Date())) {
       if (!code.minOrderAmount || subTotal >= code.minOrderAmount) {
@@ -294,7 +307,10 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
       continue;
     }
 
-    const finalPrice = applyDiscount(p.price);
+    // Lien de paiement à PRIX LIBRE : on crédite le montant réellement payé
+    // (déjà porté par subTotal pour ce cas single-item, cf. plus haut), et non
+    // p.price qui n'est qu'une suggestion.
+    const finalPrice = singleCustomLink ? subTotal : applyDiscount(p.price);
     const platformAmount = Math.round(finalPrice * commissionRate);
     const clampedAffRate = affiliate ? Math.min(affiliate.commissionRate, 0.40) : 0;
     const affAmount = affiliate ? Math.round(finalPrice * clampedAffRate) : 0;

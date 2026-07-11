@@ -23,6 +23,7 @@ const PUBLIC_ROUTES = [
   "/freelances",
   "/formation",
   "/produit",
+  "/payer",       // Pages de paiement (liens de paiement) — checkout invité, sans compte
   "/bundle",      // Pages publiques de packs (bundles)
   "/abonnement",  // Pages publiques de plans d'abonnement vendeur
   "/tarifs",

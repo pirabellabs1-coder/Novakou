@@ -105,6 +105,7 @@ export async function POST(request: Request) {
             select: {
               id: true, title: true, price: true, instructeurId: true, shopId: true,
               maxBuyers: true, currentBuyers: true, salesCount: true, salesEndAt: true,
+              isPaymentLink: true, allowCustomAmount: true,
             },
           })
         : Promise.resolve([]),
@@ -142,7 +143,27 @@ export async function POST(request: Request) {
       );
     }
 
-    const subTotal = formations.reduce((s, f) => s + f.price, 0) + products.reduce((s, p) => s + p.price, 0);
+    // ── Lien de paiement à PRIX LIBRE : montant choisi par l'acheteur ──────
+    // Autorisé UNIQUEMENT pour une commande d'un seul produit isPaymentLink
+    // + allowCustomAmount. Le montant devient le total ; il sera crédité tel
+    // quel (vérifié par Moneroo) au fulfillment. Garde-fou strict : jamais pour
+    // un produit normal (empêche un acheteur de sous-payer).
+    let customAmount: number | null = null;
+    if (
+      formations.length === 0 && products.length === 1 &&
+      products[0].isPaymentLink && products[0].allowCustomAmount
+    ) {
+      const amt = Math.round(Number(body.customAmount));
+      if (!Number.isFinite(amt) || amt < 100) {
+        return NextResponse.json(
+          { error: "Le montant doit être d'au moins 100 FCFA." },
+          { status: 400 },
+        );
+      }
+      customAmount = amt;
+    }
+
+    const subTotal = customAmount ?? (formations.reduce((s, f) => s + f.price, 0) + products.reduce((s, p) => s + p.price, 0));
 
     // Apply discount code
     let discountAmount = 0;

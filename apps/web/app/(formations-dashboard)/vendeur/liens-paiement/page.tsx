@@ -13,7 +13,9 @@ import {
   Loader2,
   X,
   Wallet,
+  Sparkles,
 } from "lucide-react";
+import { ImageUploader } from "@/components/formations/ImageUploader";
 import { useToastStore } from "@/store/toast";
 
 interface PayLink {
@@ -22,6 +24,8 @@ interface PayLink {
   title: string;
   description: string | null;
   price: number;
+  thumbnail: string | null;
+  allowCustomAmount: boolean;
   status: string;
   salesCount: number;
   currentBuyers: number;
@@ -40,6 +44,8 @@ export default function LiensPaiementPage() {
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
+  const [image, setImage] = useState("");
+  const [priceMode, setPriceMode] = useState<"fixed" | "libre">("fixed");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [embedFor, setEmbedFor] = useState<PayLink | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -65,18 +71,27 @@ export default function LiensPaiementPage() {
     e.preventDefault();
     const amt = parseFloat(amount);
     if (title.trim().length < 2) { toast("error", "Titre trop court."); return; }
-    if (!Number.isFinite(amt) || amt <= 0) { toast("error", "Montant invalide."); return; }
+    if (priceMode === "fixed" && (!Number.isFinite(amt) || amt <= 0)) {
+      toast("error", "Montant invalide.");
+      return;
+    }
     setCreating(true);
     try {
       const res = await fetch("/api/formations/vendeur/liens-paiement", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: title.trim(), amount: amt, description: description.trim() || undefined }),
+        body: JSON.stringify({
+          title: title.trim(),
+          amount: Number.isFinite(amt) ? amt : 0,
+          description: description.trim() || undefined,
+          image: image || undefined,
+          priceMode,
+        }),
       });
       const json = await res.json();
       if (!res.ok) { toast("error", json.error ?? "Erreur"); return; }
       toast("success", "Lien de paiement créé 🎉");
-      setTitle(""); setAmount(""); setDescription(""); setShowForm(false);
+      setTitle(""); setAmount(""); setDescription(""); setImage(""); setPriceMode("fixed"); setShowForm(false);
       load();
     } finally {
       setCreating(false);
@@ -154,24 +169,57 @@ export default function LiensPaiementPage() {
         {/* Create form */}
         {showForm && (
           <form onSubmit={handleCreate} className="bg-white rounded-2xl border border-gray-100 p-6 mb-6 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#5c647a] mb-1.5">Titre / objet du paiement</label>
-                <input
-                  type="text" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={80}
-                  placeholder="Ex. Acompte prestation, Don, Consultation…"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
-                />
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-[#5c647a] mb-1.5">Titre / objet du paiement</label>
+              <input
+                type="text" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={80}
+                placeholder="Ex. Acompte prestation, Don, Consultation…"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
+              />
+            </div>
+
+            {/* Type de montant : fixe ou libre */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-[#5c647a] mb-1.5">Montant</label>
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                {([["fixed", "Montant fixe"], ["libre", "Prix libre"]] as const).map(([k, lbl]) => (
+                  <button
+                    key={k} type="button" onClick={() => setPriceMode(k)}
+                    className={`px-3 py-2.5 rounded-xl text-sm font-bold border transition-colors ${
+                      priceMode === k ? "border-[#006e2f] bg-[#006e2f]/5 text-[#006e2f]" : "border-gray-200 text-[#5c647a] hover:bg-gray-50"
+                    }`}
+                  >
+                    {k === "libre" && <Sparkles size={13} className="inline mr-1 -mt-0.5" />}
+                    {lbl}
+                  </button>
+                ))}
               </div>
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#5c647a] mb-1.5">Montant (FCFA)</label>
-                <input
-                  type="number" min={1} value={amount} onChange={(e) => setAmount(e.target.value)}
-                  placeholder="5000"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
+              <input
+                type="number" min={priceMode === "fixed" ? 1 : 0} value={amount} onChange={(e) => setAmount(e.target.value)}
+                placeholder={priceMode === "libre" ? "Montant suggéré (optionnel)" : "5000"}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
+              />
+              <p className="text-[11px] text-slate-400 mt-1">
+                {priceMode === "libre"
+                  ? "L'acheteur choisira lui-même le montant (min. 100 FCFA). Le montant ci-dessus est juste une suggestion."
+                  : "Le client paiera exactement ce montant en FCFA."}
+              </p>
+            </div>
+
+            {/* Image (optionnelle) */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-[#5c647a] mb-1.5">Image (optionnelle)</label>
+              <div className="max-w-[220px]">
+                <ImageUploader
+                  value={image}
+                  onChange={(url) => setImage(url || "")}
+                  folder="portfolio"
+                  aspectClass="aspect-[16/9]"
+                  helper="JPG ou PNG · affichée sur la page de paiement"
                 />
               </div>
             </div>
+
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-[#5c647a] mb-1.5">Description (optionnelle)</label>
               <textarea
@@ -222,13 +270,18 @@ export default function LiensPaiementPage() {
               return (
                 <div key={l.id} className={`bg-white rounded-2xl border border-gray-100 p-4 md:p-5 ${paused ? "opacity-70" : ""}`}>
                   <div className="flex flex-col md:flex-row md:items-center gap-4">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {l.thumbnail && (
+                      <img src={l.thumbnail} alt="" className="w-14 h-14 rounded-xl object-cover flex-shrink-0 border border-gray-100" />
+                    )}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-extrabold text-[#111827] text-sm truncate">{l.title}</h3>
+                        {l.allowCustomAmount && <span className="text-[10px] font-bold uppercase tracking-wide text-[#006e2f] bg-[#006e2f]/10 px-2 py-0.5 rounded-full">Prix libre</span>}
                         {paused && <span className="text-[10px] font-bold uppercase tracking-wide text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">En pause</span>}
                       </div>
                       <div className="flex items-center gap-3 mt-1 text-[12px] text-[#5c647a] flex-wrap">
-                        <span className="font-bold text-[#006e2f]">{fmt(l.price)} FCFA</span>
+                        <span className="font-bold text-[#006e2f]">{l.allowCustomAmount ? "Montant libre" : `${fmt(l.price)} FCFA`}</span>
                         <span className="inline-flex items-center gap-1"><Wallet size={13} /> {l.salesCount} vente{l.salesCount > 1 ? "s" : ""}</span>
                         {l.revenue > 0 && <span>· {fmt(l.revenue)} FCFA encaissés</span>}
                       </div>

@@ -47,14 +47,27 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
     select: {
       id: true, slug: true, title: true, description: true, price: true,
+      thumbnail: true, allowCustomAmount: true,
       status: true, salesCount: true, currentBuyers: true, createdAt: true,
     },
   });
 
+  // Revenu réel = somme des montants payés (fiable même en prix libre où le
+  // montant varie), pas price × salesCount.
+  const ids = links.map((l) => l.id);
+  const sums = ids.length
+    ? await prisma.digitalProductPurchase.groupBy({
+        by: ["productId"],
+        where: { productId: { in: ids } },
+        _sum: { paidAmount: true },
+      })
+    : [];
+  const revById = new Map(sums.map((s) => [s.productId, s._sum.paidAmount ?? 0]));
+
   const data = links.map((l) => ({
     ...l,
-    revenue: Math.round(l.price * l.salesCount),
-    url: `/produit/${l.slug}`,
+    revenue: Math.round(revById.get(l.id) ?? 0),
+    url: `/payer/${l.slug}`,
   }));
   return NextResponse.json({ data });
 }
@@ -75,7 +88,7 @@ export async function POST(request: Request) {
     );
   }
 
-  let body: { title?: string; amount?: number | string; description?: string };
+  let body: { title?: string; amount?: number | string; description?: string; image?: string; priceMode?: string };
   try {
     body = await request.json();
   } catch {
@@ -86,12 +99,21 @@ export async function POST(request: Request) {
   if (title.length < 2) {
     return NextResponse.json({ error: "Le titre est trop court." }, { status: 400 });
   }
-  const amountNum = parseFloat(String(body.amount));
-  // Montant fixé par le vendeur, strictement > 0 (un lien de paiement encaisse).
-  if (!Number.isFinite(amountNum) || amountNum <= 0) {
-    return NextResponse.json({ error: "Le montant doit être supérieur à 0." }, { status: 400 });
+
+  // Prix libre = l'acheteur choisit le montant (le montant fourni sert alors de
+  // suggestion/minimum, 0 accepté). Sinon montant fixe strictement > 0.
+  const allowCustomAmount = body.priceMode === "libre";
+  const amountNum = parseFloat(String(body.amount ?? 0));
+  if (!allowCustomAmount) {
+    if (!Number.isFinite(amountNum) || amountNum <= 0) {
+      return NextResponse.json({ error: "Le montant doit être supérieur à 0." }, { status: 400 });
+    }
+  } else if (!Number.isFinite(amountNum) || amountNum < 0) {
+    return NextResponse.json({ error: "Le montant suggéré est invalide." }, { status: 400 });
   }
+
   const description = typeof body.description === "string" ? body.description.trim().slice(0, 2000) : null;
+  const image = typeof body.image === "string" && body.image.trim() ? body.image.trim() : null;
 
   const activeShopId = await getActiveShopId(session, {
     devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
@@ -113,19 +135,21 @@ export async function POST(request: Request) {
       description,
       productType: "AUTRE",
       categoryId: cat.id,
+      thumbnail: image,
       price: Math.round(amountNum),
       isFree: false,
       // Lien de paiement : caché du marketplace, sans fichier, ACTIF direct.
       isPaymentLink: true,
+      allowCustomAmount,
       hiddenFromMarketplace: true,
       status: "ACTIF",
       instructeurId: ctx.instructeurId,
       shopId: activeShopId,
     },
-    select: { id: true, slug: true, title: true, price: true, status: true },
+    select: { id: true, slug: true, title: true, price: true, status: true, allowCustomAmount: true },
   });
 
   return NextResponse.json({
-    data: { ...link, url: `/produit/${link.slug}` },
+    data: { ...link, url: `/payer/${link.slug}` },
   });
 }
