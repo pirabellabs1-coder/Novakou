@@ -4,7 +4,8 @@ import { useEffect, useRef, useState, type ReactNode, type ReactElement } from "
 
 export type AnimationType =
   | "none" | "fade-in" | "slide-up" | "slide-left" | "bounce" | "zoom"
-  | "slide-right" | "slide-down" | "flip" | "pulse" | "shake";
+  | "slide-right" | "slide-down" | "flip" | "pulse" | "shake"
+  | "zoom-in" | "rotate-in" | "blur-in" | "roll-in" | "flip-x" | "swing" | "float" | "glow";
 
 interface AnimatedBlockProps {
   animation?: AnimationType;

@@ -35,6 +35,14 @@ import {
   IdCard,
   PanelsTopLeft,
   AppWindow,
+  GitCommitVertical,
+  Rows4,
+  Newspaper,
+  Hash,
+  FlipHorizontal2,
+  ReceiptText,
+  RectangleHorizontal,
+  CircleDashed,
   Megaphone,
   Sparkles,
   CheckCircle2,
@@ -120,7 +128,10 @@ type BlockType =
   // Nouveaux éléments (v3)
   | "audio" | "badge" | "quote" | "rating" | "progress" | "whatsapp" | "social-share"
   // Nouveaux éléments (v4)
-  | "steps" | "team" | "accordion" | "tabs" | "embed" | "callout";
+  | "steps" | "team" | "accordion" | "tabs" | "embed" | "callout"
+  // Nouveaux éléments (v5 — façon Elementor)
+  | "timeline" | "zigzag" | "post-card" | "icon-list" | "counter" | "flip-card"
+  | "price-list" | "before-after" | "button-group" | "circular-progress";
 
 interface Block {
   id: string;
@@ -673,6 +684,134 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
       variant: "info", // info | success | warning | tip
     },
   },
+  // ─── Nouveaux éléments (v5 — façon Elementor) ─────────────────────────────
+  timeline: {
+    label: "Timeline",
+    icon: GitCommitVertical,
+    atomic: true,
+    default: {
+      accentColor: "",
+      items: [
+        { date: "2023", title: "Le début", desc: "Ce qui s'est passé à cette étape." },
+        { date: "2024", title: "La croissance", desc: "L'évolution suivante." },
+        { date: "2025", title: "Aujourd'hui", desc: "Où nous en sommes." },
+      ],
+    },
+  },
+  zigzag: {
+    label: "Zigzag (image + texte)",
+    icon: Rows4,
+    atomic: true,
+    default: {
+      accentColor: "",
+      items: [
+        { imageUrl: "", title: "Premier bénéfice", desc: "Décrivez ce point fort avec une image à gauche.", ctaText: "", ctaLink: "" },
+        { imageUrl: "", title: "Deuxième bénéfice", desc: "Celui-ci a son image à droite (alterné automatiquement).", ctaText: "", ctaLink: "" },
+      ],
+    },
+  },
+  "post-card": {
+    label: "Carte article",
+    icon: Newspaper,
+    atomic: true,
+    default: {
+      imageUrl: "",
+      category: "Article",
+      title: "Titre de votre article",
+      excerpt: "Un court extrait qui donne envie de lire la suite.",
+      link: "",
+      author: "",
+      date: "",
+      ctaText: "Lire la suite",
+    },
+  },
+  "icon-list": {
+    label: "Liste à icônes",
+    icon: Hash,
+    atomic: true,
+    default: {
+      accentColor: "",
+      items: [
+        { icon: "check_circle", text: "Premier point important" },
+        { icon: "check_circle", text: "Deuxième point important" },
+        { icon: "check_circle", text: "Troisième point important" },
+      ],
+    },
+  },
+  counter: {
+    label: "Compteur (nombre)",
+    icon: Hash,
+    atomic: true,
+    default: {
+      value: 1000,
+      prefix: "",
+      suffix: "+",
+      label: "Clients satisfaits",
+      accentColor: "",
+      align: "center",
+      duration: 2000,
+    },
+  },
+  "flip-card": {
+    label: "Carte retournable",
+    icon: FlipHorizontal2,
+    atomic: true,
+    default: {
+      frontTitle: "Survolez-moi",
+      frontText: "Face avant de la carte.",
+      frontIcon: "star",
+      backTitle: "Surprise !",
+      backText: "Face arrière révélée au survol.",
+      accentColor: "",
+      bgColor: "#ffffff",
+    },
+  },
+  "price-list": {
+    label: "Liste de prix",
+    icon: ReceiptText,
+    atomic: true,
+    default: {
+      accentColor: "",
+      items: [
+        { name: "Formule Découverte", desc: "L'essentiel pour démarrer", price: "9 900 FCFA" },
+        { name: "Formule Pro", desc: "Le meilleur rapport qualité/prix", price: "24 900 FCFA" },
+      ],
+    },
+  },
+  "before-after": {
+    label: "Avant / Après",
+    icon: RectangleHorizontal,
+    atomic: true,
+    default: {
+      beforeUrl: "",
+      afterUrl: "",
+      beforeLabel: "Avant",
+      afterLabel: "Après",
+    },
+  },
+  "button-group": {
+    label: "Groupe de boutons",
+    icon: RectangleHorizontal,
+    atomic: true,
+    default: {
+      align: "center",
+      buttons: [
+        { text: "Bouton principal", link: "", style: "primary" },
+        { text: "Bouton secondaire", link: "", style: "outline" },
+      ],
+    },
+  },
+  "circular-progress": {
+    label: "Progression circulaire",
+    icon: CircleDashed,
+    atomic: true,
+    default: {
+      value: 75,
+      label: "Objectif atteint",
+      color: "",
+      size: 140,
+    },
+  },
 };
 
 // PaletteKey = either a BlockType or a preset (row with N columns)
@@ -704,6 +843,9 @@ const PALETTE_CATEGORIES: Array<{ label: string; icon: LucideIcon; items: Palett
       { key: "callout", label: "Encadré / Note", icon: Lightbulb },
       { key: "accordion", label: "Accordéon", icon: ChevronDown },
       { key: "tabs", label: "Onglets", icon: PanelsTopLeft },
+      { key: "icon-list", label: "Liste à icônes", icon: Hash },
+      { key: "counter", label: "Compteur", icon: Hash },
+      { key: "circular-progress", label: "Progression circulaire", icon: CircleDashed },
       { key: "divider", label: "Ligne", icon: Minus },
       { key: "spacer", label: "Espace", icon: MoveVertical },
     ],
@@ -743,6 +885,13 @@ const PALETTE_CATEGORIES: Array<{ label: string; icon: LucideIcon; items: Palett
       { key: "comparison", label: "Comparatif", icon: GitCompare },
       { key: "steps", label: "Étapes / Process", icon: ListOrdered },
       { key: "team", label: "Membre / Auteur", icon: IdCard },
+      { key: "timeline", label: "Timeline", icon: GitCommitVertical },
+      { key: "zigzag", label: "Zigzag (image+texte)", icon: Rows4 },
+      { key: "post-card", label: "Carte article", icon: Newspaper },
+      { key: "price-list", label: "Liste de prix", icon: ReceiptText },
+      { key: "flip-card", label: "Carte retournable", icon: FlipHorizontal2 },
+      { key: "before-after", label: "Avant / Après", icon: RectangleHorizontal },
+      { key: "button-group", label: "Groupe de boutons", icon: RectangleHorizontal },
     ],
   },
   {
@@ -759,6 +908,8 @@ const COLUMN_ALLOWED_KEYS: PaletteKey[] = [
   "heading", "text", "image", "button", "icon-box", "divider", "spacer", "list", "video", "html", "product", "checkout", "content-box", "lead-form",
   "audio", "badge", "quote", "rating", "progress", "whatsapp",
   "steps", "team", "accordion", "tabs", "embed", "callout",
+  "timeline", "zigzag", "post-card", "icon-list", "counter", "flip-card",
+  "price-list", "before-after", "button-group", "circular-progress",
 ];
 
 // Dans une SECTION ou une BOÎTE (slot), on autorise en plus les rangées de
@@ -1625,6 +1776,185 @@ function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>
           <div className="grid grid-cols-2 gap-2">
             <SelectInput label="Style" value={(block.data.variant as string) ?? "info"} options={[{ value: "info", label: "Info (bleu)" }, { value: "success", label: "Succès (vert)" }, { value: "warning", label: "Attention (orange)" }, { value: "tip", label: "Astuce (violet)" }]} onChange={(v) => update({ variant: v })} />
             <StringInput label="Icône (nom)" value={(block.data.icon as string) ?? ""} onChange={(v) => update({ icon: v })} placeholder="lightbulb, info, star…" />
+          </div>
+        </div>
+      );
+    case "timeline":
+      return (
+        <div className="space-y-2.5">
+          <ColorPicker label="Couleur d'accent" value={(block.data.accentColor as string) ?? null} onChange={(c) => update({ accentColor: c })} />
+          <ListEditor
+            label="Événements"
+            items={(block.data.items as Array<{ date: string; title: string; desc: string }>) ?? []}
+            template={{ date: "", title: "Nouvel événement", desc: "" }}
+            onChange={(items) => update({ items })}
+            renderItem={(item, up) => (
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <StringInput label="Date / repère" value={item.date ?? ""} onChange={(v) => up({ date: v })} />
+                  <StringInput label="Titre" value={item.title ?? ""} onChange={(v) => up({ title: v })} />
+                </div>
+                <StringInput label="Description" value={item.desc ?? ""} onChange={(v) => up({ desc: v })} multiline />
+              </div>
+            )}
+          />
+        </div>
+      );
+    case "zigzag":
+      return (
+        <div className="space-y-2.5">
+          <ColorPicker label="Couleur d'accent" value={(block.data.accentColor as string) ?? null} onChange={(c) => update({ accentColor: c })} />
+          <ListEditor
+            label="Blocs (alternés gauche/droite)"
+            items={(block.data.items as Array<{ imageUrl: string; title: string; desc: string; ctaText: string; ctaLink: string }>) ?? []}
+            template={{ imageUrl: "", title: "Nouveau bénéfice", desc: "", ctaText: "", ctaLink: "" }}
+            onChange={(items) => update({ items })}
+            renderItem={(item, up) => (
+              <div className="space-y-2">
+                <MediaUpload label="Image" value={item.imageUrl || null} onChange={(url) => up({ imageUrl: url ?? "" })} accept="image" aspectRatio="landscape" />
+                <StringInput label="Titre" value={item.title ?? ""} onChange={(v) => up({ title: v })} />
+                <StringInput label="Description" value={item.desc ?? ""} onChange={(v) => up({ desc: v })} multiline />
+                <div className="grid grid-cols-2 gap-2">
+                  <StringInput label="Texte du bouton" value={item.ctaText ?? ""} onChange={(v) => up({ ctaText: v })} />
+                  <StringInput label="Lien du bouton" value={item.ctaLink ?? ""} onChange={(v) => up({ ctaLink: v })} />
+                </div>
+              </div>
+            )}
+          />
+        </div>
+      );
+    case "post-card":
+      return (
+        <div className="space-y-2.5">
+          <MediaUpload label="Image" value={(block.data.imageUrl as string) ?? null} onChange={(url) => update({ imageUrl: url ?? "" })} accept="image" aspectRatio="landscape" />
+          <div className="grid grid-cols-2 gap-2">
+            <StringInput label="Catégorie" value={(block.data.category as string) ?? ""} onChange={(v) => update({ category: v })} />
+            <StringInput label="Date" value={(block.data.date as string) ?? ""} onChange={(v) => update({ date: v })} />
+          </div>
+          <StringInput label="Titre" value={(block.data.title as string) ?? ""} onChange={(v) => update({ title: v })} />
+          <StringInput label="Extrait" value={(block.data.excerpt as string) ?? ""} onChange={(v) => update({ excerpt: v })} multiline />
+          <div className="grid grid-cols-2 gap-2">
+            <StringInput label="Auteur" value={(block.data.author as string) ?? ""} onChange={(v) => update({ author: v })} />
+            <StringInput label="Texte du lien" value={(block.data.ctaText as string) ?? ""} onChange={(v) => update({ ctaText: v })} />
+          </div>
+          <StringInput label="Lien (URL)" value={(block.data.link as string) ?? ""} onChange={(v) => update({ link: v })} placeholder="https://…" />
+        </div>
+      );
+    case "icon-list":
+      return (
+        <div className="space-y-2.5">
+          <ColorPicker label="Couleur des icônes" value={(block.data.accentColor as string) ?? null} onChange={(c) => update({ accentColor: c })} />
+          <ListEditor
+            label="Points"
+            items={(block.data.items as Array<{ icon: string; text: string }>) ?? []}
+            template={{ icon: "check_circle", text: "Nouveau point" }}
+            onChange={(items) => update({ items })}
+            renderItem={(item, up) => (
+              <div className="grid grid-cols-2 gap-2">
+                <StringInput label="Icône (nom)" value={item.icon ?? ""} onChange={(v) => up({ icon: v })} placeholder="check_circle, star…" />
+                <StringInput label="Texte" value={item.text ?? ""} onChange={(v) => up({ text: v })} />
+              </div>
+            )}
+          />
+        </div>
+      );
+    case "counter":
+      return (
+        <div className="space-y-2.5">
+          <div className="grid grid-cols-3 gap-2">
+            <StringInput label="Préfixe" value={(block.data.prefix as string) ?? ""} onChange={(v) => update({ prefix: v })} placeholder="€, +…" />
+            <NumberInput label="Valeur" value={(block.data.value as number) ?? 0} onChange={(v) => update({ value: v })} />
+            <StringInput label="Suffixe" value={(block.data.suffix as string) ?? ""} onChange={(v) => update({ suffix: v })} placeholder="+, %, K…" />
+          </div>
+          <StringInput label="Libellé" value={(block.data.label as string) ?? ""} onChange={(v) => update({ label: v })} />
+          <div className="grid grid-cols-2 gap-2">
+            <ColorPicker label="Couleur" value={(block.data.accentColor as string) ?? null} onChange={(c) => update({ accentColor: c })} />
+            <SelectInput label="Alignement" value={(block.data.align as string) ?? "center"} options={ALIGN_OPTS} onChange={(v) => update({ align: v })} />
+          </div>
+          <SliderInput label="Durée du comptage" unit="ms" min={0} max={5000} step={100} value={(block.data.duration as number) ?? 2000} onChange={(v) => update({ duration: v })} />
+        </div>
+      );
+    case "flip-card":
+      return (
+        <div className="space-y-2.5">
+          <div className="rounded-lg border border-gray-200 p-2.5 space-y-2">
+            <p className="text-[10px] font-bold text-[#5c647a] uppercase">Face avant</p>
+            <StringInput label="Icône (nom)" value={(block.data.frontIcon as string) ?? ""} onChange={(v) => update({ frontIcon: v })} placeholder="star, rocket_launch…" />
+            <StringInput label="Titre avant" value={(block.data.frontTitle as string) ?? ""} onChange={(v) => update({ frontTitle: v })} />
+            <StringInput label="Texte avant" value={(block.data.frontText as string) ?? ""} onChange={(v) => update({ frontText: v })} multiline />
+          </div>
+          <div className="rounded-lg border border-gray-200 p-2.5 space-y-2">
+            <p className="text-[10px] font-bold text-[#5c647a] uppercase">Face arrière (au survol)</p>
+            <StringInput label="Titre arrière" value={(block.data.backTitle as string) ?? ""} onChange={(v) => update({ backTitle: v })} />
+            <StringInput label="Texte arrière" value={(block.data.backText as string) ?? ""} onChange={(v) => update({ backText: v })} multiline />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <ColorPicker label="Fond (avant)" value={(block.data.bgColor as string) ?? null} onChange={(c) => update({ bgColor: c })} />
+            <ColorPicker label="Accent (arrière)" value={(block.data.accentColor as string) ?? null} onChange={(c) => update({ accentColor: c })} />
+          </div>
+        </div>
+      );
+    case "price-list":
+      return (
+        <div className="space-y-2.5">
+          <ColorPicker label="Couleur des prix" value={(block.data.accentColor as string) ?? null} onChange={(c) => update({ accentColor: c })} />
+          <ListEditor
+            label="Lignes"
+            items={(block.data.items as Array<{ name: string; desc: string; price: string }>) ?? []}
+            template={{ name: "Nouvel élément", desc: "", price: "" }}
+            onChange={(items) => update({ items })}
+            renderItem={(item, up) => (
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <StringInput label="Nom" value={item.name ?? ""} onChange={(v) => up({ name: v })} />
+                  <StringInput label="Prix" value={item.price ?? ""} onChange={(v) => up({ price: v })} />
+                </div>
+                <StringInput label="Description" value={item.desc ?? ""} onChange={(v) => up({ desc: v })} />
+              </div>
+            )}
+          />
+        </div>
+      );
+    case "before-after":
+      return (
+        <div className="space-y-2.5">
+          <MediaUpload label="Image AVANT" value={(block.data.beforeUrl as string) ?? null} onChange={(url) => update({ beforeUrl: url ?? "" })} accept="image" aspectRatio="landscape" />
+          <MediaUpload label="Image APRÈS" value={(block.data.afterUrl as string) ?? null} onChange={(url) => update({ afterUrl: url ?? "" })} accept="image" aspectRatio="landscape" />
+          <div className="grid grid-cols-2 gap-2">
+            <StringInput label="Libellé avant" value={(block.data.beforeLabel as string) ?? ""} onChange={(v) => update({ beforeLabel: v })} />
+            <StringInput label="Libellé après" value={(block.data.afterLabel as string) ?? ""} onChange={(v) => update({ afterLabel: v })} />
+          </div>
+        </div>
+      );
+    case "button-group":
+      return (
+        <div className="space-y-2.5">
+          <SelectInput label="Alignement" value={(block.data.align as string) ?? "center"} options={ALIGN_OPTS} onChange={(v) => update({ align: v })} />
+          <ListEditor
+            label="Boutons"
+            items={(block.data.buttons as Array<{ text: string; link: string; style: string }>) ?? []}
+            template={{ text: "Nouveau bouton", link: "", style: "primary" }}
+            onChange={(buttons) => update({ buttons })}
+            renderItem={(item, up) => (
+              <div className="space-y-2">
+                <StringInput label="Texte" value={item.text ?? ""} onChange={(v) => up({ text: v })} />
+                <div className="grid grid-cols-2 gap-2">
+                  <StringInput label="Lien" value={item.link ?? ""} onChange={(v) => up({ link: v })} />
+                  <SelectInput label="Style" value={item.style ?? "primary"} options={[{ value: "primary", label: "Plein" }, { value: "outline", label: "Contour" }, { value: "secondary", label: "Secondaire" }]} onChange={(v) => up({ style: v })} />
+                </div>
+              </div>
+            )}
+          />
+        </div>
+      );
+    case "circular-progress":
+      return (
+        <div className="space-y-2.5">
+          <SliderInput label="Valeur" unit="%" min={0} max={100} value={(block.data.value as number) ?? 75} onChange={(v) => update({ value: Math.max(0, Math.min(100, v)) })} />
+          <StringInput label="Libellé" value={(block.data.label as string) ?? ""} onChange={(v) => update({ label: v })} />
+          <div className="grid grid-cols-2 gap-2">
+            <ColorPicker label="Couleur" value={(block.data.color as string) ?? null} onChange={(c) => update({ color: c })} />
+            <SliderInput label="Taille" unit="px" min={80} max={260} step={10} value={(block.data.size as number) ?? 140} onChange={(v) => update({ size: v })} />
           </div>
         </div>
       );
@@ -2605,15 +2935,23 @@ function BlockEditor({ block, onChange, onDelete, compact }: { block: Block; onC
             { value: "slide-left", label: "Glisser ←" },
             { value: "slide-right", label: "Glisser →" },
             { value: "zoom", label: "Zoom" },
+            { value: "zoom-in", label: "Zoom rebond" },
             { value: "bounce", label: "Rebond" },
-            { value: "flip", label: "Bascule 3D" },
+            { value: "flip", label: "Bascule 3D (X)" },
+            { value: "flip-x", label: "Bascule 3D (Y)" },
+            { value: "rotate-in", label: "Rotation" },
+            { value: "roll-in", label: "Roulé ←" },
+            { value: "blur-in", label: "Flou → net" },
             { value: "pulse", label: "Pulsation (boucle)" },
+            { value: "float", label: "Flottement (boucle)" },
+            { value: "glow", label: "Halo (boucle)" },
+            { value: "swing", label: "Balancement (attention)" },
             { value: "shake", label: "Secousse (attention)" },
           ]} onChange={(v) => update({ _animation: v })} />
           {animValue !== "none" && (
             <div className="grid grid-cols-2 gap-2">
-              <SliderInput label="Délai" unit="ms" min={0} max={2000} step={100} value={Number(block.data._animDelay ?? 0)} onChange={(v) => update({ _animDelay: v })} />
-              <SliderInput label="Durée" unit="ms" min={100} max={2000} step={100} value={Number(block.data._animDuration ?? 600)} onChange={(v) => update({ _animDuration: v })} />
+              <SliderInput label="Délai" unit="ms" min={0} max={5000} step={50} value={Number(block.data._animDelay ?? 0)} onChange={(v) => update({ _animDelay: v })} />
+              <SliderInput label="Durée" unit="ms" min={100} max={4000} step={50} value={Number(block.data._animDuration ?? 600)} onChange={(v) => update({ _animDuration: v })} />
             </div>
           )}
           <SelectInput label="Visible sur" value={visValue} options={[

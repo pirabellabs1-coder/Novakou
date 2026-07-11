@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type ReactElement, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import {
   Activity,
@@ -2217,6 +2217,264 @@ function CalloutBlock({ data }: { data: Record<string, unknown> }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// NOUVEAUX BLOCS (v5 — façon Elementor)
+// ═══════════════════════════════════════════════════════════════════════════
+function TimelineBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
+  const items = (data.items as Array<{ date?: string; title?: string; desc?: string }>) ?? [];
+  const accent = (data.accentColor as string) || theme.primaryColor;
+  if (!items.length) return null;
+  return (
+    <div className="max-w-2xl mx-auto my-6 px-4">
+      <div className="relative pl-8">
+        <div className="absolute left-[9px] top-1 bottom-1 w-0.5" style={{ background: `${accent}40` }} />
+        {items.map((it, i) => (
+          <div key={i} className="relative pb-7 last:pb-0">
+            <div className="absolute -left-8 top-0.5 w-5 h-5 rounded-full border-2 bg-white" style={{ borderColor: accent }}>
+              <div className="absolute inset-1 rounded-full" style={{ background: accent }} />
+            </div>
+            {it.date && <p className="text-xs font-extrabold uppercase tracking-wide" style={{ color: accent }}>{it.date}</p>}
+            {it.title && <p className="font-bold text-base mt-0.5" style={{ color: theme.textColor }}>{it.title}</p>}
+            {it.desc && <p className="text-sm mt-1 leading-relaxed" style={{ color: theme.textColor, opacity: 0.75 }}>{it.desc}</p>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ZigzagBlock({ data, theme, onCta }: { data: Record<string, unknown>; theme: Theme; onCta: () => void }) {
+  const items = (data.items as Array<{ imageUrl?: string; title?: string; desc?: string; ctaText?: string; ctaLink?: string }>) ?? [];
+  const accent = (data.accentColor as string) || theme.primaryColor;
+  if (!items.length) return null;
+  return (
+    <div className="max-w-5xl mx-auto my-6 px-4 space-y-10">
+      {items.map((it, i) => (
+        <ZigzagRow key={i} imageUrl={it.imageUrl ?? ""} title={it.title ?? ""} desc={it.desc ?? ""} ctaText={it.ctaText ?? ""} ctaLink={it.ctaLink ?? ""} accent={accent || "#006e2f"} theme={theme} flip={i % 2 === 1} onCta={onCta} />
+      ))}
+    </div>
+  );
+}
+function ZigzagRow({ imageUrl, title, desc, ctaText, ctaLink, accent, theme, flip, onCta }: { imageUrl: string; title: string; desc: string; ctaText: string; ctaLink: string; accent: string; theme: Theme; flip: boolean; onCta: () => void }) {
+  const handle = useLink(ctaLink ?? "", onCta);
+  return (
+    <div className={`flex flex-col md:flex-row items-center gap-6 md:gap-10 ${flip ? "md:flex-row-reverse" : ""}`}>
+      {imageUrl && <img src={imageUrl} alt={title ?? ""} className="w-full md:w-1/2 rounded-2xl object-cover shadow-md" />}
+      <div className="w-full md:w-1/2">
+        {title && <h3 className="text-2xl font-extrabold mb-2" style={{ color: theme.textColor }}>{title}</h3>}
+        {desc && <p className="text-base leading-relaxed" style={{ color: theme.textColor, opacity: 0.8 }}>{desc}</p>}
+        {ctaText && (
+          <button onClick={handle} className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-bold text-sm shadow hover:opacity-90 transition-opacity" style={{ background: accent }}>
+            {ctaText}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PostCardBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
+  const { imageUrl, category, title, excerpt, link, author, date, ctaText } = data as Record<string, string>;
+  if (!title) return null;
+  const inner = (
+    <>
+      {imageUrl && <img src={imageUrl} alt={title} className="w-full h-48 object-cover" />}
+      <div className="p-5">
+        {category && <span className="text-[11px] font-extrabold uppercase tracking-wide" style={{ color: theme.primaryColor }}>{category}</span>}
+        <h3 className="text-lg font-extrabold mt-1 mb-1.5" style={{ color: theme.textColor }}>{title}</h3>
+        {excerpt && <p className="text-sm leading-relaxed" style={{ color: theme.textColor, opacity: 0.75 }}>{excerpt}</p>}
+        {(author || date) && <p className="text-xs mt-3" style={{ color: theme.textColor, opacity: 0.55 }}>{author}{author && date ? " · " : ""}{date}</p>}
+        {ctaText && <span className="inline-block mt-3 text-sm font-bold" style={{ color: theme.primaryColor }}>{ctaText} →</span>}
+      </div>
+    </>
+  );
+  return (
+    <div className="max-w-md mx-auto my-4 px-4">
+      {link ? (
+        <a href={link} target="_blank" rel="noopener noreferrer" className="block rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">{inner}</a>
+      ) : (
+        <div className="rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-sm">{inner}</div>
+      )}
+    </div>
+  );
+}
+
+function IconListBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
+  const items = (data.items as Array<{ icon?: string; text?: string }>) ?? [];
+  const accent = (data.accentColor as string) || theme.primaryColor;
+  if (!items.length) return null;
+  return (
+    <div className="max-w-xl mx-auto my-4 px-4">
+      <ul className="space-y-2.5">
+        {items.map((it, i) => {
+          const Icon = ICON_MAP[it.icon ?? "check_circle"] ?? CheckCircle2;
+          return (
+            <li key={i} className="flex items-start gap-3">
+              <Icon size={20} className="flex-shrink-0 mt-0.5" style={{ color: accent }} />
+              <span className="text-base leading-relaxed" style={{ color: theme.textColor }}>{it.text}</span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+function CounterBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
+  const target = Number(data.value ?? 0);
+  const prefix = (data.prefix as string) ?? "";
+  const suffix = (data.suffix as string) ?? "";
+  const label = (data.label as string) ?? "";
+  const accent = (data.accentColor as string) || theme.primaryColor;
+  const align = (data.align as string) ?? "center";
+  const dur = Math.max(0, Number(data.duration ?? 2000));
+  const ref = useRef<HTMLDivElement>(null);
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    let raf = 0; let started = false;
+    const run = (t0: number) => {
+      const tick = (t: number) => {
+        const p = dur === 0 ? 1 : Math.min(1, (t - t0) / dur);
+        setN(Math.round(target * (1 - Math.pow(1 - p, 3))));
+        if (p < 1) raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+    };
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting && !started) { started = true; run(performance.now()); io.unobserve(el); }
+    }, { threshold: 0.3 });
+    io.observe(el);
+    return () => { io.disconnect(); cancelAnimationFrame(raf); };
+  }, [target, dur]);
+  return (
+    <div ref={ref} className="my-4 px-4" style={{ textAlign: align as "left" | "center" | "right" }}>
+      <p className="text-4xl md:text-5xl font-extrabold tabular-nums" style={{ color: accent }}>{prefix}{n.toLocaleString("fr-FR")}{suffix}</p>
+      {label && <p className="text-sm font-semibold mt-1" style={{ color: theme.textColor, opacity: 0.75 }}>{label}</p>}
+    </div>
+  );
+}
+
+function FlipCardBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
+  const { frontTitle, frontText, backTitle, backText, frontIcon } = data as Record<string, string>;
+  const accent = (data.accentColor as string) || theme.primaryColor;
+  const bg = (data.bgColor as string) || "#ffffff";
+  const Icon = ICON_MAP[frontIcon ?? "star"] ?? Star;
+  return (
+    <div className="max-w-xs mx-auto my-4 px-4">
+      <div className="group [perspective:1000px] h-56">
+        <div className="relative w-full h-full transition-transform duration-500 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)]">
+          <div className="absolute inset-0 rounded-2xl border border-gray-200 shadow-sm flex flex-col items-center justify-center text-center p-5 [backface-visibility:hidden]" style={{ background: bg }}>
+            <Icon size={34} style={{ color: accent }} />
+            {frontTitle && <p className="font-extrabold text-lg mt-3" style={{ color: theme.textColor }}>{frontTitle}</p>}
+            {frontText && <p className="text-sm mt-1" style={{ color: theme.textColor, opacity: 0.7 }}>{frontText}</p>}
+          </div>
+          <div className="absolute inset-0 rounded-2xl shadow-sm flex flex-col items-center justify-center text-center p-5 [backface-visibility:hidden] [transform:rotateY(180deg)]" style={{ background: accent }}>
+            {backTitle && <p className="font-extrabold text-lg text-white">{backTitle}</p>}
+            {backText && <p className="text-sm mt-1.5 text-white/90">{backText}</p>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PriceListBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
+  const items = (data.items as Array<{ name?: string; desc?: string; price?: string }>) ?? [];
+  const accent = (data.accentColor as string) || theme.primaryColor;
+  if (!items.length) return null;
+  return (
+    <div className="max-w-xl mx-auto my-4 px-4 space-y-3">
+      {items.map((it, i) => (
+        <div key={i} className="flex items-baseline gap-3">
+          <div className="min-w-0">
+            <p className="font-bold text-base" style={{ color: theme.textColor }}>{it.name}</p>
+            {it.desc && <p className="text-sm" style={{ color: theme.textColor, opacity: 0.65 }}>{it.desc}</p>}
+          </div>
+          <div className="flex-1 border-b border-dotted border-gray-300 mx-1 translate-y-[-3px]" />
+          <p className="font-extrabold text-base whitespace-nowrap" style={{ color: accent }}>{it.price}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function BeforeAfterBlock({ data }: { data: Record<string, unknown> }) {
+  const beforeUrl = (data.beforeUrl as string) ?? "";
+  const afterUrl = (data.afterUrl as string) ?? "";
+  const beforeLabel = (data.beforeLabel as string) || "Avant";
+  const afterLabel = (data.afterLabel as string) || "Après";
+  const [pos, setPos] = useState(50);
+  if (!beforeUrl || !afterUrl) return null;
+  return (
+    <div className="max-w-2xl mx-auto my-6 px-4">
+      <div className="relative select-none rounded-2xl overflow-hidden border border-gray-200">
+        <img src={afterUrl} alt={afterLabel} className="block w-full" draggable={false} />
+        <div className="absolute inset-0 overflow-hidden" style={{ width: `${pos}%` }}>
+          <img src={beforeUrl} alt={beforeLabel} className="block h-full w-auto max-w-none" style={{ width: "100%" }} draggable={false} />
+          <span className="absolute top-2 left-2 text-[11px] font-bold text-white bg-black/50 rounded px-2 py-0.5">{beforeLabel}</span>
+        </div>
+        <span className="absolute top-2 right-2 text-[11px] font-bold text-white bg-black/50 rounded px-2 py-0.5">{afterLabel}</span>
+        <div className="absolute top-0 bottom-0 w-0.5 bg-white shadow" style={{ left: `${pos}%` }} />
+        <input type="range" min={0} max={100} value={pos} onChange={(e) => setPos(Number(e.target.value))} className="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize" aria-label="Comparer avant/après" />
+      </div>
+    </div>
+  );
+}
+
+function ButtonGroupBlock({ data, theme, onCta }: { data: Record<string, unknown>; theme: Theme; onCta: () => void }) {
+  const buttons = (data.buttons as Array<{ text?: string; link?: string; style?: string }>) ?? [];
+  const align = (data.align as string) ?? "center";
+  const justify = align === "left" ? "justify-start" : align === "right" ? "justify-end" : "justify-center";
+  if (!buttons.length) return null;
+  return (
+    <div className={`flex flex-wrap gap-3 my-4 px-4 ${justify}`}>
+      {buttons.map((b, i) => <GroupButton key={i} b={b} theme={theme} onCta={onCta} />)}
+    </div>
+  );
+}
+function GroupButton({ b, theme, onCta }: { b: { text?: string; link?: string; style?: string }; theme: Theme; onCta: () => void }) {
+  const handle = useLink(b.link ?? "", onCta);
+  const style: React.CSSProperties = b.style === "outline"
+    ? { color: theme.primaryColor, border: `2px solid ${theme.primaryColor}`, background: "transparent" }
+    : b.style === "secondary"
+      ? { color: theme.textColor, background: "#f3f4f6" }
+      : { color: "#fff", background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})` };
+  return <button onClick={handle} className="px-6 py-3 rounded-xl font-bold text-sm shadow hover:-translate-y-0.5 transition-transform" style={style}>{b.text}</button>;
+}
+
+function CircularProgressBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
+  const value = Math.max(0, Math.min(100, Number(data.value ?? 75)));
+  const label = (data.label as string) ?? "";
+  const color = (data.color as string) || theme.primaryColor;
+  const size = Math.max(80, Math.min(260, Number(data.size ?? 140)));
+  const stroke = Math.round(size / 12);
+  const r = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const ref = useRef<HTMLDivElement>(null);
+  const [shown, setShown] = useState(0);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setShown(value); io.unobserve(el); } }, { threshold: 0.3 });
+    io.observe(el); return () => io.disconnect();
+  }, [value]);
+  return (
+    <div ref={ref} className="my-4 px-4 flex flex-col items-center">
+      <div className="relative" style={{ width: size, height: size }}>
+        <svg width={size} height={size} className="-rotate-90">
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e5e7eb" strokeWidth={stroke} />
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round"
+            strokeDasharray={circ} strokeDashoffset={circ - (circ * shown) / 100} style={{ transition: "stroke-dashoffset 1.2s ease-out" }} />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <span className="font-extrabold" style={{ color: theme.textColor, fontSize: size / 5 }}>{value}%</span>
+        </div>
+      </div>
+      {label && <p className="text-sm font-semibold mt-2" style={{ color: theme.textColor, opacity: 0.75 }}>{label}</p>}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // BLOCK DISPATCHER
 // ═══════════════════════════════════════════════════════════════════════════
 // renderBlock supports color inheritance: when a Section/Row/ContentBox sets
@@ -2380,6 +2638,17 @@ function renderBlockInner(block: Block, theme: Theme, onCta: () => void, parentC
     case "tabs": return <TabsBlock key={block.id} data={block.data} theme={effTheme} />;
     case "embed": return <EmbedBlock key={block.id} data={block.data} />;
     case "callout": return <CalloutBlock key={block.id} data={block.data} />;
+    // Nouveaux éléments (v5)
+    case "timeline": return <TimelineBlock key={block.id} data={block.data} theme={effTheme} />;
+    case "zigzag": return <ZigzagBlock key={block.id} data={block.data} theme={effTheme} onCta={onCta} />;
+    case "post-card": return <PostCardBlock key={block.id} data={block.data} theme={effTheme} />;
+    case "icon-list": return <IconListBlock key={block.id} data={block.data} theme={effTheme} />;
+    case "counter": return <CounterBlock key={block.id} data={block.data} theme={effTheme} />;
+    case "flip-card": return <FlipCardBlock key={block.id} data={block.data} theme={effTheme} />;
+    case "price-list": return <PriceListBlock key={block.id} data={block.data} theme={effTheme} />;
+    case "before-after": return <BeforeAfterBlock key={block.id} data={block.data} />;
+    case "button-group": return <ButtonGroupBlock key={block.id} data={block.data} theme={effTheme} onCta={onCta} />;
+    case "circular-progress": return <CircularProgressBlock key={block.id} data={block.data} theme={effTheme} />;
     default: return null;
   }
 }
