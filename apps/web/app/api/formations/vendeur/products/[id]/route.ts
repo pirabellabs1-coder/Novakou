@@ -32,6 +32,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         rating: true, reviewsCount: true, salesCount: true, viewsCount: true,
         tags: true, status: true, fileUrl: true,
         hiddenFromMarketplace: true,
+        affiliateEnabled: true, affiliateCommissionPct: true,
         previewEnabled: true, previewPages: true, watermarkEnabled: true,
         // Limites de vente (pour le formulaire vendeur)
         maxBuyers: true, currentBuyers: true, salesEndAt: true,
@@ -171,6 +172,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         status: body.status ?? undefined,
         fileUrl: fileUrlSync,
         hiddenFromMarketplace: typeof body.hiddenFromMarketplace === "boolean" ? body.hiddenFromMarketplace : undefined,
+        affiliateEnabled: typeof body.affiliateEnabled === "boolean" ? body.affiliateEnabled : undefined,
+        affiliateCommissionPct: body.affiliateCommissionPct === null
+          ? null
+          : typeof body.affiliateCommissionPct === "number"
+            ? Math.max(1, Math.min(90, Math.round(body.affiliateCommissionPct)))
+            : undefined,
         previewEnabled: typeof body.previewEnabled === "boolean" ? body.previewEnabled : undefined,
         previewPages: typeof body.previewPages === "number" && body.previewPages >= 1 && body.previewPages <= 20
           ? Math.floor(body.previewPages)

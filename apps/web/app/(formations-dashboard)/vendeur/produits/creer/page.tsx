@@ -39,6 +39,7 @@ import {
   SkipForward,
   Lightbulb,
   Timer,
+  Share2,
 } from "lucide-react";
 import { RichTextEditor } from "@/components/formations/RichTextEditor";
 import { ImageUploader } from "@/components/formations/ImageUploader";
@@ -193,6 +194,10 @@ export default function CreerProduitPage() {
   const [price, setPrice] = useDraftField(`${DRAFT_PREFIX}:price`, 45000);
   const [originalPrice, setOriginalPrice] = useDraftField(`${DRAFT_PREFIX}:originalPrice`, 0);
   const [isFree, setIsFree] = useDraftField(`${DRAFT_PREFIX}:isFree`, false);
+  // Affiliation — opt-in explicite du vendeur (le produit devient promouvable
+  // par les affiliés) + commission qu'il leur offre.
+  const [affiliateEnabled, setAffiliateEnabled] = useDraftField(`${DRAFT_PREFIX}:affiliateEnabled`, false);
+  const [affiliateCommissionPct, setAffiliateCommissionPct] = useDraftField(`${DRAFT_PREFIX}:affiliateCommissionPct`, 30);
   const [error, setError] = useState<string | null>(null);
 
   // Formation-specific
@@ -266,6 +271,8 @@ export default function CreerProduitPage() {
           price: isFree ? 0 : price,
           originalPrice: originalPrice || null,
           isFree,
+          affiliateEnabled,
+          affiliateCommissionPct: affiliateEnabled ? Number(affiliateCommissionPct) || null : null,
           publish,
           modules: isFormation ? modules.filter((m) => m.title.trim()) : undefined,
           files: !isFormation ? files : undefined,
@@ -1349,6 +1356,50 @@ export default function CreerProduitPage() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* ── Affiliation — opt-in vendeur ── */}
+            <div className={`mt-8 p-5 rounded-2xl border-2 transition-colors ${affiliateEnabled ? "bg-emerald-50 border-emerald-500" : "bg-slate-50 border-slate-200"}`}>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-base font-bold text-[#13241b] flex items-center gap-2">
+                    <Share2 className="w-4 h-4 text-emerald-600" />
+                    Mettre ce produit en affiliation
+                  </p>
+                  <p className="text-xs text-slate-600 mt-1 max-w-xl">
+                    Autorisez les affiliés à promouvoir ce produit. Il apparaîtra dans leur catalogue et ils toucheront la commission ci-dessous sur chaque vente qu&apos;ils apportent. Désactivé par défaut : vous seul décidez.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAffiliateEnabled((v) => !v)}
+                  className={`relative w-14 h-7 rounded-full transition-colors flex-shrink-0 ${affiliateEnabled ? "bg-emerald-500" : "bg-slate-300"}`}
+                  aria-pressed={affiliateEnabled}
+                >
+                  <span className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow-md transition-all ${affiliateEnabled ? "left-7" : "left-0.5"}`} />
+                </button>
+              </div>
+              {affiliateEnabled && (
+                <div className="mt-4 pt-4 border-t border-emerald-200/70">
+                  <label className={labelClass}>Commission affilié (% du prix)</label>
+                  <div className="flex items-center gap-3 max-w-xs">
+                    <input
+                      type="number"
+                      min={1}
+                      max={90}
+                      value={affiliateCommissionPct}
+                      onChange={(e) => setAffiliateCommissionPct(Math.max(1, Math.min(90, Number(e.target.value))))}
+                      className={`${inputClass} font-extrabold tabular-nums`}
+                    />
+                    <span className="text-lg font-bold text-slate-500">%</span>
+                  </div>
+                  {!isFree && price > 0 && (
+                    <p className="mt-2 text-xs text-slate-600">
+                      L&apos;affilié touchera <strong className="text-emerald-700">{formatFCFA(Math.round(price * (Number(affiliateCommissionPct) || 0) / 100))} FCFA</strong> par vente.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}

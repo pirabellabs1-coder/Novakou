@@ -29,6 +29,7 @@ type Formation = {
   price: number;
   rating: number | null;
   studentsCount: number;
+  commissionPct: number | null;
 };
 
 type CatalogData = { data: Formation[] };
@@ -255,7 +256,7 @@ export default function LiensPage() {
                 const link = buildLink(f.slug, f.kind);
                 const perf = perfBySlug[f.slug];
                 const isCopied = copiedId === f.id;
-                const commission = Math.round(f.price * (COMM_PCT / 100));
+                const commission = Math.round(f.price * ((f.commissionPct ?? COMM_PCT) / 100));
                 return (
                   <div
                     key={f.id}
@@ -325,7 +326,7 @@ export default function LiensPage() {
                         <p className="text-[10px] text-[#5c9e7a]">
                           Chaque achat via ce lien vous crédite automatiquement{" "}
                           <strong className="text-[#22c55e]">{formatFcfa(commission)}</strong>
-                          {" "}({COMM_PCT}% de {formatFcfa(f.price)})
+                          {" "}({f.commissionPct ?? COMM_PCT}% de {formatFcfa(f.price)})
                         </p>
                       </div>
 
@@ -419,7 +420,7 @@ export default function LiensPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {formations.map((f, idx) => {
                 const [gFrom, gTo] = GRADIENTS[idx % GRADIENTS.length];
-                const commission = Math.round(f.price * (COMM_PCT / 100));
+                const commission = Math.round(f.price * ((f.commissionPct ?? COMM_PCT) / 100));
                 const isPinned = pinnedIds.has(f.id);
                 const hasActivity = activeSlugs.has(f.slug);
                 const link = buildLink(f.slug, f.kind);
@@ -442,7 +443,7 @@ export default function LiensPage() {
 
                       <div className="bg-[#22c55e]/10 border border-[#22c55e]/20 rounded-xl p-3 mb-4 flex items-center justify-between">
                         <div>
-                          <p className="text-[9px] text-[#5c9e7a]">Votre gain par vente ({COMM_PCT}%)</p>
+                          <p className="text-[9px] text-[#5c9e7a]">Votre gain par vente ({f.commissionPct ?? COMM_PCT}%)</p>
                           <p className="text-lg font-extrabold text-[#22c55e]">{formatFcfa(commission)}</p>
                         </div>
                         <div className="text-right">

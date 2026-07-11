@@ -77,10 +77,19 @@ export async function POST(request: Request) {
       thumbnail, // square vignette (~600×600) shown on marketplace cards
       banner,    // wide cover (~1280×720) shown on the product detail page
       publish,
+      affiliateEnabled, // opt-in vendeur : produit promouvable par les affiliés
+      affiliateCommissionPct, // % offert aux affiliés (null = taux du programme)
       modules, // For formations: [{ title, lessons: [{ title, duration }] }]
       fileUrl, // For digital products: backward-compat single-file URL
       files, // For digital products: [{ name, url, size?, mimeType? }]
     } = body;
+
+    // Affiliation — normalisation serveur (jamais faire confiance au client).
+    const affEnabled = affiliateEnabled === true;
+    const affPctRaw = Number(affiliateCommissionPct);
+    const affPct = affEnabled && Number.isFinite(affPctRaw)
+      ? Math.max(1, Math.min(90, Math.round(affPctRaw)))
+      : null;
 
     if (!kind || !title || price === undefined || price === null) {
       return NextResponse.json(
@@ -151,6 +160,8 @@ export async function POST(request: Request) {
           price: priceNum,
           originalPrice: originalPriceNum,
           isFree: isFreeFlag,
+          affiliateEnabled: affEnabled,
+          affiliateCommissionPct: affPct,
           duration: totalDuration,
           status: publish ? "ACTIF" : "BROUILLON",
           // V2.2 — stamp publishedAt when going live (null when staying as draft)
@@ -246,6 +257,8 @@ export async function POST(request: Request) {
           price: priceNum,
           originalPrice: originalPriceNum,
           isFree: isFreeFlag,
+          affiliateEnabled: affEnabled,
+          affiliateCommissionPct: affPct,
           status: publish ? "ACTIF" : "BROUILLON",
           instructeurId: profile.id,
           shopId: activeShopId,

@@ -1128,6 +1128,12 @@ model Formation {
   originalPrice Float?
   isFree        Boolean @default(false)
 
+  // Affiliation — opt-in explicite du vendeur : un produit n'apparaît dans le
+  // catalogue affilié que si affiliateEnabled = true. commissionPct override le
+  // taux du programme d'affiliation du vendeur (null = taux du programme).
+  affiliateEnabled       Boolean @default(false)
+  affiliateCommissionPct Int?
+
   // Certificat
   hasCertificate   Boolean @default(true)
   minScore         Int     @default(80)
@@ -1559,6 +1565,10 @@ model DigitalProduct {
   price         Float   @default(0)
   originalPrice Float?
   isFree        Boolean @default(false)
+
+  // Affiliation — opt-in explicite du vendeur (voir Formation).
+  affiliateEnabled       Boolean @default(false)
+  affiliateCommissionPct Int?
 
   // Stock limité
   maxBuyers     Int? // null = illimité

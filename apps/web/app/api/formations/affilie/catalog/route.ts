@@ -19,6 +19,7 @@ type CatalogItem = {
   price: number;
   rating: number | null;
   studentsCount: number;
+  commissionPct: number | null;
 };
 
 export async function GET(req: NextRequest) {
@@ -35,6 +36,7 @@ export async function GET(req: NextRequest) {
         ? prisma.formation.findMany({
             where: {
               status: "ACTIF",
+              affiliateEnabled: true, // opt-in vendeur obligatoire
               ...(search
                 ? {
                     OR: [
@@ -54,6 +56,7 @@ export async function GET(req: NextRequest) {
               price: true,
               rating: true,
               studentsCount: true,
+              affiliateCommissionPct: true,
             },
             orderBy: { studentsCount: "desc" },
             take: 50,
@@ -64,6 +67,7 @@ export async function GET(req: NextRequest) {
             where: {
               status: "ACTIF",
               hiddenFromMarketplace: false,
+              affiliateEnabled: true, // opt-in vendeur obligatoire
               ...(search
                 ? {
                     OR: [
@@ -80,6 +84,7 @@ export async function GET(req: NextRequest) {
               price: true,
               rating: true,
               salesCount: true,
+              affiliateCommissionPct: true,
             },
             orderBy: { salesCount: "desc" },
             take: 50,
@@ -99,6 +104,7 @@ export async function GET(req: NextRequest) {
         price: f.price,
         rating: f.rating,
         studentsCount: f.studentsCount ?? 0,
+        commissionPct: f.affiliateCommissionPct ?? null,
       })),
       ...products.map((p): CatalogItem => ({
         id: p.id,
@@ -111,6 +117,7 @@ export async function GET(req: NextRequest) {
         price: p.price,
         rating: p.rating,
         studentsCount: p.salesCount ?? 0,
+        commissionPct: p.affiliateCommissionPct ?? null,
       })),
     ];
 

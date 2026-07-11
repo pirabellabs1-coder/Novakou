@@ -54,6 +54,8 @@ interface Product {
   files: ProductFile[];
   downloadable: boolean;
   hiddenFromMarketplace: boolean;
+  affiliateEnabled?: boolean;
+  affiliateCommissionPct?: number | null;
   previewEnabled?: boolean;
   previewPages?: number;
   watermarkEnabled?: boolean;
@@ -103,6 +105,8 @@ export default function EditerProduitPage() {
   const [banner, setBanner] = useDraftField(`${draftPrefix}:banner`, "");
   const [price, setPrice] = useDraftField(`${draftPrefix}:price`, 0);
   const [originalPrice, setOriginalPrice] = useDraftField<string>(`${draftPrefix}:originalPrice`, "");
+  const [affiliateEnabled, setAffiliateEnabled] = useDraftField(`${draftPrefix}:affiliateEnabled`, false);
+  const [affiliateCommissionPct, setAffiliateCommissionPct] = useDraftField(`${draftPrefix}:affiliateCommissionPct`, 30);
   const [tagsInput, setTagsInput] = useDraftField(`${draftPrefix}:tagsInput`, "");
   const [files, setFiles] = useDraftField<ProductFile[]>(`${draftPrefix}:files`, []);
   const [hiddenFromMarketplace, setHiddenFromMarketplace] = useDraftField(`${draftPrefix}:hiddenFromMarketplace`, false);
@@ -180,6 +184,10 @@ export default function EditerProduitPage() {
     if (!has("price")) setPrice(product.price);
     else anyDraft = true;
     if (!has("originalPrice")) setOriginalPrice(product.originalPrice != null ? String(product.originalPrice) : "");
+    else anyDraft = true;
+    if (!has("affiliateEnabled")) setAffiliateEnabled(!!product.affiliateEnabled);
+    else anyDraft = true;
+    if (!has("affiliateCommissionPct")) setAffiliateCommissionPct(typeof product.affiliateCommissionPct === "number" ? product.affiliateCommissionPct : 30);
     else anyDraft = true;
     if (!has("tagsInput")) setTagsInput((product.tags ?? []).join(", "));
     else anyDraft = true;
@@ -265,6 +273,8 @@ export default function EditerProduitPage() {
       banner,
       price,
       originalPrice: originalPrice ? parseFloat(originalPrice) : null,
+      affiliateEnabled,
+      affiliateCommissionPct: affiliateEnabled ? Math.max(1, Math.min(90, Number(affiliateCommissionPct) || 30)) : null,
       tags: tagsInput.split(",").map((t) => t.trim()).filter(Boolean),
       files,
       hiddenFromMarketplace,
@@ -739,6 +749,46 @@ export default function EditerProduitPage() {
               />
             </button>
           </label>
+        </div>
+
+        {/* Section: Affiliation */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6">
+          <h2 className="text-base font-extrabold text-[#191c1e] mb-1">Affiliation</h2>
+          <p className="text-xs text-[#5c647a] mb-4">
+            Autorisez les affiliés à promouvoir ce produit contre une commission. Vous seul décidez.
+          </p>
+          <label className={`flex items-center justify-between gap-4 p-4 rounded-xl border transition-colors cursor-pointer ${affiliateEnabled ? "border-[#006e2f]/40 bg-emerald-50/50" : "border-gray-200 hover:border-[#006e2f]/30"}`}>
+            <div>
+              <p className="text-sm font-bold text-[#191c1e]">Mettre ce produit en affiliation</p>
+              <p className="text-xs text-[#5c647a] mt-0.5">
+                Quand activé, ce produit apparaît dans le catalogue des affiliés qui peuvent générer un lien et toucher la commission ci-dessous sur chaque vente apportée.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => track(setAffiliateEnabled, !affiliateEnabled)}
+              className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${affiliateEnabled ? "bg-[#006e2f]" : "bg-gray-200"}`}
+              aria-pressed={affiliateEnabled}
+            >
+              <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${affiliateEnabled ? "left-6" : "left-0.5"}`} />
+            </button>
+          </label>
+          {affiliateEnabled && (
+            <div className="mt-4">
+              <label className="block text-xs font-bold text-[#5c647a] uppercase tracking-wide mb-1.5">Commission affilié (% du prix)</label>
+              <div className="flex items-center gap-2 max-w-[200px]">
+                <input
+                  type="number"
+                  min={1}
+                  max={90}
+                  value={affiliateCommissionPct}
+                  onChange={(e) => track(setAffiliateCommissionPct, Math.max(1, Math.min(90, Number(e.target.value))))}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm font-extrabold tabular-nums focus:outline-none focus:ring-2 focus:ring-[#006e2f]/20"
+                />
+                <span className="text-base font-bold text-gray-400">%</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Danger zone */}
