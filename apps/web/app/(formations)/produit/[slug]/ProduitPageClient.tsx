@@ -371,155 +371,6 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
               )}
             </div>
 
-            {/* Tabs */}
-            <div className="flex items-center gap-1 bg-white rounded-xl border border-gray-100 p-1 w-fit">
-              {(
-                [
-                  { id: "description", label: "Description", show: true },
-                  { id: "apercu", label: "Aperçu", show: !!product.previewAvailable },
-                  { id: "avis", label: `Avis (${product.reviewsCount})`, show: true },
-                ] as const
-              )
-                .filter((t) => t.show)
-                .map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                      activeTab === tab.id ? "bg-[#006e2f] text-white shadow-sm" : "text-[#5c647a] hover:text-[#191c1e]"
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-            </div>
-
-            {/* Description tab */}
-            {activeTab === "description" && (
-              <div className="space-y-5">
-                {product.description ? (
-                  <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
-                    {/* Rendu unifié HTML/Markdown — identique à l'éditeur (nk-rich) */}
-                    <TiptapRenderer content={product.description} />
-                  </div>
-                ) : (
-                  <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-                    <FileText size={36} className="text-gray-300 mx-auto" />
-                    <p className="text-sm text-[#5c647a] mt-2">Aucune description fournie pour ce produit.</p>
-                  </div>
-                )}
-
-                {/* Seller card */}
-                <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
-                  <h2 className="text-lg font-extrabold text-[#191c1e] mb-4">À propos du créateur</h2>
-                  <Link href={`/instructeurs/${product.instructeur.userId}`} className="flex items-start gap-4 group">
-                    <div className="w-14 h-14 rounded-full overflow-hidden bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                      {product.instructeur.image ? (
-                        <img src={avatarSrc(product.instructeur.image, 96) ?? product.instructeur.image ?? ""} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                      ) : (
-                        initials(product.instructeur.name)
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-[#191c1e] group-hover:text-[#006e2f] transition-colors">
-                        {product.instructeur.name ?? "Créateur"}
-                      </p>
-                      {product.instructeur.yearsExp > 0 && (
-                        <p className="text-xs text-[#5c647a] mt-0.5">
-                          {product.instructeur.yearsExp} an{product.instructeur.yearsExp > 1 ? "s" : ""} d&apos;expérience
-                        </p>
-                      )}
-                      {product.instructeur.bio && (
-                        <p className="text-xs text-[#5c647a] mt-2 leading-relaxed line-clamp-3">{product.instructeur.bio}</p>
-                      )}
-                      {product.instructeur.expertise && product.instructeur.expertise.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-3">
-                          {product.instructeur.expertise.slice(0, 4).map((e) => (
-                            <span key={e} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#006e2f]/10 text-[#006e2f]">
-                              {e}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <ChevronRight size={18} className="text-[#5c647a] group-hover:text-[#006e2f] transition-colors" />
-                  </Link>
-                </div>
-              </div>
-            )}
-
-            {/* Aperçu tab — preview PDF (vendor opt-in, watermarked) */}
-            {activeTab === "apercu" && product.previewAvailable && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-6 space-y-4">
-                <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-                  <Eye size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
-                  <div className="text-xs text-amber-900 leading-relaxed">
-                    <p className="font-bold mb-0.5">
-                      Aperçu gratuit — {product.previewPages ?? 5} première{(product.previewPages ?? 5) > 1 ? "s" : ""} page{(product.previewPages ?? 5) > 1 ? "s" : ""}
-                    </p>
-                    <p>
-                      Les pages affichées portent un filigrane Novakou. Achetez le produit pour télécharger le fichier complet sans filigrane.
-                    </p>
-                  </div>
-                </div>
-                <div className="relative w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-50" style={{ aspectRatio: "1 / 1.414" }}>
-                  <iframe
-                    src={`/api/produits/${product.id}/preview#toolbar=0&navpanes=0&scrollbar=1`}
-                    title={`Aperçu — ${product.title}`}
-                    className="absolute inset-0 w-full h-full"
-                    onContextMenu={(e) => e.preventDefault()}
-                  />
-                </div>
-                <p className="text-[11px] text-[#5c647a] text-center">
-                  Si l&apos;aperçu ne s&apos;affiche pas, votre navigateur bloque peut-être les PDF intégrés.{" "}
-                  <a
-                    href={`/api/produits/${product.id}/preview`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[#006e2f] font-semibold hover:underline"
-                  >
-                    Ouvrir dans un nouvel onglet
-                  </a>
-                </p>
-              </div>
-            )}
-
-            {/* Reviews tab */}
-            {activeTab === "avis" && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
-                {product.reviews.length === 0 ? (
-                  <div className="text-center py-8">
-                    <MessageSquare size={48} className="text-gray-300 mx-auto" />
-                    <p className="text-sm text-[#5c647a] mt-3">Aucun avis pour ce produit pour l&apos;instant.</p>
-                    <p className="text-xs text-[#5c647a] mt-1">Soyez le premier à laisser votre retour après l&apos;achat.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {product.reviews.map((r) => (
-                      <div key={r.id} className="pb-4 border-b border-gray-100 last:border-0 last:pb-0">
-                        <div className="flex items-start gap-3">
-                          <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-600 text-xs font-bold flex-shrink-0">
-                            {r.user.image ? (
-                              <img src={avatarSrc(r.user.image, 64) ?? r.user.image ?? ""} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                            ) : (
-                              initials(r.user.name)
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <p className="text-sm font-bold text-[#191c1e]">{r.user.name ?? "Acheteur"}</p>
-                              <span className="text-[11px] text-[#5c647a]">{timeAgo(r.createdAt)}</span>
-                            </div>
-                            <StarRating rating={r.rating} size={13} />
-                            <p className="text-sm text-[#5c647a] mt-1.5 leading-relaxed">{r.comment}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
           </div>
 
           {/* ── Sidebar ─────────────────────────────────────────────────── */}
@@ -659,6 +510,159 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
               </div>
             </Link>
           </div>
+        </div>
+
+        {/* Description & détails — pleine largeur (façon Chariow) */}
+        <div className="mt-6">
+            {/* Tabs */}
+            <div className="flex items-center gap-1 bg-white rounded-xl border border-gray-100 p-1 w-fit">
+              {(
+                [
+                  { id: "description", label: "Description", show: true },
+                  { id: "apercu", label: "Aperçu", show: !!product.previewAvailable },
+                  { id: "avis", label: `Avis (${product.reviewsCount})`, show: true },
+                ] as const
+              )
+                .filter((t) => t.show)
+                .map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                      activeTab === tab.id ? "bg-[#006e2f] text-white shadow-sm" : "text-[#5c647a] hover:text-[#191c1e]"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+            </div>
+
+            {/* Description tab */}
+            {activeTab === "description" && (
+              <div className="space-y-5">
+                {product.description ? (
+                  <div className="nk-desc bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
+                    {/* Rendu unifié HTML/Markdown — identique à l'éditeur (nk-rich) */}
+                    <TiptapRenderer content={product.description} />
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
+                    <FileText size={36} className="text-gray-300 mx-auto" />
+                    <p className="text-sm text-[#5c647a] mt-2">Aucune description fournie pour ce produit.</p>
+                  </div>
+                )}
+
+                {/* Seller card */}
+                <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
+                  <h2 className="text-lg font-extrabold text-[#191c1e] mb-4">À propos du créateur</h2>
+                  <Link href={`/instructeurs/${product.instructeur.userId}`} className="flex items-start gap-4 group">
+                    <div className="w-14 h-14 rounded-full overflow-hidden bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                      {product.instructeur.image ? (
+                        <img src={avatarSrc(product.instructeur.image, 96) ?? product.instructeur.image ?? ""} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                      ) : (
+                        initials(product.instructeur.name)
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-[#191c1e] group-hover:text-[#006e2f] transition-colors">
+                        {product.instructeur.name ?? "Créateur"}
+                      </p>
+                      {product.instructeur.yearsExp > 0 && (
+                        <p className="text-xs text-[#5c647a] mt-0.5">
+                          {product.instructeur.yearsExp} an{product.instructeur.yearsExp > 1 ? "s" : ""} d&apos;expérience
+                        </p>
+                      )}
+                      {product.instructeur.bio && (
+                        <p className="text-xs text-[#5c647a] mt-2 leading-relaxed line-clamp-3">{product.instructeur.bio}</p>
+                      )}
+                      {product.instructeur.expertise && product.instructeur.expertise.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-3">
+                          {product.instructeur.expertise.slice(0, 4).map((e) => (
+                            <span key={e} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#006e2f]/10 text-[#006e2f]">
+                              {e}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <ChevronRight size={18} className="text-[#5c647a] group-hover:text-[#006e2f] transition-colors" />
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Aperçu tab — preview PDF (vendor opt-in, watermarked) */}
+            {activeTab === "apercu" && product.previewAvailable && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-6 space-y-4">
+                <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                  <Eye size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-xs text-amber-900 leading-relaxed">
+                    <p className="font-bold mb-0.5">
+                      Aperçu gratuit — {product.previewPages ?? 5} première{(product.previewPages ?? 5) > 1 ? "s" : ""} page{(product.previewPages ?? 5) > 1 ? "s" : ""}
+                    </p>
+                    <p>
+                      Les pages affichées portent un filigrane Novakou. Achetez le produit pour télécharger le fichier complet sans filigrane.
+                    </p>
+                  </div>
+                </div>
+                <div className="relative w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-50" style={{ aspectRatio: "1 / 1.414" }}>
+                  <iframe
+                    src={`/api/produits/${product.id}/preview#toolbar=0&navpanes=0&scrollbar=1`}
+                    title={`Aperçu — ${product.title}`}
+                    className="absolute inset-0 w-full h-full"
+                    onContextMenu={(e) => e.preventDefault()}
+                  />
+                </div>
+                <p className="text-[11px] text-[#5c647a] text-center">
+                  Si l&apos;aperçu ne s&apos;affiche pas, votre navigateur bloque peut-être les PDF intégrés.{" "}
+                  <a
+                    href={`/api/produits/${product.id}/preview`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#006e2f] font-semibold hover:underline"
+                  >
+                    Ouvrir dans un nouvel onglet
+                  </a>
+                </p>
+              </div>
+            )}
+
+            {/* Reviews tab */}
+            {activeTab === "avis" && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
+                {product.reviews.length === 0 ? (
+                  <div className="text-center py-8">
+                    <MessageSquare size={48} className="text-gray-300 mx-auto" />
+                    <p className="text-sm text-[#5c647a] mt-3">Aucun avis pour ce produit pour l&apos;instant.</p>
+                    <p className="text-xs text-[#5c647a] mt-1">Soyez le premier à laisser votre retour après l&apos;achat.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {product.reviews.map((r) => (
+                      <div key={r.id} className="pb-4 border-b border-gray-100 last:border-0 last:pb-0">
+                        <div className="flex items-start gap-3">
+                          <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-600 text-xs font-bold flex-shrink-0">
+                            {r.user.image ? (
+                              <img src={avatarSrc(r.user.image, 64) ?? r.user.image ?? ""} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                            ) : (
+                              initials(r.user.name)
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="text-sm font-bold text-[#191c1e]">{r.user.name ?? "Acheteur"}</p>
+                              <span className="text-[11px] text-[#5c647a]">{timeAgo(r.createdAt)}</span>
+                            </div>
+                            <StarRating rating={r.rating} size={13} />
+                            <p className="text-sm text-[#5c647a] mt-1.5 leading-relaxed">{r.comment}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
         </div>
 
         {/* Recommandations « Vous aimerez aussi » (v2 Phase 2) */}

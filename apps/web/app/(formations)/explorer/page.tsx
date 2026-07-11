@@ -175,7 +175,7 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
   return (
     <Link
       href={href}
-      className="group block bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-1 hover:border-[#006e2f]/20 transition-all duration-300 overflow-hidden flex flex-col h-full"
+      className="group block bg-white rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.12)] hover:-translate-y-1 hover:border-[#006e2f]/30 transition-all duration-300 overflow-hidden flex flex-col h-full"
     >
       {/* HERO IMAGE — carré 1:1 façon Chariow/Gumroad. La vignette dédiée
           (`thumbnail`) recommandée 600×600 remplit parfaitement ; un `banner`
@@ -237,7 +237,7 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
       </div>
 
       {/* CARD BODY */}
-      <div className="p-5 flex-1 flex flex-col">
+      <div className="p-4 sm:p-5 flex-1 flex flex-col">
         {/* Category label */}
         {item.category && (
           <p className="text-[10px] font-bold text-[#006e2f] uppercase tracking-wider mb-1.5">
@@ -246,30 +246,13 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
         )}
 
         {/* Title */}
-        <h3 className="font-extrabold text-[#191c1e] text-base leading-snug line-clamp-2 mb-2 group-hover:text-[#006e2f] transition-colors min-h-[2.75rem]">
+        <h3 className="font-extrabold text-[#191c1e] text-sm sm:text-base leading-snug line-clamp-2 mb-2 group-hover:text-[#006e2f] transition-colors min-h-[2.5rem] sm:min-h-[2.75rem]">
           {item.title}
         </h3>
 
-        {/* Author row (sans préfixe « par » — juste l'avatar + le nom) */}
-        <div className="flex items-center gap-2 mb-3">
-          {item.sellerAvatar ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatarSrc(item.sellerAvatar, 48) || item.sellerAvatar} alt="" loading="lazy" decoding="async" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
-          ) : (
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#006e2f] to-emerald-500 flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
-              {item.seller.charAt(0).toUpperCase()}
-            </div>
-          )}
-          <p className="text-xs font-semibold text-[#191c1e] truncate flex items-center gap-1 min-w-0">
-            <span className="truncate">{item.seller}</span>
-            {item.verified && (
-              <BadgeCheck size={13} className="text-[#006e2f] fill-[#e6f5eb] flex-shrink-0" />
-            )}
-          </p>
-        </div>
-
         {/* Note + ventes — affichées uniquement si elles existent (pas de
-            « Nouveau » ni de « 0 vente » qui font vide sur les nouveaux produits) */}
+            « Nouveau » ni de « 0 vente » qui font vide sur les nouveaux produits).
+            Le nom du vendeur n'est plus affiché sur les cartes (info superflue). */}
         {(item.rating > 0 || item.salesCount > 0) && (
           <div className="flex items-center gap-3 mb-4 text-xs text-[#5c647a]">
             {item.rating > 0 && (

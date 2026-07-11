@@ -494,7 +494,7 @@ export default function FormationPageClient({ slug }: { slug: string }) {
 
             {/* Description */}
             {formation.description && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
+              <div className="nk-desc bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
                 <h2 className="text-lg font-extrabold text-[#191c1e] mb-3">Description</h2>
                 {/* Rendu unifié HTML/Markdown — identique à l'éditeur (nk-rich) */}
                 <TiptapRenderer content={formation.description} />
