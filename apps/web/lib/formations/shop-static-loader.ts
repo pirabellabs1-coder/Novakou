@@ -9,6 +9,7 @@ const SHOP_SELECT = {
   description: true,
   logoUrl: true,
   themeColor: true,
+  font: true,
   legalName: true,
   legalAddress: true,
   legalPhone: true,
@@ -28,12 +29,13 @@ export interface ShopStaticResolved {
   slug: string;
   themeColor: string | null;
   logoUrl: string | null;
+  font: string | null;
   info: ShopLegalInfo;
 }
 
 function toResolved(shop: {
   id: string; name: string; slug: string; description: string | null; logoUrl: string | null;
-  themeColor: string | null; legalName: string | null; legalAddress: string | null;
+  themeColor: string | null; font: string | null; legalName: string | null; legalAddress: string | null;
   legalPhone: string | null; legalEmail: string | null; legalCountry: string | null;
   aboutText: string | null; updatedAt: Date;
   instructeur: { user: { name: string | null; email: string | null; phone: string | null; country: string | null } | null } | null;
@@ -51,7 +53,7 @@ function toResolved(shop: {
     updatedAt: shop.updatedAt,
     owner,
   });
-  return { shopId: shop.id, slug: shop.slug, themeColor: shop.themeColor, logoUrl: shop.logoUrl, info };
+  return { shopId: shop.id, slug: shop.slug, themeColor: shop.themeColor, logoUrl: shop.logoUrl, font: shop.font, info };
 }
 
 /** Charge les infos statiques d'une boutique par slug. */

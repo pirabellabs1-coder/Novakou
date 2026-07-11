@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SHOP_STATIC_PAGES, buildShopStaticContent, type ShopStaticSlug, type ShopLegalInfo } from "@/lib/formations/shop-static";
+import { shopFontStack } from "@/lib/formations/shop-fonts";
 
 /**
  * Rendu d'une page statique de boutique (à propos, contact, mentions légales…).
@@ -12,12 +13,14 @@ export default function ShopStaticPage({
   base,
   themeColor,
   logoUrl,
+  font,
 }: {
   slug: ShopStaticSlug;
   info: ShopLegalInfo;
   base: string;
   themeColor: string | null;
   logoUrl: string | null;
+  font?: string | null;
 }) {
   const meta = SHOP_STATIC_PAGES[slug];
   const { intro, blocks } = buildShopStaticContent(slug, info, base);
@@ -26,7 +29,7 @@ export default function ShopStaticPage({
   const legalLinks = (Object.keys(SHOP_STATIC_PAGES) as ShopStaticSlug[]).filter((s) => SHOP_STATIC_PAGES[s].footerGroup === "legales");
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col" style={font ? { fontFamily: shopFontStack(font) } : undefined}>
       {/* En-tête */}
       <header className="bg-white border-b border-slate-200">
         <div className="max-w-3xl mx-auto px-5 md:px-8 py-4 flex items-center gap-3">

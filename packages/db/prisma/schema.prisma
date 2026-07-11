@@ -1040,6 +1040,7 @@ model VendorShop {
   legalEmail   String?
   legalCountry String?
   aboutText    String? @db.Text // texte « À propos » personnalisé (optionnel)
+  font         String? // police d'écriture de la boutique (voir lib/shop-fonts)
 
   instructeur InstructeurProfile @relation("InstructeurShops", fields: [instructeurId], references: [id], onDelete: Cascade)
   formations  Formation[]        @relation("ShopFormations")

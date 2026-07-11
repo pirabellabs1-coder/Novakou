@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useMemo, useState } from "react";
+import { shopFontStack } from "@/lib/formations/shop-fonts";
 import AISupportWidget from "@/components/formations/AISupportWidget";
 import SmartPopupRenderer from "@/components/marketing/SmartPopupRenderer";
 
@@ -49,6 +50,7 @@ export default function BoutiqueView({
   subscriptionPlans = [],
   instructeurId,
   shopSlug,
+  font,
 }: {
   owner: Owner;
   formations: Item[];
@@ -57,6 +59,7 @@ export default function BoutiqueView({
   subscriptionPlans?: Item[];
   instructeurId?: string;
   shopSlug?: string;
+  font?: string | null;
 }) {
   const all = useMemo(
     () => [...formations, ...products, ...bundles, ...subscriptionPlans],
@@ -98,7 +101,7 @@ export default function BoutiqueView({
   return (
     <div
       className="min-h-screen bg-slate-50"
-      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+      style={{ fontFamily: font ? shopFontStack(font) : "var(--font-inter), Inter, sans-serif" }}
     >
       {/* Widget IA Support Client (si vendeur actif) */}
       {(instructeurId || shopSlug) && (
@@ -111,6 +114,31 @@ export default function BoutiqueView({
 
       {/* Popups intelligents (exit-intent / scroll / timer) */}
       <SmartPopupRenderer />
+
+      {/* ─── Barre de navigation de la boutique ───────────────────────────── */}
+      <nav className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/70">
+        <div className="max-w-6xl mx-auto px-5 md:px-8 h-14 flex items-center justify-between gap-4">
+          <a href={staticBase || "/"} className="flex items-center gap-2.5 min-w-0">
+            {owner.image ? (
+              <Image src={owner.image} alt={owner.name} width={32} height={32} className="w-8 h-8 rounded-lg object-cover flex-shrink-0" unoptimized />
+            ) : (
+              <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-extrabold text-sm flex-shrink-0" style={{ background: themeColor }}>
+                {owner.name[0]?.toUpperCase() ?? "N"}
+              </span>
+            )}
+            <span className="font-extrabold text-slate-900 truncate text-sm md:text-base">{owner.name}</span>
+          </a>
+          <div className="hidden sm:flex items-center gap-6 text-sm font-semibold text-slate-600">
+            <a href={staticBase || "/"} className="hover:text-slate-900 transition-colors" style={{ ["--nk-h" as string]: themeColor }}>Produits</a>
+            <a href={`${staticBase}/a-propos`} className="hover:text-slate-900 transition-colors">À propos</a>
+            <a href={`${staticBase}/contact`} className="hover:text-slate-900 transition-colors">Contact</a>
+          </div>
+          <a href="/apprenant/mes-produits" className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 hover:text-slate-900 transition-colors flex-shrink-0">
+            <span className="material-symbols-outlined text-[19px]">shopping_bag</span>
+            <span className="hidden xs:inline">Mes achats</span>
+          </a>
+        </div>
+      </nav>
 
       {/* ─── Hero (cover-like) ────────────────────────────────────────────── */}
       <header className="relative overflow-hidden">
@@ -189,17 +217,6 @@ export default function BoutiqueView({
                 )}
               </div>
               <div className="min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-white"
-                    style={{ background: themeGradient }}
-                  >
-                    <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                      verified
-                    </span>
-                    Boutique officielle
-                  </span>
-                </div>
                 <h1 className="text-2xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
                   {owner.name}
                 </h1>

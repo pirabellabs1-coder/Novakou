@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import BoutiqueView from "@/components/formations/BoutiqueView";
 import TrackPageView from "@/components/tracking/TrackPageView";
+import { shopFontHref } from "@/lib/formations/shop-fonts";
 
 // ISR : 10min cache for public shop pages — vendors update infrequently
 export const revalidate = 600;
@@ -64,6 +65,7 @@ async function resolve(slugParam: string) {
         logoUrl: true,
         coverUrl: true,
         themeColor: true,
+        font: true,
         customDomain: true,
         customDomainVerified: true,
         instructeur: {
@@ -136,8 +138,10 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
 
   const { shop, formations, products, bundles, subscriptionPlans } = data;
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
+  const fontHref = shopFontHref(shop.font);
   return (
     <>
+      {fontHref && <link rel="stylesheet" href={fontHref} />}
       <TrackPageView
         type="shop_view"
         entityType="shop"
@@ -182,6 +186,7 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
       <BoutiqueView
       instructeurId={shop.instructeur?.id}
       shopSlug={shop.slug}
+      font={shop.font}
       owner={{
         name: shop.name || shop.instructeur.user?.name || "Créateur",
         email: shop.instructeur.user?.email ?? null,

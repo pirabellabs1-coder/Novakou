@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import ShopStaticPage from "@/components/formations/ShopStaticPage";
 import { loadShopStaticBySlug } from "@/lib/formations/shop-static-loader";
 import { SHOP_STATIC_PAGES, isShopStaticSlug } from "@/lib/formations/shop-static";
+import { shopFontHref } from "@/lib/formations/shop-fonts";
 
 export const revalidate = 600;
 
@@ -26,13 +27,18 @@ export default async function ShopStaticRoute({ params }: Props) {
   if (!isShopStaticSlug(page)) notFound();
   const data = await loadShopStaticBySlug(slug);
   if (!data) notFound();
+  const fontHref = shopFontHref(data.font);
   return (
-    <ShopStaticPage
-      slug={page}
-      info={data.info}
-      base={`/boutique/${data.slug}`}
-      themeColor={data.themeColor}
-      logoUrl={data.logoUrl}
-    />
+    <>
+      {fontHref && <link rel="stylesheet" href={fontHref} />}
+      <ShopStaticPage
+        slug={page}
+        info={data.info}
+        base={`/boutique/${data.slug}`}
+        themeColor={data.themeColor}
+        logoUrl={data.logoUrl}
+        font={data.font}
+      />
+    </>
   );
 }

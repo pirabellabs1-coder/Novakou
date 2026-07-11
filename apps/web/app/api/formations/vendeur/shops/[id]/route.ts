@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { removeDomain } from "@/lib/vercel-domains";
+import { SHOP_FONTS } from "@/lib/formations/shop-fonts";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -49,6 +50,7 @@ export async function PATCH(req: Request, { params }: Params) {
     legalEmail?: string | null;
     legalCountry?: string | null;
     aboutText?: string | null;
+    font?: string | null;
   };
   try {
     body = await req.json();
@@ -73,6 +75,10 @@ export async function PATCH(req: Request, { params }: Params) {
   if ("legalEmail" in body) data.legalEmail = trimOrNull(body.legalEmail, 120);
   if ("legalCountry" in body) data.legalCountry = trimOrNull(body.legalCountry, 60);
   if ("aboutText" in body) data.aboutText = trimOrNull(body.aboutText, 4000);
+  if ("font" in body) {
+    const f = trimOrNull(body.font, 40);
+    data.font = f && (SHOP_FONTS as readonly string[]).includes(f) ? f : null;
+  }
   if ("themeColor" in body) {
     const c = body.themeColor;
     if (c === null || (typeof c === "string" && /^#?[0-9a-f]{6}$/i.test(c))) {

@@ -7,6 +7,7 @@ import ShopDomainPanel from "@/components/formations/ShopDomainPanel";
 import { ImageUploader } from "@/components/formations/ImageUploader";
 import { useToastStore } from "@/store/toast";
 import { Store, ArrowLeft, ExternalLink, Check, Pipette, Save } from "lucide-react";
+import { SHOP_FONTS, shopFontStack, shopFontHref } from "@/lib/formations/shop-fonts";
 
 interface Shop {
   id: string;
@@ -24,6 +25,7 @@ interface Shop {
   legalPhone: string | null;
   legalEmail: string | null;
   legalCountry: string | null;
+  font: string | null;
 }
 
 export default function VendorShopDetailPage() {
@@ -39,6 +41,7 @@ export default function VendorShopDetailPage() {
   const [legalPhone, setLegalPhone] = useState("");
   const [legalEmail, setLegalEmail] = useState("");
   const [legalCountry, setLegalCountry] = useState("");
+  const [font, setFont] = useState("");
   const [saving, setSaving] = useState(false);
   const toast = useToastStore.getState().addToast;
 
@@ -56,6 +59,7 @@ export default function VendorShopDetailPage() {
       setLegalPhone(json.data.legalPhone ?? "");
       setLegalEmail(json.data.legalEmail ?? "");
       setLegalCountry(json.data.legalCountry ?? "");
+      setFont(json.data.font ?? "");
     } catch (e) {
       toast("error", e instanceof Error ? e.message : "Chargement impossible");
     } finally {
@@ -68,6 +72,19 @@ export default function VendorShopDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // Charge la police sélectionnée pour un aperçu fidèle dans les réglages.
+  useEffect(() => {
+    const href = shopFontHref(font);
+    if (!href) return;
+    const linkId = `shopfont-${font}`;
+    if (document.getElementById(linkId)) return;
+    const link = document.createElement("link");
+    link.id = linkId;
+    link.rel = "stylesheet";
+    link.href = href;
+    document.head.appendChild(link);
+  }, [font]);
+
   async function handleSave() {
     setSaving(true);
     try {
@@ -78,6 +95,7 @@ export default function VendorShopDetailPage() {
           name,
           description: description || null,
           themeColor: themeColor || null,
+          font: font || null,
           legalName: legalName || null,
           legalAddress: legalAddress || null,
           legalPhone: legalPhone || null,
@@ -327,6 +345,28 @@ export default function VendorShopDetailPage() {
                 className="px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-[#191c1e] font-mono focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10 flex-1"
               />
             </div>
+          </div>
+
+          {/* ── Police d'écriture de la boutique ── */}
+          <div className="pt-6 mt-2 border-t border-gray-100">
+            <label className="block text-sm font-bold text-[#191c1e] mb-1">Police d&apos;écriture</label>
+            <p className="text-xs text-[#5c647a] mb-3">Appliquée à toute votre boutique et à ses pages.</p>
+            <select
+              value={font}
+              onChange={(e) => setFont(e.target.value)}
+              className="w-full sm:max-w-xs px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
+              style={{ fontFamily: shopFontStack(font || "Inter") }}
+            >
+              <option value="">Inter (par défaut)</option>
+              {SHOP_FONTS.filter((f) => f !== "Inter").map((f) => (
+                <option key={f} value={f} style={{ fontFamily: shopFontStack(f) }}>{f}</option>
+              ))}
+            </select>
+            {font && (
+              <p className="mt-3 text-lg text-[#191c1e]" style={{ fontFamily: shopFontStack(font) }}>
+                Aperçu : {name || "Votre boutique"} — vendez en beauté.
+              </p>
+            )}
           </div>
 
           {/* ── Infos légales — alimentent les pages auto-générées ── */}

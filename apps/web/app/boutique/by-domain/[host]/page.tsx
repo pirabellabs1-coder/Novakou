@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import BoutiqueView from "@/components/formations/BoutiqueView";
+import { shopFontHref } from "@/lib/formations/shop-fonts";
 
 interface Props {
   params: Promise<{ host: string }>;
@@ -19,6 +20,7 @@ async function resolve(hostParam: string) {
         logoUrl: true,
         coverUrl: true,
         themeColor: true,
+        font: true,
         instructeur: {
           select: {
             id: true,
@@ -85,8 +87,12 @@ export default async function BoutiqueByDomainPage({ params }: Props) {
   if (!data) notFound();
 
   const { shop, formations, products, bundles, subscriptionPlans, normalized } = data;
+  const fontHref = shopFontHref(shop.font);
   return (
+    <>
+      {fontHref && <link rel="stylesheet" href={fontHref} />}
     <BoutiqueView
+      font={shop.font}
       owner={{
         name: shop.name || shop.instructeur.user?.name || "Créateur",
         email: shop.instructeur.user?.email ?? null,
@@ -127,5 +133,6 @@ export default async function BoutiqueByDomainPage({ params }: Props) {
         reviewsCount: s.reviewsCount,
       }))}
     />
+    </>
   );
 }
