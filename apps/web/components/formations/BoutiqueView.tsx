@@ -134,6 +134,10 @@ export default function BoutiqueView({
             <a href={staticBase || "/"} className="hover:text-slate-900 transition-colors" style={{ ["--nk-h" as string]: themeColor }}>Produits</a>
             <a href={`${staticBase}/a-propos`} className="hover:text-slate-900 transition-colors">À propos</a>
             <a href={`${staticBase}/contact`} className="hover:text-slate-900 transition-colors">Contact</a>
+            <a href="https://novakou.com" className="inline-flex items-center gap-1 hover:text-slate-900 transition-colors">
+              <span className="material-symbols-outlined text-[17px]">storefront</span>
+              Novakou
+            </a>
           </div>
           <div className="flex items-center gap-1">
             <a href="/apprenant/mes-produits" className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 hover:text-slate-900 transition-colors flex-shrink-0 px-2 py-1">
@@ -162,6 +166,7 @@ export default function BoutiqueView({
                 { href: `${staticBase}/a-propos`, label: "À propos", icon: "info" },
                 { href: `${staticBase}/contact`, label: "Contact", icon: "mail" },
                 { href: "/apprenant/mes-produits", label: "Mes achats", icon: "shopping_bag" },
+                { href: "https://novakou.com", label: "Retour à Novakou", icon: "home" },
               ].map((l) => (
                 <a
                   key={l.label}
@@ -628,6 +633,18 @@ export default function BoutiqueView({
                 <li><a href={`${staticBase}/mentions-legales`} className="text-slate-600 hover:text-slate-900">Mentions légales</a></li>
                 <li><a href={`${staticBase}/conditions`} className="text-slate-600 hover:text-slate-900">Conditions d&apos;utilisation</a></li>
                 <li><a href={`${staticBase}/confidentialite`} className="text-slate-600 hover:text-slate-900">Politique de confidentialité</a></li>
+              </ul>
+            </div>
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-2.5">Novakou</p>
+              <ul className="space-y-2">
+                <li>
+                  <a href="https://novakou.com" className="inline-flex items-center gap-1.5 text-slate-600 hover:text-slate-900">
+                    <span className="material-symbols-outlined text-[15px]">home</span>
+                    Retour à Novakou.com
+                  </a>
+                </li>
+                <li><a href="https://novakou.com/explorer" className="text-slate-600 hover:text-slate-900">Explorer la marketplace</a></li>
               </ul>
             </div>
           </div>
