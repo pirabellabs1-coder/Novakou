@@ -17,6 +17,7 @@ import {
   Edit,
   BarChart3,
   Archive,
+  Trash2,
   Store,
   PlayCircle,
   BookOpen,
@@ -192,6 +193,36 @@ export default function ProduitsPage() {
       icon: "archive",
     });
     if (ok) archiveMut.mutate(p);
+  }
+
+  const deleteMut = useMutation({
+    mutationFn: async (p: Product) => {
+      const url = p.productKind === "formation"
+        ? `/api/formations/vendeur/formations/${p.id}`
+        : `/api/formations/vendeur/products/${p.id}`;
+      const res = await fetch(url, { method: "DELETE" });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error || "Erreur");
+      return j.data ?? j;
+    },
+    onSuccess: (data) => {
+      // Si des ventes existent, l'API archive au lieu de supprimer définitivement.
+      setToast(data?.archived ? "Produit archivé (des ventes existent, suppression impossible)" : "Produit supprimé");
+      qc.invalidateQueries({ queryKey: ["vendeur-formations"] });
+      setTimeout(() => setToast(null), 4000);
+    },
+    onError: (e: Error) => setToast(`Erreur : ${e.message}`),
+  });
+
+  async function handleDelete(p: Product) {
+    const ok = await confirmAction({
+      title: `Supprimer « ${p.title} » ?`,
+      message: "Cette action est définitive et irréversible. Si le produit a déjà des ventes, il sera archivé (masqué) au lieu d'être supprimé, pour préserver l'historique des acheteurs.",
+      confirmLabel: "Supprimer",
+      confirmVariant: "danger",
+      icon: "delete",
+    });
+    if (ok) deleteMut.mutate(p);
   }
 
   const d = response?.data;
@@ -449,10 +480,19 @@ export default function ProduitsPage() {
                           onClick={() => handleArchive(product)}
                           disabled={archiveMut.isPending || isArchived(product)}
                           title={isArchived(product) ? "Déjà archivé" : "Archiver"}
-                          className="w-[30px] h-[30px] rounded-[9px] bg-white flex items-center justify-center transition-colors hover:bg-rose-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="w-[30px] h-[30px] rounded-[9px] bg-white flex items-center justify-center transition-colors hover:bg-amber-50 disabled:opacity-30 disabled:cursor-not-allowed"
                           style={{ border: `1px solid ${ST.cardBorder}`, color: ST.textSecondary }}
                         >
                           <Archive size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(product)}
+                          disabled={deleteMut.isPending}
+                          title="Supprimer"
+                          className="w-[30px] h-[30px] rounded-[9px] bg-white flex items-center justify-center transition-colors hover:bg-rose-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                          style={{ border: `1px solid ${ST.cardBorder}`, color: "#e11d48" }}
+                        >
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </div>

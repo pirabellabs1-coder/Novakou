@@ -87,8 +87,9 @@ export async function POST(request: Request) {
     // Affiliation — normalisation serveur (jamais faire confiance au client).
     const affEnabled = affiliateEnabled === true;
     const affPctRaw = Number(affiliateCommissionPct);
-    const affPct = affEnabled && Number.isFinite(affPctRaw)
-      ? Math.max(1, Math.min(90, Math.round(affPctRaw)))
+    // Commission affilié : minimum 40 %, maximum 90 %.
+    const affPct = affEnabled
+      ? Math.max(40, Math.min(90, Number.isFinite(affPctRaw) ? Math.round(affPctRaw) : 40))
       : null;
 
     if (!kind || !title || price === undefined || price === null) {

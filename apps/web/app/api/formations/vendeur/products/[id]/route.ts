@@ -176,7 +176,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         affiliateCommissionPct: body.affiliateCommissionPct === null
           ? null
           : typeof body.affiliateCommissionPct === "number"
-            ? Math.max(1, Math.min(90, Math.round(body.affiliateCommissionPct)))
+            ? Math.max(40, Math.min(90, Math.round(body.affiliateCommissionPct))) // minimum 40 %
             : undefined,
         previewEnabled: typeof body.previewEnabled === "boolean" ? body.previewEnabled : undefined,
         previewPages: typeof body.previewPages === "number" && body.previewPages >= 1 && body.previewPages <= 20

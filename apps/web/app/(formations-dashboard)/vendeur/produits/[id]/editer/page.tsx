@@ -106,7 +106,7 @@ export default function EditerProduitPage() {
   const [price, setPrice] = useDraftField(`${draftPrefix}:price`, 0);
   const [originalPrice, setOriginalPrice] = useDraftField<string>(`${draftPrefix}:originalPrice`, "");
   const [affiliateEnabled, setAffiliateEnabled] = useDraftField(`${draftPrefix}:affiliateEnabled`, false);
-  const [affiliateCommissionPct, setAffiliateCommissionPct] = useDraftField(`${draftPrefix}:affiliateCommissionPct`, 30);
+  const [affiliateCommissionPct, setAffiliateCommissionPct] = useDraftField(`${draftPrefix}:affiliateCommissionPct`, 40);
   const [tagsInput, setTagsInput] = useDraftField(`${draftPrefix}:tagsInput`, "");
   const [files, setFiles] = useDraftField<ProductFile[]>(`${draftPrefix}:files`, []);
   const [hiddenFromMarketplace, setHiddenFromMarketplace] = useDraftField(`${draftPrefix}:hiddenFromMarketplace`, false);
@@ -187,7 +187,7 @@ export default function EditerProduitPage() {
     else anyDraft = true;
     if (!has("affiliateEnabled")) setAffiliateEnabled(!!product.affiliateEnabled);
     else anyDraft = true;
-    if (!has("affiliateCommissionPct")) setAffiliateCommissionPct(typeof product.affiliateCommissionPct === "number" ? product.affiliateCommissionPct : 30);
+    if (!has("affiliateCommissionPct")) setAffiliateCommissionPct(typeof product.affiliateCommissionPct === "number" ? product.affiliateCommissionPct : 40);
     else anyDraft = true;
     if (!has("tagsInput")) setTagsInput((product.tags ?? []).join(", "));
     else anyDraft = true;
@@ -274,7 +274,7 @@ export default function EditerProduitPage() {
       price,
       originalPrice: originalPrice ? parseFloat(originalPrice) : null,
       affiliateEnabled,
-      affiliateCommissionPct: affiliateEnabled ? Math.max(1, Math.min(90, Number(affiliateCommissionPct) || 30)) : null,
+      affiliateCommissionPct: affiliateEnabled ? Math.max(40, Math.min(90, Number(affiliateCommissionPct) || 40)) : null,
       tags: tagsInput.split(",").map((t) => t.trim()).filter(Boolean),
       files,
       hiddenFromMarketplace,
@@ -775,14 +775,14 @@ export default function EditerProduitPage() {
           </label>
           {affiliateEnabled && (
             <div className="mt-4">
-              <label className="block text-xs font-bold text-[#5c647a] uppercase tracking-wide mb-1.5">Commission affilié (% du prix)</label>
+              <label className="block text-xs font-bold text-[#5c647a] uppercase tracking-wide mb-1.5">Commission affilié (% du prix — minimum 40 %)</label>
               <div className="flex items-center gap-2 max-w-[200px]">
                 <input
                   type="number"
-                  min={1}
+                  min={40}
                   max={90}
                   value={affiliateCommissionPct}
-                  onChange={(e) => track(setAffiliateCommissionPct, Math.max(1, Math.min(90, Number(e.target.value))))}
+                  onChange={(e) => track(setAffiliateCommissionPct, Math.max(40, Math.min(90, Number(e.target.value) || 40)))}
                   className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm font-extrabold tabular-nums focus:outline-none focus:ring-2 focus:ring-[#006e2f]/20"
                 />
                 <span className="text-base font-bold text-gray-400">%</span>

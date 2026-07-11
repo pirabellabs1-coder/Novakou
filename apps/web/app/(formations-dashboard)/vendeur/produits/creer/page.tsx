@@ -197,7 +197,7 @@ export default function CreerProduitPage() {
   // Affiliation — opt-in explicite du vendeur (le produit devient promouvable
   // par les affiliés) + commission qu'il leur offre.
   const [affiliateEnabled, setAffiliateEnabled] = useDraftField(`${DRAFT_PREFIX}:affiliateEnabled`, false);
-  const [affiliateCommissionPct, setAffiliateCommissionPct] = useDraftField(`${DRAFT_PREFIX}:affiliateCommissionPct`, 30);
+  const [affiliateCommissionPct, setAffiliateCommissionPct] = useDraftField(`${DRAFT_PREFIX}:affiliateCommissionPct`, 40);
   const [error, setError] = useState<string | null>(null);
 
   // Formation-specific
@@ -272,7 +272,7 @@ export default function CreerProduitPage() {
           originalPrice: originalPrice || null,
           isFree,
           affiliateEnabled,
-          affiliateCommissionPct: affiliateEnabled ? Number(affiliateCommissionPct) || null : null,
+          affiliateCommissionPct: affiliateEnabled ? Math.max(40, Math.min(90, Number(affiliateCommissionPct) || 40)) : null,
           publish,
           modules: isFormation ? modules.filter((m) => m.title.trim()) : undefined,
           files: !isFormation ? files : undefined,
@@ -1381,14 +1381,14 @@ export default function CreerProduitPage() {
               </div>
               {affiliateEnabled && (
                 <div className="mt-4 pt-4 border-t border-emerald-200/70">
-                  <label className={labelClass}>Commission affilié (% du prix)</label>
+                  <label className={labelClass}>Commission affilié (% du prix — minimum 40 %)</label>
                   <div className="flex items-center gap-3 max-w-xs">
                     <input
                       type="number"
-                      min={1}
+                      min={40}
                       max={90}
                       value={affiliateCommissionPct}
-                      onChange={(e) => setAffiliateCommissionPct(Math.max(1, Math.min(90, Number(e.target.value))))}
+                      onChange={(e) => setAffiliateCommissionPct(Math.max(40, Math.min(90, Number(e.target.value) || 40)))}
                       className={`${inputClass} font-extrabold tabular-nums`}
                     />
                     <span className="text-lg font-bold text-slate-500">%</span>
