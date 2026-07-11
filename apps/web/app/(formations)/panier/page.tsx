@@ -247,7 +247,7 @@ export default function PanierPage() {
                 </div>
                 <div className="inline-flex items-center gap-1.5">
                   <RefreshCw size={14} className="text-emerald-600" />
-                  Garantie 14 jours satisfait ou remboursé
+                  Accès immédiat après paiement
                 </div>
               </div>
             </aside>

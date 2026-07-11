@@ -23,6 +23,7 @@ import {
   ShieldCheck,
   BadgeCheck,
   CalendarCheck,
+  Store,
   FileType,
   BookOpen,
   PlayCircle,
@@ -456,13 +457,21 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                     <ShieldCheck size={16} className="text-[#006e2f]" />
                     Paiement 100% sécurisé
                   </div>
-                  {!isFree && (
-                    <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-                      <CalendarCheck size={16} className="text-[#006e2f]" />
-                      Remboursement 14 jours
-                    </div>
-                  )}
                 </div>
+
+                {/* Lien vers la boutique du vendeur (où se trouve le produit). */}
+                {product.shop && (
+                  <Link
+                    href={`/boutique/${product.shop.slug}`}
+                    className="mt-4 flex items-center justify-between gap-2 rounded-xl border border-gray-200 px-4 py-3 hover:border-[#006e2f]/40 hover:bg-[#006e2f]/[0.03] transition-colors group"
+                  >
+                    <span className="flex items-center gap-2 min-w-0">
+                      <Store size={16} className="text-[#006e2f] flex-shrink-0" />
+                      <span className="text-sm font-semibold text-[#191c1e] truncate">Voir la boutique {product.shop.name}</span>
+                    </span>
+                    <ChevronRight size={16} className="text-[#5c647a] group-hover:text-[#006e2f] flex-shrink-0" />
+                  </Link>
+                )}
               </div>
             </div>
 

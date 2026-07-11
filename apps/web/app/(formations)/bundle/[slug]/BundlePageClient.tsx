@@ -264,7 +264,7 @@ export default function BundlePageClient({ bundle }: { bundle: Bundle }) {
               </div>
               <div className="flex items-center gap-2">
                 <CalendarCheck size={16} style={{ color: themeColor }} />
-                Garantie 14 jours
+                Accès immédiat après achat
               </div>
             </div>
           </div>

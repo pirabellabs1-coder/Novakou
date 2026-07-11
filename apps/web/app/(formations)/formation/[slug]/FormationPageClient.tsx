@@ -31,6 +31,7 @@ import {
   Infinity as InfinityIcon,
   MonitorSmartphone,
   CalendarCheck,
+  Store,
 } from "lucide-react";
 import { PixelInjector } from "@/components/formations/PixelInjector";
 import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
@@ -652,11 +653,19 @@ export default function FormationPageClient({ slug }: { slug: string }) {
                     <MonitorSmartphone size={16} className="text-[#006e2f]" />
                     Accessible sur mobile & desktop
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-                    <CalendarCheck size={16} className="text-[#006e2f]" />
-                    Remboursement 14 jours
-                  </div>
                 </div>
+                {formation.shop && (
+                  <Link
+                    href={`/boutique/${formation.shop.slug}`}
+                    className="mt-4 flex items-center justify-between gap-2 rounded-xl border border-gray-200 px-4 py-3 hover:border-[#006e2f]/40 hover:bg-[#006e2f]/[0.03] transition-colors group"
+                  >
+                    <span className="flex items-center gap-2 min-w-0">
+                      <Store size={16} className="text-[#006e2f] flex-shrink-0" />
+                      <span className="text-sm font-semibold text-[#191c1e] truncate">Voir la boutique {formation.shop.name}</span>
+                    </span>
+                    <ChevronRight size={16} className="text-[#5c647a] group-hover:text-[#006e2f] flex-shrink-0" />
+                  </Link>
+                )}
               </div>
             </div>
 

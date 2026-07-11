@@ -79,10 +79,19 @@ export async function POST(request: Request) {
       publish,
       affiliateEnabled, // opt-in vendeur : produit promouvable par les affiliés
       affiliateCommissionPct, // % offert aux affiliés (null = taux du programme)
+      salesEndAt, // fin de l'offre (ISO) → compte à rebours
+      maxBuyers, // stock limité
+      hiddenFromMarketplace, // cacher du marketplace public
       modules, // For formations: [{ title, lessons: [{ title, duration }] }]
       fileUrl, // For digital products: backward-compat single-file URL
       files, // For digital products: [{ name, url, size?, mimeType? }]
     } = body;
+
+    // Offre limitée / stock / visibilité — normalisés serveur.
+    const salesEndAtVal = salesEndAt ? new Date(salesEndAt) : null;
+    const maxBuyersVal = Number.isFinite(Number(maxBuyers)) && Number(maxBuyers) > 0
+      ? Math.floor(Number(maxBuyers)) : null;
+    const hiddenVal = hiddenFromMarketplace === true;
 
     // Affiliation — normalisation serveur (jamais faire confiance au client).
     const affEnabled = affiliateEnabled === true;
@@ -260,6 +269,9 @@ export async function POST(request: Request) {
           isFree: isFreeFlag,
           affiliateEnabled: affEnabled,
           affiliateCommissionPct: affPct,
+          ...(salesEndAtVal && !Number.isNaN(salesEndAtVal.getTime()) ? { salesEndAt: salesEndAtVal } : {}),
+          ...(maxBuyersVal ? { maxBuyers: maxBuyersVal } : {}),
+          hiddenFromMarketplace: hiddenVal,
           status: publish ? "ACTIF" : "BROUILLON",
           instructeurId: profile.id,
           shopId: activeShopId,

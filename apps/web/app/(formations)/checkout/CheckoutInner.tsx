@@ -24,6 +24,7 @@ import {
   Tag,
   ShieldCheck,
   RotateCcw,
+  Download,
   Smartphone,
   Waves,
   Phone,
@@ -534,7 +535,7 @@ export default function CheckoutInner() {
           </div>
           <div>
             <h1 className="text-xl font-extrabold text-[#191c1e] tracking-tight">Finaliser votre commande</h1>
-            <p className="text-xs text-[#5c647a]">Paiement sécurisé SSL · Garantie 30 jours</p>
+            <p className="text-xs text-[#5c647a]">Paiement sécurisé SSL · Accès immédiat</p>
           </div>
         </div>
       </div>
@@ -1147,7 +1148,7 @@ export default function CheckoutInner() {
               {[
                 { Icon: Lock, label: "SSL" },
                 { Icon: ShieldCheck, label: "Sécurisé" },
-                { Icon: RotateCcw, label: "30j remboursé" },
+                { Icon: Download, label: "Accès immédiat" },
               ].map((item) => (
                 <div key={item.label} className="flex flex-col items-center gap-0.5">
                   <item.Icon size={16} className="text-[#5c647a]" />
@@ -1156,11 +1157,11 @@ export default function CheckoutInner() {
               ))}
             </div>
 
-            {/* Guarantee */}
+            {/* Réassurance */}
             <div className="mt-5 p-3 rounded-xl bg-green-50 flex items-center gap-2">
               <ShieldCheck size={18} className="text-[#006e2f] flex-shrink-0" />
               <p className="text-[11px] font-semibold text-[#006e2f] leading-snug">
-                Garantie satisfait ou remboursé sous 30 jours, sans questions posées.
+                Paiement 100 % sécurisé · Accès immédiat après votre achat.
               </p>
             </div>
           </div>

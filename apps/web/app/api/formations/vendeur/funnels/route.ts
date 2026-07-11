@@ -224,7 +224,7 @@ export async function POST(request: Request) {
           title: "Questions fréquentes",
           items: [
             { q: "Combien de temps ai-je accès au contenu ?", a: "À vie. Tous les contenus sont accessibles sans limite de temps." },
-            { q: "Puis-je demander un remboursement ?", a: "Oui, remboursement garanti pendant 14 jours si vous n'êtes pas satisfait." },
+            { q: "Comment vais-je recevoir mon achat ?", a: "L'accès est immédiat : vous recevez un e-mail de confirmation avec votre lien juste après le paiement." },
           ],
         },
       },

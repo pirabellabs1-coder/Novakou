@@ -489,7 +489,7 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
       ctaLink: "",
       badgeText: "",       // e.g. "LE PLUS POPULAIRE"
       badgeColor: "",
-      guaranteeText: "",   // e.g. "Garantie 14 jours satisfait ou remboursé"
+      guaranteeText: "",   // e.g. "Accès à vie, mises à jour incluses"
       accentColor: "",
     },
   },
@@ -511,8 +511,8 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
     icon: ShieldCheck,
     default: {
       icon: "verified_user",
-      title: "Garantie 14 jours",
-      text: "Satisfait ou remboursé, sans condition. Testez sans risque.",
+      title: "Achat 100% sécurisé",
+      text: "Paiement sécurisé et accès immédiat à votre produit.",
       style: "card" as "card" | "banner" | "minimal",
       accentColor: "",
     },
@@ -1152,7 +1152,7 @@ function getStepTemplate(stepType: string): Block[] {
         { id: newBlockId(), type: "row", data: { columns: [
           { blocks: [{ id: newBlockId(), type: "icon-box", data: { icon: "verified_user", title: "Paiement sécurisé", desc: "Vos données bancaires sont chiffrées et ne transitent jamais par notre site.", align: "center", color: "#006e2f" } }] },
           { blocks: [{ id: newBlockId(), type: "icon-box", data: { icon: "bolt", title: "Accès immédiat", desc: "Dès la confirmation du paiement, votre contenu est débloqué.", align: "center", color: "#006e2f" } }] },
-          { blocks: [{ id: newBlockId(), type: "icon-box", data: { icon: "verified", title: "Satisfait ou remboursé", desc: "Une garantie claire pour acheter l'esprit tranquille.", align: "center", color: "#006e2f" } }] },
+          { blocks: [{ id: newBlockId(), type: "icon-box", data: { icon: "verified", title: "Paiement 100% sécurisé", desc: "Achetez en toute confiance, accès immédiat à votre produit.", align: "center", color: "#006e2f" } }] },
         ], gap: 16, padding: 24, bgColor: "" } },
       ];
     case "UPSELL":
@@ -2165,7 +2165,7 @@ function renderSectionEditor(block: Block, update: (data: Record<string, unknown
           />
           <StringInput label="Texte du bouton" value={(block.data.ctaText as string) ?? ""} onChange={(v) => update({ ctaText: v })} />
           <StringInput label="Lien du bouton" value={(block.data.ctaLink as string) ?? ""} onChange={(v) => update({ ctaLink: v })} placeholder="Vide = checkout par défaut" />
-          <StringInput label="Garantie (optionnel)" value={(block.data.guaranteeText as string) ?? ""} onChange={(v) => update({ guaranteeText: v })} placeholder="Ex: Garantie 14 jours satisfait ou remboursé" />
+          <StringInput label="Garantie (optionnel)" value={(block.data.guaranteeText as string) ?? ""} onChange={(v) => update({ guaranteeText: v })} placeholder="Ex: Accès à vie, mises à jour incluses" />
           <ColorPicker label="Couleur accent" value={(block.data.accentColor as string) || null} onChange={(c) => update({ accentColor: c ?? "" })} />
         </div>
       );

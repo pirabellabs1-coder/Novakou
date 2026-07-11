@@ -198,6 +198,10 @@ export default function CreerProduitPage() {
   // par les affiliés) + commission qu'il leur offre.
   const [affiliateEnabled, setAffiliateEnabled] = useDraftField(`${DRAFT_PREFIX}:affiliateEnabled`, false);
   const [affiliateCommissionPct, setAffiliateCommissionPct] = useDraftField(`${DRAFT_PREFIX}:affiliateCommissionPct`, 40);
+  // Compte à rebours (offre limitée) + stock + visibilité marketplace.
+  const [salesEndAt, setSalesEndAt] = useDraftField(`${DRAFT_PREFIX}:salesEndAt`, "");
+  const [maxBuyers, setMaxBuyers] = useDraftField(`${DRAFT_PREFIX}:maxBuyers`, "");
+  const [hiddenFromMarketplace, setHiddenFromMarketplace] = useDraftField(`${DRAFT_PREFIX}:hiddenFromMarketplace`, false);
   const [error, setError] = useState<string | null>(null);
 
   // Formation-specific
@@ -273,6 +277,9 @@ export default function CreerProduitPage() {
           isFree,
           affiliateEnabled,
           affiliateCommissionPct: affiliateEnabled ? Math.max(40, Math.min(90, Number(affiliateCommissionPct) || 40)) : null,
+          salesEndAt: salesEndAt ? new Date(salesEndAt).toISOString() : null,
+          maxBuyers: maxBuyers.trim() ? Math.max(1, Math.floor(Number(maxBuyers))) : null,
+          hiddenFromMarketplace,
           publish,
           modules: isFormation ? modules.filter((m) => m.title.trim()) : undefined,
           files: !isFormation ? files : undefined,
@@ -1400,6 +1407,59 @@ export default function CreerProduitPage() {
                   )}
                 </div>
               )}
+            </div>
+
+            {/* ── Offre limitée (compte à rebours) + stock ── */}
+            <div className="mt-8 p-5 rounded-2xl border-2 border-slate-200 bg-slate-50">
+              <p className="text-base font-bold text-[#13241b] flex items-center gap-2">
+                <Timer className="w-4 h-4 text-[#006e2f]" />
+                Offre limitée (optionnel)
+              </p>
+              <p className="text-xs text-slate-600 mt-1 mb-4 max-w-xl">
+                Créez de l&apos;urgence : un compte à rebours et/ou un stock limité s&apos;afficheront sur la page du produit.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Fin de l&apos;offre (date &amp; heure)</label>
+                  <input
+                    type="datetime-local"
+                    value={salesEndAt}
+                    onChange={(e) => setSalesEndAt(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Stock limité (nb de ventes max)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={maxBuyers}
+                    onChange={(e) => setMaxBuyers(e.target.value)}
+                    placeholder="Illimité"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* ── Visibilité marketplace ── */}
+            <div className="mt-4 p-5 rounded-2xl border-2 border-slate-200 bg-slate-50">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-base font-bold text-[#13241b]">Cacher du marketplace public</p>
+                  <p className="text-xs text-slate-600 mt-1 max-w-xl">
+                    Le produit reste vendable depuis VOTRE boutique et vos liens, mais n&apos;apparaît pas sur l&apos;explorer public de Novakou.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setHiddenFromMarketplace((v) => !v)}
+                  className={`relative w-14 h-7 rounded-full transition-colors flex-shrink-0 ${hiddenFromMarketplace ? "bg-[#006e2f]" : "bg-slate-300"}`}
+                  aria-pressed={hiddenFromMarketplace}
+                >
+                  <span className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow-md transition-all ${hiddenFromMarketplace ? "left-7" : "left-0.5"}`} />
+                </button>
+              </div>
             </div>
           </div>
         )}
