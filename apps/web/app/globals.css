@@ -31,7 +31,12 @@
   }
 
   html {
-    overflow-x: hidden;
+    /* `clip` et NON `hidden` : `overflow-x: hidden` force `overflow-y` à
+       calculer `auto`, ce qui promeut <html> en conteneur de défilement et
+       provoque un scroll mobile saccadé / « qui vibre » (le viewport n'est
+       plus le scroller racine natif). `clip` clippe l'axe X sans créer de
+       conteneur de scroll → momentum scrolling fluide sur mobile. */
+    overflow-x: clip;
   }
 
   body {
@@ -39,7 +44,30 @@
     font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     /* Échelle compacte : 14px de base au lieu de 16px (-12%) */
     font-size: 14px;
-    overflow-x: hidden;
+    overflow-x: clip;
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     PERFORMANCE MOBILE — couper le backdrop-filter (blur) sur mobile.
+     `backdrop-filter: blur()` sur des éléments fixed/sticky (navbar, barres de
+     filtres, badges) est LE responsable n°1 du tearing / lag / « vibration »
+     au scroll et au chargement sur Android Chrome : le GPU ré-échantillonne et
+     refloute la zone derrière l'élément à chaque frame. Sur mobile nos barres
+     ont déjà un fond quasi opaque (bg-white, bg-white/95…), donc le flou n'est
+     pas visible mais coûte plein pot. On le désactive < 768px. Le rendu givré
+     reste actif sur desktop (où c'est performant).
+     ───────────────────────────────────────────────────────────────────────── */
+  @media (max-width: 767px) {
+    .backdrop-blur-sm,
+    .backdrop-blur,
+    .backdrop-blur-md,
+    .backdrop-blur-lg,
+    .backdrop-blur-xl,
+    .backdrop-blur-2xl,
+    .backdrop-blur-3xl {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
   }
 
   /* Masquer le texte des icônes tant que la font n'est pas chargée */
