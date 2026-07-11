@@ -94,7 +94,7 @@ async function resolve(slugParam: string) {
       prisma.digitalProduct.findMany({
         where: { shopId: shop.id, status: "ACTIF" },
         select: {
-          id: true, slug: true, title: true, banner: true,
+          id: true, slug: true, title: true, thumbnail: true, banner: true,
           price: true, isFree: true, rating: true, salesCount: true, reviewsCount: true,
         },
         orderBy: { createdAt: "desc" },
@@ -206,7 +206,7 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
       }))}
       products={products.map((p) => ({
         kind: "product" as const,
-        id: p.id, slug: p.slug, title: p.title, image: productImageSrc(p.banner, 800),
+        id: p.id, slug: p.slug, title: p.title, image: productImageSrc(p.thumbnail ?? p.banner, 800),
         price: p.price, isFree: p.isFree, rating: p.rating,
         count: p.salesCount, reviewsCount: p.reviewsCount,
       }))}
