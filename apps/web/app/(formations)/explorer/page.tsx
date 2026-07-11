@@ -536,7 +536,7 @@ function ExplorerInner() {
 
   // ── Pagination Précédent/Suivant — bureau 2026-05-26, addendum #3 sur
   // remontée Lissanon : un vrai navigateur de pages, pas un load-more.
-  const PAGE_SIZE = 12;
+  const PAGE_SIZE = 24;
   const [currentPage, setCurrentPage] = useState(1);
   useEffect(() => {
     // Reset à la page 1 quand les filtres changent : sinon on peut être

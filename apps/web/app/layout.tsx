@@ -245,7 +245,7 @@ export default async function RootLayout({
               url: process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com",
               logo: `${process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com"}/icon`,
               description:
-                "La plateforme des créateurs digitaux en Afrique francophone. Vendez vos formations, e-books, templates et séances de coaching.",
+                "La plateforme tout-en-un des créateurs digitaux. Vendez vos formations, e-books, templates et séances de coaching en ligne.",
               founder: { "@type": "Person", name: "Lissanon Gildas" },
               parentOrganization: { "@type": "Organization", name: "Pirabel Labs" },
               foundingDate: "2026",

@@ -37,6 +37,9 @@
 .nkhome h1,.nkhome h2,.nkhome h3{font-family:var(--font-sora),"Sora",sans-serif;line-height:1.12;letter-spacing:-.025em;color:var(--ink);font-weight:600;margin:0}
 .nkhome p{margin:0}
 .nkhome .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+/* Conteneur élargi pour la grille de cartes best-sellers (cartes plus larges). */
+.nkhome .wrap-lg{max-width:1320px}
+.nkhome .mkt-bleed{margin-top:8px}
 
 /* Étiquette */
 .nkhome .tag{display:inline-flex;align-items:center;gap:7px;font-size:.78rem;font-weight:600;letter-spacing:.02em;

@@ -8,25 +8,25 @@ import "./home.css";
 const sora = Sora({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-sora", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "Novakou | Vendre ses formations et produits digitaux en Afrique francophone",
+  title: "Novakou | Vendre ses formations et produits digitaux en ligne",
   description:
-    "Novakou est la plateforme des créateurs en Afrique francophone : vendez formations, ebooks, coaching et templates. Boutique en ligne, paiements Mobile Money (Wave, Orange, MTN), tunnels de vente et IA inclus. 10 % de commission, zéro abonnement.",
+    "Novakou est la plateforme tout-en-un des créateurs : vendez formations, ebooks, coaching et templates. Boutique en ligne, paiements Mobile Money (Wave, Orange, MTN) et carte, tunnels de vente et IA inclus. 10 % de commission, zéro abonnement.",
   keywords: [
-    "vendre des formations en ligne Afrique",
-    "plateforme formation Afrique francophone",
-    "vendre produits digitaux Mobile Money",
-    "créer une boutique en ligne Sénégal Côte d'Ivoire Bénin",
+    "vendre des formations en ligne",
+    "plateforme pour vendre des produits digitaux",
+    "créer une boutique en ligne",
     "vendre ebook coaching template",
-    "alternative Gumroad Systeme.io Afrique",
-    "paiement Wave Orange Money MTN",
+    "vendre produits digitaux Mobile Money",
+    "alternative Gumroad Systeme.io",
+    "paiement Wave Orange Money MTN carte",
     "Novakou",
   ],
   alternates: { canonical: "/" },
   category: "business",
   openGraph: {
-    title: "Novakou — Vendez vos formations et produits digitaux en Afrique francophone",
+    title: "Novakou — Vendez vos formations et produits digitaux en ligne",
     description:
-      "Boutique en ligne, paiements Mobile Money, tunnels de vente et assistant IA. Lancez-vous en 3 minutes, 10 % de commission, zéro abonnement.",
+      "Boutique en ligne, paiements Mobile Money et carte, tunnels de vente et assistant IA. Lancez-vous en 3 minutes, 10 % de commission, zéro abonnement.",
     url: "/",
     type: "website",
     locale: "fr_FR",
@@ -34,9 +34,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Novakou — Vendez vos formations en Afrique francophone",
+    title: "Novakou — Vendez vos formations et produits digitaux en ligne",
     description:
-      "Boutique, paiements Mobile Money, tunnels de vente et IA inclus. 10 % de commission, zéro abonnement.",
+      "Boutique, paiements Mobile Money et carte, tunnels de vente et IA inclus. 10 % de commission, zéro abonnement.",
   },
 };
 
@@ -51,7 +51,7 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
   { q: "Est-ce que je peux utiliser mon propre nom de domaine ?", a: "Absolument. Vous pouvez connecter votre nom de domaine personnalisé pour renforcer votre marque, ou utiliser gratuitement votre sous-domaine Novakou." },
   { q: "En combien de temps puis-je retirer mon argent ?", a: "Dès qu'une vente est confirmée, les fonds arrivent sur votre solde. Vous pouvez demander un retrait vers votre compte Mobile Money à tout moment ; il est traité en général sous 24 à 48 heures." },
   { q: "Comment fonctionne l'intelligence artificielle intégrée ?", a: "L'assistant IA vous aide à structurer vos modules, rédiger vos pages de vente et vos e-mails, et répondre automatiquement aux questions de vos élèves grâce à un chatbot de support disponible en continu." },
-  { q: "Proposez-vous un accompagnement pour débuter ?", a: "Oui. Des guides gratuits et détaillés couvrent tout le parcours du créateur africain, de l'idée à la première vente. Notre communauté et notre support vous accompagnent à chaque étape." },
+  { q: "Proposez-vous un accompagnement pour débuter ?", a: "Oui. Des guides gratuits et détaillés couvrent tout le parcours du créateur, de l'idée à la première vente. Notre communauté et notre support vous accompagnent à chaque étape." },
 ];
 
 const ARROW = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`;
@@ -63,7 +63,7 @@ const HTML_TOP = `
   <div class="wrap">
     <div class="inner reveal">
       <span class="tag">Plus de 1 000 créateurs nous font confiance</span>
-      <h1>Vendez vos formations et produits digitaux <em>en Afrique francophone</em></h1>
+      <h1>Vendez vos formations et <em>produits digitaux</em> en ligne</h1>
       <p class="hero-sub">Formations, e-books, coaching et templates. Boutique en ligne, paiements Mobile&nbsp;Money (Wave, Orange, MTN), tunnels de vente et assistant IA inclus. Lancez-vous en 3&nbsp;minutes.</p>
       <div class="hero-actions">
         <a href="/inscription?role=vendeur" class="btn btn-green btn-lg">Lancer ma boutique ${ARROW}</a>
@@ -236,8 +236,8 @@ const HTML_TOP = `
       <div class="visual">
         <div class="v-head"><b>Novakou IA</b><small>En ligne</small></div>
         <div class="v-body">
-          <div class="ai-msg user">Peux-tu me générer un plan pour une formation sur le marketing digital en Afrique&nbsp;?</div>
-          <div class="ai-msg bot"><b>Bien sûr.</b> Voici une structure en 4 modules adaptée au marché africain&nbsp;:
+          <div class="ai-msg user">Peux-tu me générer un plan pour une formation sur le marketing digital&nbsp;?</div>
+          <div class="ai-msg bot"><b>Bien sûr.</b> Voici une structure en 4 modules adaptée à votre marché&nbsp;:
             <ol><li>Fondamentaux et spécificités locales</li><li>Création d'offres irrésistibles</li><li>Publicité à petit budget</li><li>Vente et closing par téléphone</li></ol>
           </div>
           <div class="ai-input"><span>Posez votre question…</span><span class="send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></span></div>
@@ -324,11 +324,11 @@ const HTML_BOTTOM = `
 <!-- TÉMOIGNAGES -->
 <section class="section">
   <div class="wrap">
-    <div class="head center reveal"><span class="tag">Ils utilisent Novakou</span><h2>Rejoignez l'élite des créateurs</h2><p>Des milliers de créateurs africains transforment leur savoir en revenus. Voici leurs mots.</p></div>
+    <div class="head center reveal"><span class="tag">Ils utilisent Novakou</span><h2>Rejoignez l'élite des créateurs</h2><p>Des milliers de créateurs transforment leur savoir en revenus. Voici leurs mots.</p></div>
     <div class="quotes">
       <div class="quote reveal"><div class="stars">★★★★★</div><p>«&nbsp;Avant Novakou, je perdais des ventes&nbsp;: mes clients ne pouvaient pas payer par carte. Depuis que j'encaisse en Mobile Money, je touche un public bien plus large.&nbsp;»</p><div class="who"><div class="av">FD</div><div><b>Fatou D.</b><small>Coach business · Dakar</small></div></div></div>
       <div class="quote reveal"><div class="stars">★★★★★</div><p>«&nbsp;L'assistant IA est incroyable. Il m'a aidé à structurer ma formation en quelques minutes, sans aucune compétence technique. La plateforme est super intuitive.&nbsp;»</p><div class="who"><div class="av">MK</div><div><b>Marc K.</b><small>Formateur design · Abidjan</small></div></div></div>
-      <div class="quote reveal"><div class="stars">★★★★★</div><p>«&nbsp;Aucun abonnement fixe à payer&nbsp;: on ne paie que si on vend. Un vrai soulagement quand on se lance. C'est le modèle parfait pour les créateurs africains.&nbsp;»</p><div class="who"><div class="av">SL</div><div><b>Sarah L.</b><small>Créatrice e-commerce · Lomé</small></div></div></div>
+      <div class="quote reveal"><div class="stars">★★★★★</div><p>«&nbsp;Aucun abonnement fixe à payer&nbsp;: on ne paie que si on vend. Un vrai soulagement quand on se lance. C'est le modèle parfait pour se lancer.&nbsp;»</p><div class="who"><div class="av">SL</div><div><b>Sarah L.</b><small>Créatrice e-commerce · Lomé</small></div></div></div>
     </div>
   </div>
 </section>
@@ -348,7 +348,7 @@ const HTML_BOTTOM = `
           <li><span class="ck">${CK}</span>Commissions versées sur votre solde Novakou</li>
           <li><span class="ck">${CK}</span>Retraits en Mobile Money, comme vos ventes</li>
         </ul>
-        <div class="actions"><a href="/affilie" class="btn btn-white">Devenir affilié</a></div>
+        <div class="actions"><a href="/inscription?role=affilie" class="btn btn-white">Devenir affilié</a></div>
       </div>
       <div class="earn-card b reveal">
         <span class="earn-badge">1:1</span>
@@ -427,19 +427,19 @@ const HTML_BOTTOM = `
 <!-- GUIDES -->
 <section class="section tint" id="nk-guides">
   <div class="wrap">
-    <div class="head center reveal"><span class="tag">Ressources gratuites</span><h2>Apprenez à vendre en Afrique</h2><p>Créer, vendre, automatiser&nbsp;: nos guides détaillés couvrent tout le parcours du créateur, de l'idée à la première vente.</p></div>
+    <div class="head center reveal"><span class="tag">Ressources gratuites</span><h2>Apprenez à vendre en ligne</h2><p>Créer, vendre, automatiser&nbsp;: nos guides détaillés couvrent tout le parcours du créateur, de l'idée à la première vente.</p></div>
     <div class="guides">
       <div class="guide reveal">
         <div class="gcov g1"><span class="time">10 min</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></div>
-        <div class="guide-body"><span class="lvl">Débutant · 8 étapes</span><h3>Créer son premier produit digital</h3><p>De l'idée à la publication&nbsp;: identifier votre expertise, structurer votre contenu et publier sur Novakou, depuis un smartphone.</p><a href="/blog" class="duo-link">Lire le guide ${ARROW}</a></div>
+        <div class="guide-body"><span class="lvl">Débutant · 8 étapes</span><h3>Créer son premier produit digital</h3><p>De l'idée à la publication&nbsp;: identifier votre expertise, structurer votre contenu et publier sur Novakou, depuis un smartphone.</p><a href="/guides" class="duo-link">Lire le guide ${ARROW}</a></div>
       </div>
       <div class="guide reveal">
         <div class="gcov g2"><span class="time">15 min</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg></div>
-        <div class="guide-body"><span class="lvl">Intermédiaire · 12 chapitres</span><h3>Vendre ses formations en Afrique</h3><p>Pages de vente, tunnels, leviers psychologiques, réseaux sociaux, e-mail marketing, affiliation&nbsp;: toutes les stratégies qui marchent.</p><a href="/blog" class="duo-link">Lire le guide ${ARROW}</a></div>
+        <div class="guide-body"><span class="lvl">Intermédiaire · 12 chapitres</span><h3>Vendre ses formations en Afrique</h3><p>Pages de vente, tunnels, leviers psychologiques, réseaux sociaux, e-mail marketing, affiliation&nbsp;: toutes les stratégies qui marchent.</p><a href="/guides" class="duo-link">Lire le guide ${ARROW}</a></div>
       </div>
       <div class="guide reveal">
         <div class="gcov g3"><span class="time">30 min</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V2H6.5A2.5 2.5 0 0 0 4 4.5z"/><path d="M8 7h8M8 11h6"/></svg></div>
-        <div class="guide-body"><span class="lvl">Complet · 18 chapitres</span><h3>Le guide complet Novakou : de A à Z</h3><p>De l'inscription à votre première vente&nbsp;: boutique, paiements, tunnels, IA, e-mails, affiliation, retraits. Tout est couvert.</p><a href="/blog" class="duo-link">Lire le guide ${ARROW}</a></div>
+        <div class="guide-body"><span class="lvl">Complet · 18 chapitres</span><h3>Le guide complet Novakou : de A à Z</h3><p>De l'inscription à votre première vente&nbsp;: boutique, paiements, tunnels, IA, e-mails, affiliation, retraits. Tout est couvert.</p><a href="/guides" class="duo-link">Lire le guide ${ARROW}</a></div>
       </div>
     </div>
   </div>
@@ -451,7 +451,7 @@ const HTML_BOTTOM = `
     <div class="cta reveal">
       <span class="tag on-dark">Prêt à vous lancer&nbsp;?</span>
       <h2>Prêt à monétiser votre expertise&nbsp;?</h2>
-      <p>Rejoignez plus de 1 000 créateurs qui vivent de leur passion en Afrique grâce à Novakou.</p>
+      <p>Rejoignez plus de 1 000 créateurs qui vivent de leur passion grâce à Novakou.</p>
       <div class="actions"><a href="/inscription?role=vendeur" class="btn btn-white btn-lg">Créer mon compte gratuitement ${ARROW}</a></div>
       <small class="note">Gratuit tant que vous ne vendez pas · Sans carte bancaire · Prêt en 3 minutes</small>
     </div>
@@ -489,7 +489,7 @@ export default function FormationsPage() {
 
       {/* MARKETPLACE — vraies cartes produits (BestSellers, données réelles). */}
       <section className="section tint" id="nk-marketplace">
-        <div className="wrap">
+        <div className="wrap wrap-lg">
           <div className="head center reveal">
             <span className="tag">Déjà en vente</span>
             <h2>Les best-sellers du moment</h2>
