@@ -1606,6 +1606,12 @@ model DigitalProduct {
   // Visibilité — true = exclusivement dans la boutique du vendeur, pas dans /explorer
   hiddenFromMarketplace Boolean @default(false)
 
+  // Lien de paiement : produit léger (titre + montant, sans fichier) servant à
+  // encaisser via une URL partageable/intégrable. Passe par le MÊME checkout que
+  // les produits → commission 10 % + vente comptée automatiquement. Toujours
+  // hiddenFromMarketplace=true. Sert à filtrer la page « Liens de paiement ».
+  isPaymentLink Boolean @default(false)
+
   // Multi-shop : à quelle boutique du vendeur appartient ce produit
   shopId String?
   shop   VendorShop? @relation("ShopProducts", fields: [shopId], references: [id], onDelete: SetNull)

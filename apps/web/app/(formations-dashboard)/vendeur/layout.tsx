@@ -13,6 +13,7 @@ import {
   LayoutDashboard,
   BarChart3,
   Store,
+  Link2,
   CreditCard,
   Layers,
   Receipt,
@@ -79,6 +80,7 @@ const navItems: NavItem[] = [
   { icon: BarChart3, label: "Statistiques", href: "/vendeur/statistiques", section: "Vue" },
   // Catalogue
   { icon: Store, label: "Mes produits", href: "/vendeur/produits", section: "Catalogue" },
+  { icon: Link2, label: "Liens de paiement", href: "/vendeur/liens-paiement", section: "Catalogue" },
   { icon: CreditCard, label: "Abonnements", href: "/vendeur/memberships", section: "Catalogue" },
   { icon: Layers, label: "Bundles", href: "/vendeur/bundles", section: "Catalogue" },
   { icon: Store, label: "Mes boutiques", href: "/vendeur/boutiques", section: "Catalogue" },

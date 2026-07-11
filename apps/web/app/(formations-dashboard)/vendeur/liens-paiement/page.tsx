@@ -1,0 +1,287 @@
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import {
+  Link2,
+  Plus,
+  Copy,
+  Check,
+  Code2,
+  Trash2,
+  Pause,
+  Play,
+  Loader2,
+  X,
+  Wallet,
+} from "lucide-react";
+import { useToastStore } from "@/store/toast";
+
+interface PayLink {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  price: number;
+  status: string;
+  salesCount: number;
+  currentBuyers: number;
+  revenue: number;
+  url: string;
+}
+
+const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n));
+
+export default function LiensPaiementPage() {
+  const toast = useToastStore.getState().addToast;
+  const [links, setLinks] = useState<PayLink[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [title, setTitle] = useState("");
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [embedFor, setEmbedFor] = useState<PayLink | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://novakou.com";
+  const fullUrl = (l: PayLink) => `${origin}${l.url}`;
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch("/api/formations/vendeur/liens-paiement");
+      const json = await res.json();
+      if (res.ok) setLinks(json.data ?? []);
+    } catch {
+      toast("error", "Chargement impossible");
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    const amt = parseFloat(amount);
+    if (title.trim().length < 2) { toast("error", "Titre trop court."); return; }
+    if (!Number.isFinite(amt) || amt <= 0) { toast("error", "Montant invalide."); return; }
+    setCreating(true);
+    try {
+      const res = await fetch("/api/formations/vendeur/liens-paiement", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: title.trim(), amount: amt, description: description.trim() || undefined }),
+      });
+      const json = await res.json();
+      if (!res.ok) { toast("error", json.error ?? "Erreur"); return; }
+      toast("success", "Lien de paiement créé 🎉");
+      setTitle(""); setAmount(""); setDescription(""); setShowForm(false);
+      load();
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  async function copyLink(l: PayLink) {
+    try {
+      await navigator.clipboard.writeText(fullUrl(l));
+      setCopiedId(l.id);
+      setTimeout(() => setCopiedId(null), 1800);
+    } catch {
+      toast("error", "Copie impossible");
+    }
+  }
+
+  async function toggleStatus(l: PayLink) {
+    setBusyId(l.id);
+    const next = l.status === "ACTIF" ? "ARCHIVE" : "ACTIF";
+    try {
+      const res = await fetch(`/api/formations/vendeur/products/${l.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: next }),
+      });
+      if (!res.ok) { const j = await res.json().catch(() => ({})); toast("error", j.error ?? "Erreur"); return; }
+      toast("success", next === "ACTIF" ? "Lien réactivé" : "Lien mis en pause");
+      load();
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function remove(l: PayLink) {
+    if (!confirm(`Supprimer le lien « ${l.title} » ? Cette action est définitive.`)) return;
+    setBusyId(l.id);
+    try {
+      const res = await fetch(`/api/formations/vendeur/products/${l.id}`, { method: "DELETE" });
+      if (!res.ok) { const j = await res.json().catch(() => ({})); toast("error", j.error ?? "Erreur"); return; }
+      toast("success", "Lien supprimé");
+      load();
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  const embedCode = (l: PayLink) =>
+    `<a href="${fullUrl(l)}" target="_blank" rel="noopener" style="display:inline-block;background:linear-gradient(to right,#006e2f,#22c55e);color:#fff;font-weight:700;font-family:sans-serif;padding:12px 22px;border-radius:12px;text-decoration:none">Payer ${fmt(l.price)} FCFA</a>`;
+
+  return (
+    <div className="min-h-screen bg-[#f7f9fb] p-5 md:p-8" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-2xl font-extrabold text-[#111827] flex items-center gap-2">
+              <Link2 className="text-[#006e2f]" size={24} />
+              Liens de paiement
+            </h1>
+            <p className="text-sm text-[#5c647a] mt-1">
+              Encaissez n&apos;importe quel montant. Partagez le lien ou intégrez-le sur votre site.
+              Commission 10 %, compté comme une vente.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowForm((s) => !s)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-bold shadow-sm hover:opacity-90 transition-opacity flex-shrink-0"
+            style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+          >
+            {showForm ? <X size={18} /> : <Plus size={18} />}
+            {showForm ? "Fermer" : "Créer un lien"}
+          </button>
+        </div>
+
+        {/* Create form */}
+        {showForm && (
+          <form onSubmit={handleCreate} className="bg-white rounded-2xl border border-gray-100 p-6 mb-6 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#5c647a] mb-1.5">Titre / objet du paiement</label>
+                <input
+                  type="text" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={80}
+                  placeholder="Ex. Acompte prestation, Don, Consultation…"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#5c647a] mb-1.5">Montant (FCFA)</label>
+                <input
+                  type="number" min={1} value={amount} onChange={(e) => setAmount(e.target.value)}
+                  placeholder="5000"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-[#5c647a] mb-1.5">Description (optionnelle)</label>
+              <textarea
+                value={description} onChange={(e) => setDescription(e.target.value)} rows={2} maxLength={2000}
+                placeholder="Précisez ce que le client paie…"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm resize-none focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
+              />
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="submit" disabled={creating}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-60"
+                style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+              >
+                {creating ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+                {creating ? "Création…" : "Créer le lien"}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* List */}
+        {loading ? (
+          <div className="space-y-3">
+            {[0, 1, 2].map((i) => <div key={i} className="h-20 bg-white rounded-2xl border border-gray-100 animate-pulse" />)}
+          </div>
+        ) : links.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-[#006e2f]/10 text-[#006e2f] flex items-center justify-center mx-auto mb-4">
+              <Link2 size={26} />
+            </div>
+            <h3 className="text-lg font-bold text-[#111827]">Aucun lien de paiement</h3>
+            <p className="text-sm text-[#5c647a] mt-1.5 mb-5 max-w-md mx-auto">
+              Créez votre premier lien pour encaisser un montant fixe et le partager partout.
+            </p>
+            <button
+              onClick={() => setShowForm(true)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-bold"
+              style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+            >
+              <Plus size={16} /> Créer un lien
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {links.map((l) => {
+              const paused = l.status !== "ACTIF";
+              return (
+                <div key={l.id} className={`bg-white rounded-2xl border border-gray-100 p-4 md:p-5 ${paused ? "opacity-70" : ""}`}>
+                  <div className="flex flex-col md:flex-row md:items-center gap-4">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-extrabold text-[#111827] text-sm truncate">{l.title}</h3>
+                        {paused && <span className="text-[10px] font-bold uppercase tracking-wide text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">En pause</span>}
+                      </div>
+                      <div className="flex items-center gap-3 mt-1 text-[12px] text-[#5c647a] flex-wrap">
+                        <span className="font-bold text-[#006e2f]">{fmt(l.price)} FCFA</span>
+                        <span className="inline-flex items-center gap-1"><Wallet size={13} /> {l.salesCount} vente{l.salesCount > 1 ? "s" : ""}</span>
+                        {l.revenue > 0 && <span>· {fmt(l.revenue)} FCFA encaissés</span>}
+                      </div>
+                      <code className="inline-block mt-2 text-[11px] text-[#5c647a] bg-gray-50 border border-gray-100 rounded-lg px-2 py-1 truncate max-w-full">
+                        {fullUrl(l)}
+                      </code>
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <button onClick={() => copyLink(l)} title="Copier le lien" className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#006e2f]/10 text-[#006e2f] text-xs font-bold hover:bg-[#006e2f]/15 transition-colors">
+                        {copiedId === l.id ? <Check size={15} /> : <Copy size={15} />}
+                        <span className="hidden sm:inline">{copiedId === l.id ? "Copié" : "Copier"}</span>
+                      </button>
+                      <button onClick={() => setEmbedFor(l)} title="Code d'intégration" className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">
+                        <Code2 size={15} />
+                      </button>
+                      <button onClick={() => toggleStatus(l)} disabled={busyId === l.id} title={paused ? "Réactiver" : "Mettre en pause"} className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors disabled:opacity-50">
+                        {busyId === l.id ? <Loader2 size={15} className="animate-spin" /> : paused ? <Play size={15} /> : <Pause size={15} />}
+                      </button>
+                      <button onClick={() => remove(l)} disabled={busyId === l.id} title="Supprimer" className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors disabled:opacity-50">
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Embed modal */}
+      {embedFor && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setEmbedFor(null)}>
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-extrabold text-[#111827] flex items-center gap-2"><Code2 size={18} /> Intégrer le bouton</h3>
+              <button onClick={() => setEmbedFor(null)} className="text-gray-400 hover:text-gray-700"><X size={20} /></button>
+            </div>
+            <p className="text-sm text-[#5c647a] mb-3">Collez ce code sur votre site ou application pour afficher un bouton de paiement.</p>
+            <div className="rounded-xl border border-gray-200 overflow-hidden">
+              <div className="bg-slate-50 p-4 flex justify-center border-b border-gray-100" dangerouslySetInnerHTML={{ __html: embedCode(embedFor) }} />
+              <pre className="bg-[#0d1117] text-[#e6edf3] text-[11px] p-4 overflow-x-auto whitespace-pre-wrap break-all">{embedCode(embedFor)}</pre>
+            </div>
+            <button
+              onClick={async () => { try { await navigator.clipboard.writeText(embedCode(embedFor)); toast("success", "Code copié"); } catch { toast("error", "Copie impossible"); } }}
+              className="mt-4 w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-bold"
+              style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+            >
+              <Copy size={16} /> Copier le code
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -48,7 +48,9 @@ export async function GET() {
         orderBy: { createdAt: "desc" },
       }),
       prisma.digitalProduct.findMany({
-        where: { instructeurId: ctx.instructeurId, ...shopFilter },
+        // Exclut les liens de paiement : ils vivent dans /vendeur/liens-paiement,
+        // pas dans « Mes produits ».
+        where: { instructeurId: ctx.instructeurId, isPaymentLink: false, ...shopFilter },
         select: {
           id: true,
           title: true,

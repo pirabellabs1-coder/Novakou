@@ -92,7 +92,7 @@ async function resolve(slugParam: string) {
         take: 24,
       }),
       prisma.digitalProduct.findMany({
-        where: { shopId: shop.id, status: "ACTIF" },
+        where: { shopId: shop.id, status: "ACTIF", isPaymentLink: false },
         select: {
           id: true, slug: true, title: true, thumbnail: true, banner: true,
           price: true, isFree: true, rating: true, salesCount: true, reviewsCount: true,

@@ -16,6 +16,7 @@ const VENDOR_NAV: NavItem[] = [
   { icon: "dashboard", label: "Tableau de bord", href: "/vendeur/dashboard", section: "Vue" },
   { icon: "bar_chart", label: "Statistiques", href: "/vendeur/statistiques", section: "Vue" },
   { icon: "storefront", label: "Mes produits", href: "/vendeur/produits", section: "Catalogue" },
+  { icon: "link", label: "Liens de paiement", href: "/vendeur/liens-paiement", section: "Catalogue" },
   { icon: "card_membership", label: "Abonnements", href: "/vendeur/memberships", section: "Catalogue" },
   { icon: "category", label: "Bundles", href: "/vendeur/bundles", section: "Catalogue" },
   { icon: "store", label: "Mes boutiques", href: "/vendeur/boutiques", section: "Catalogue" },
