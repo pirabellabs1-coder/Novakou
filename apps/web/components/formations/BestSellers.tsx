@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import AdaptiveImage from "@/components/formations/AdaptiveImage";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { cldUrl } from "@/lib/cloudinary-url";
@@ -184,18 +185,11 @@ export async function BestSellers() {
           href={item.href}
           className="bg-white squircle shadow-[0_10px_30px_rgba(0,0,0,0.03)] group hover:-translate-y-2 transition-all duration-300 block"
         >
-          <div className="aspect-square overflow-hidden rounded-t-[2rem] relative bg-gradient-to-br from-[#006e2f] to-[#22c55e]">
+          <div className="aspect-square overflow-hidden rounded-t-[2rem] relative bg-slate-100">
             {item.img ? (
-              <Image
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                src={item.img}
-                alt={item.title}
-                width={400}
-                height={400}
-                unoptimized
-              />
+              <AdaptiveImage src={item.img} alt={item.title} imgClassName="group-hover:scale-110 transition-transform duration-500" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#006e2f] to-[#22c55e]">
                 <span className="material-symbols-outlined text-white text-5xl opacity-80">school</span>
               </div>
             )}

@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useToastStore } from "@/store/toast";
+import AdaptiveImage from "@/components/formations/AdaptiveImage";
 
 import Link from "next/link";
 import { useState, useMemo, useEffect, useCallback, useRef, Suspense } from "react";
@@ -180,18 +181,15 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
       {/* HERO IMAGE — carré 1:1 façon Chariow/Gumroad. La vignette dédiée
           (`thumbnail`) recommandée 600×600 remplit parfaitement ; un `banner`
           16:9 fait fallback (centré, légèrement rogné gauche/droite). */}
-      <div className={`relative aspect-square bg-gradient-to-br ${gradient} overflow-hidden`}>
+      <div className="relative aspect-square bg-slate-100 overflow-hidden">
         {item.thumbnail ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <AdaptiveImage
             src={productImageSrc(item.thumbnail, 600) || item.thumbnail}
             alt={item.title}
-            loading="lazy"
-            decoding="async"
-            className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
+            imgClassName="group-hover:scale-[1.04] transition-transform duration-500"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-white opacity-70">
+          <div className={`absolute inset-0 flex items-center justify-center bg-gradient-to-br ${gradient} text-white opacity-70`}>
             {item.kind === "formation" ? <GraduationCap size={68} /> : <BookOpen size={68} />}
           </div>
         )}

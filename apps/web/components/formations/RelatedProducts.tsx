@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import AdaptiveImage from "@/components/formations/AdaptiveImage";
 import { Star, ShoppingBag, Sparkles } from "lucide-react";
 import { productImageSrc } from "@/lib/utils/image-url";
 
@@ -71,18 +72,15 @@ export function RelatedProducts({
               href={href}
               className="group block rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 hover:border-[#006e2f]/20 transition-all"
             >
-              <div className="relative aspect-square bg-gradient-to-br from-[#006e2f] to-[#22c55e] overflow-hidden">
+              <div className="relative aspect-square bg-slate-100 overflow-hidden">
                 {it.thumbnail ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <AdaptiveImage
                     src={productImageSrc(it.thumbnail, 500) || it.thumbnail}
                     alt={it.title}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    imgClassName="group-hover:scale-105 transition-transform duration-500"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white/70">
+                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#006e2f] to-[#22c55e] text-white/70">
                     <ShoppingBag size={40} />
                   </div>
                 )}

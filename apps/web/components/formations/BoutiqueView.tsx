@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { shopFontStack } from "@/lib/formations/shop-fonts";
+import AdaptiveImage from "@/components/formations/AdaptiveImage";
 import AISupportWidget from "@/components/formations/AISupportWidget";
 import SmartPopupRenderer from "@/components/marketing/SmartPopupRenderer";
 
@@ -467,16 +468,9 @@ export default function BoutiqueView({
                     href={href}
                     className="group block bg-white rounded-2xl border border-slate-200/80 overflow-hidden hover:shadow-2xl hover:shadow-slate-200/60 hover:-translate-y-1 transition-all"
                   >
-                    <div className="aspect-square relative bg-gradient-to-br from-slate-100 to-slate-200">
+                    <div className="aspect-square relative overflow-hidden bg-slate-100">
                       {item.image ? (
-                        <Image
-                          src={item.image}
-                          alt={item.title}
-                          fill
-                          sizes="(max-width: 768px) 100vw, 33vw"
-                          className="object-cover"
-                          unoptimized
-                        />
+                        <AdaptiveImage src={item.image} alt={item.title} />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center">
                           <span className="material-symbols-outlined text-5xl text-white/60">
