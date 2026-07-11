@@ -583,8 +583,8 @@ export default function BoutiqueView({
                           </div>
                         </div>
                         <span
-                          className="flex items-center justify-center gap-2 w-full px-3 py-2 rounded-xl text-white text-xs font-bold shadow-sm group-hover:shadow-md transition-shadow"
-                          style={{ background: `linear-gradient(135deg, ${themeColor}, #22c55e)` }}
+                          className="nk-card-cta flex items-center justify-center gap-2 w-full px-3 py-2 rounded-xl text-white text-xs font-bold shadow-sm group-hover:shadow-md transition-shadow"
+                          style={{ backgroundColor: themeColor, ["--nk-cta-accent" as string]: themeColor }}
                         >
                           <span className="material-symbols-outlined text-[16px]">
                             {item.isFree || item.price === 0

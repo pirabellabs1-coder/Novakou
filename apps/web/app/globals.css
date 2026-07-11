@@ -70,6 +70,12 @@
     }
   }
 
+  /* Bouton CTA des cartes boutique : vert/couleur plein par défaut, dégradé au
+     survol de la carte (couleur de la boutique portée par --nk-cta-accent). */
+  .group:hover .nk-card-cta {
+    background-image: linear-gradient(135deg, var(--nk-cta-accent, #006e2f), #22c55e);
+  }
+
   /* Masquer le texte des icônes tant que la font n'est pas chargée */
   .material-symbols-outlined {
     font-family: 'Material Symbols Outlined', sans-serif;

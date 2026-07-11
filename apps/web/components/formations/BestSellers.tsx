@@ -235,7 +235,7 @@ export async function BestSellers() {
                   {item.isFree ? "Gratuit" : `${new Intl.NumberFormat("fr-FR").format(item.priceFcfa)} FCFA`}
                 </div>
               </div>
-              <span className="flex items-center justify-center gap-1.5 w-full px-3 py-2.5 rounded-xl text-white text-xs font-bold bg-gradient-to-r from-[#006e2f] to-[#22c55e] group-hover:shadow-lg transition-shadow">
+              <span className="flex items-center justify-center gap-1.5 w-full px-3 py-2.5 rounded-xl text-white text-xs font-bold bg-[#006e2f] group-hover:bg-gradient-to-r group-hover:from-[#006e2f] group-hover:to-[#22c55e] group-hover:shadow-lg transition-all">
                 <span className="material-symbols-outlined text-[16px]">
                   {item.isFree ? "play_arrow" : "shopping_cart"}
                 </span>
