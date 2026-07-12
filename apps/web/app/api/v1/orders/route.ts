@@ -48,20 +48,31 @@ export async function GET(request: NextRequest) {
           }
         : {};
 
-    const refundedFilter =
-      statusFilter === "REFUNDED" ? { not: null } : null;
-    const paidOnlyFilter = statusFilter === "PAID" ? null : undefined;
+    // Statuts de commande valides : PAID | REFUNDED. Les achats de produits
+    // digitaux n'ont PAS de remboursement (pas de refundedAt) → ils sont
+    // toujours PAID. Donc : ?status=REFUNDED ne doit renvoyer AUCUN produit,
+    // et un statut inconnu ne doit RIEN renvoyer (au lieu de tout renvoyer).
+    const validOrderStatus =
+      statusFilter === "PAID" || statusFilter === "REFUNDED" ? statusFilter : null;
+    const badStatus = !!statusFilter && !validOrderStatus;
+    const enrollmentStatusWhere =
+      validOrderStatus === "REFUNDED"
+        ? { refundedAt: { not: null } }
+        : validOrderStatus === "PAID"
+          ? { refundedAt: null }
+          : {};
+    const skipFormations = !wantsFormations || badStatus;
+    const skipProducts = !wantsProducts || badStatus || validOrderStatus === "REFUNDED";
 
     const fetchSize = skip + limit;
 
     const [enrollments, purchases, totalEnrollments, totalPurchases] =
       await Promise.all([
-        wantsFormations
+        !skipFormations
           ? prisma.enrollment.findMany({
               where: {
                 formation: { instructeurId: ctx.instructeurId },
-                ...(refundedFilter ? { refundedAt: refundedFilter } : {}),
-                ...(paidOnlyFilter === null ? { refundedAt: null } : {}),
+                ...enrollmentStatusWhere,
                 ...dateFilter,
               },
               orderBy: { createdAt: "desc" },
@@ -84,7 +95,7 @@ export async function GET(request: NextRequest) {
               },
             })
           : Promise.resolve([]),
-        wantsProducts
+        !skipProducts
           ? prisma.digitalProductPurchase.findMany({
               where: {
                 product: { instructeurId: ctx.instructeurId },
@@ -113,17 +124,16 @@ export async function GET(request: NextRequest) {
               },
             })
           : Promise.resolve([]),
-        wantsFormations
+        !skipFormations
           ? prisma.enrollment.count({
               where: {
                 formation: { instructeurId: ctx.instructeurId },
-                ...(refundedFilter ? { refundedAt: refundedFilter } : {}),
-                ...(paidOnlyFilter === null ? { refundedAt: null } : {}),
+                ...enrollmentStatusWhere,
                 ...dateFilter,
               },
             })
           : Promise.resolve(0),
-        wantsProducts
+        !skipProducts
           ? prisma.digitalProductPurchase.count({
               where: {
                 product: { instructeurId: ctx.instructeurId },

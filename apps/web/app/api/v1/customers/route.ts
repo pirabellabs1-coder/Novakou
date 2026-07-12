@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     const [enrollmentUsers, purchaseUsers] = await Promise.all([
       prisma.enrollment.findMany({
         where: { formation: { instructeurId: ctx.instructeurId } },
-        select: { userId: true, paidAmount: true, createdAt: true },
+        select: { userId: true, paidAmount: true, createdAt: true, refundedAt: true },
       }),
       prisma.digitalProductPurchase.findMany({
         where: { product: { instructeurId: ctx.instructeurId } },
@@ -55,20 +55,23 @@ export async function GET(request: NextRequest) {
     const map = new Map<string, Agg>();
 
     const ingest = (
-      rows: { userId: string; paidAmount: number; createdAt: Date }[],
+      rows: { userId: string; paidAmount: number; createdAt: Date; refundedAt?: Date | null }[],
     ) => {
       for (const r of rows) {
+        // Une commande remboursée compte dans ordersCount mais PAS dans
+        // totalSpent — cohérent avec le détail client (customers/[id]).
+        const spent = r.refundedAt ? 0 : r.paidAmount;
         const existing = map.get(r.userId);
         if (!existing) {
           map.set(r.userId, {
             userId: r.userId,
-            totalSpent: r.paidAmount,
+            totalSpent: spent,
             ordersCount: 1,
             firstPurchaseAt: r.createdAt,
             lastPurchaseAt: r.createdAt,
           });
         } else {
-          existing.totalSpent += r.paidAmount;
+          existing.totalSpent += spent;
           existing.ordersCount += 1;
           if (r.createdAt < existing.firstPurchaseAt)
             existing.firstPurchaseAt = r.createdAt;

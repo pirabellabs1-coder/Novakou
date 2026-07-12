@@ -42,9 +42,16 @@ export async function GET(request: NextRequest) {
     const formationStatus = isValidEnum(FormationStatus, statusFilter);
     const productStatus = isValidEnum(DigitalProductStatus, statusFilter);
 
+    // Si un statut est DEMANDÉ mais invalide pour un modèle (ex. REFUSE existe
+    // pour les produits mais pas les formations), ce modèle ne doit renvoyer
+    // RIEN — sinon `status: null` = aucun filtre = TOUT est renvoyé (bug).
+    const hasStatus = !!statusFilter;
+    const skipFormations = !wantsFormations || (hasStatus && !formationStatus);
+    const skipProducts = !wantsProducts || (hasStatus && !productStatus);
+
     // Counts (always run for accurate pagination)
     const [formationsCount, productsCount] = await Promise.all([
-      wantsFormations
+      !skipFormations
         ? prisma.formation.count({
             where: {
               instructeurId: ctx.instructeurId,
@@ -52,7 +59,7 @@ export async function GET(request: NextRequest) {
             },
           })
         : Promise.resolve(0),
-      wantsProducts
+      !skipProducts
         ? prisma.digitalProduct.count({
             where: {
               instructeurId: ctx.instructeurId,
