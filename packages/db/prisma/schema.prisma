@@ -2688,6 +2688,24 @@ model AutomationLog {
   @@index([success])
 }
 
+/// Reprise différée d'un workflow après une action DELAY (pas de file de jobs).
+/// Un cron (`/api/cron/automation-scheduled`) exécute les actions restantes
+/// quand `runAt` est atteint. Additif — aucune FK bloquante.
+model AutomationScheduledRun {
+  id               String    @id @default(cuid())
+  workflowId       String
+  userId           String
+  triggerType      String
+  metadata         Json
+  remainingActions Json // WorkflowAction[] à exécuter après le délai
+  results          Json // context.results déjà accumulés
+  runAt            DateTime
+  processedAt      DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@index([processedAt, runAt])
+}
+
 // ── User Tags ─────────────────────────────────────────────────
 
 model UserTag {

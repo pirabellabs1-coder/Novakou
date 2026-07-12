@@ -718,6 +718,45 @@ async function resolveOwnerInstructeurId(event: TriggerEvent): Promise<string | 
 }
 
 /**
+ * Auto-enrôle l'utilisateur dans les séquences email ACTIVE du vendeur dont le
+ * `trigger` correspond à l'évènement. C'est la voie manquante : jusqu'ici une
+ * séquence ne s'enrôlait QUE via l'action ENROLL_SEQUENCE d'un workflow.
+ * Idempotent (enrollUserInSequence est un no-op si déjà enrôlé).
+ */
+async function enrollMatchingSequences(event: TriggerEvent, ownerInstructeurId: string | null): Promise<void> {
+  if (!ownerInstructeurId || !event.userId) return; // besoin d'un vendeur ET d'un vrai utilisateur
+  const TRIGGER_MAP: Partial<Record<TriggerType, string>> = {
+    PURCHASE: "PURCHASE",
+    ENROLLMENT: "ENROLLMENT",
+    CART_ABANDONED: "ABANDONED_CART",
+    USER_INACTIVE: "USER_INACTIVITY",
+    USER_SIGNUP: "SIGNUP",
+    COURSE_COMPLETED: "COURSE_COMPLETION",
+    TAG_ADDED: "TAG_ADDED",
+  };
+  const seqTrigger = TRIGGER_MAP[event.type];
+  if (!seqTrigger) return;
+  try {
+    const { prisma } = await import("../prisma");
+    const seqs = await prisma.emailSequence.findMany({
+      where: { trigger: seqTrigger as never, isActive: true, instructeurId: ownerInstructeurId },
+      select: { id: true },
+    });
+    if (seqs.length === 0) return;
+    const { enrollUserInSequence } = await import("./email-sequence-processor");
+    for (const s of seqs) {
+      try {
+        await enrollUserInSequence(s.id, event.userId, event.metadata);
+      } catch (err) {
+        console.error(`[Marketing] enrollMatchingSequences: échec séquence ${s.id}:`, err);
+      }
+    }
+  } catch (err) {
+    console.error("[Marketing] enrollMatchingSequences error:", err);
+  }
+}
+
+/**
  * Journalise une exécution dans Prisma (AutomationLog) et met à jour les
  * compteurs du workflow. Fire-and-forget : les erreurs ne cassent pas le flux.
  */
@@ -754,6 +793,116 @@ async function logExecutionPrisma(params: {
   }
 }
 
+// ── DELAY : reprise différée (sans file de jobs) ─────────────────────────────
+
+/** Persiste la reprise des actions restantes après une action DELAY. */
+async function scheduleContinuation(params: {
+  workflowId: string;
+  userId: string;
+  triggerType: TriggerType;
+  metadata: Record<string, unknown>;
+  remainingActions: WorkflowAction[];
+  results: Record<string, unknown>;
+  runAtMs: number;
+}): Promise<void> {
+  try {
+    const { prisma } = await import("../prisma");
+    await prisma.automationScheduledRun.create({
+      data: {
+        workflowId: params.workflowId,
+        userId: params.userId,
+        triggerType: params.triggerType,
+        metadata: (params.metadata as never) ?? {},
+        remainingActions: (params.remainingActions as never) ?? [],
+        results: (params.results as never) ?? {},
+        runAt: new Date(params.runAtMs),
+      },
+    });
+  } catch (err) {
+    console.error("[Marketing] scheduleContinuation error:", err);
+  }
+}
+
+/**
+ * Exécute les reprises de workflow arrivées à échéance (appelé par un cron).
+ * Claim-first (marque processedAt avant d'exécuter) → pas de double envoi si
+ * deux crons se chevauchent. Gère les DELAY imbriqués (replanifie).
+ */
+export async function resumeScheduledRuns(limit = 50): Promise<{ processed: number; scheduled: number }> {
+  let processed = 0;
+  let scheduled = 0;
+  try {
+    const { prisma } = await import("../prisma");
+    const due = await prisma.automationScheduledRun.findMany({
+      where: { processedAt: null, runAt: { lte: new Date() } },
+      orderBy: { runAt: "asc" },
+      take: limit,
+    });
+    for (const run of due) {
+      // Claim atomique : si un autre run l'a déjà pris, on saute.
+      const claim = await prisma.automationScheduledRun.updateMany({
+        where: { id: run.id, processedAt: null },
+        data: { processedAt: new Date() },
+      });
+      if (claim.count === 0) continue;
+
+      const actions = Array.isArray(run.remainingActions) ? (run.remainingActions as unknown as WorkflowAction[]) : [];
+      const context: ExecutionContext = {
+        event: { type: run.triggerType as TriggerType, userId: run.userId, metadata: (run.metadata as Record<string, unknown>) ?? {}, timestamp: new Date() },
+        workflow: { id: run.workflowId, name: "(reprise)", triggerType: run.triggerType as TriggerType, actions, isActive: true, createdAt: "", updatedAt: "" },
+        userId: run.userId,
+        metadata: (run.metadata as Record<string, unknown>) ?? {},
+        results: (run.results as Record<string, unknown>) ?? {},
+      };
+      let executed = 0;
+      let failed = 0;
+      let error: string | undefined;
+      for (let ai = 0; ai < actions.length; ai++) {
+        const action = actions[ai];
+        if (action.type === "DELAY") {
+          const delayMinutes = Number(action.config?.delayMinutes) || 0;
+          const remaining = actions.slice(ai + 1);
+          if (delayMinutes > 0 && remaining.length > 0) {
+            await scheduleContinuation({
+              workflowId: run.workflowId,
+              userId: run.userId,
+              triggerType: run.triggerType as TriggerType,
+              metadata: context.metadata,
+              remainingActions: remaining,
+              results: context.results,
+              runAtMs: Date.now() + delayMinutes * 60_000,
+            });
+            scheduled++;
+            break;
+          }
+          continue;
+        }
+        try {
+          await executeAction(action, context);
+          executed++;
+        } catch (err) {
+          if (err instanceof ConditionNotMetError) break;
+          failed++;
+          error = String(err);
+        }
+      }
+      await logExecutionPrisma({
+        workflowId: run.workflowId,
+        userId: run.userId,
+        triggerType: run.triggerType as TriggerType,
+        status: failed === 0 ? "success" : executed > 0 ? "partial" : "failed",
+        actionsRun: { resumed: true, executed, failed, results: context.results },
+        error,
+        executionMs: 0,
+      });
+      processed++;
+    }
+  } catch (err) {
+    console.error("[Marketing] resumeScheduledRuns error:", err);
+  }
+  return { processed, scheduled };
+}
+
 // ── Main Entry Point ─────────────────────────────────────────────────────────
 
 export async function emitEvent(event: TriggerEvent): Promise<void> {
@@ -770,8 +919,13 @@ export async function emitEvent(event: TriggerEvent): Promise<void> {
     console.error("[Marketing] Event bus propagation error:", err);
   }
 
-  // Find matching workflows — SCOPÉS au vendeur propriétaire du produit acheté.
+  // Résout le vendeur propriétaire (produit acheté / panier).
   const ownerInstructeurId = await resolveOwnerInstructeurId(event);
+
+  // Auto-enrôlement des séquences email du vendeur (indépendant des workflows).
+  await enrollMatchingSequences(event, ownerInstructeurId);
+
+  // Find matching workflows — SCOPÉS au vendeur propriétaire.
   const allWorkflows = await getActiveWorkflows(event.type, ownerInstructeurId);
 
   // Si un workflow cible un produit précis (triggerConfig.formationId/productId),
@@ -828,7 +982,29 @@ export async function emitEvent(event: TriggerEvent): Promise<void> {
       }
 
       // Execute actions in order
-      for (const action of workflow.actions) {
+      let delayed = false;
+      for (let ai = 0; ai < workflow.actions.length; ai++) {
+        const action = workflow.actions[ai];
+        // Action DELAY : on planifie l'exécution du RESTE des actions après le
+        // délai (via table + cron), puis on arrête ce run.
+        if (action.type === "DELAY") {
+          const delayMinutes = Number(action.config?.delayMinutes) || 0;
+          const remaining = workflow.actions.slice(ai + 1);
+          if (delayMinutes > 0 && remaining.length > 0) {
+            await scheduleContinuation({
+              workflowId: workflow.id,
+              userId: event.userId,
+              triggerType: event.type,
+              metadata: context.metadata,
+              remainingActions: remaining,
+              results: context.results,
+              runAtMs: Date.now() + delayMinutes * 60_000,
+            });
+            delayed = true;
+            break;
+          }
+          continue; // délai 0 ou aucune action après → on ignore le DELAY
+        }
         try {
           await executeAction(action, context);
           actionsExecuted++;
@@ -846,6 +1022,9 @@ export async function emitEvent(event: TriggerEvent): Promise<void> {
           );
           executionError = String(err);
         }
+      }
+      if (delayed) {
+        console.log(`[Marketing] Workflow "${workflow.name}" mis en pause (DELAY) — reprise planifiée.`);
       }
     } catch (err) {
       executionError = String(err);

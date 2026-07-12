@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendReminder1, sendReminder2 } from "@/lib/email/abandon-reminders";
 import { requireCronAuth } from "@/lib/cron/auth";
+import { onCartAbandoned } from "@/lib/marketing/hooks";
 
 /**
  * POST /api/cron/send-abandon-reminders
@@ -54,6 +55,7 @@ async function handle(request: NextRequest) {
     take: 50,
     select: {
       id: true, visitorEmail: true, visitorName: true, amount: true, currency: true,
+      userId: true, instructeurId: true, formationId: true, productId: true, funnelId: true,
       formation: { select: { title: true, slug: true } },
       product: { select: { title: true, slug: true } },
       instructeur: { select: { user: { select: { name: true } } } },
@@ -81,6 +83,19 @@ async function handle(request: NextRequest) {
         data: { reminder1SentAt: now },
       });
       log.reminder1Sent++;
+      // Déclenche AUSSI les automatisations « panier abandonné » du vendeur
+      // (workflows + séquences). 1× par panier (garde reminder1SentAt: null).
+      // Le rappel intégré ci-dessus reste séparé et n'est pas un doublon.
+      onCartAbandoned(a.userId ?? "", [product.title], {
+        instructeurId: a.instructeurId ?? undefined,
+        formationId: a.formationId ?? undefined,
+        productId: a.productId ?? undefined,
+        funnelId: a.funnelId ?? undefined,
+        email: a.visitorEmail,
+        firstName: a.visitorName ?? undefined,
+        amount: a.amount,
+        currency: a.currency,
+      });
     } catch (e) {
       log.errors.push(`R1 ${a.id}: ${e instanceof Error ? e.message : "err"}`);
     }

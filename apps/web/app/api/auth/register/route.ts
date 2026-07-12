@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { emitEvent } from "@/lib/events/dispatcher";
+import { onUserSignup } from "@/lib/marketing/hooks";
 import { checkRateLimit, recordFailedAttempt } from "@/lib/auth/rate-limiter";
 
 const registerSchema = z.object({
@@ -145,6 +146,13 @@ export async function POST(request: Request) {
       },
       select: { id: true, email: true, name: true, role: true },
     });
+
+    // Automatisations marketing « inscription » (fire-and-forget, non bloquant).
+    // NB : ne déclenche des workflows/séquences vendeur que si l'inscription est
+    // attribuée à une boutique (metadata.instructeurId) — sinon no-op (pas de
+    // propriétaire à scoper). L'inscription générique de la marketplace n'a pas
+    // ce contexte aujourd'hui.
+    onUserSignup(user.id, { email: user.email, firstName: user.name?.split(" ")[0], registrationSource: isFormationsRegistration ? "formations" : "marketplace" });
 
     // Auto-create role-specific profile — skip for formations-only users
     if (!isFormationsRegistration) {
