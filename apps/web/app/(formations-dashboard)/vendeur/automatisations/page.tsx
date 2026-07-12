@@ -87,7 +87,9 @@ const TRIGGER_LABELS: Record<string, { label: string; icon: LucideIcon; color: s
   QUIZ_FAILED: { label: "Quiz échoué", icon: XCircle, color: "text-rose-500" },
   USER_SIGNUP: { label: "Nouvelle inscription", icon: UserPlus, color: "text-indigo-600" },
   TAG_ADDED: { label: "Tag ajouté", icon: Tag, color: "text-amber-600" },
-  INACTIVITY: { label: "Inactivité", icon: Clock, color: "text-slate-500" },
+  // Clé alignée sur l'enum Prisma AutomationTriggerType (USER_INACTIVE), sinon
+  // la création échoue en 500 sur la colonne enum.
+  USER_INACTIVE: { label: "Inactivité", icon: Clock, color: "text-slate-500" },
 };
 
 const SEQ_TRIGGER_LABELS: Record<string, string> = {

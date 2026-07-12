@@ -71,14 +71,16 @@ interface Workflow {
 
 // ─── Trigger options ──────────────────────────────────────────────────────────
 const TRIGGER_OPTIONS: { value: string; label: string; icon: LucideIcon }[] = [
+  // NB : les `value` DOIVENT correspondre à l'enum Prisma AutomationTriggerType,
+  // sinon la sauvegarde échoue en 500 (colonne enum). PAYMENT_FAILED n'existe pas
+  // dans l'enum ; « Inactivité » = USER_INACTIVE (et non INACTIVITY).
   { value: "PURCHASE", label: "Vente effectuée", icon: ShoppingCart },
   { value: "CART_ABANDONED", label: "Panier abandonné", icon: ShoppingCart },
-  { value: "PAYMENT_FAILED", label: "Paiement échoué", icon: CreditCard },
   { value: "ENROLLMENT", label: "Inscription formation", icon: GraduationCap },
   { value: "COURSE_COMPLETED", label: "Cours terminé", icon: BadgeCheck },
   { value: "LESSON_COMPLETED", label: "Leçon terminée", icon: CheckCircle2 },
   { value: "USER_SIGNUP", label: "Nouvelle inscription", icon: UserPlus },
-  { value: "INACTIVITY", label: "Inactivité", icon: Clock },
+  { value: "USER_INACTIVE", label: "Inactivité", icon: Clock },
   { value: "TAG_ADDED", label: "Tag ajouté", icon: Tag },
 ];
 

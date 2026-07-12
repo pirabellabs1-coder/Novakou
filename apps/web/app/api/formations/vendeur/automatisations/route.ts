@@ -74,6 +74,11 @@ export async function POST(request: Request) {
     if (!name || !triggerType) {
       return NextResponse.json({ error: "Nom et déclencheur requis" }, { status: 400 });
     }
+    // Valide le déclencheur contre l'enum Prisma → 400 propre au lieu d'un 500
+    // Prisma si l'UI envoie une valeur inconnue.
+    if (!Object.values(AutomationTriggerType).includes(triggerType as AutomationTriggerType)) {
+      return NextResponse.json({ error: "Déclencheur invalide" }, { status: 400 });
+    }
 
     const workflow = await prisma.automationWorkflow.create({
       data: {

@@ -61,11 +61,12 @@ const VARIABLES = [
 ];
 
 // ─── Trigger tabs — segments larges ────────────────────────────────────────────
-type TabKey = "ABANDONED_CART" | "PAYMENT_FAILED" | "PURCHASE" | "ENROLLMENT" | "USER_INACTIVITY";
+// Les `key` DOIVENT correspondre à l'enum Prisma EmailSequenceTrigger, sinon
+// l'enregistrement échoue en 500. PAYMENT_FAILED n'existe pas dans l'enum.
+type TabKey = "ABANDONED_CART" | "PURCHASE" | "ENROLLMENT" | "USER_INACTIVITY";
 
 const TABS: { key: TabKey; label: string; icon: LucideIcon; color: string }[] = [
   { key: "ABANDONED_CART", label: "Panier abandonné", icon: ShoppingCart, color: "text-orange-500" },
-  { key: "PAYMENT_FAILED", label: "Échec de paiement", icon: CreditCard, color: "text-red-500" },
   { key: "PURCHASE", label: "Après achat", icon: ShoppingBag, color: "text-green-600" },
   { key: "ENROLLMENT", label: "Inscription", icon: GraduationCap, color: "text-blue-600" },
   { key: "USER_INACTIVITY", label: "Inactivité", icon: Clock, color: "text-gray-500" },

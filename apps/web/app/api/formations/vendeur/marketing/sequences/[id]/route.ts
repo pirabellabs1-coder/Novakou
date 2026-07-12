@@ -128,7 +128,12 @@ export async function PATCH(request: Request, { params }: Params) {
 
     if (typeof body.name === "string") data.name = body.name.trim();
     if (typeof body.description === "string") data.description = body.description.trim() || null;
-    if (typeof body.trigger === "string") data.trigger = body.trigger as EmailSequenceTrigger;
+    if (typeof body.trigger === "string") {
+      if (!Object.values(EmailSequenceTrigger).includes(body.trigger as EmailSequenceTrigger)) {
+        return NextResponse.json({ error: "Déclencheur invalide" }, { status: 400 });
+      }
+      data.trigger = body.trigger as EmailSequenceTrigger;
+    }
     if (typeof body.isActive === "boolean") data.isActive = body.isActive;
 
     const updated = await prisma.emailSequence.update({

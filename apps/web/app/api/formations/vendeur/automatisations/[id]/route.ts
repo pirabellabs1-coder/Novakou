@@ -61,8 +61,12 @@ export async function PATCH(request: Request, { params }: Params) {
 
     if (typeof body.name === "string") data.name = body.name.trim();
     if (typeof body.description === "string") data.description = body.description.trim() || null;
-    if (typeof body.triggerType === "string")
+    if (typeof body.triggerType === "string") {
+      if (!Object.values(AutomationTriggerType).includes(body.triggerType as AutomationTriggerType)) {
+        return NextResponse.json({ error: "Déclencheur invalide" }, { status: 400 });
+      }
       data.triggerType = body.triggerType as AutomationTriggerType;
+    }
     if (typeof body.status === "string") data.status = body.status as WorkflowStatus;
     if (body.actions !== undefined) {
       // Light validation: actions must be an array of { id, type, config } with a known type
