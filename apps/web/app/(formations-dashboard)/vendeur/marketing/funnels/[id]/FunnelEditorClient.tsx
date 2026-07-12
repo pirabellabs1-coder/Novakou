@@ -1379,7 +1379,7 @@ const ALIGN_OPTS = [{ value: "left" as const, label: "Gauche" }, { value: "cente
 
 // Polices disponibles (mêmes que le thème du tunnel) — chargées à la volée
 // dans l'éditeur pour un aperçu fidèle.
-const FONT_FAMILIES = ["Manrope", "Inter", "DM Sans", "Poppins", "Montserrat", "Raleway", "Playfair Display", "Lora", "Nunito", "Space Grotesk", "Outfit", "Plus Jakarta Sans"];
+const FONT_FAMILIES = ["Sora", "Inter", "Manrope", "DM Sans", "Poppins", "Montserrat", "Raleway", "Playfair Display", "Lora", "Nunito", "Space Grotesk", "Outfit", "Plus Jakarta Sans"];
 
 const FONT_WEIGHT_OPTS = [
   { value: "0", label: "Auto" },
