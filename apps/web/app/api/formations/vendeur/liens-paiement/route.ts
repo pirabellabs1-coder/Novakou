@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { getActiveShopId } from "@/lib/formations/active-shop";
+import { safeHttpUrl, generateWebhookSecret } from "@/lib/formations/paylink-webhook";
 
 /**
  * Liens de paiement — un lien = un DigitalProduct CACHÉ SANS FICHIER
@@ -49,6 +50,7 @@ export async function GET() {
       id: true, slug: true, title: true, description: true, price: true,
       thumbnail: true, allowCustomAmount: true,
       status: true, salesCount: true, currentBuyers: true, createdAt: true,
+      redirectUrl: true, webhookUrl: true, webhookSecret: true,
     },
   });
 
@@ -88,7 +90,7 @@ export async function POST(request: Request) {
     );
   }
 
-  let body: { title?: string; amount?: number | string; description?: string; image?: string; priceMode?: string };
+  let body: { title?: string; amount?: number | string; description?: string; image?: string; priceMode?: string; redirectUrl?: string; webhookUrl?: string };
   try {
     body = await request.json();
   } catch {
@@ -99,6 +101,19 @@ export async function POST(request: Request) {
   if (title.length < 2) {
     return NextResponse.json({ error: "Le titre est trop court." }, { status: 400 });
   }
+
+  // Intégration sur le site du vendeur : redirection (http/https) + webhook (https).
+  let redirectUrl: string | null = null;
+  if (body.redirectUrl && String(body.redirectUrl).trim()) {
+    redirectUrl = safeHttpUrl(body.redirectUrl);
+    if (!redirectUrl) return NextResponse.json({ error: "URL de redirection invalide (http/https, pas d'adresse interne)." }, { status: 400 });
+  }
+  let webhookUrl: string | null = null;
+  if (body.webhookUrl && String(body.webhookUrl).trim()) {
+    webhookUrl = safeHttpUrl(body.webhookUrl, { requireHttps: true });
+    if (!webhookUrl) return NextResponse.json({ error: "URL de webhook invalide (https requis, pas d'adresse interne)." }, { status: 400 });
+  }
+  const webhookSecret = webhookUrl ? generateWebhookSecret() : null;
 
   // Prix libre = l'acheteur choisit le montant (le montant fourni sert alors de
   // suggestion/minimum, 0 accepté). Sinon montant fixe strictement > 0.
@@ -145,8 +160,11 @@ export async function POST(request: Request) {
       status: "ACTIF",
       instructeurId: ctx.instructeurId,
       shopId: activeShopId,
+      redirectUrl,
+      webhookUrl,
+      webhookSecret,
     },
-    select: { id: true, slug: true, title: true, price: true, status: true, allowCustomAmount: true },
+    select: { id: true, slug: true, title: true, price: true, status: true, allowCustomAmount: true, redirectUrl: true, webhookUrl: true, webhookSecret: true },
   });
 
   return NextResponse.json({

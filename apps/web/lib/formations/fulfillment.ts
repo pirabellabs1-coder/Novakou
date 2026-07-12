@@ -25,6 +25,7 @@ import {
 import { getCommissionRate } from "@/lib/formations/platform-settings";
 import { dispatchVendorEvent } from "@/lib/formations/vendor-webhooks";
 import { onFormationPurchase, onProductPurchase } from "@/lib/marketing/hooks";
+import { firePaylinkWebhook } from "@/lib/formations/paylink-webhook";
 import { resolveStorageFileUrl } from "@/lib/supabase-storage";
 import { broadcast } from "@/lib/realtime/broadcast";
 import { sendPushToUser } from "@/lib/push/web-push";
@@ -102,7 +103,7 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
           select: {
             id: true, slug: true, title: true, price: true, productType: true, fileUrl: true,
             instructeurId: true, shopId: true,
-            isPaymentLink: true, allowCustomAmount: true,
+            isPaymentLink: true, allowCustomAmount: true, webhookUrl: true, webhookSecret: true,
             // Stock gate (vote 23).
             maxBuyers: true, currentBuyers: true, salesCount: true,
             instructeur: { select: { user: { select: { id: true, email: true, name: true } } } },
@@ -391,6 +392,30 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
       productTitle: p.title,
       paymentRef: sessionRef,
     });
+
+    // Lien de paiement INTÉGRÉ : notifie le site du vendeur (webhook signé),
+    // UNE fois par vente réelle (on est dans le cas « nouvel achat »).
+    if (p.isPaymentLink && p.webhookUrl) {
+      const webhookUrl = p.webhookUrl;
+      const webhookSecret = p.webhookSecret ?? "";
+      prisma.user
+        .findUnique({ where: { id: userId }, select: { email: true, name: true } })
+        .then((buyer) =>
+          firePaylinkWebhook(webhookUrl, webhookSecret, {
+            event: "payment.succeeded",
+            paymentRef: sessionRef,
+            linkId: p.id,
+            linkSlug: p.slug,
+            title: p.title,
+            amount: finalPrice,
+            currency: "XOF",
+            buyerEmail: buyer?.email ?? null,
+            buyerName: buyer?.name ?? null,
+            createdAt: new Date().toISOString(),
+          }),
+        )
+        .catch((e) => console.error("[fulfillment] paylink webhook:", e));
+    }
   }
 
   // ── Usage du code promo ─────────────────────────────────────────────

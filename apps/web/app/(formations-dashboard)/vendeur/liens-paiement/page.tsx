@@ -31,6 +31,9 @@ interface PayLink {
   currentBuyers: number;
   revenue: number;
   url: string;
+  redirectUrl?: string | null;
+  webhookUrl?: string | null;
+  webhookSecret?: string | null;
 }
 
 const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n));
@@ -46,6 +49,9 @@ export default function LiensPaiementPage() {
   const [description, setDescription] = useState("");
   const [image, setImage] = useState("");
   const [priceMode, setPriceMode] = useState<"fixed" | "libre">("fixed");
+  const [redirectUrl, setRedirectUrl] = useState("");
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [showIntegration, setShowIntegration] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [embedFor, setEmbedFor] = useState<PayLink | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -86,12 +92,15 @@ export default function LiensPaiementPage() {
           description: description.trim() || undefined,
           image: image || undefined,
           priceMode,
+          redirectUrl: redirectUrl.trim() || undefined,
+          webhookUrl: webhookUrl.trim() || undefined,
         }),
       });
       const json = await res.json();
       if (!res.ok) { toast("error", json.error ?? "Erreur"); return; }
       toast("success", "Lien de paiement créé 🎉");
-      setTitle(""); setAmount(""); setDescription(""); setImage(""); setPriceMode("fixed"); setShowForm(false);
+      setTitle(""); setAmount(""); setDescription(""); setImage(""); setPriceMode("fixed");
+      setRedirectUrl(""); setWebhookUrl(""); setShowIntegration(false); setShowForm(false);
       load();
     } finally {
       setCreating(false);
@@ -228,6 +237,49 @@ export default function LiensPaiementPage() {
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm resize-none focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
               />
             </div>
+            {/* Intégration sur le site du vendeur (optionnel) */}
+            <div className="rounded-xl border border-gray-100 bg-slate-50/60">
+              <button
+                type="button"
+                onClick={() => setShowIntegration((v) => !v)}
+                className="w-full flex items-center justify-between px-4 py-3 text-left"
+              >
+                <span className="text-xs font-bold uppercase tracking-wider text-[#5c647a]">
+                  Intégration sur mon site (optionnel)
+                </span>
+                <span className={`text-[#006e2f] text-lg leading-none transition-transform ${showIntegration ? "rotate-45" : ""}`}>+</span>
+              </button>
+              {showIntegration && (
+                <div className="px-4 pb-4 space-y-3">
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Pour intégrer ce lien sur votre propre site : après le paiement, l&apos;acheteur peut être
+                    renvoyé chez vous, et votre serveur peut être notifié pour débloquer l&apos;accès.
+                  </p>
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#5c647a] mb-1">URL de redirection après paiement</label>
+                    <input
+                      type="url" value={redirectUrl} onChange={(e) => setRedirectUrl(e.target.value)}
+                      placeholder="https://mon-site.com/merci"
+                      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
+                    />
+                    <p className="text-[10px] text-slate-400 mt-1">L&apos;acheteur y est renvoyé avec <code className="text-slate-500">?ref=…&amp;status=success</code>.</p>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#5c647a] mb-1">URL de webhook (notification serveur, https)</label>
+                    <input
+                      type="url" value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)}
+                      placeholder="https://mon-site.com/api/novakou-webhook"
+                      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
+                    />
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      À chaque vente, Novakou envoie un POST JSON signé (header <code className="text-slate-500">X-Novakou-Signature</code>,
+                      HMAC-SHA256). Un secret de vérification est généré et affiché sur le lien créé.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="flex justify-end">
               <button
                 type="submit" disabled={creating}
@@ -288,6 +340,29 @@ export default function LiensPaiementPage() {
                       <code className="inline-block mt-2 text-[11px] text-[#5c647a] bg-gray-50 border border-gray-100 rounded-lg px-2 py-1 truncate max-w-full">
                         {fullUrl(l)}
                       </code>
+                      {(l.redirectUrl || l.webhookUrl) && (
+                        <div className="mt-2 text-[11px] text-slate-500 space-y-1">
+                          {l.redirectUrl && (
+                            <div className="truncate">Redirection : <span className="text-slate-600">{l.redirectUrl}</span></div>
+                          )}
+                          {l.webhookUrl && (
+                            <div className="truncate">Webhook : <span className="text-slate-600">{l.webhookUrl}</span></div>
+                          )}
+                          {l.webhookSecret && (
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span>Secret de signature :</span>
+                              <code className="bg-gray-50 border border-gray-100 rounded px-1.5 py-0.5 truncate max-w-[180px]">{l.webhookSecret}</code>
+                              <button
+                                type="button"
+                                onClick={() => { navigator.clipboard.writeText(l.webhookSecret ?? ""); toast("success", "Secret copié"); }}
+                                className="text-[#006e2f] font-semibold hover:underline"
+                              >
+                                Copier
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       <button onClick={() => copyLink(l)} title="Copier le lien" className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#006e2f]/10 text-[#006e2f] text-xs font-bold hover:bg-[#006e2f]/15 transition-colors">

@@ -127,6 +127,20 @@ function ReturnInner() {
         const metaType = String(verify.data.metadata?.type ?? "");
 
         if (paymentStatus === "success") {
+          // Lien de paiement INTÉGRÉ : le fulfillment (vente + webhook) a déjà été
+          // fait par /verify côté serveur. On renvoie l'acheteur sur le site du
+          // vendeur (au lieu de le garder sur Novakou), avec la référence.
+          const paylinkRedirect = String(verify.data.metadata?.paylinkRedirectUrl ?? "");
+          if (paylinkRedirect) {
+            setStatus("success");
+            setMessage("Paiement confirmé ! Redirection en cours…");
+            const sep = paylinkRedirect.includes("?") ? "&" : "?";
+            setTimeout(() => {
+              window.location.href = `${paylinkRedirect}${sep}ref=${encodeURIComponent(paymentId)}&status=success`;
+            }, 1200);
+            return;
+          }
+
           // Cas spécial — bundle ou abonnement : le webhook a déjà fulfill
           // (création de Subscription/ProductBundlePurchase + Enrollments).
           // /verify ne fait pas le travail pour ces types, donc on affiche

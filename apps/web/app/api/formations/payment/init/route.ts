@@ -105,7 +105,7 @@ export async function POST(request: Request) {
             select: {
               id: true, title: true, price: true, instructeurId: true, shopId: true,
               maxBuyers: true, currentBuyers: true, salesCount: true, salesEndAt: true,
-              isPaymentLink: true, allowCustomAmount: true,
+              isPaymentLink: true, allowCustomAmount: true, redirectUrl: true,
             },
           })
         : Promise.resolve([]),
@@ -332,6 +332,12 @@ export async function POST(request: Request) {
       // Affiliation : le webhook lit ces clés pour créer la commission après paiement.
       affiliateProfileId: affiliateProfile?.profileId ?? "",
       affiliateCommissionRate: affiliateProfile?.commissionRate ?? 0,
+      // Lien de paiement intégré : URL de retour vers le site du vendeur après
+      // paiement (la page /payment/return y redirige l'acheteur). Vide sinon.
+      paylinkRedirectUrl:
+        products.length === 1 && formations.length === 0 && products[0].isPaymentLink && products[0].redirectUrl
+          ? products[0].redirectUrl
+          : "",
     };
 
     const returnUrl = `${appUrl}/payment/return?ref=${encodeURIComponent(internalRef)}&attempt=${attempt.id}&provider=${provider}`;

@@ -1598,6 +1598,17 @@ model DigitalProduct {
   // Moneroo) est crédité tel quel (cf. fulfillment).
   allowCustomAmount Boolean @default(false)
 
+  // Lien de paiement INTÉGRÉ (sur le site du vendeur) :
+  //  - redirectUrl : après un paiement réussi, l'acheteur est renvoyé ICI
+  //    (au lieu de rester sur Novakou), avec ?ref=<paymentRef>&status=success.
+  //  - webhookUrl  : Novakou POST une notification signée HMAC à chaque vente
+  //    du lien (source de vérité serveur → le site du vendeur débloque l'accès).
+  //  - webhookSecret : clé de signature (générée quand webhookUrl est défini),
+  //    affichée au vendeur pour vérifier le header X-Novakou-Signature.
+  redirectUrl   String?
+  webhookUrl    String?
+  webhookSecret String?
+
   // Multi-shop : à quelle boutique du vendeur appartient ce produit
   shopId String?
   shop   VendorShop? @relation("ShopProducts", fields: [shopId], references: [id], onDelete: SetNull)
