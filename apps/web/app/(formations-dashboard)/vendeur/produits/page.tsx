@@ -15,6 +15,8 @@ import {
   Star,
   Wallet,
   Edit,
+  Copy,
+  Check,
   BarChart3,
   Archive,
   Trash2,
@@ -41,6 +43,7 @@ import {
 
 type Product = {
   id: string;
+  slug?: string | null;
   title: string;
   thumbnail: string | null;
   customCategory: string | null;
@@ -154,6 +157,20 @@ export default function ProduitsPage() {
   const [activeTab, setActiveTab] = useState<Tab>("all");
   const [searchQ, setSearchQ] = useState("");
   const [toast, setToast] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  function copyProductLink(product: Product) {
+    if (!product.slug) { setToast("Lien indisponible (produit sans URL)"); return; }
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://novakou.com";
+    const path = product.productKind === "formation" ? `/formation/${product.slug}` : `/produit/${product.slug}`;
+    navigator.clipboard.writeText(`${origin}${path}`)
+      .then(() => {
+        setCopiedId(product.id);
+        setToast("Lien de la page de paiement copié ✓");
+        setTimeout(() => { setCopiedId(null); setToast(null); }, 2000);
+      })
+      .catch(() => setToast("Copie impossible"));
+  }
 
   const { data: response, isLoading } = useQuery<{ data: FormationsData | null }>({
     queryKey: ["vendeur-formations"],
@@ -460,6 +477,16 @@ export default function ProduitsPage() {
                         </span>
                       </div>
                       <div className="flex gap-1.5">
+                        {product.slug && !isDraft(product) && (
+                          <button
+                            onClick={() => copyProductLink(product)}
+                            title="Copier le lien de la page de paiement (à partager / pub Meta)"
+                            className="w-[30px] h-[30px] rounded-[9px] bg-white flex items-center justify-center transition-colors hover:bg-emerald-50"
+                            style={{ border: `1px solid ${ST.cardBorder}`, color: copiedId === product.id ? "#059669" : ST.textSecondary }}
+                          >
+                            {copiedId === product.id ? <Check size={14} /> : <Copy size={14} />}
+                          </button>
+                        )}
                         <Link
                           href={editHref}
                           title="Modifier"

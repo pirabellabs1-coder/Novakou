@@ -6,6 +6,7 @@ import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { getActiveShopId } from "@/lib/formations/active-shop";
 import { safeHttpUrl, generateWebhookSecret } from "@/lib/formations/paylink-webhook";
+import { sendPaylinkWebhookSecretEmail } from "@/lib/email/paylink";
 
 /**
  * Liens de paiement — un lien = un DigitalProduct CACHÉ SANS FICHIER
@@ -166,6 +167,17 @@ export async function POST(request: Request) {
     },
     select: { id: true, slug: true, title: true, price: true, status: true, allowCustomAmount: true, redirectUrl: true, webhookUrl: true, webhookSecret: true },
   });
+
+  // Envoie le secret du webhook par e-mail au vendeur (fire-and-forget), pour
+  // qu'il l'ait côté serveur même s'il quitte la page.
+  if (webhookUrl && webhookSecret && session?.user?.email) {
+    void sendPaylinkWebhookSecretEmail({
+      to: session.user.email,
+      linkTitle: link.title,
+      webhookUrl,
+      secret: webhookSecret,
+    }).catch((e) => console.error("[liens-paiement] email secret webhook:", e));
+  }
 
   return NextResponse.json({
     data: { ...link, url: `/payer/${link.slug}` },

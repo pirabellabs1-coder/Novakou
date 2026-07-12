@@ -36,6 +36,7 @@ export async function GET() {
           orderBy: { createdAt: "desc" },
           select: {
             id: true,
+            slug: true,
             title: true,
             thumbnail: true,
             customCategory: true,
@@ -59,6 +60,7 @@ export async function GET() {
           orderBy: { createdAt: "desc" },
           select: {
             id: true,
+            slug: true,
             title: true,
             banner: true,
             productType: true,
@@ -85,6 +87,7 @@ export async function GET() {
       const active = f.enrollments.filter((e) => e.refundedAt === null);
       return {
         id: f.id,
+        slug: f.slug,
         title: f.title,
         thumbnail: f.thumbnail,
         customCategory: f.customCategory,
@@ -104,6 +107,7 @@ export async function GET() {
 
     const digitalProducts = profile.digitalProducts.map((p) => ({
       id: p.id,
+      slug: p.slug,
       title: p.title,
       thumbnail: p.banner,
       customCategory: null,

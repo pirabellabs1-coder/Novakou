@@ -12,6 +12,7 @@ import {
   Pause,
   Play,
   Loader2,
+  Webhook,
   X,
   Wallet,
   Sparkles,
@@ -56,6 +57,7 @@ export default function LiensPaiementPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [embedFor, setEmbedFor] = useState<PayLink | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [testingId, setTestingId] = useState<string | null>(null);
 
   const origin = typeof window !== "undefined" ? window.location.origin : "https://novakou.com";
   const fullUrl = (l: PayLink) => `${origin}${l.url}`;
@@ -115,6 +117,21 @@ export default function LiensPaiementPage() {
       setTimeout(() => setCopiedId(null), 1800);
     } catch {
       toast("error", "Copie impossible");
+    }
+  }
+
+  async function testWebhook(l: PayLink) {
+    setTestingId(l.id);
+    try {
+      const res = await fetch(`/api/formations/vendeur/liens-paiement/${l.id}/test-webhook`, { method: "POST" });
+      const json = await res.json();
+      if (!res.ok) { toast("error", json.error ?? "Erreur"); return; }
+      if (json.data?.ok) toast("success", `Webhook reçu par votre serveur (HTTP ${json.data.status}) ✓`);
+      else toast("error", `Échec : ${json.error ?? `réponse HTTP ${json.data?.status}`}`);
+    } catch {
+      toast("error", "Erreur réseau");
+    } finally {
+      setTestingId(null);
     }
   }
 
@@ -367,6 +384,17 @@ export default function LiensPaiementPage() {
                                 Copier
                               </button>
                             </div>
+                          )}
+                          {l.webhookUrl && (
+                            <button
+                              type="button"
+                              onClick={() => testWebhook(l)}
+                              disabled={testingId === l.id}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#006e2f]/10 text-[#006e2f] text-[11px] font-semibold hover:bg-[#006e2f]/15 transition-colors disabled:opacity-60"
+                            >
+                              {testingId === l.id ? <Loader2 size={12} className="animate-spin" /> : <Webhook size={12} />}
+                              {testingId === l.id ? "Envoi…" : "Tester le webhook"}
+                            </button>
                           )}
                         </div>
                       )}
