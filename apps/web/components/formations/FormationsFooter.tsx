@@ -109,6 +109,7 @@ export function FormationsFooter() {
         <div className="flex gap-6">
           <Link href="/cgu" className="hover:text-slate-600 transition-colors">CGU</Link>
           <Link href="/confidentialite" className="hover:text-slate-600 transition-colors">Confidentialité</Link>
+          <Link href="/mentions-legales" className="hover:text-slate-600 transition-colors">Mentions légales</Link>
           <Link href="/cookies" className="hover:text-slate-600 transition-colors">Cookies</Link>
         </div>
       </div>
