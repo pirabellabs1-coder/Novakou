@@ -25,7 +25,7 @@ function ReturnInner() {
   const [redirectTo, setRedirectTo] = useState<string>("/apprenant/mes-formations");
 
   // Pixels marketing des vendeurs concernés + montant pour event Purchase
-  const [purchasePixels, setPurchasePixels] = useState<Array<{ type: "FACEBOOK" | "GOOGLE" | "TIKTOK"; pixelId: string }>>([]);
+  const [purchasePixels, setPurchasePixels] = useState<Array<{ type: "FACEBOOK" | "GOOGLE" | "TIKTOK" | "SNAPCHAT" | "PINTEREST"; pixelId: string }>>([]);
   const [purchaseAmount, setPurchaseAmount] = useState<number>(0);
 
   useEffect(() => {

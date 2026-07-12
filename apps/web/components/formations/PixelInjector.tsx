@@ -3,10 +3,14 @@
 import { useEffect } from "react";
 import Script from "next/script";
 
-interface Pixel {
-  type: "FACEBOOK" | "GOOGLE" | "TIKTOK";
+export interface Pixel {
+  type: "FACEBOOK" | "GOOGLE" | "TIKTOK" | "SNAPCHAT" | "PINTEREST";
   pixelId: string;
 }
+
+// Mappe l'event générique (nomenclature Facebook) vers chaque plateforme.
+const SNAP_EVENTS: Record<string, string> = { PageView: "PAGE_VIEW", ViewContent: "VIEW_CONTENT", InitiateCheckout: "START_CHECKOUT", Purchase: "PURCHASE" };
+const PIN_EVENTS: Record<string, string> = { PageView: "pagevisit", ViewContent: "pagevisit", InitiateCheckout: "addtocart", Purchase: "checkout" };
 
 interface Props {
   pixels: Pixel[];
@@ -26,6 +30,8 @@ export function PixelInjector({ pixels, event }: Props) {
   const fbPixel = pixels.find((p) => p.type === "FACEBOOK");
   const gaPixel = pixels.find((p) => p.type === "GOOGLE");
   const ttPixel = pixels.find((p) => p.type === "TIKTOK");
+  const snapPixel = pixels.find((p) => p.type === "SNAPCHAT");
+  const pinPixel = pixels.find((p) => p.type === "PINTEREST");
 
   // Fire custom event after mount (if any)
   useEffect(() => {
@@ -34,12 +40,17 @@ export function PixelInjector({ pixels, event }: Props) {
       fbq?: (action: string, eventName: string, params?: Record<string, unknown>) => void;
       gtag?: (...args: unknown[]) => void;
       ttq?: { track: (event: string, params?: Record<string, unknown>) => void };
+      snaptr?: (action: string, eventName: string, params?: Record<string, unknown>) => void;
+      pintrk?: (action: string, eventName: string, params?: Record<string, unknown>) => void;
     };
     setTimeout(() => {
       try {
-        if (w.fbq) w.fbq("track", event.name, event.value ? { value: event.value, currency: event.currency ?? "XOF" } : undefined);
-        if (w.gtag) w.gtag("event", event.name, event.value ? { value: event.value, currency: event.currency ?? "XOF" } : {});
-        if (w.ttq) w.ttq.track(event.name, event.value ? { value: event.value, currency: event.currency ?? "XOF" } : undefined);
+        const val = event.value ? { value: event.value, currency: event.currency ?? "XOF" } : undefined;
+        if (w.fbq) w.fbq("track", event.name, val);
+        if (w.gtag) w.gtag("event", event.name, val ?? {});
+        if (w.ttq) w.ttq.track(event.name, val);
+        if (w.snaptr) w.snaptr("track", SNAP_EVENTS[event.name] ?? event.name, event.value ? { price: event.value, currency: event.currency ?? "XOF" } : undefined);
+        if (w.pintrk && PIN_EVENTS[event.name]) w.pintrk("track", PIN_EVENTS[event.name], val);
       } catch {
         // pixel libs not yet ready; swallow errors
       }
@@ -96,6 +107,28 @@ export function PixelInjector({ pixels, event }: Props) {
               ttq.load('${ttPixel.pixelId}');
               ttq.page();
             }(window, document, 'ttq');
+          `}
+        </Script>
+      )}
+
+      {/* ── Snapchat Pixel ────────────────────────────────────────────── */}
+      {snapPixel && (
+        <Script id="snap-pixel" strategy="afterInteractive">
+          {`
+            (function(e,t,n){if(e.snaptr)return;var a=e.snaptr=function(){a.handleRequest?a.handleRequest.apply(a,arguments):a.queue.push(arguments)};a.queue=[];var s='script';var r=t.createElement(s);r.async=!0;r.src=n;var u=t.getElementsByTagName(s)[0];u.parentNode.insertBefore(r,u);})(window,document,'https://sc-static.net/scevent.min.js');
+            snaptr('init', '${snapPixel.pixelId}');
+            snaptr('track', 'PAGE_VIEW');
+          `}
+        </Script>
+      )}
+
+      {/* ── Pinterest Tag ─────────────────────────────────────────────── */}
+      {pinPixel && (
+        <Script id="pinterest-tag" strategy="afterInteractive">
+          {`
+            !function(e){if(!window.pintrk){window.pintrk=function(){window.pintrk.queue.push(Array.prototype.slice.call(arguments))};var n=window.pintrk;n.queue=[],n.version="3.0";var t=document.createElement("script");t.async=!0,t.src=e;var r=document.getElementsByTagName("script")[0];r.parentNode.insertBefore(t,r)}}("https://s.pinimg.com/ct/core.js");
+            pintrk('load', '${pinPixel.pixelId}');
+            pintrk('page');
           `}
         </Script>
       )}

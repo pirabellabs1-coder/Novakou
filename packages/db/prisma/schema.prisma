@@ -1500,6 +1500,8 @@ enum PixelType {
   FACEBOOK
   GOOGLE
   TIKTOK
+  SNAPCHAT
+  PINTEREST
 }
 
 enum MarketingEventType {

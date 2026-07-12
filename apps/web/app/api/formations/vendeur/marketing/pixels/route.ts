@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     const { type, pixelId } = body;
 
     if (!type || !pixelId) return NextResponse.json({ error: "type et pixelId requis" }, { status: 400 });
-    if (!["FACEBOOK", "GOOGLE", "TIKTOK"].includes(type)) {
+    if (!["FACEBOOK", "GOOGLE", "TIKTOK", "SNAPCHAT", "PINTEREST"].includes(type)) {
       return NextResponse.json({ error: "Type invalide" }, { status: 400 });
     }
 

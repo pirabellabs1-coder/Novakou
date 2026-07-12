@@ -8,6 +8,8 @@ import {
   Facebook,
   Chrome,
   Music,
+  Ghost,
+  MapPin,
   Info,
   Pencil,
   Trash2,
@@ -24,7 +26,7 @@ import {
 
 type Pixel = {
   id: string;
-  type: "FACEBOOK" | "GOOGLE" | "TIKTOK";
+  type: "FACEBOOK" | "GOOGLE" | "TIKTOK" | "SNAPCHAT" | "PINTEREST";
   pixelId: string;
   isActive: boolean;
   createdAt: string;
@@ -54,6 +56,22 @@ const PIXEL_CONFIG: Record<string, { label: string; icon: LucideIcon; bg: string
     color: "text-[#010101]",
     placeholder: "CXXXXXXXXXXXXXXXXX",
     description: "Optimisez vos campagnes TikTok Ads et suivez les achats depuis l'application.",
+  },
+  SNAPCHAT: {
+    label: "Snapchat Pixel",
+    icon: Ghost,
+    bg: "bg-yellow-50",
+    color: "text-yellow-500",
+    placeholder: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    description: "Suivez les conversions Snapchat Ads et créez des audiences pour vos publicités.",
+  },
+  PINTEREST: {
+    label: "Pinterest Tag",
+    icon: MapPin,
+    bg: "bg-red-50",
+    color: "text-[#e60023]",
+    placeholder: "2612xxxxxxxxx",
+    description: "Mesurez les conversions Pinterest Ads et suivez les achats depuis vos épingles.",
   },
 };
 
@@ -123,7 +141,7 @@ export default function PixelsPage() {
 
       {/* Pixel cards */}
       <div className="space-y-4">
-        {(["FACEBOOK", "GOOGLE", "TIKTOK"] as const).map((type) => {
+        {(["FACEBOOK", "GOOGLE", "TIKTOK", "SNAPCHAT", "PINTEREST"] as const).map((type) => {
           const cfg = PIXEL_CONFIG[type];
           const CfgIcon = cfg.icon;
           const existing = pixelMap[type];

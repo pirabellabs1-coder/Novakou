@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { ShieldCheck, Loader2, Lock } from "lucide-react";
 import AdaptiveImage from "@/components/formations/AdaptiveImage";
-import { PixelInjector } from "@/components/formations/PixelInjector";
+import { PixelInjector, type Pixel } from "@/components/formations/PixelInjector";
 import { useToastStore } from "@/store/toast";
 
 interface Link {
@@ -93,7 +93,7 @@ export default function PayerClient({ link, pixels = [] }: { link: Link; pixels?
   return (
     <div className="max-w-md mx-auto px-5 py-8 md:py-12">
       {/* Pixels du vendeur (FB/Google/TikTok) — event ViewContent pour le suivi des pubs. */}
-      <PixelInjector pixels={pixels as { type: "FACEBOOK" | "GOOGLE" | "TIKTOK"; pixelId: string }[]} event={{ name: "ViewContent", value: link.price, currency: "XOF" }} />
+      <PixelInjector pixels={pixels as Pixel[]} event={{ name: "ViewContent", value: link.price, currency: "XOF" }} />
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 overflow-hidden">
         {/* Visuel */}
         {link.thumbnail && (

@@ -143,7 +143,7 @@ interface Theme {
 }
 
 interface Pixel {
-  type: "FACEBOOK" | "GOOGLE" | "TIKTOK";
+  type: "FACEBOOK" | "GOOGLE" | "TIKTOK" | "SNAPCHAT" | "PINTEREST";
   pixelId: string;
 }
 

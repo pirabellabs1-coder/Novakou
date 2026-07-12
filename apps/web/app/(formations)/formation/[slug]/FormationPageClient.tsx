@@ -79,7 +79,7 @@ interface Instructeur {
   bio: string | null;
   expertise: string[];
   yearsExp: number;
-  marketingPixels?: Array<{ type: "FACEBOOK" | "GOOGLE" | "TIKTOK"; pixelId: string }>;
+  marketingPixels?: Array<{ type: "FACEBOOK" | "GOOGLE" | "TIKTOK" | "SNAPCHAT" | "PINTEREST"; pixelId: string }>;
 }
 
 interface Formation {

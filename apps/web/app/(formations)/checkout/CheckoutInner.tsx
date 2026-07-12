@@ -166,7 +166,7 @@ export default function CheckoutInner() {
   const [acceptedBumpIds, setAcceptedBumpIds] = useState<string[]>([]);
 
   // ── Pixels marketing vendeurs (FB, Google, TikTok) ──────────────────────
-  const [checkoutPixels, setCheckoutPixels] = useState<Array<{ type: "FACEBOOK" | "GOOGLE" | "TIKTOK"; pixelId: string }>>([]);
+  const [checkoutPixels, setCheckoutPixels] = useState<Array<{ type: "FACEBOOK" | "GOOGLE" | "TIKTOK" | "SNAPCHAT" | "PINTEREST"; pixelId: string }>>([]);
 
   // ── Charger la liste des providers de paiement disponibles ─────────────
   // Source unique de vérité = /api/formations/payment/providers (vérifie les
