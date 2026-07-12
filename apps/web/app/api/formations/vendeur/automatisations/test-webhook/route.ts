@@ -5,11 +5,33 @@ import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 
 import { getActiveShopId } from "@/lib/formations/active-shop";
+/**
+ * Bloque les cibles internes (anti-SSRF) : le webhook part du serveur, il ne
+ * doit pas pouvoir sonder le réseau privé, le loopback, ni l'IP de métadonnées
+ * cloud (169.254.169.254).
+ */
+function isInternalHost(host: string): boolean {
+  const h = host.toLowerCase().replace(/^\[|\]$/g, ""); // retire les crochets IPv6
+  if (h === "localhost" || h.endsWith(".localhost") || h.endsWith(".internal") || h.endsWith(".local")) return true;
+  if (h === "::1" || h.startsWith("fc") || h.startsWith("fd") || h.startsWith("fe80")) return true; // IPv6 loopback/ULA/link-local
+  const m = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (m) {
+    const [a, b] = [Number(m[1]), Number(m[2])];
+    if (a === 127 || a === 0 || a === 10) return true; // loopback / « ce réseau » / privé
+    if (a === 169 && b === 254) return true; // link-local + métadonnées cloud
+    if (a === 172 && b >= 16 && b <= 31) return true; // privé
+    if (a === 192 && b === 168) return true; // privé
+  }
+  return false;
+}
+
 function isValidUrl(raw: unknown): raw is string {
   if (typeof raw !== "string") return false;
   try {
     const u = new URL(raw);
-    return u.protocol === "http:" || u.protocol === "https:";
+    if (u.protocol !== "http:" && u.protocol !== "https:") return false;
+    if (isInternalHost(u.hostname)) return false;
+    return true;
   } catch {
     return false;
   }

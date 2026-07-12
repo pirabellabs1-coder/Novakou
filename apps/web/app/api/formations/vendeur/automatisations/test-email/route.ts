@@ -25,7 +25,6 @@ export async function POST(request: Request) {
     });
     if (!ctx) {
       return NextResponse.json({ error: "Session invalide" }, { status: 401 });
-    const activeShopId = await getActiveShopId(session, { devFallback: IS_DEV ? "dev-instructeur-001" : undefined });
     }
 
     // Resolve recipient email
