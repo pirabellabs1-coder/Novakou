@@ -27,6 +27,10 @@ export const metadata: Metadata = {
   },
 };
 
+// ISR : rendu identique au pattern de l'accueil (qui rend bien son JSON-LD).
+// En pur statique, l'inline <script application/ld+json> était omis du rendu.
+export const revalidate = 86400;
+
 const PILLARS = [
   { Icon: Wallet, title: "Paiement séquestré (escrow)", desc: "À chaque commande, les fonds sont sécurisés puis libérés au vendeur seulement une fois la vente confirmée. En cas de litige, ils sont gelés jusqu'au verdict." },
   { Icon: Fingerprint, title: "Vendeurs vérifiés (KYC)", desc: "Les vendeurs et mentors passent une vérification d'identité avant de publier des offres payantes et de retirer des fonds — un rempart contre la fraude." },
