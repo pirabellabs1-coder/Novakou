@@ -219,7 +219,6 @@ model User {
   paymentsAsPayee     Payment[]            @relation("PaymentPayee")
   bids                Bid[]
   contractsSigned     ContractSignature[]
-  automations         AutomationScenario[]
   affiliationCodes    AffiliationCode[]
   blogPosts           BlogPost[]
   kycRequests         KycRequest[]
@@ -655,26 +654,8 @@ model ContractSignature {
   @@unique([contractId, userId])
 }
 
-model AutomationScenario {
-  id             String           @id @default(cuid())
-  userId         String
-  name           String
-  trigger        String // "order_accepted", "deadline_24h", "client_inactive_3d"
-  conditions     Json? // conditions supplementaires
-  actions        Json // actions a executer
-  status         AutomationStatus @default(BROUILLON)
-  planRequired   UserPlan         @default(PRO) // plan minimum requis
-  executionCount Int              @default(0)
-  lastExecutedAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([status])
-}
+// (Supprimé) model AutomationScenario — système legacy sans exécuteur, retiré
+// le 2026-07-12. Remplacé par AutomationWorkflow (dashboard /vendeur/automatisations).
 
 model AffiliationCode {
   id          String  @id @default(cuid())
