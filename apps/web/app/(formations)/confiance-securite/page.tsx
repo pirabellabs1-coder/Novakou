@@ -53,29 +53,6 @@ export default function ConfianceSecuritePage() {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
   return (
     <div className="min-h-screen bg-[#f7f9fb]">
-      {/* JSON-LD : fil d'Ariane + FAQ (rich results + GEO). Un SEUL script (tableau)
-          car React 19 déduplique/omet des <script> inline consécutifs. */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify([
-            {
-              "@context": "https://schema.org",
-              "@type": "BreadcrumbList",
-              itemListElement: [
-                { "@type": "ListItem", position: 1, name: "Accueil", item: baseUrl },
-                { "@type": "ListItem", position: 2, name: "Confiance & sécurité", item: `${baseUrl}/confiance-securite` },
-              ],
-            },
-            {
-              "@context": "https://schema.org",
-              "@type": "FAQPage",
-              mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
-            },
-          ]),
-        }}
-      />
-
       {/* HERO */}
       <section className="py-14 px-6" style={{ background: "linear-gradient(135deg, #003d1a 0%, #006e2f 55%, #22c55e 100%)" }}>
         <div className="max-w-4xl mx-auto text-center">
@@ -91,6 +68,30 @@ export default function ConfianceSecuritePage() {
           </p>
         </div>
       </section>
+
+      {/* JSON-LD : fil d'Ariane + FAQ en un seul objet @graph (pattern qui rend
+          de façon fiable, cf. FAQPage de l'accueil). */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "BreadcrumbList",
+                itemListElement: [
+                  { "@type": "ListItem", position: 1, name: "Accueil", item: baseUrl },
+                  { "@type": "ListItem", position: 2, name: "Confiance & sécurité", item: `${baseUrl}/confiance-securite` },
+                ],
+              },
+              {
+                "@type": "FAQPage",
+                mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+              },
+            ],
+          }),
+        }}
+      />
 
       {/* PILIERS */}
       <section className="max-w-5xl mx-auto px-6 py-12 md:py-16">
