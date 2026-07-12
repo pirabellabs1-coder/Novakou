@@ -36,6 +36,7 @@ export const dynamic = "force-dynamic";
 
 const VALID_STEP_TYPES = new Set([
   "LANDING",
+  "CAPTURE",
   "PRODUCT",
   "CHECKOUT",
   "UPSELL",
@@ -44,25 +45,26 @@ const VALID_STEP_TYPES = new Set([
   "THANK_YOU",
 ]);
 
+// Ensemble complet des blocs supportés par l'éditeur/rendu (miroir du switch
+// renderBlockInner). Exclut volontairement "html" et "embed" (passe-plats HTML
+// bruts) pour ne pas exposer la génération IA à une injection de balisage.
 const VALID_BLOCK_TYPES = new Set([
-  "hero",
-  "features",
-  "countdown",
-  "testimonials",
-  "faq",
-  "cta",
-  "heading",
-  "text",
-  "pricing",
-  "stats",
-  "image",
-  "button",
-  "divider",
-  "spacer",
-  "video",
-  "list",
-  "icon-box",
-  "content-box",
+  // Layout / conteneurs
+  "section", "row", "content-box", "divider", "spacer",
+  // Titres / textes
+  "heading", "text", "list", "icon-list", "quote", "callout", "alert",
+  // Héros / CTA
+  "hero", "cta", "button", "button-group", "floating-cta", "whatsapp",
+  // Preuve / réassurance
+  "features", "testimonials", "stats", "counter", "rating", "social-proof",
+  "logo-bar", "team", "guarantee", "before-after", "comparison", "steps",
+  "timeline", "zigzag", "faq", "icon-box", "badge",
+  // Offre / conversion
+  "pricing", "price-list", "product", "checkout", "lead-form",
+  "countdown", "scarcity", "progress", "circular-progress",
+  // Médias / divers
+  "image", "image-gallery", "video", "audio", "flip-card", "tabs",
+  "accordion", "post-card", "social-share",
 ]);
 
 function slugify(s: string): string {
@@ -170,6 +172,7 @@ export async function POST(request: Request) {
         stepOrder: index + 1,
         stepType: s.stepType as
           | "LANDING"
+          | "CAPTURE"
           | "PRODUCT"
           | "CHECKOUT"
           | "UPSELL"

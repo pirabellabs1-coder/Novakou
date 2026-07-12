@@ -10,6 +10,7 @@ import {
   Sparkles,
   Plus,
   Download,
+  LayoutTemplate,
   ArrowRight,
   Loader2,
   PlusCircle,
@@ -206,6 +207,9 @@ export default function FunnelsListPage() {
               <StButton variant="secondary" onClick={importFromSysteme} icon={Download}>
                 Importer Systeme.io
               </StButton>
+              <StButton variant="secondary" href="/vendeur/marketing/funnels/nouveau-modele" icon={LayoutTemplate}>
+                Modèles de tunnels
+              </StButton>
               <StButton variant="secondary" href="/vendeur/marketing/funnels/nouveau-ai" icon={Sparkles}>
                 Générer avec l&apos;IA
               </StButton>
@@ -229,8 +233,9 @@ export default function FunnelsListPage() {
             <p className="text-[12.5px] font-semibold mt-1.5 max-w-md mx-auto" style={{ color: ST.textSecondary }}>
               Un funnel de vente guide vos visiteurs depuis la découverte jusqu&apos;à l&apos;achat avec upsells et page de remerciement personnalisée.
             </p>
-            <div className="mt-4 flex justify-center">
-              <StButton href="/vendeur/marketing/funnels/nouveau-ai" icon={Sparkles}>Générer avec l&apos;IA</StButton>
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              <StButton href="/vendeur/marketing/funnels/nouveau-modele" icon={LayoutTemplate}>Partir d&apos;un modèle</StButton>
+              <StButton variant="secondary" href="/vendeur/marketing/funnels/nouveau-ai" icon={Sparkles}>Générer avec l&apos;IA</StButton>
             </div>
           </StCard>
         ) : (
