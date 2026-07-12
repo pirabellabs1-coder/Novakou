@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 import {
   Link2,
@@ -164,6 +165,12 @@ export default function LiensPaiementPage() {
               Encaissez n&apos;importe quel montant. Partagez le lien ou intégrez-le sur votre site.
               Commission 10 %, compté comme une vente.
             </p>
+            <Link
+              href="/vendeur/liens-paiement/documentation"
+              className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#006e2f] hover:underline mt-1.5"
+            >
+              <Code2 size={14} /> Documentation d&apos;intégration (redirection + webhook)
+            </Link>
           </div>
           <button
             onClick={() => setShowForm((s) => !s)}
