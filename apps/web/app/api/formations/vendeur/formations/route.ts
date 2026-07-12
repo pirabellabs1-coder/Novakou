@@ -17,10 +17,14 @@ export async function GET() {
     if (!ctx) return NextResponse.json({ data: null });
     const userId = ctx.userId;
 
-    // Multi-shop : ne montrer que les produits de la boutique active
+    // Multi-shop : ne montrer que les produits de la boutique active.
+    // On inclut AUSSI les produits sans boutique (shopId: null) — auto-guérison
+    // des produits créés par une route qui a oublié de poser shopId (ex. API v1,
+    // anciens imports) : sinon ils sont publics mais INVISIBLES pour le vendeur.
     const activeShopId = await getActiveShopId(session, {
       devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
     });
+    const shopWhere = activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : undefined;
 
     const profile = await prisma.instructeurProfile.findUnique({
       where: { userId },
@@ -28,7 +32,7 @@ export async function GET() {
         id: true,
         totalEarned: true,
         formations: {
-          where: activeShopId ? { shopId: activeShopId } : undefined,
+          where: shopWhere,
           orderBy: { createdAt: "desc" },
           select: {
             id: true,
@@ -49,7 +53,7 @@ export async function GET() {
           },
         },
         digitalProducts: {
-          where: activeShopId ? { shopId: activeShopId } : undefined,
+          where: shopWhere,
           orderBy: { createdAt: "desc" },
           select: {
             id: true,

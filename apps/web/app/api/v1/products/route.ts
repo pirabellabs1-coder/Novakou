@@ -267,6 +267,19 @@ export async function POST(request: NextRequest) {
     const slug = await uniqueSlug(title as string, kind);
     const shouldPublish = publish === true;
 
+    // Rattache le produit à la boutique PRIMAIRE du vendeur (même ordre que le
+    // dashboard : isPrimary puis ancienneté). SANS ça, shopId reste null et le
+    // produit — bien que public — n'apparaît PAS dans la liste du vendeur, qui
+    // est filtrée par la boutique active. Voir le même correctif sur les tunnels.
+    const shopId =
+      (
+        await prisma.vendorShop.findFirst({
+          where: { instructeurId: ctx.instructeurId },
+          orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
+          select: { id: true },
+        })
+      )?.id ?? null;
+
     if (kind === "formation") {
       const created = await prisma.formation.create({
         data: {
@@ -282,6 +295,7 @@ export async function POST(request: NextRequest) {
           isFree: (price as number) === 0,
           status: shouldPublish ? "ACTIF" : "BROUILLON",
           instructeurId: ctx.instructeurId,
+          shopId,
         },
         select: {
           id: true,
@@ -346,6 +360,7 @@ export async function POST(request: NextRequest) {
         isFree: (price as number) === 0,
         status: shouldPublish ? "ACTIF" : "BROUILLON",
         instructeurId: ctx.instructeurId,
+        shopId,
         ...(filesToCreate.length > 0 ? { files: { create: filesToCreate } } : {}),
       },
       include: {

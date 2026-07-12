@@ -25,7 +25,9 @@ export async function GET() {
     const activeShopId = await getActiveShopId(session, {
       devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
     });
-    const shopFilter = activeShopId ? { shopId: activeShopId } : {};
+    // Inclut aussi les items sans boutique (shopId: null) — auto-guérison des
+    // produits créés sans shopId (API v1, anciens imports) : sinon invisibles ici.
+    const shopFilter = activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {};
 
     // FIX : avant on ne renvoyait QUE formations + products. Le catalog
     // sert au funnel product picker → un vendeur ne pouvait pas ajouter
