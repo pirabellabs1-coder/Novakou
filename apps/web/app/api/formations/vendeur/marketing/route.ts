@@ -26,23 +26,23 @@ export async function GET() {
     const [discountCodes, popups, pixels, campaigns, affiliatePrograms, sequences, funnels] =
       await Promise.all([
         prisma.discountCode.findMany({
-          where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}) },
+          where: { instructeurId: pid, ...(activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {}) },
           select: { isActive: true, usedCount: true, revenue: true, totalDiscounted: true },
         }),
         prisma.smartPopup.findMany({
-          where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}) },
+          where: { instructeurId: pid, ...(activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {}) },
           select: { isActive: true, totalImpressions: true, totalClicks: true, totalConversions: true },
         }),
         prisma.marketingPixel.findMany({
-          where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}) },
+          where: { instructeurId: pid, ...(activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {}) },
           select: { type: true, isActive: true },
         }),
         prisma.campaignTracker.findMany({
-          where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}) },
+          where: { instructeurId: pid, ...(activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {}) },
           select: { isActive: true, totalClicks: true, totalConversions: true, totalRevenue: true },
         }),
         prisma.affiliateProgram.findMany({
-          where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}) },
+          where: { instructeurId: pid, ...(activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {}) },
           select: {
             isActive: true,
             affiliates: {
@@ -51,11 +51,11 @@ export async function GET() {
           },
         }),
         prisma.emailSequence.findMany({
-          where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}) },
+          where: { instructeurId: pid, ...(activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {}) },
           select: { isActive: true, totalEnrolled: true, totalCompleted: true },
         }),
         prisma.salesFunnel.findMany({
-          where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}) },
+          where: { instructeurId: pid, ...(activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {}) },
           select: { isActive: true, totalViews: true, totalConversions: true, totalRevenue: true },
         }),
       ]);

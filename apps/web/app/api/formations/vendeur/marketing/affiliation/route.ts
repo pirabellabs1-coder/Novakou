@@ -21,7 +21,7 @@ export async function GET() {
     if (!pid) return NextResponse.json({ data: { programs: [], stats: { totalAffiliates: 0, activeAffiliates: 0, totalClicks: 0, totalConversions: 0, totalEarned: 0, pendingEarnings: 0 } } });
 
     const programs = await prisma.affiliateProgram.findMany({
-      where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}) },
+      where: { instructeurId: pid, ...(activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {}) },
       include: {
         affiliates: {
           include: { user: { select: { name: true, email: true } } },
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
 
     if (!name) return NextResponse.json({ error: "Nom requis" }, { status: 400 });
 
-    const existing = await prisma.affiliateProgram.findFirst({ where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}) } });
+    const existing = await prisma.affiliateProgram.findFirst({ where: { instructeurId: pid, ...(activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {}) } });
     if (existing) return NextResponse.json({ error: "Vous avez déjà un programme actif" }, { status: 409 });
 
     const program = await prisma.affiliateProgram.create({

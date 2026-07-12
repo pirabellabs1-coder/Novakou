@@ -23,7 +23,7 @@ export async function GET() {
     const pid = _ctx.instructeurId;
 
     const popups = await prisma.smartPopup.findMany({
-      where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}) },
+      where: { instructeurId: pid, ...(activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {}) },
       orderBy: { createdAt: "desc" },
     });
 

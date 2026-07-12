@@ -53,7 +53,9 @@ export async function GET() {
           },
         },
         digitalProducts: {
-          where: shopWhere,
+          // Exclut les liens de paiement (produits cachés) — ils ont leur page
+          // dédiée et ne doivent pas polluer « Mes produits ».
+          where: { ...(shopWhere ?? {}), isPaymentLink: false },
           orderBy: { createdAt: "desc" },
           select: {
             id: true,

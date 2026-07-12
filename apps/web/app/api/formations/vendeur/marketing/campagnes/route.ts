@@ -30,7 +30,7 @@ export async function GET() {
     const pid = _ctx.instructeurId;
 
     const campaigns = await prisma.campaignTracker.findMany({
-      where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}) },
+      where: { instructeurId: pid, ...(activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {}) },
       orderBy: { createdAt: "desc" },
     });
 

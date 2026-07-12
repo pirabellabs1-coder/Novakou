@@ -26,7 +26,7 @@ export async function GET() {
     });
 
     const codes = await prisma.discountCode.findMany({
-      where: { instructeurId: profile.id, ...(activeShopId ? { shopId: activeShopId } : {}) },
+      where: { instructeurId: profile.id, ...(activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {}) },
       orderBy: { createdAt: "desc" },
       include: { _count: { select: { usages: true } } },
     });

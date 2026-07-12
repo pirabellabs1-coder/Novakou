@@ -23,7 +23,7 @@ export async function GET() {
     const pid = _ctx.instructeurId;
 
     const pixels = await prisma.marketingPixel.findMany({
-      where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}) },
+      where: { instructeurId: pid, ...(activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {}) },
       orderBy: { createdAt: "asc" },
     });
 

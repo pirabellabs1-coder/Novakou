@@ -37,7 +37,7 @@ export async function GET() {
     const bumps = await prisma.orderBump.findMany({
       where: {
         instructeurId: ctx.instructeurId,
-        ...(activeShopId ? { shopId: activeShopId } : {}),
+        ...(activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {}),
       },
       orderBy: { createdAt: "desc" },
       include: {

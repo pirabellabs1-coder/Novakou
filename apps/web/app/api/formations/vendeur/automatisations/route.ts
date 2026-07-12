@@ -28,12 +28,12 @@ export async function GET() {
 
     const [workflows, sequences] = await Promise.all([
       prisma.automationWorkflow.findMany({
-        where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}) },
+        where: { instructeurId: pid, ...(activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {}) },
         orderBy: { createdAt: "desc" },
         include: { _count: { select: { logs: true } } },
       }),
       prisma.emailSequence.findMany({
-        where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}) },
+        where: { instructeurId: pid, ...(activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {}) },
         orderBy: { createdAt: "desc" },
         include: { _count: { select: { steps: true, enrollments: true } } },
       }),

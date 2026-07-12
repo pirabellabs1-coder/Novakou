@@ -38,7 +38,7 @@ export async function GET() {
   const bundles = await prisma.productBundle.findMany({
     where: {
       instructeurId: ctx.instructeurId,
-      ...(activeShopId ? { shopId: activeShopId } : {}),
+      ...(activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {}),
     },
     include: {
       items: {
