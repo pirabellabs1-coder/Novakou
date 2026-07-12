@@ -51,8 +51,31 @@ const FAQ = [
 ];
 
 export default function ConfianceSecuritePage() {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
   return (
     <div className="min-h-screen bg-[#f7f9fb]">
+      {/* JSON-LD : fil d'Ariane + FAQ (rich results + GEO). */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "BreadcrumbList",
+                itemListElement: [
+                  { "@type": "ListItem", position: 1, name: "Accueil", item: baseUrl },
+                  { "@type": "ListItem", position: 2, name: "Confiance & sécurité", item: `${baseUrl}/confiance-securite` },
+                ],
+              },
+              {
+                "@type": "FAQPage",
+                mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+              },
+            ],
+          }),
+        }}
+      />
       {/* HERO */}
       <section className="py-14 px-6" style={{ background: "linear-gradient(135deg, #003d1a 0%, #006e2f 55%, #22c55e 100%)" }}>
         <div className="max-w-4xl mx-auto text-center">

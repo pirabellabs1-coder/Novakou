@@ -38,7 +38,9 @@ const PUBLIC_ROUTES = [
   "/faq",
   "/cgu",
   "/confidentialite",
+  "/mentions-legales",  // Mentions légales (obligatoire, accès public)
   "/cookies",
+  "/confiance-securite", // Page publique confiance & sécurité (SEO/trust)
   "/aide",
   "/documentation-paiements", // Documentation publique des paiements
   "/certificat",
