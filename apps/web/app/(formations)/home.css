@@ -40,6 +40,11 @@
 /* Conteneur élargi pour la grille de cartes best-sellers (cartes plus larges). */
 .nkhome .wrap-lg{max-width:1320px}
 .nkhome .mkt-bleed{margin-top:8px}
+/* Les cartes BestSellers sont un composant React embarqué : la règle générique
+   `.nkhome h3{color:var(--ink)}` écrase sa classe Tailwind. On force le titre en
+   vert (comme les autres cartes marketplace) + léger foncé au survol. */
+.nkhome .mkt-bleed h3{color:#006e2f}
+.nkhome .mkt-bleed a:hover h3{color:#00481f}
 
 /* Étiquette */
 .nkhome .tag{display:inline-flex;align-items:center;gap:7px;font-size:.78rem;font-weight:600;letter-spacing:.02em;

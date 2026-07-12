@@ -244,7 +244,7 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
         )}
 
         {/* Title */}
-        <h3 className="font-extrabold text-[#191c1e] text-sm sm:text-base leading-snug line-clamp-2 mb-2 group-hover:text-[#006e2f] transition-colors min-h-[2.5rem] sm:min-h-[2.75rem]">
+        <h3 className="font-extrabold text-[#006e2f] text-sm sm:text-base leading-snug line-clamp-2 mb-2 group-hover:text-[#00481f] transition-colors min-h-[2.5rem] sm:min-h-[2.75rem]">
           {item.title}
         </h3>
 

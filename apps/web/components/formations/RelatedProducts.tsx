@@ -91,7 +91,7 @@ export function RelatedProducts({
                 )}
               </div>
               <div className="p-3">
-                <h3 className="text-[13px] font-extrabold text-[#191c1e] leading-snug line-clamp-2 min-h-[2.4rem] group-hover:text-[#006e2f] transition-colors">
+                <h3 className="text-[13px] font-extrabold text-[#006e2f] leading-snug line-clamp-2 min-h-[2.4rem] group-hover:text-[#00481f] transition-colors">
                   {it.title}
                 </h3>
                 {(it.rating > 0 || it.salesCount > 0) && (

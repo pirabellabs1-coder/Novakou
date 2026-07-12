@@ -543,7 +543,7 @@ export default function BoutiqueView({
                       )}
                     </div>
                     <div className="p-4">
-                      <h3 className="text-sm font-extrabold text-slate-900 leading-snug line-clamp-2 group-hover:text-emerald-700 transition-colors min-h-[2.5em]">
+                      <h3 className="text-sm font-extrabold leading-snug line-clamp-2 transition-colors min-h-[2.5em]" style={{ color: themeColor }}>
                         {item.title}
                       </h3>
                       {item.kind === "subscription" && item.description && (
