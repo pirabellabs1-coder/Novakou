@@ -9,8 +9,10 @@ import {
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Politique de cookies · Novakou",
-  description: "Comment Novakou utilise les cookies pour améliorer votre expérience. Détails par catégorie et droits utilisateurs.",
+  title: "Politique de cookies — Novakou",
+  description:
+    "Politique cookies de Novakou : qu'est-ce qu'un cookie, base légale et consentement, catégories (nécessaires, préférences, analytiques, marketing) avec durées, cookies tiers, et comment gérer vos préférences.",
+  alternates: { canonical: "/cookies" },
 };
 
 const COOKIE_CATEGORIES = [
@@ -45,9 +47,9 @@ const COOKIE_CATEGORIES = [
     color: "#f59e0b",
     title: "Analytiques",
     required: false,
-    desc: "Mesurent l'audience anonyme pour comprendre quelles pages fonctionnent. Aucune donnée personnelle.",
+    desc: "Mesurent l'audience de façon agrégée/pseudonymisée pour comprendre quelles pages fonctionnent et améliorer la Plateforme.",
     examples: [
-      { name: "_ga, _gid", purpose: "Google Analytics — statistiques agrégées", duration: "2 ans / 24h" },
+      { name: "ph_* (PostHog)", purpose: "Mesure d'audience produit (pages vues, parcours)", duration: "13 mois" },
     ],
   },
   {
@@ -56,10 +58,11 @@ const COOKIE_CATEGORIES = [
     color: "#dc2626",
     title: "Marketing & publicité",
     required: false,
-    desc: "Permettent de personnaliser les publicités sur d'autres sites en fonction de vos centres d'intérêt.",
+    desc: "Permettent de mesurer les conversions et de personnaliser les publicités sur d'autres sites. Certains sont déposés par les vendeurs (pixels de leur boutique) et par des tiers, qui appliquent leurs propres politiques.",
     examples: [
-      { name: "_fbp", purpose: "Pixel Facebook (mesure des conversions)", duration: "3 mois" },
+      { name: "_fbp", purpose: "Pixel Meta/Facebook (mesure des conversions)", duration: "3 mois" },
       { name: "ttp", purpose: "Pixel TikTok", duration: "13 mois" },
+      { name: "_ga", purpose: "Google (mesure/pub, selon intégration vendeur)", duration: "13 mois" },
     ],
   },
 ];
@@ -77,7 +80,7 @@ export default function CookiesPage() {
             Politique de cookies
           </h1>
           <p className="text-base text-[#5c647a] mt-4">
-            Dernière mise à jour : 15 avril 2026 · Transparence totale sur ce qu&apos;on stocke et pourquoi.
+            Dernière mise à jour : 12 juillet 2026 · Transparence totale sur ce qu&apos;on stocke et pourquoi.
           </p>
         </div>
       </section>
@@ -100,6 +103,34 @@ export default function CookiesPage() {
               Vous pouvez modifier vos préférences à tout moment depuis vos paramètres.
             </li>
           </ul>
+        </div>
+      </section>
+
+      {/* EXPLICATION + BASE LÉGALE */}
+      <section className="px-6 mb-12">
+        <div className="max-w-3xl mx-auto space-y-6 text-sm text-[#5c647a] leading-relaxed">
+          <div>
+            <h2 className="text-lg font-extrabold text-[#191c1e] mb-2">Qu&apos;est-ce qu&apos;un cookie ?</h2>
+            <p>
+              Un cookie est un petit fichier déposé sur votre appareil lorsque vous visitez un site. Il permet de
+              reconnaître votre navigateur, de mémoriser des informations (session, préférences) ou de mesurer l&apos;audience.
+              On distingue les cookies <strong>internes</strong> (déposés par Novakou) et <strong>tiers</strong> (déposés par
+              des partenaires), ainsi que les cookies de <strong>session</strong> (effacés à la fermeture du navigateur) et
+              <strong> persistants</strong> (conservés pendant une durée définie). Nous utilisons également des technologies
+              similaires (stockage local, pixels).
+            </p>
+          </div>
+          <div>
+            <h2 className="text-lg font-extrabold text-[#191c1e] mb-2">Base légale et consentement</h2>
+            <p>
+              Les cookies <strong>strictement nécessaires</strong> reposent sur notre intérêt légitime à fournir un service
+              fonctionnel et sûr ; ils ne requièrent pas votre consentement. Tous les autres cookies (préférences,
+              analytiques, marketing) ne sont déposés qu&apos;après votre <strong>consentement</strong>, recueilli via notre
+              bandeau à votre arrivée. Votre choix est conservé et vous est redemandé au plus tard tous les <strong>13 mois</strong>.
+              Vous pouvez le modifier ou le retirer à tout moment, sans que cela n&apos;affecte la licéité du traitement
+              antérieur.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -152,18 +183,33 @@ export default function CookiesPage() {
         </div>
       </section>
 
-      {/* DROITS */}
+      {/* GÉRER + DROITS */}
       <section className="px-6 pb-20">
         <div className="max-w-4xl mx-auto bg-slate-50 rounded-2xl p-8">
-          <h2 className="text-xl font-extrabold text-[#191c1e] mb-4">Vos droits</h2>
+          <h2 className="text-xl font-extrabold text-[#191c1e] mb-4">Gérer vos cookies &amp; vos droits</h2>
           <div className="space-y-3 text-sm text-[#5c647a] leading-relaxed">
-            <p>Conformément au Règlement Général sur la Protection des Données (RGPD) et aux législations équivalentes :</p>
+            <p>Conformément au RGPD et aux législations équivalentes, vous pouvez à tout moment :</p>
             <ul className="space-y-2 list-disc list-inside">
-              <li>Vous pouvez à tout moment <strong className="text-[#191c1e]">retirer votre consentement</strong> aux cookies non essentiels.</li>
-              <li>Vous pouvez configurer votre navigateur pour <strong className="text-[#191c1e]">bloquer ou supprimer les cookies</strong>.</li>
-              <li>Vous avez le droit d&apos;<strong className="text-[#191c1e]">accès, de rectification, d&apos;effacement</strong> de vos données.</li>
+              <li><strong className="text-[#191c1e]">Modifier ou retirer votre consentement</strong> aux cookies non essentiels via le bandeau ou les paramètres.</li>
+              <li><strong className="text-[#191c1e]">Configurer votre navigateur</strong> pour bloquer ou supprimer les cookies. La désactivation des cookies essentiels peut toutefois dégrader le fonctionnement du site.</li>
+              <li>Exercer vos droits d&apos;<strong className="text-[#191c1e]">accès, de rectification, d&apos;effacement, d&apos;opposition et de portabilité</strong> (voir notre <Link href="/confidentialite" className="text-[#006e2f] font-semibold underline">politique de confidentialité</Link>).</li>
             </ul>
-            <p className="pt-3">Pour exercer vos droits ou poser une question : <Link href="/contact" className="text-[#006e2f] font-semibold underline">contactez-nous</Link>.</p>
+            <p className="pt-1">
+              Réglages par navigateur :{" "}
+              <a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener noreferrer" className="text-[#006e2f] underline">Chrome</a>,{" "}
+              <a href="https://support.mozilla.org/fr/kb/cookies-informations-sites-enregistrent" target="_blank" rel="noopener noreferrer" className="text-[#006e2f] underline">Firefox</a>,{" "}
+              <a href="https://support.apple.com/fr-fr/guide/safari/sfri11471/mac" target="_blank" rel="noopener noreferrer" className="text-[#006e2f] underline">Safari</a>,{" "}
+              <a href="https://support.microsoft.com/fr-fr/windows/supprimer-et-g%C3%A9rer-les-cookies-168dab11-0753-043d-7c16-ede5947fc64d" target="_blank" rel="noopener noreferrer" className="text-[#006e2f] underline">Edge</a>.
+            </p>
+            <p>
+              <strong className="text-[#191c1e]">Cookies tiers</strong> : les cookies analytiques et marketing peuvent être
+              déposés par des partenaires (Meta, TikTok, Google, PostHog) qui appliquent leurs propres politiques de
+              confidentialité.
+            </p>
+            <p className="pt-2">
+              Pour toute question : <Link href="/contact" className="text-[#006e2f] font-semibold underline">contactez-nous</Link> ·
+              {" "}<Link href="/mentions-legales" className="text-[#006e2f] font-semibold underline">mentions légales</Link>.
+            </p>
           </div>
         </div>
       </section>
