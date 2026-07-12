@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import JsonLd from "@/components/JsonLd";
 import {
   ShieldCheck,
   Lock,
@@ -52,7 +51,6 @@ const FAQ = [
 ];
 
 export default function ConfianceSecuritePage() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
   return (
     <div className="min-h-screen bg-[#f7f9fb]">
       {/* HERO */}
@@ -70,27 +68,6 @@ export default function ConfianceSecuritePage() {
           </p>
         </div>
       </section>
-
-      {/* JSON-LD : fil d'Ariane + FAQ (rich results + GEO), via composant client
-          pour un rendu fiable en page pur-serveur. */}
-      <JsonLd
-        data={{
-          "@context": "https://schema.org",
-          "@graph": [
-            {
-              "@type": "BreadcrumbList",
-              itemListElement: [
-                { "@type": "ListItem", position: 1, name: "Accueil", item: baseUrl },
-                { "@type": "ListItem", position: 2, name: "Confiance & sécurité", item: `${baseUrl}/confiance-securite` },
-              ],
-            },
-            {
-              "@type": "FAQPage",
-              mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
-            },
-          ],
-        }}
-      />
 
       {/* PILIERS */}
       <section className="max-w-5xl mx-auto px-6 py-12 md:py-16">
