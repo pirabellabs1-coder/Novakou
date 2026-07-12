@@ -213,7 +213,7 @@ export async function BestSellers() {
                 <span className="text-[10px] font-semibold text-[#5c647a]">Nouveau</span>
               )}
             </div>
-            <h3 className="font-bold text-base md:text-lg mb-1 text-[#191c1e] line-clamp-2">{item.title}</h3>
+            <h3 className="font-bold text-base md:text-lg mb-1 text-[#191c1e] line-clamp-2 group-hover:text-[#006e2f] transition-colors">{item.title}</h3>
             <p className="text-sm text-[#5c647a] mb-3 line-clamp-2">{item.desc || "—"}</p>
             {/* Stats : avis à gauche, ventes à droite (justify-between pour espacer) */}
             <div className="flex items-center justify-between text-[11px] text-[#5c647a] mb-4">

@@ -315,7 +315,7 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
               className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-50 ${
                 added
                   ? "bg-[#22c55e] text-white"
-                  : "bg-[#191c1e] text-white hover:bg-[#006e2f] hover:shadow-md"
+                  : "bg-[#006e2f] text-white group-hover:bg-gradient-to-r group-hover:from-[#006e2f] group-hover:to-[#22c55e] group-hover:shadow-md"
               }`}
             >
               {added ? <CheckCircle2 size={16} /> : adding ? <Loader2 size={16} className="animate-spin" /> : item.price === 0 ? <Download size={16} /> : <ShoppingBag size={16} />}
