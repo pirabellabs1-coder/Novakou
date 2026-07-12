@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import JsonLd from "@/components/JsonLd";
 import {
   ShieldCheck,
   Lock,
@@ -27,9 +28,6 @@ export const metadata: Metadata = {
   },
 };
 
-// ISR : rendu identique au pattern de l'accueil (qui rend bien son JSON-LD).
-// En pur statique, l'inline <script application/ld+json> était omis du rendu.
-export const revalidate = 86400;
 
 const PILLARS = [
   { Icon: Wallet, title: "Paiement séquestré (escrow)", desc: "À chaque commande, les fonds sont sécurisés puis libérés au vendeur seulement une fois la vente confirmée. En cas de litige, ils sont gelés jusqu'au verdict." },
@@ -73,27 +71,24 @@ export default function ConfianceSecuritePage() {
         </div>
       </section>
 
-      {/* JSON-LD : fil d'Ariane + FAQ en un seul objet @graph (pattern qui rend
-          de façon fiable, cf. FAQPage de l'accueil). */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@graph": [
-              {
-                "@type": "BreadcrumbList",
-                itemListElement: [
-                  { "@type": "ListItem", position: 1, name: "Accueil", item: baseUrl },
-                  { "@type": "ListItem", position: 2, name: "Confiance & sécurité", item: `${baseUrl}/confiance-securite` },
-                ],
-              },
-              {
-                "@type": "FAQPage",
-                mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
-              },
-            ],
-          }),
+      {/* JSON-LD : fil d'Ariane + FAQ (rich results + GEO), via composant client
+          pour un rendu fiable en page pur-serveur. */}
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                { "@type": "ListItem", position: 1, name: "Accueil", item: baseUrl },
+                { "@type": "ListItem", position: 2, name: "Confiance & sécurité", item: `${baseUrl}/confiance-securite` },
+              ],
+            },
+            {
+              "@type": "FAQPage",
+              mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+            },
+          ],
         }}
       />
 
