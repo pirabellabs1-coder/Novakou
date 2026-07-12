@@ -30,7 +30,9 @@ export async function GET() {
     const plans = await prisma.subscriptionPlan.findMany({
       where: {
         instructeurId: ctx.instructeurId,
-        ...(activeShopId ? { shopId: activeShopId } : {}),
+        // Inclut les plans sans boutique (shopId: null) — auto-guérison des plans
+        // créés sans boutique active, sinon invisibles dans le dashboard.
+        ...(activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {}),
       },
       orderBy: { createdAt: "desc" },
       include: {

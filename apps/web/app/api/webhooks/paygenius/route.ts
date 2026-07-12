@@ -259,10 +259,28 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Plan introuvable" }, { status: 400 });
       }
 
+      // Idempotence : PayGenius peut re-livrer le même webhook. Si une facture
+      // existe déjà pour ce paymentRef, on ne recrée RIEN (sinon double facture,
+      // double PlatformRevenue = double crédit wallet, activeCount faussé).
+      const alreadyProcessed = await prisma.subscriptionInvoice.findFirst({
+        where: { paymentRef: reference },
+        select: { id: true },
+      });
+      if (alreadyProcessed) {
+        return NextResponse.json({ ok: true, type, alreadyProcessed: true });
+      }
+
       const periodStart = new Date();
       const periodEnd = new Date(periodStart);
       if (plan.interval === "yearly") periodEnd.setFullYear(periodEnd.getFullYear() + 1);
       else periodEnd.setMonth(periodEnd.getMonth() + 1);
+
+      // Trial : honoré comme sur Moneroo (statut "trialing" + trialEndsAt).
+      const hasTrial = !isRenewal && plan.trialDays && plan.trialDays > 0;
+      const initialStatus = hasTrial ? "trialing" : "active";
+      const trialEndsAt = hasTrial
+        ? new Date(periodStart.getTime() + (plan.trialDays as number) * 24 * 60 * 60 * 1000)
+        : null;
 
       const sub = await prisma.subscription.upsert({
         where: isRenewal && renewingSubId
@@ -271,12 +289,13 @@ export async function POST(req: Request) {
         create: {
           userId,
           planId,
-          status: "active",
+          status: initialStatus,
           currentPeriodStart: periodStart,
           currentPeriodEnd: periodEnd,
           lastPaymentAt: new Date(),
           totalPaid: plan.price,
           renewalCount: 0,
+          trialEndsAt,
         },
         update: {
           status: "active",

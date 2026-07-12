@@ -385,6 +385,17 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Plan introuvable" }, { status: 400 });
       }
 
+      // Idempotence : Moneroo peut re-livrer le même webhook. Si une facture
+      // existe déjà pour ce paymentRef, on ne recrée RIEN (sinon double facture,
+      // double PlatformRevenue = double crédit du wallet vendeur, activeCount faussé).
+      const alreadyProcessed = await prisma.subscriptionInvoice.findFirst({
+        where: { paymentRef: paymentId },
+        select: { id: true },
+      });
+      if (alreadyProcessed) {
+        return NextResponse.json({ ok: true, type, alreadyProcessed: true });
+      }
+
       const periodStart = new Date();
       const periodEnd = new Date(periodStart);
       if (plan.interval === "yearly") {

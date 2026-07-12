@@ -28,6 +28,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (typeof body.isActive === "boolean") update.isActive = body.isActive;
     if (Array.isArray(body.linkedFormationIds)) update.linkedFormationIds = body.linkedFormationIds;
     if (Array.isArray(body.linkedProductIds)) update.linkedProductIds = body.linkedProductIds;
+    // Champs auparavant ignorés au PATCH → l'édition (mensuel↔annuel, essai,
+    // plafond) était silencieusement perdue malgré un « Plan mis à jour ✓ ».
+    if (body.interval === "monthly" || body.interval === "yearly") update.interval = body.interval;
+    if (body.trialDays !== undefined)
+      update.trialDays = body.trialDays === null || body.trialDays === "" ? null : Math.max(0, Math.floor(Number(body.trialDays)) || 0);
+    if (body.maxMembers !== undefined)
+      update.maxMembers = body.maxMembers === null || body.maxMembers === "" ? null : Math.max(0, Math.floor(Number(body.maxMembers)) || 0);
 
     const updated = await prisma.subscriptionPlan.update({ where: { id }, data: update });
     return NextResponse.json({ data: updated });

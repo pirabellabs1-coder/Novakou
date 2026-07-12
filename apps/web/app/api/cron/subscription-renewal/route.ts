@@ -37,12 +37,15 @@ export async function GET(request: NextRequest) {
 
   const now = new Date();
   const horizon = new Date(now.getTime() + 24 * 60 * 60 * 1000); // +24h
+  const graceFloor = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000); // -14j
 
-  // Subscriptions actives proches de leur fin et qui ne sont pas annulées
+  // Subscriptions proches de leur fin (ou en past_due dans les 14j de grâce) et
+  // non annulées → on (re)envoie un lien de paiement. Inclure past_due donne un
+  // chemin de récupération in-app aux abonnés dont le 1er paiement a échoué.
   const subs = await prisma.subscription.findMany({
     where: {
-      status: { in: ["active", "trialing"] },
-      currentPeriodEnd: { lte: horizon },
+      status: { in: ["active", "trialing", "past_due"] },
+      currentPeriodEnd: { lte: horizon, gte: graceFloor },
       cancelAtPeriodEnd: false,
       // Pas de checkout déjà initié dans les 23h écoulées
       OR: [
@@ -130,10 +133,12 @@ export async function GET(request: NextRequest) {
         checkoutUrl = mnr.checkout_url;
       }
 
-      // Note the checkout link to dedupe within 23h.
+      // Note l'instant de relance pour dédupliquer dans les 23h (on n'écrit PAS
+      // l'URL dans paymentMethod : ce champ = snapshot du moyen de paiement, pas
+      // une URL de checkout, et il n'est lu nulle part).
       await prisma.subscription.update({
         where: { id: sub.id },
-        data: { nextInvoiceAt: now, paymentMethod: checkoutUrl ?? null },
+        data: { nextInvoiceAt: now },
       }).catch(() => null);
 
       // Email the apprenant the checkout link so they can pay.

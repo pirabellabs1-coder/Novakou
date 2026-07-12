@@ -117,6 +117,46 @@ export async function POST(req: Request, { params }: Params) {
       });
     }
 
+    // Essai gratuit (trialDays > 0) → PAS de débit immédiat. On crée directement
+    // l'abonnement en "trialing" avec accès complet ; à la fin de l'essai, le cron
+    // subscription-renewal envoie le 1er lien de paiement (currentPeriodEnd =
+    // trialEndsAt). Sans ça, l'acheteur était débité du plein tarif alors que
+    // l'UI promet « Essayer X jours gratuits ».
+    if (plan.trialDays && plan.trialDays > 0) {
+      const trialStart = new Date();
+      const trialEnd = new Date(trialStart.getTime() + plan.trialDays * 24 * 60 * 60 * 1000);
+      const sub = await prisma.subscription.create({
+        data: {
+          userId, planId: id, status: "trialing",
+          currentPeriodStart: trialStart, currentPeriodEnd: trialEnd,
+          trialEndsAt: trialEnd, totalPaid: 0, renewalCount: 0,
+        },
+      });
+      const subTag = `sub_${sub.id}`;
+      for (const fid of plan.linkedFormationIds) {
+        await prisma.enrollment.upsert({
+          where: { userId_formationId: { userId, formationId: fid } },
+          create: { userId, formationId: fid, paidAmount: 0, stripeSessionId: subTag },
+          update: {},
+        }).catch(() => null);
+      }
+      for (const pid of plan.linkedProductIds) {
+        await prisma.digitalProductPurchase.upsert({
+          where: { userId_productId: { userId, productId: pid } },
+          create: { userId, productId: pid, paidAmount: 0, stripeSessionId: subTag },
+          update: {},
+        }).catch(() => null);
+      }
+      await prisma.subscriptionPlan.update({
+        where: { id },
+        data: { activeCount: { increment: 1 } },
+      }).catch(() => null);
+
+      return NextResponse.json({
+        data: { trial: true, subscriptionId: sub.id, redirect_url: "/apprenant/abonnements" },
+      });
+    }
+
     // Paid plan → init payment
     const providerOk = provider === "paygenius" ? isPayGeniusConfigured() : isMonerooConfigured();
     if (!providerOk) {

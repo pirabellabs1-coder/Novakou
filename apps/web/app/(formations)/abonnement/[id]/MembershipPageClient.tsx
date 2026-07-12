@@ -79,7 +79,8 @@ export default function MembershipPageClient({ plan }: { plan: Plan }) {
         window.location.href = `/connexion?callbackUrl=${encodeURIComponent(`/abonnement/${plan.id}`)}`;
         return;
       }
-      if (j.data?.free) {
+      if (j.data?.free || j.data?.trial) {
+        // Plan gratuit ou démarrage d'essai gratuit → accès immédiat, pas de paiement.
         window.location.href = j.data.redirect_url ?? "/apprenant/abonnements";
         return;
       }

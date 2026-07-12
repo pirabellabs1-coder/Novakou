@@ -50,13 +50,14 @@ function reminderHtml(opts: {
         Bonjour ${escapeHtml(opts.userName ?? "")},
       </p>
       <p style="color:#374151;font-size:14px;line-height:1.7;margin:0 0 20px;">
-        Votre abonnement <strong style="color:#006e2f;">${escapeHtml(opts.planName)}</strong> sera renouvelé
-        <strong>${opts.daysAhead === 1 ? "demain" : "dans 3 jours"}</strong>, le ${date},
-        pour ${fmtAmount}.
+        Votre abonnement <strong style="color:#006e2f;">${escapeHtml(opts.planName)}</strong> arrive à échéance
+        <strong>${opts.daysAhead === 1 ? "demain" : "dans 3 jours"}</strong>, le ${date}
+        (${fmtAmount}).
       </p>
       <p style="color:#374151;font-size:14px;line-height:1.7;margin:0 0 24px;">
-        Aucune action requise — le renouvellement se fait automatiquement.
-        Si vous souhaitez arrêter votre abonnement, vous pouvez l'annuler depuis votre espace.
+        Pour continuer sans interruption, vous recevrez un lien de paiement sécurisé à régler
+        avant cette date (Mobile Money ou carte). Si vous préférez arrêter, vous pouvez annuler
+        votre abonnement depuis votre espace — aucun prélèvement automatique n'est effectué.
       </p>
       <p style="color:#6b7280;font-size:13px;line-height:1.6;margin:0;">
         Cordialement,<br/>L'équipe Novakou
