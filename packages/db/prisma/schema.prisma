@@ -3293,40 +3293,10 @@ model QuizAttempt {
 // MENTOR — Abonnements mensuels (X€/mois = Y sessions récurrentes)
 // ─────────────────────────────────────────────────────────────────────────────
 
-model MentorSubscriptionPlan {
-  id                    String   @id @default(cuid())
-  mentorId              String
-  title                 String   // "Coaching mensuel — 4 séances"
-  sessionsPerMonth      Int      // ex. 4
-  priceXofPerMonth      Int      // ex. 150000
-  sessionDurationMinutes Int     @default(60)
-  description           String?
-  isActive              Boolean  @default(true)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-
-  subscriptions         MentorSubscription[]
-
-  @@index([mentorId, isActive])
-}
-
-model MentorSubscription {
-  id               String   @id @default(cuid())
-  planId           String
-  userId           String
-  status           String   @default("ACTIVE") // "ACTIVE" | "PAUSED" | "CANCELLED"
-  currentPeriodStart DateTime @default(now())
-  currentPeriodEnd   DateTime
-  sessionsUsedThisPeriod Int    @default(0)
-  cancelledAt      DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  plan             MentorSubscriptionPlan @relation(fields: [planId], references: [id])
-
-  @@index([userId, status])
-  @@index([planId])
-}
+// (Supprimés) model MentorSubscriptionPlan / MentorSubscription — abonnement
+// mentor mensuel jamais branché (aucune route, UI, cron ni relation). Retiré le
+// 2026-07-12 ; table dropée via migration 2026071203_drop_mentor_subscriptions.
+// Le mentorat vivant = MentorBooking (séances ponctuelles).
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UTILISATEUR — Méthodes de paiement sauvegardées (1-click checkout)
