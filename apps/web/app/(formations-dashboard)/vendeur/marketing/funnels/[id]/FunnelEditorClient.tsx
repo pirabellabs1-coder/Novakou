@@ -68,6 +68,8 @@ import {
   Plus,
   SlidersHorizontal,
   ChevronDown,
+  ChevronRight,
+  Check,
   ArrowLeft,
   ArrowUp,
   ArrowDown,
@@ -103,6 +105,7 @@ import { BackgroundPicker } from "@/components/funnels/BackgroundPicker";
 import { ConfirmModal } from "@/components/funnels/ConfirmModal";
 import { TemplatePreviewMockup } from "@/components/funnels/TemplatePreviewMockup";
 import { LANDING_TEMPLATES } from "@/lib/funnels/templates";
+import { THEME_PRESETS, generatePalette, type FunnelPalette } from "@/lib/funnels/theme-engine";
 import { confirmAction } from "@/store/confirm";
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -162,6 +165,10 @@ interface Theme {
   bgColor: string;
   font: string;
   logoUrl?: string;
+  /** Palette harmonisée complète (générée depuis la couleur de marque). */
+  palette?: FunnelPalette;
+  /** Ambiance de fond : clair (par défaut) ou profond (sombre). */
+  ambiance?: "clair" | "profond";
 }
 
 interface Funnel {
@@ -3335,6 +3342,27 @@ export default function FunnelEditorClient({ id }: { id: string }) {
     } finally { if (seq === saveSeqRef.current) setSaving(false); }
   }
 
+  /**
+   * Applique une palette harmonisée complète au thème du tunnel. Tous les blocs
+   * existants se ré-harmonisent immédiatement (couleurs en styles inline).
+   * @param palette palette générée (AA garanti)
+   * @param ambiance clair (fond blanc/teinte claire) ou profond (fond nuit)
+   */
+  function applyPalette(palette: FunnelPalette, ambiance: "clair" | "profond" = "clair") {
+    save({
+      theme: {
+        ...(funnel?.theme ?? {}),
+        primaryColor: palette.primary,
+        accentColor: palette.accent,
+        textColor: ambiance === "profond" ? "#F4F6F5" : palette.ink,
+        bgColor: ambiance === "profond" ? palette.night : "#FFFFFF",
+        font: funnel?.theme?.font || "Sora",
+        palette,
+        ambiance,
+      },
+    });
+  }
+
   async function handleDelete() {
     const ok = await confirmAction({
       title: "Supprimer ce funnel définitivement ?",
@@ -3757,10 +3785,81 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                   <Palette size={12} />Thème du tunnel
                 </p>
                 <div className="space-y-3">
+                  {/* ── Palettes de marque prêtes à l'emploi (harmonisation AA) ── */}
+                  <div>
+                    <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1.5">Palette de marque</label>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {THEME_PRESETS.map((preset) => {
+                        const active = (funnel.theme?.primaryColor || "").toUpperCase() === preset.palette.primary.toUpperCase();
+                        return (
+                          <button
+                            key={preset.key}
+                            type="button"
+                            onClick={() => applyPalette(preset.palette, funnel.theme?.ambiance ?? "clair")}
+                            title={preset.label}
+                            className={`group relative h-11 rounded-lg overflow-hidden border transition-all ${active ? "border-[#191c1e] ring-2 ring-[#191c1e]/15" : "border-black/10 hover:border-black/25"}`}
+                            style={{ background: `linear-gradient(135deg, ${preset.palette.primary}, ${preset.palette.accent})` }}
+                          >
+                            {active && (
+                              <span className="absolute inset-0 flex items-center justify-center">
+                                <Check size={16} className="text-white drop-shadow" strokeWidth={3} />
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="text-[10px] text-[#8a968e] mt-1.5 leading-snug">
+                      {THEME_PRESETS.find((p) => (funnel.theme?.primaryColor || "").toUpperCase() === p.palette.primary.toUpperCase())?.label ?? "Palette personnalisée"} — contraste vérifié (AA).
+                    </p>
+                  </div>
+
+                  {/* ── Génération d'une palette depuis UNE couleur de marque ── */}
+                  <div className="rounded-xl bg-[#f7f9fb] border border-gray-100 p-2.5">
+                    <ColorPicker
+                      label="Générer depuis ma couleur de marque"
+                      value={funnel.theme?.primaryColor || "#006e2f"}
+                      onChange={(c) => { if (c) applyPalette(generatePalette(c), funnel.theme?.ambiance ?? "clair"); }}
+                    />
+                    <p className="text-[10px] text-[#8a968e] mt-1 leading-snug">Une seule couleur → toute la palette (survol, sections, textes) générée et harmonisée automatiquement.</p>
+                  </div>
+
+                  {/* ── Ambiance : clair / profond ── */}
+                  <div>
+                    <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1.5">Ambiance</label>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {([["clair", "Clair"], ["profond", "Profond"]] as const).map(([val, lbl]) => {
+                        const cur = funnel.theme?.ambiance ?? "clair";
+                        const on = cur === val;
+                        return (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => {
+                              const pal = funnel.theme?.palette ?? generatePalette(funnel.theme?.primaryColor || "#006e2f");
+                              applyPalette(pal, val);
+                            }}
+                            className={`h-9 rounded-lg text-xs font-semibold border transition-all ${on ? "border-[#191c1e] bg-[#191c1e] text-white" : "border-gray-200 bg-white text-[#5c647a] hover:border-gray-300"}`}
+                          >
+                            {lbl}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* ── Réglage fin (avancé) ── */}
+                  <details className="group">
+                    <summary className="cursor-pointer text-[10px] font-semibold text-[#5c647a] uppercase tracking-wide flex items-center gap-1 select-none [&::-webkit-details-marker]:hidden">
+                      <ChevronRight size={12} className="transition-transform group-open:rotate-90" />Réglage fin des couleurs
+                    </summary>
+                    <div className="space-y-3 pt-2.5">
                   <ColorPicker label="Couleur principale" value={funnel.theme?.primaryColor || "#006e2f"} onChange={(c) => save({ theme: { ...funnel.theme, primaryColor: c ?? "#006e2f" } })} />
                   <ColorPicker label="Couleur accent" value={funnel.theme?.accentColor || "#22c55e"} onChange={(c) => save({ theme: { ...funnel.theme, accentColor: c ?? "#22c55e" } })} />
                   <ColorPicker label="Couleur texte" value={funnel.theme?.textColor || "#191c1e"} onChange={(c) => save({ theme: { ...funnel.theme, textColor: c ?? "#191c1e" } })} />
                   <BackgroundPicker label="Fond de page" value={funnel.theme?.bgColor || "#f7f9fb"} onChange={(c) => save({ theme: { ...funnel.theme, bgColor: c ?? "#f7f9fb" } })} />
+                    </div>
+                  </details>
                   <div>
                     <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">Police</label>
                     <select
