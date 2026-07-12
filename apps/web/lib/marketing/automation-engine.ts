@@ -604,22 +604,153 @@ class ConditionNotMetError extends Error {
 
 // ── Get Active Workflows ─────────────────────────────────────────────────────
 
-export async function getActiveWorkflows(
-  triggerType: TriggerType
-): Promise<WorkflowDefinition[]> {
-  if (IS_DEV) {
-    const workflows = devGetWorkflows();
-    return workflows.filter((w) => w.isActive && w.triggerType === triggerType);
-  }
+/**
+ * Normalise la config d'une action stockée par l'éditeur vers ce que le moteur
+ * lit réellement. Rend le moteur tolérant aux divergences UI↔moteur (sans quoi
+ * les actions ne s'exécutent pas correctement) :
+ *   - type "WAIT" → "DELAY" (+ config.hours → config.delayMinutes)
+ *   - ADD_TAG/REMOVE_TAG : config.tagName → config.tag
+ *   - WEBHOOK : headers [{key,value}] → { [key]: value }
+ */
+function normalizeAction(a: { type: string; config?: Record<string, unknown> }): WorkflowAction {
+  let type = a.type as string;
+  const config: Record<string, unknown> = { ...(a.config ?? {}) };
 
-  // Production: query Prisma
-  // Note: MarketingWorkflow model would need to exist in schema.
-  // For now, return from JSON as fallback.
+  if (type === "WAIT") {
+    type = "DELAY";
+    if (config.delayMinutes === undefined && typeof config.hours === "number") {
+      config.delayMinutes = config.hours * 60;
+    }
+  }
+  if ((type === "ADD_TAG" || type === "REMOVE_TAG") && config.tag === undefined && typeof config.tagName === "string") {
+    config.tag = config.tagName;
+  }
+  if (type === "WEBHOOK" && Array.isArray(config.headers)) {
+    const obj: Record<string, string> = {};
+    for (const h of config.headers as Array<{ key?: string; value?: string }>) {
+      if (h && typeof h.key === "string" && h.key) obj[h.key] = String(h.value ?? "");
+    }
+    config.headers = obj;
+  }
+  return { type: type as ActionType, config };
+}
+
+/** Convertit une ligne Prisma AutomationWorkflow en WorkflowDefinition. */
+function toWorkflowDefinition(row: {
+  id: string;
+  name: string;
+  triggerType: string;
+  triggerConfig: unknown;
+  conditions: unknown;
+  actions: unknown;
+  status: string;
+  instructeurId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}): WorkflowDefinition {
+  const rawActions = Array.isArray(row.actions) ? (row.actions as Array<{ type: string; config?: Record<string, unknown> }>) : [];
+  return {
+    id: row.id,
+    name: row.name,
+    triggerType: row.triggerType as TriggerType,
+    triggerConfig: (row.triggerConfig as Record<string, unknown>) ?? undefined,
+    conditions: Array.isArray(row.conditions) ? (row.conditions as WorkflowCondition[]) : undefined,
+    actions: rawActions.map(normalizeAction),
+    isActive: row.status === "ACTIVE",
+    instructeurId: row.instructeurId,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
+/**
+ * Récupère les workflows ACTIFS d'un déclencheur donné, SCOPÉS au vendeur
+ * propriétaire (instructeurId). Lit la vraie table Prisma AutomationWorkflow.
+ *
+ * IMPORTANT : sans `instructeurId` (évènement non rattaché à un produit, ex.
+ * USER_SIGNUP), on ne lance AUCUN workflow — sinon on exécuterait les workflows
+ * de TOUS les vendeurs. Ceci remplace les anciens « seeds » codés en dur qui
+ * envoyaient un email générique à tous les acheteurs de tous les vendeurs.
+ */
+export async function getActiveWorkflows(
+  triggerType: TriggerType,
+  instructeurId?: string | null
+): Promise<WorkflowDefinition[]> {
+  if (!instructeurId) return [];
   try {
-    const workflows = devGetWorkflows();
-    return workflows.filter((w) => w.isActive && w.triggerType === triggerType);
-  } catch {
+    const { prisma } = await import("../prisma");
+    const rows = await prisma.automationWorkflow.findMany({
+      where: { triggerType: triggerType as never, status: "ACTIVE" as never, instructeurId },
+      select: {
+        id: true, name: true, triggerType: true, triggerConfig: true,
+        conditions: true, actions: true, status: true, instructeurId: true,
+        createdAt: true, updatedAt: true,
+      },
+    });
+    return rows.map(toWorkflowDefinition);
+  } catch (err) {
+    console.error("[Marketing] getActiveWorkflows Prisma error:", err);
     return [];
+  }
+}
+
+/**
+ * Résout le vendeur (instructeurId) propriétaire du produit concerné par
+ * l'évènement, à partir de metadata.formationId / metadata.productId.
+ */
+async function resolveOwnerInstructeurId(event: TriggerEvent): Promise<string | null> {
+  const md = event.metadata ?? {};
+  if (typeof md.instructeurId === "string") return md.instructeurId;
+  try {
+    const { prisma } = await import("../prisma");
+    if (typeof md.formationId === "string") {
+      const f = await prisma.formation.findUnique({ where: { id: md.formationId }, select: { instructeurId: true } });
+      return f?.instructeurId ?? null;
+    }
+    if (typeof md.productId === "string") {
+      const p = await prisma.digitalProduct.findUnique({ where: { id: md.productId }, select: { instructeurId: true } });
+      return p?.instructeurId ?? null;
+    }
+  } catch (err) {
+    console.error("[Marketing] resolveOwnerInstructeurId error:", err);
+  }
+  return null;
+}
+
+/**
+ * Journalise une exécution dans Prisma (AutomationLog) et met à jour les
+ * compteurs du workflow. Fire-and-forget : les erreurs ne cassent pas le flux.
+ */
+async function logExecutionPrisma(params: {
+  workflowId: string;
+  userId: string;
+  triggerType: TriggerType;
+  status: "success" | "failed" | "partial";
+  actionsRun: unknown;
+  error?: string;
+  executionMs: number;
+}): Promise<void> {
+  try {
+    const { prisma } = await import("../prisma");
+    await prisma.$transaction([
+      prisma.automationLog.create({
+        data: {
+          workflowId: params.workflowId,
+          userId: params.userId || null,
+          triggerEvent: params.triggerType,
+          actionsRun: (params.actionsRun as never) ?? [],
+          success: params.status !== "failed",
+          error: params.error ?? null,
+          executionMs: params.executionMs,
+        },
+      }),
+      prisma.automationWorkflow.update({
+        where: { id: params.workflowId },
+        data: { totalExecutions: { increment: 1 }, lastExecutedAt: new Date() },
+      }),
+    ]);
+  } catch (err) {
+    console.error("[Marketing] logExecutionPrisma error:", err);
   }
 }
 
@@ -639,11 +770,25 @@ export async function emitEvent(event: TriggerEvent): Promise<void> {
     console.error("[Marketing] Event bus propagation error:", err);
   }
 
-  // Find matching workflows
-  const workflows = await getActiveWorkflows(event.type);
+  // Find matching workflows — SCOPÉS au vendeur propriétaire du produit acheté.
+  const ownerInstructeurId = await resolveOwnerInstructeurId(event);
+  const allWorkflows = await getActiveWorkflows(event.type, ownerInstructeurId);
+
+  // Si un workflow cible un produit précis (triggerConfig.formationId/productId),
+  // il ne se déclenche QUE pour ce produit. Sans cible = tous les produits du vendeur.
+  const workflows = allWorkflows.filter((w) => {
+    const tc = w.triggerConfig ?? {};
+    const wantFormation = typeof tc.formationId === "string" ? tc.formationId : null;
+    const wantProduct = typeof tc.productId === "string" ? tc.productId : null;
+    if (!wantFormation && !wantProduct) return true;
+    return (
+      (!!wantFormation && wantFormation === event.metadata.formationId) ||
+      (!!wantProduct && wantProduct === event.metadata.productId)
+    );
+  });
 
   if (workflows.length === 0) {
-    console.log(`[Marketing] No active workflows for trigger: ${event.type}`);
+    console.log(`[Marketing] No active workflows for trigger: ${event.type} (owner=${ownerInstructeurId ?? "n/a"})`);
     return;
   }
 
@@ -671,16 +816,13 @@ export async function emitEvent(event: TriggerEvent): Promise<void> {
         console.log(
           `[Marketing] Conditions not met for workflow "${workflow.name}" (${workflow.id})`
         );
-        devLogExecution({
-          id: `exec-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        await logExecutionPrisma({
           workflowId: workflow.id,
           userId: event.userId,
           triggerType: event.type,
           status: "success",
-          actionsExecuted: 0,
-          actionsFailed: 0,
-          duration: Date.now() - startTime,
-          executedAt: new Date().toISOString(),
+          actionsRun: [],
+          executionMs: Date.now() - startTime,
         });
         continue;
       }
@@ -717,17 +859,14 @@ export async function emitEvent(event: TriggerEvent): Promise<void> {
     const status: ExecutionLog["status"] =
       actionsFailed === 0 ? "success" : actionsExecuted > 0 ? "partial" : "failed";
 
-    devLogExecution({
-      id: `exec-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    await logExecutionPrisma({
       workflowId: workflow.id,
       userId: event.userId,
       triggerType: event.type,
       status,
-      actionsExecuted,
-      actionsFailed,
+      actionsRun: { executed: actionsExecuted, failed: actionsFailed, results: context.results },
       error: executionError,
-      duration: Date.now() - startTime,
-      executedAt: new Date().toISOString(),
+      executionMs: Date.now() - startTime,
     });
 
     console.log(
