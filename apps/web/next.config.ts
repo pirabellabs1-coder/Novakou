@@ -102,7 +102,6 @@ const nextConfig: NextConfig = {
       { source: "/faq", destination: "/aide", permanent: true },
       { source: "/categories", destination: "/explorer", permanent: true },
       { source: "/comment-ca-marche", destination: "/a-propos", permanent: true },
-      { source: "/mentions-legales", destination: "/cgu", permanent: true },
       { source: "/status", destination: "/", permanent: true },
       { source: "/devenir-freelance", destination: "/inscription", permanent: true },
       { source: "/accueil", destination: "/", permanent: true },
