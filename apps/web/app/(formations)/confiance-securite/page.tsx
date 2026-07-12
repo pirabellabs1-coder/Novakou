@@ -53,28 +53,26 @@ export default function ConfianceSecuritePage() {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
   return (
     <div className="min-h-screen bg-[#f7f9fb]">
-      {/* JSON-LD : fil d'Ariane + FAQ (rich results + GEO) */}
+      {/* JSON-LD : fil d'Ariane + FAQ (rich results + GEO). Un SEUL script (tableau)
+          car React 19 déduplique/omet des <script> inline consécutifs. */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            itemListElement: [
-              { "@type": "ListItem", position: 1, name: "Accueil", item: baseUrl },
-              { "@type": "ListItem", position: 2, name: "Confiance & sécurité", item: `${baseUrl}/confiance-securite` },
-            ],
-          }),
-        }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
-          }),
+          __html: JSON.stringify([
+            {
+              "@context": "https://schema.org",
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                { "@type": "ListItem", position: 1, name: "Accueil", item: baseUrl },
+                { "@type": "ListItem", position: 2, name: "Confiance & sécurité", item: `${baseUrl}/confiance-securite` },
+              ],
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+            },
+          ]),
         }}
       />
 
