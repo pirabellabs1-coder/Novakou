@@ -105,7 +105,7 @@ import { BackgroundPicker } from "@/components/funnels/BackgroundPicker";
 import { ConfirmModal } from "@/components/funnels/ConfirmModal";
 import { TemplatePreviewMockup } from "@/components/funnels/TemplatePreviewMockup";
 import { LANDING_TEMPLATES } from "@/lib/funnels/templates";
-import { THEME_PRESETS, generatePalette, type FunnelPalette } from "@/lib/funnels/theme-engine";
+import { THEME_PRESETS, generatePalette, paletteToCssVars, type FunnelPalette } from "@/lib/funnels/theme-engine";
 import { confirmAction } from "@/store/confirm";
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1154,37 +1154,39 @@ function getStepTemplate(stepType: string): Block[] {
     case "CHECKOUT":
       return [
         { id: newBlockId(), type: "heading", data: { content: "Finalisez votre commande en toute sécurité", level: 2, align: "center", color: "" } },
-        { id: newBlockId(), type: "text", data: { content: "Encore une étape : renseignez vos coordonnées et payez par carte bancaire ou Mobile Money. Accès immédiat après confirmation.", align: "center", size: 16, color: "#5c647a" } },
+        { id: newBlockId(), type: "text", data: { content: "Dernière étape : choisissez votre moyen de paiement — Wave, Orange Money, MTN MoMo ou carte bancaire. Accès immédiat dès la confirmation.", align: "center", size: 16, color: "var(--fn-grey)" } },
         { id: newBlockId(), type: "checkout", data: { kind: "", id: "", title: "Votre commande", ctaText: "", showBump: true, showPromo: true, showPhone: true, accentColor: "", bgColor: "#ffffff" } },
         { id: newBlockId(), type: "row", data: { columns: [
-          { blocks: [{ id: newBlockId(), type: "icon-box", data: { icon: "verified_user", title: "Paiement sécurisé", desc: "Vos données bancaires sont chiffrées et ne transitent jamais par notre site.", align: "center", color: "#006e2f" } }] },
-          { blocks: [{ id: newBlockId(), type: "icon-box", data: { icon: "bolt", title: "Accès immédiat", desc: "Dès la confirmation du paiement, votre contenu est débloqué.", align: "center", color: "#006e2f" } }] },
-          { blocks: [{ id: newBlockId(), type: "icon-box", data: { icon: "verified", title: "Paiement 100% sécurisé", desc: "Achetez en toute confiance, accès immédiat à votre produit.", align: "center", color: "#006e2f" } }] },
+          { blocks: [{ id: newBlockId(), type: "icon-box", data: { icon: "verified_user", title: "Paiement sécurisé", desc: "Vos données de paiement sont chiffrées et ne transitent jamais par notre site.", align: "center", color: "var(--fn-primary)" } }] },
+          { blocks: [{ id: newBlockId(), type: "icon-box", data: { icon: "bolt", title: "Accès immédiat", desc: "Dès la confirmation du paiement, votre contenu est débloqué.", align: "center", color: "var(--fn-primary)" } }] },
+          { blocks: [{ id: newBlockId(), type: "icon-box", data: { icon: "smartphone", title: "Mobile Money accepté", desc: "Payez en quelques secondes avec Wave, Orange Money ou MTN MoMo.", align: "center", color: "var(--fn-primary)" } }] },
         ], gap: 16, padding: 24, bgColor: "" } },
       ];
     case "UPSELL":
     case "DOWNSELL":
       return [
-        { id: newBlockId(), type: "heading", data: { content: "Attendez ! Une offre unique pour vous", level: 1, align: "center", color: "#f59e0b" } },
-        { id: newBlockId(), type: "text", data: { content: "Avant de finaliser, profitez de cette offre disponible UNIQUEMENT sur cette page :", align: "center", size: 18, color: "" } },
-        { id: newBlockId(), type: "checkout", data: { kind: "", id: "", title: "Ajoutez cette offre à votre commande", ctaText: "OUI, je l'ajoute", showBump: false, showPromo: false, showPhone: true, accentColor: "#f59e0b", bgColor: "#ffffff" } },
-        { id: newBlockId(), type: "countdown", data: { title: "Cette offre expire dans :", endsInHours: 1, subtitle: "Après cela, le prix revient à son tarif normal." } },
-        { id: newBlockId(), type: "button", data: { text: "Non merci, continuer sans cette offre", link: "#etape-suivante", style: "secondary", size: "sm", align: "center", bgColor: "", textColor: "#6b7280", fullWidth: false, icon: "" } },
+        { id: newBlockId(), type: "text", data: { content: "OFFRE UNIQUE — DISPONIBLE SUR CETTE PAGE UNIQUEMENT", align: "center", size: 13, color: "var(--fn-danger)" } },
+        { id: newBlockId(), type: "heading", data: { content: "Attendez ! Ajoutez ceci à votre commande", level: 1, align: "center", color: "var(--fn-primary)" } },
+        { id: newBlockId(), type: "text", data: { content: "Vous ne reverrez plus jamais ce tarif. Profitez-en maintenant, en un seul clic, sans ressaisir vos informations de paiement.", align: "center", size: 18, color: "var(--fn-grey)" } },
+        { id: newBlockId(), type: "countdown", data: { title: "Cette offre expire dans :", endsInHours: 1, subtitle: "Passé ce délai, le prix revient à son tarif normal." } },
+        { id: newBlockId(), type: "checkout", data: { kind: "", id: "", title: "Ajouter cette offre à ma commande", ctaText: "OUI, je l'ajoute à ma commande", showBump: false, showPromo: false, showPhone: true, accentColor: "", bgColor: "#ffffff" } },
+        { id: newBlockId(), type: "button", data: { text: "Non merci, je passe cette offre", link: "#etape-suivante", style: "secondary", size: "sm", align: "center", bgColor: "", textColor: "var(--fn-grey)", fullWidth: false, icon: "" } },
       ];
     case "CAPTURE":
       return [
-        { id: newBlockId(), type: "heading", data: { content: "Téléchargez votre guide GRATUIT", level: 1, align: "center", color: "" } },
-        { id: newBlockId(), type: "text", data: { content: "Découvrez la méthode pas à pas pour obtenir [résultat] — sans [obstacle]. Entrez votre email ci-dessous et recevez-le immédiatement.", align: "center", size: 18, color: "" } },
-        { id: newBlockId(), type: "list", data: { items: ["Le plan d'action complet, étape par étape", "Les erreurs à éviter absolument", "Applicable dès aujourd'hui, même en partant de zéro"], icon: "check_circle", color: "#7c3aed" } },
-        { id: newBlockId(), type: "lead-form", data: { title: "Où doit-on l'envoyer ?", subtitle: "Recevez le guide directement dans votre boîte mail.", buttonText: "Recevoir le guide gratuit", collectName: true, collectPhone: false, successMessage: "C'est bon ! Surveillez votre boîte mail (et vos spams).", goNextStep: false, bgColor: "#ffffff", align: "center" } },
+        { id: newBlockId(), type: "text", data: { content: "GUIDE GRATUIT À TÉLÉCHARGER", align: "center", size: 13, color: "var(--fn-primary)" } },
+        { id: newBlockId(), type: "heading", data: { content: "Recevez gratuitement la méthode pas à pas", level: 1, align: "center", color: "" } },
+        { id: newBlockId(), type: "text", data: { content: "Découvrez comment obtenir [votre résultat] — sans [le principal obstacle]. Entrez votre email et recevez le guide immédiatement.", align: "center", size: 18, color: "var(--fn-grey)" } },
+        { id: newBlockId(), type: "list", data: { items: ["Le plan d'action complet, étape par étape", "Les erreurs qui coûtent cher, à éviter absolument", "Applicable dès aujourd'hui, même en partant de zéro"], icon: "check_circle", color: "var(--fn-primary)" } },
+        { id: newBlockId(), type: "lead-form", data: { title: "Où doit-on l'envoyer ?", subtitle: "Recevez le guide directement dans votre boîte mail.", buttonText: "Recevoir le guide gratuit", collectName: true, collectPhone: false, successMessage: "C'est bon ! Surveillez votre boîte mail (et vos spams).", goNextStep: false, bgColor: "#ffffff", align: "center" } },
         { id: newBlockId(), type: "social-proof", data: { text: "Déjà téléchargé par des centaines de personnes", avatars: 5, rating: 5 } },
       ];
     case "THANK_YOU":
     case "CONFIRMATION":
       return [
-        { id: newBlockId(), type: "icon-box", data: { icon: "celebration", title: "Merci pour votre achat !", desc: "Votre commande est confirmée. Un email récapitulatif vient de vous être envoyé.", align: "center", color: "#22c55e" } },
+        { id: newBlockId(), type: "icon-box", data: { icon: "celebration", title: "Merci pour votre achat !", desc: "Votre commande est confirmée. Un email récapitulatif vient de vous être envoyé.", align: "center", color: "var(--fn-primary)" } },
         { id: newBlockId(), type: "heading", data: { content: "Comment accéder à votre contenu", level: 2, align: "center", color: "" } },
-        { id: newBlockId(), type: "list", data: { items: ["Vérifiez votre boîte mail (et vos spams) — un email de confirmation vous attend", "Connectez-vous à votre compte Novakou", "Retrouvez votre achat dans la section Mes formations / Mes achats", "Commencez votre formation dès maintenant !"], icon: "check_circle", color: "#22c55e" } },
+        { id: newBlockId(), type: "list", data: { items: ["Vérifiez votre boîte mail (et vos spams) — un email de confirmation vous attend", "Connectez-vous à votre compte Novakou", "Retrouvez votre achat dans « Mes achats »", "Commencez dès maintenant !"], icon: "check_circle", color: "var(--fn-primary)" } },
         { id: newBlockId(), type: "cta", data: { headline: "Accédez à votre espace", subheadline: "Tous vos achats et formations au même endroit", ctaText: "Accéder à mon espace", ctaLink: "/acheteur/mes-achats" } },
       ];
     default:
@@ -3573,6 +3575,8 @@ export default function FunnelEditorClient({ id }: { id: string }) {
     font: funnel.theme?.font || "Manrope",
     logoUrl: funnel.theme?.logoUrl,
   };
+  // Mêmes variables CSS de palette qu'au rendu public (aperçu fidèle).
+  const paletteVars = paletteToCssVars(funnel.theme?.palette ?? generatePalette(liveTheme.primaryColor));
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-[#eef1f4]">
@@ -4120,7 +4124,7 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                   .nk-canvas .md\\:grid-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
                 ` : ""}
               ` }} />
-              <div className={`nk-canvas pb-10 ${device === "mobile" ? "min-h-[60vh]" : "min-h-[calc(100vh-110px)]"}`} style={{ background: liveTheme.bgColor, fontFamily: `'${liveTheme.font}', sans-serif`, color: liveTheme.textColor }}>
+              <div className={`nk-canvas pb-10 ${device === "mobile" ? "min-h-[60vh]" : "min-h-[calc(100vh-110px)]"}`} style={{ background: liveTheme.bgColor, fontFamily: `'${liveTheme.font}', sans-serif`, color: liveTheme.textColor, ...paletteVars } as React.CSSProperties}>
           {blocks.length === 0 ? (
             <div
               onDragOver={(e) => { if (paletteDrag) { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; setDropIdx(0); } }}

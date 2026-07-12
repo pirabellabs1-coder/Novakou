@@ -110,6 +110,7 @@ import {
 } from "lucide-react";
 import { PixelInjector } from "@/components/formations/PixelInjector";
 import AnimatedBlock, { type AnimationType } from "@/components/funnels/AnimatedBlock";
+import { generatePalette, paletteToCssVars, type FunnelPalette } from "@/lib/funnels/theme-engine";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TYPES (must match editor)
@@ -2803,9 +2804,15 @@ export default function FunnelLandingClient({ slug }: { slug: string }) {
   const currentStep = funnel.steps[Math.min(stepIdx, funnel.steps.length - 1)] ?? funnel.steps[0];
   const blocks = (currentStep?.blocks as Block[] | null) ?? [];
   const showProgressBar = (funnel.theme as Record<string, unknown> | null)?.progressBar === true;
+  // Variables CSS de la palette harmonisée : les blocs des templates peuvent
+  // référencer var(--fn-deep), var(--fn-tint)… → changer de palette
+  // ré-harmonise tout SANS toucher au contenu.
+  const paletteVars = paletteToCssVars(
+    (funnel.theme as { palette?: FunnelPalette } | null)?.palette ?? generatePalette(theme.primaryColor ?? "#006e2f")
+  );
 
   return (
-    <div style={{ background: theme.bgColor, color: theme.textColor, fontFamily: `'${fontFamily}', sans-serif` }}>
+    <div style={{ background: theme.bgColor, color: theme.textColor, fontFamily: `'${fontFamily}', sans-serif`, ...paletteVars } as CSSProperties}>
       <PixelInjector pixels={funnel.instructeur.marketingPixels ?? []} event={{ name: "PageView" }} />
       {showProgressBar && <ReadingProgressBar color={theme.primaryColor ?? "#006e2f"} />}
 
