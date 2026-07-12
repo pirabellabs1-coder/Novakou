@@ -14,6 +14,9 @@ async function getLink(slug: string) {
       select: {
         id: true, slug: true, title: true, description: true, price: true,
         thumbnail: true, status: true, allowCustomAmount: true,
+        // Pixels du vendeur (FB/Google/TikTok) → suivi des pubs qui pointent
+        // vers ce lien de paiement.
+        instructeur: { select: { marketingPixels: { select: { type: true, pixelId: true } } } },
       },
     })
     .catch(() => null);
@@ -45,6 +48,7 @@ export default async function PayerPage({ params }: { params: Promise<{ slug: st
         active: link.status === "ACTIF",
         allowCustomAmount: link.allowCustomAmount,
       }}
+      pixels={link.instructeur?.marketingPixels ?? []}
     />
   );
 }

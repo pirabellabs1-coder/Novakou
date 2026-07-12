@@ -17,6 +17,8 @@ import {
   Edit,
   Copy,
   Check,
+  Share2,
+  X,
   BarChart3,
   Archive,
   Trash2,
@@ -157,17 +159,21 @@ export default function ProduitsPage() {
   const [activeTab, setActiveTab] = useState<Tab>("all");
   const [searchQ, setSearchQ] = useState("");
   const [toast, setToast] = useState<string | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [linksFor, setLinksFor] = useState<Product | null>(null);
 
-  function copyProductLink(product: Product) {
-    if (!product.slug) { setToast("Lien indisponible (produit sans URL)"); return; }
-    const origin = typeof window !== "undefined" ? window.location.origin : "https://novakou.com";
-    const path = product.productKind === "formation" ? `/formation/${product.slug}` : `/produit/${product.slug}`;
-    navigator.clipboard.writeText(`${origin}${path}`)
+  const shareOrigin = typeof window !== "undefined" ? window.location.origin : "https://novakou.com";
+  const productUrl = (p: Product) => `${shareOrigin}${p.productKind === "formation" ? "/formation/" : "/produit/"}${p.slug}`;
+  // Lien de PAIEMENT DIRECT : va droit au checkout (saute la page produit) —
+  // idéal pour une pub Meta/TikTok ou un envoi direct à l'acheteur.
+  const checkoutUrl = (p: Product) => `${shareOrigin}/checkout?${p.productKind === "formation" ? "fids" : "pids"}=${p.id}`;
+
+  function copyText(text: string, key: string) {
+    navigator.clipboard.writeText(text)
       .then(() => {
-        setCopiedId(product.id);
-        setToast("Lien de la page de paiement copié ✓");
-        setTimeout(() => { setCopiedId(null); setToast(null); }, 2000);
+        setCopiedKey(key);
+        setToast("Lien copié ✓");
+        setTimeout(() => { setCopiedKey(null); setToast(null); }, 2000);
       })
       .catch(() => setToast("Copie impossible"));
   }
@@ -479,12 +485,12 @@ export default function ProduitsPage() {
                       <div className="flex gap-1.5">
                         {product.slug && !isDraft(product) && (
                           <button
-                            onClick={() => copyProductLink(product)}
-                            title="Copier le lien de la page de paiement (à partager / pub Meta)"
+                            onClick={() => setLinksFor(product)}
+                            title="Liens de partage (page produit + paiement direct)"
                             className="w-[30px] h-[30px] rounded-[9px] bg-white flex items-center justify-center transition-colors hover:bg-emerald-50"
-                            style={{ border: `1px solid ${ST.cardBorder}`, color: copiedId === product.id ? "#059669" : ST.textSecondary }}
+                            style={{ border: `1px solid ${ST.cardBorder}`, color: ST.textSecondary }}
                           >
-                            {copiedId === product.id ? <Check size={14} /> : <Copy size={14} />}
+                            <Share2 size={14} />
                           </button>
                         )}
                         <Link
@@ -536,6 +542,48 @@ export default function ProduitsPage() {
               href="/vendeur/produits/creer"
               minHeight={230}
             />
+          </div>
+        )}
+
+        {/* Modale : liens de partage (page produit + paiement direct) */}
+        {linksFor && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setLinksFor(null)}>
+            <div className="bg-white rounded-2xl max-w-lg w-full p-6" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="font-extrabold text-[15px] flex items-center gap-2" style={{ color: ST.text }}>
+                  <Share2 size={18} /> Liens de partage
+                </h3>
+                <button onClick={() => setLinksFor(null)} className="text-gray-400 hover:text-gray-700"><X size={20} /></button>
+              </div>
+              <p className="text-[12.5px] mb-4" style={{ color: ST.textSecondary }}>{linksFor.title}</p>
+
+              {[
+                { key: "produit", label: "Page produit", desc: "La fiche complète avec description et bouton d'achat.", url: productUrl(linksFor) },
+                { key: "checkout", label: "Paiement direct", desc: "Va droit au paiement (idéal pour une pub Meta/TikTok ou un envoi à un acheteur).", url: checkoutUrl(linksFor) },
+              ].map((row) => {
+                const ck = `${linksFor.id}-${row.key}`;
+                return (
+                  <div key={row.key} className="rounded-xl border border-gray-100 bg-slate-50/60 p-3 mb-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[12px] font-extrabold" style={{ color: ST.text }}>{row.label}</span>
+                      <button
+                        onClick={() => copyText(row.url, ck)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#006e2f]/10 text-[#006e2f] text-[11px] font-bold hover:bg-[#006e2f]/15 transition-colors"
+                      >
+                        {copiedKey === ck ? <Check size={12} /> : <Copy size={12} />}{copiedKey === ck ? "Copié" : "Copier"}
+                      </button>
+                    </div>
+                    <p className="text-[11px] mt-0.5" style={{ color: ST.textMuted }}>{row.desc}</p>
+                    <code className="block mt-1.5 text-[11px] text-slate-500 bg-white border border-gray-100 rounded-lg px-2 py-1 truncate">{row.url}</code>
+                  </div>
+                );
+              })}
+
+              <p className="text-[11px] mt-2 flex items-start gap-1.5" style={{ color: ST.textMuted }}>
+                <Check size={13} className="text-[#006e2f] flex-shrink-0 mt-0.5" />
+                Vos pixels (Facebook, TikTok, Google) se déclenchent automatiquement sur ces pages — vos campagnes publicitaires sont suivies.
+              </p>
+            </div>
           </div>
         )}
       </main>
