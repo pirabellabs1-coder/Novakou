@@ -46,6 +46,18 @@ function CategoryPill({ children }: { children: React.ReactNode }) {
 /* ─── Données des guides ──────────────────────────────────── */
 const GUIDES = [
   {
+    href: "/guides/novakou-fonctionnalites-completes",
+    gradient: "linear-gradient(135deg, #003d1a, #006e2f 60%, #22c55e)",
+    icon: "auto_awesome",
+    time: "13 min",
+    level: "Complet",
+    levelColor: "#006e2f",
+    chapters: "8 sections",
+    title: "Toutes les fonctionnalités de Novakou",
+    desc: "Boutique, Mobile Money, tunnel de vente, automatisation, affiliation, pixels, escrow, abonnements, IA : le tour complet de la plateforme n°1 de vente de produits numériques en Afrique.",
+    category: "Vendre",
+  },
+  {
     href: "/guides/meilleures-plateformes-vendre-produits-digitaux-afrique",
     gradient: "linear-gradient(135deg, #003d1a, #006e2f 60%, #22c55e)",
     icon: "storefront",
