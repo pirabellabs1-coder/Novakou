@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import {
   GuideArticleLayout,
   GP,
@@ -9,6 +8,9 @@ import {
   GStrong,
   GA,
   GCallout,
+  GImage,
+  GStats,
+  GCards,
   type GuideMeta,
   type GuideSection,
   type GuideFaq,
@@ -83,6 +85,19 @@ export const metadata: Metadata = {
   },
 };
 
+const heroImage = {
+  src: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1400&h=700&fit=crop&q=80&auto=format",
+  alt: "Équipe de créateurs africains lançant leur business en ligne avec Novakou",
+  caption: "Une plateforme, tout votre business : de la première vente au revenu récurrent.",
+};
+
+const stats = [
+  { value: "Mobile Money", label: "Wave, Orange, MTN, Moov + carte, nativement" },
+  { value: "Tout‑en‑un", label: "boutique, tunnel, e‑mails, affiliation, pixels" },
+  { value: "Escrow", label: "paiement sécurisé pour l'acheteur et le vendeur" },
+  { value: "Gratuit", label: "pour démarrer, commission simple sur les ventes" },
+];
+
 const sections: GuideSection[] = [
   {
     id: "tout-en-un",
@@ -95,15 +110,28 @@ const sections: GuideSection[] = [
         <GP>
           Novakou réunit <GStrong>tout au même endroit</GStrong> : encaisser, vendre, convertir, fidéliser, attirer et piloter. Voici le tour complet — sans rien cacher.
         </GP>
-        <div className="my-8 rounded-2xl overflow-hidden border border-gray-200">
-          <Image
-            src="https://images.unsplash.com/photo-1553877522-43269d4ea984?w=1200&h=630&fit=crop&q=80&auto=format"
-            alt="Entrepreneur africain gérant sa boutique en ligne tout-en-un sur Novakou"
-            width={1200}
-            height={630}
-            className="w-full h-auto"
-          />
-        </div>
+        <GStats
+          items={[
+            { value: "1", label: "seule plateforme au lieu de 5 outils à connecter" },
+            { value: "6", label: "briques : encaisser, vendre, convertir, fidéliser, attirer, piloter" },
+            { value: "0", label: "abonnement obligatoire pour démarrer" },
+          ]}
+        />
+        <GImage
+          src="https://images.unsplash.com/photo-1553877522-43269d4ea984?w=1400&h=790&fit=crop&q=80&auto=format"
+          alt="Entrepreneur africain gérant sa boutique en ligne tout-en-un sur Novakou"
+          caption="Encaisser, vendre, automatiser et piloter : tout au même endroit, en FCFA et en Mobile Money."
+        />
+        <GCards
+          items={[
+            { icon: "payments", title: "Encaisser", text: "Mobile Money (Wave, Orange, MTN, Moov) et carte, avec paiement séquestré." },
+            { icon: "storefront", title: "Vendre", text: "Boutique, liens de paiement et tunnels de vente professionnels." },
+            { icon: "trending_up", title: "Convertir", text: "Order bump et upsell pour augmenter le panier moyen." },
+            { icon: "autorenew", title: "Fidéliser", text: "Automatisations, séquences e-mail et abonnements récurrents." },
+            { icon: "campaign", title: "Attirer", text: "Affiliation, pixels publicitaires et référencement Google." },
+            { icon: "insights", title: "Piloter", text: "Statistiques temps réel, multi-devises et assistant IA." },
+          ]}
+        />
       </>
     ),
   },
@@ -261,5 +289,5 @@ const faq: GuideFaq[] = [
 ];
 
 export default function NovakouFonctionnalites() {
-  return <GuideArticleLayout meta={meta} sections={sections} faq={faq} />;
+  return <GuideArticleLayout meta={meta} sections={sections} faq={faq} stats={stats} heroImage={heroImage} />;
 }
