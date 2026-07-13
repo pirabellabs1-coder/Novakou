@@ -94,18 +94,6 @@ const GUIDES = [
     category: "Vendre",
   },
   {
-    href: "/guides/novakou-vs-chariow",
-    gradient: "linear-gradient(135deg, #003d1a, #006e2f 60%, #22c55e)",
-    icon: "compare_arrows",
-    time: "15 min",
-    level: "Complet",
-    levelColor: "#006e2f",
-    chapters: "10 sections",
-    title: "Novakou vs Chariow : le comparatif pour vendre en Afrique",
-    desc: "Deux plateformes africaines face à face. Chariow est solide sur le Mobile Money ; Novakou va plus loin avec tunnels avancés, escrow, automatisation, abonnements et pixels multi-plateformes.",
-    category: "Vendre",
-  },
-  {
     href: "/guides/alternative-systeme-io-afrique",
     gradient: "linear-gradient(135deg, #003d1a, #006e2f 60%, #22c55e)",
     icon: "swap_horiz",
