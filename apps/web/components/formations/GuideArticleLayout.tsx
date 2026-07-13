@@ -55,12 +55,19 @@ export interface GuideSection {
   content: ReactNode;
 }
 
+export interface GuideFaq {
+  q: string;
+  a: string;
+}
+
 export interface Props {
   meta: GuideMeta;
   sections: GuideSection[];
+  /** FAQ optionnelle → section visible + FAQPage JSON-LD (rich results Google). */
+  faq?: GuideFaq[];
 }
 
-export function GuideArticleLayout({ meta, sections }: Props) {
+export function GuideArticleLayout({ meta, sections, faq }: Props) {
   const url = `${APP_URL}/guides/${meta.slug}`;
   const ogImage = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
     meta.title,
@@ -112,6 +119,22 @@ export function GuideArticleLayout({ meta, sections }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
+      {faq && faq.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: faq.map((f) => ({
+                "@type": "Question",
+                name: f.q,
+                acceptedAnswer: { "@type": "Answer", text: f.a },
+              })),
+            }),
+          }}
+        />
+      )}
 
       <article className="min-h-screen bg-white" style={satoshi}>
         {/* ── HERO ─────────────────────────────────────────────── */}
@@ -213,6 +236,31 @@ export function GuideArticleLayout({ meta, sections }: Props) {
             </section>
           ))}
         </div>
+
+        {/* ── FAQ (rich results) ───────────────────────────────── */}
+        {faq && faq.length > 0 && (
+          <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-16" id="faq">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-[#191c1e] mb-6" style={satoshiHeading}>
+              Questions fréquentes
+            </h2>
+            <div className="space-y-3">
+              {faq.map((f, i) => (
+                <details
+                  key={i}
+                  className="group bg-white rounded-xl border border-gray-200 p-5 [&_summary::-webkit-details-marker]:hidden"
+                >
+                  <summary className="flex items-center justify-between cursor-pointer font-bold text-[#191c1e] gap-3">
+                    {f.q}
+                    <span className="text-[#006e2f] transition-transform group-open:rotate-45 text-xl leading-none flex-shrink-0">
+                      +
+                    </span>
+                  </summary>
+                  <p className="text-gray-700 mt-3 leading-relaxed">{f.a}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* ── CTA inscription ──────────────────────────────────── */}
         <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-16">

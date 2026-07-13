@@ -30,6 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // /faq redirects 301 to /aide — removed from sitemap
     // Guide pages — high-value SEO content
     { url: `${BASE_URL}/guides`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
+    { url: `${BASE_URL}/guides/meilleures-plateformes-vendre-produits-digitaux-afrique`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE_URL}/guides/creer-son-produit`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE_URL}/guides/vendre-en-ligne`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE_URL}/guides/guide-complet-novakou`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },

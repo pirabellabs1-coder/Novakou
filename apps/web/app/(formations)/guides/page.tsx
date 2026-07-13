@@ -46,6 +46,18 @@ function CategoryPill({ children }: { children: React.ReactNode }) {
 /* ─── Données des guides ──────────────────────────────────── */
 const GUIDES = [
   {
+    href: "/guides/meilleures-plateformes-vendre-produits-digitaux-afrique",
+    gradient: "linear-gradient(135deg, #003d1a, #006e2f 60%, #22c55e)",
+    icon: "storefront",
+    time: "12 min",
+    level: "Complet",
+    levelColor: "#006e2f",
+    chapters: "7 sections",
+    title: "Meilleures plateformes pour vendre des produits digitaux en Afrique",
+    desc: "Comparatif 2026 : Mobile Money, frais, tunnel, sécurité. Pourquoi Novakou est la plateforme n°1 pour vendre vos formations et produits numériques en Afrique francophone.",
+    category: "Vendre",
+  },
+  {
     href: "/guides/importer-systeme-io",
     gradient: "linear-gradient(135deg, #0ea5e9, #6366f1)",
     icon: "download",
