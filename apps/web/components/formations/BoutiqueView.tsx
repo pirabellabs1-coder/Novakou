@@ -198,7 +198,7 @@ export default function BoutiqueView({
              Tailwind ne génère pas la règle pour `max-h-[420px]` ici. */
           <div
             className="relative w-full aspect-[16/5] overflow-hidden bg-slate-100"
-            style={{ maxHeight: 420 }}
+            style={{ maxHeight: 380 }}
           >
             <Image
               src={owner.coverUrl}
@@ -250,13 +250,13 @@ export default function BoutiqueView({
 
         {/* Identité : logo à cheval sur la bannière, nom et stats en dessous */}
         <div className="bg-white border-b border-slate-200">
-          <div className="max-w-6xl mx-auto px-5 md:px-8 pb-6 md:pb-8">
-            <div className="flex flex-col md:flex-row md:items-end gap-5 md:gap-8">
+          <div className="max-w-6xl mx-auto px-5 md:px-8 pb-5 md:pb-6">
+            <div className="flex flex-col md:flex-row md:items-end gap-4 md:gap-8">
               <div className="flex items-end gap-4 md:gap-5 min-w-0">
                 {/* La marge négative fait remonter le logo sur la bannière ;
                     `items-end` garde le nom entièrement sous la bannière. */}
                 <div
-                  className="-mt-10 md:-mt-14 relative rounded-[1.25rem] p-[3px] flex-shrink-0 shadow-xl ring-4 ring-white"
+                  className="-mt-12 md:-mt-16 relative rounded-[1.25rem] p-[3px] flex-shrink-0 shadow-xl ring-4 ring-white"
                   style={{ background: `conic-gradient(from 180deg at 50% 50%, ${themeColor}, #22c55e, ${themeColor})` }}
                 >
                   {owner.image ? (
@@ -280,7 +280,7 @@ export default function BoutiqueView({
                     </div>
                   )}
                 </div>
-                <div className="min-w-0 pt-4 md:pt-5">
+                <div className="min-w-0 pt-3 md:pt-3.5">
                   <h1 className="text-2xl md:text-4xl font-extrabold text-slate-900 tracking-tight truncate">
                     {owner.name}
                   </h1>
