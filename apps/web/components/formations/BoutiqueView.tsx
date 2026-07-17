@@ -122,7 +122,7 @@ export default function BoutiqueView({
         <div className="max-w-6xl mx-auto px-5 md:px-8 h-14 flex items-center justify-between gap-4">
           <a href={staticBase || "/"} className="flex items-center gap-2.5 min-w-0">
             {owner.image ? (
-              <Image src={owner.image} alt={owner.name} width={32} height={32} className="w-8 h-8 rounded-lg object-cover flex-shrink-0" unoptimized />
+              <Image src={owner.image} alt={owner.name} width={32} height={32} className="w-8 h-8 rounded-lg object-contain bg-white border border-slate-200 flex-shrink-0" unoptimized />
             ) : (
               <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-extrabold text-sm flex-shrink-0" style={{ background: themeColor }}>
                 {owner.name[0]?.toUpperCase() ?? "N"}
@@ -183,26 +183,32 @@ export default function BoutiqueView({
         )}
       </nav>
 
-      {/* ─── Hero (cover-like) ────────────────────────────────────────────── */}
-      <header className="relative overflow-hidden">
+      {/* ─── Hero : bannière dédiée, puis identité en dessous ─────────────── */}
+      <header>
+        {/* Bandeau de couverture. Le conteneur a exactement le ratio recommandé
+            au vendeur (1920×600 = 16/5) : object-cover ne rogne donc rien, la
+            couverture est visible en entier. Aucun texte n'est posé dessus —
+            beaucoup de bannières contiennent déjà leur propre titre. */}
         {owner.coverUrl ? (
-          <>
-            {/* Photo de couverture du vendeur */}
+          <div className="relative w-full aspect-[16/5] overflow-hidden bg-slate-100">
             <Image
               src={owner.coverUrl}
               alt={`Couverture de ${owner.name}`}
               fill
               priority
               unoptimized
-              className="object-cover"
+              sizes="100vw"
+              className="object-cover object-center"
             />
-            {/* Voile sombre pour lisibilité du texte par dessus */}
-            <div className="absolute inset-0 bg-gradient-to-t from-white via-white/85 to-white/40" />
-          </>
+            {/* Fondu discret vers le bloc identité, pour souder les deux */}
+            <div
+              aria-hidden
+              className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-white/70 to-transparent"
+            />
+          </div>
         ) : (
-          <>
-            {/* Backdrop premium : mesh gradient subtil + halos diffus.
-                Refonte 2026-05-26 — version "joli a voir". */}
+          <div className="relative w-full h-32 md:h-44 overflow-hidden">
+            {/* Backdrop premium : mesh gradient subtil + halos diffus. */}
             <div
               className="absolute inset-0"
               style={{
@@ -230,73 +236,80 @@ export default function BoutiqueView({
               className="absolute -bottom-40 -left-16 w-[360px] h-[360px] rounded-full blur-3xl opacity-15"
               style={{ background: themeColor }}
             />
-          </>
+          </div>
         )}
 
-        <div className="relative max-w-6xl mx-auto px-5 md:px-8 py-10 md:py-14">
-          <div className="flex flex-col md:flex-row md:items-end gap-6 md:gap-8">
-            <div className="flex items-center gap-4 md:gap-5">
-              {/* Wrap avec un anneau dégradé pour effet "premium" */}
-              <div
-                className="relative rounded-[1.25rem] p-[3px] flex-shrink-0 shadow-2xl"
-                style={{ background: `conic-gradient(from 180deg at 50% 50%, ${themeColor}, #22c55e, ${themeColor})` }}
-              >
-                {owner.image ? (
-                  <Image
-                    src={owner.image}
-                    alt={owner.name}
-                    width={112}
-                    height={112}
-                    className="w-20 h-20 md:w-28 md:h-28 rounded-2xl object-cover bg-white"
-                    unoptimized
-                  />
-                ) : (
-                  <div
-                    className="w-20 h-20 md:w-28 md:h-28 rounded-2xl flex items-center justify-center text-white font-extrabold text-3xl md:text-5xl"
-                    style={{ background: themeGradient }}
-                  >
-                    {owner.name[0]?.toUpperCase() ?? "N"}
-                  </div>
-                )}
+        {/* Identité : logo à cheval sur la bannière, nom et stats en dessous */}
+        <div className="bg-white border-b border-slate-200">
+          <div className="max-w-6xl mx-auto px-5 md:px-8 pb-6 md:pb-8">
+            <div className="flex flex-col md:flex-row md:items-end gap-5 md:gap-8">
+              <div className="flex items-end gap-4 md:gap-5 min-w-0">
+                {/* La marge négative fait remonter le logo sur la bannière ;
+                    `items-end` garde le nom entièrement sous la bannière. */}
+                <div
+                  className="-mt-10 md:-mt-14 relative rounded-[1.25rem] p-[3px] flex-shrink-0 shadow-xl ring-4 ring-white"
+                  style={{ background: `conic-gradient(from 180deg at 50% 50%, ${themeColor}, #22c55e, ${themeColor})` }}
+                >
+                  {owner.image ? (
+                    /* object-contain sans marge : un logo carré remplit le cadre
+                       en plein, un logo non carré reste affiché en entier plutôt
+                       que rogné (on recommande un PNG transparent au vendeur). */
+                    <Image
+                      src={owner.image}
+                      alt={owner.name}
+                      width={112}
+                      height={112}
+                      className="w-20 h-20 md:w-28 md:h-28 rounded-2xl object-contain bg-white"
+                      unoptimized
+                    />
+                  ) : (
+                    <div
+                      className="w-20 h-20 md:w-28 md:h-28 rounded-2xl flex items-center justify-center text-white font-extrabold text-3xl md:text-5xl"
+                      style={{ background: themeGradient }}
+                    >
+                      {owner.name[0]?.toUpperCase() ?? "N"}
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0 pt-4 md:pt-5">
+                  <h1 className="text-2xl md:text-4xl font-extrabold text-slate-900 tracking-tight truncate">
+                    {owner.name}
+                  </h1>
+                  <p className="text-xs md:text-sm text-slate-500 mt-1 truncate">
+                    Propulsé par <span className="font-semibold text-emerald-700">Novakou</span>
+                    {owner.domain ? ` · ${owner.domain}` : ""}
+                  </p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <h1 className="text-2xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
-                  {owner.name}
-                </h1>
-                <p className="text-xs md:text-sm text-slate-500 mt-1">
-                  Propulsé par <span className="font-semibold text-emerald-700">Novakou</span>
-                  {owner.domain ? ` · ${owner.domain}` : ""}
-                </p>
+
+              <div className="md:ml-auto grid grid-cols-3 gap-2 flex-shrink-0 md:mt-0 mt-1">
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-center hover:-translate-y-0.5 transition-transform">
+                  <p className="text-xl font-extrabold tabular-nums" style={{ color: themeColor }}>{all.length}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-0.5">Produits</p>
+                </div>
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-center hover:-translate-y-0.5 transition-transform">
+                  <p className="text-xl font-extrabold tabular-nums" style={{ color: themeColor }}>
+                    {all.reduce((s, i) => s + i.count, 0)}
+                  </p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-0.5">Clients</p>
+                </div>
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-center hover:-translate-y-0.5 transition-transform">
+                  <p className="text-xl font-extrabold tabular-nums" style={{ color: themeColor }}>
+                    {all.length > 0
+                      ? (all.reduce((s, i) => s + (i.rating || 0), 0) / all.filter((i) => i.rating > 0).length || 0).toFixed(1)
+                      : "—"}
+                  </p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-0.5">Note</p>
+                </div>
               </div>
             </div>
 
-            <div className="md:ml-auto grid grid-cols-3 gap-2 flex-shrink-0 md:mt-0 mt-4">
-              <div className="bg-white/80 backdrop-blur-md border border-white/60 rounded-2xl px-4 py-3 text-center shadow-lg shadow-slate-200/40 hover:-translate-y-0.5 transition-transform">
-                <p className="text-xl font-extrabold tabular-nums" style={{ color: themeColor }}>{all.length}</p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-0.5">Produits</p>
-              </div>
-              <div className="bg-white/80 backdrop-blur-md border border-white/60 rounded-2xl px-4 py-3 text-center shadow-lg shadow-slate-200/40 hover:-translate-y-0.5 transition-transform">
-                <p className="text-xl font-extrabold tabular-nums" style={{ color: themeColor }}>
-                  {all.reduce((s, i) => s + i.count, 0)}
-                </p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-0.5">Clients</p>
-              </div>
-              <div className="bg-white/80 backdrop-blur-md border border-white/60 rounded-2xl px-4 py-3 text-center shadow-lg shadow-slate-200/40 hover:-translate-y-0.5 transition-transform">
-                <p className="text-xl font-extrabold tabular-nums" style={{ color: themeColor }}>
-                  {all.length > 0
-                    ? (all.reduce((s, i) => s + (i.rating || 0), 0) / all.filter((i) => i.rating > 0).length || 0).toFixed(1)
-                    : "—"}
-                </p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-0.5">Note</p>
-              </div>
-            </div>
+            {owner.bio && (
+              <p className="text-sm md:text-base text-slate-700 leading-relaxed mt-5 max-w-3xl">
+                {owner.bio}
+              </p>
+            )}
           </div>
-
-          {owner.bio && (
-            <p className="text-sm md:text-base text-slate-700 leading-relaxed mt-6 max-w-3xl">
-              {owner.bio}
-            </p>
-          )}
         </div>
       </header>
 
