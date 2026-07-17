@@ -190,7 +190,16 @@ export default function BoutiqueView({
             couverture est visible en entier. Aucun texte n'est posé dessus —
             beaucoup de bannières contiennent déjà leur propre titre. */}
         {owner.coverUrl ? (
-          <div className="relative w-full aspect-[16/5] overflow-hidden bg-slate-100">
+          /* Ratio 16/5 = celui recommandé au vendeur (1920×600) : jusqu'à
+             ~1344 px de large la couverture s'affiche sans aucun recadrage.
+             Au-delà, on plafonne la hauteur pour que la bannière ne pousse pas
+             le catalogue sous la ligne de flottaison (recadrage centré, qui ne
+             mange que les marges hautes et basses). maxHeight en style inline :
+             Tailwind ne génère pas la règle pour `max-h-[420px]` ici. */
+          <div
+            className="relative w-full aspect-[16/5] overflow-hidden bg-slate-100"
+            style={{ maxHeight: 420 }}
+          >
             <Image
               src={owner.coverUrl}
               alt={`Couverture de ${owner.name}`}
