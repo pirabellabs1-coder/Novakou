@@ -127,10 +127,11 @@ export async function generateMetadata(): Promise<Metadata> {
       // sans risque (le code n'est pas un secret — il est exposé en clair
       // dans la balise meta de toute façon).
       google: "86SCqsFYLPsTxUUEi5ZdL-y4u2P-VBxwNzVNumg7P-s",
-      // Bing — gardé en env var (valeur vide → la balise est omise par Next.js)
-      ...(process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
-        ? { other: { "msvalidate.01": process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION } }
-        : {}),
+      // Bing Webmaster Tools — code fourni par Lissanon 2026-07-22.
+      // Hardcoded pour la même raison que Google ci-dessus : l'env var
+      // NEXT_PUBLIC_BING_SITE_VERIFICATION n'était pas injectée au build
+      // Vercel, donc la balise était silencieusement omise du HTML.
+      other: { "msvalidate.01": "EB6FCB92F9E0D2E3264DE2FFBE2EEA94" },
     },
     category: "education",
   };
