@@ -313,8 +313,12 @@ export default function BoutiqueView({
               </div>
             </div>
 
+            {/* `whitespace-pre-line` : la bio est du texte brut. Sans ça, les
+                retours à la ligne du vendeur étaient écrasés et sa présentation
+                s'affichait en un seul pavé illisible. `max-w-2xl` garde une
+                longueur de ligne confortable à lire. */}
             {owner.bio && (
-              <p className="text-sm md:text-base text-slate-700 leading-relaxed mt-5 max-w-3xl">
+              <p className="text-sm md:text-[15px] text-slate-600 leading-[1.7] whitespace-pre-line mt-4 max-w-2xl">
                 {owner.bio}
               </p>
             )}

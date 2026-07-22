@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { permanentRedirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { resolveOldSlug } from "@/lib/formations/slugs";
 import FormationPageClient from "./FormationPageClient";
 import TrackPageView from "@/components/tracking/TrackPageView";
 
@@ -81,6 +83,13 @@ export default async function FormationPage({
       },
     })
     .catch(() => null);
+
+  // Formation renommée : redirection permanente vers son slug actuel, pour ne
+  // pas perdre le référencement de l'ancienne URL.
+  if (!formation) {
+    const current = await resolveOldSlug("formation", slug);
+    if (current) permanentRedirect(`/formation/${current}`);
+  }
 
   // Top 3 reviews avec rating + texte pour enrichir le Schema.org Course.
   // Google les affiche dans les rich results "Course" → boost CTR.

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { uniqueSlug } from "@/lib/formations/slugs";
 
 /**
  * Garantit qu'un vendeur (instructeur) a toujours AU MOINS une boutique principale.
@@ -52,16 +53,9 @@ export async function ensurePrimaryShop(params: {
     (user?.email ? user.email.split("@")[0] : null) ||
     "Ma boutique";
 
-  const baseSlug = displayName
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 30) || "boutique";
-
-  // Slug unique : on ajoute un suffixe aléatoire pour éviter les collisions
-  const slug = `${baseSlug}-${Math.random().toString(36).slice(2, 8)}`;
+  // Slug lisible : uniqueSlug ne suffixe qu en cas de collision reelle
+  // (avant, un suffixe aleatoire etait ajoute systematiquement).
+  const slug = await uniqueSlug("shop", displayName);
 
   try {
     const shop = await prisma.vendorShop.create({

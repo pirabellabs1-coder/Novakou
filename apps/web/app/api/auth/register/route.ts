@@ -7,6 +7,7 @@ import { z } from "zod";
 import { emitEvent } from "@/lib/events/dispatcher";
 import { onUserSignup } from "@/lib/marketing/hooks";
 import { checkRateLimit, recordFailedAttempt } from "@/lib/auth/rate-limiter";
+import { uniqueSlug } from "@/lib/formations/slugs";
 
 const registerSchema = z.object({
   email: z.string().email("Email invalide"),
@@ -188,14 +189,10 @@ export async function POST(request: Request) {
           create: { userId: user.id, status: "APPROUVE" },
         });
         // Primary blank shop on first signup
-        const baseSlug = (name || email.split("@")[0])
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-|-$/g, "")
-          .slice(0, 30) || "boutique";
-        const slug = `${baseSlug}-${Date.now().toString(36)}`;
+        // Slug lisible : pas de suffixe si le nom est libre (une URL du type
+        // /boutique/aminata-diallo vaut infiniment mieux en SEO et en partage
+        // que /boutique/aminata-diallo-mohmv3rm).
+        const slug = await uniqueSlug("shop", name || email.split("@")[0]);
         await prisma.vendorShop.create({
           data: {
             instructeurId: instProfile.id,

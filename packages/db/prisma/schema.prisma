@@ -1039,6 +1039,23 @@ model VendorShop {
   @@index([customDomain])
 }
 
+/// Historique des slugs, pour ne JAMAIS casser une URL déjà indexée.
+/// Quand une boutique / un produit / une formation change de slug, on garde
+/// l'ancien ici et la page publique répond une redirection 301 vers le nouveau.
+/// Sans ça, un renommage transforme l'URL en 404 et perd tout le référencement.
+model SlugHistory {
+  id        String   @id @default(cuid())
+  /// "shop" | "product" | "formation"
+  entity    String
+  oldSlug   String
+  newSlug   String
+  createdAt DateTime @default(now())
+
+  /// Un ancien slug ne peut pointer que vers une seule cible par type d'entité.
+  @@unique([entity, oldSlug])
+  @@index([entity, oldSlug])
+}
+
 /// Rôle d'un membre dans une boutique :
 ///  - OWNER   : propriétaire original (crée la boutique). Seul rôle qui peut faire des retraits.
 ///  - MANAGER : peut inviter d'autres membres, gérer produits, voir stats. Ne peut pas retirer.

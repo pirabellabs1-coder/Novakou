@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
+import { uniqueSlug } from "@/lib/formations/slugs";
 
 /**
  * POST /api/formations/devenir-vendeur
@@ -57,15 +58,8 @@ export async function POST() {
     });
     let shopSlug = existingShop?.slug ?? null;
     if (!existingShop) {
-      const baseSlug =
-        (user.name || user.email.split("@")[0])
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[̀-ͯ]/g, "")
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-|-$/g, "")
-          .slice(0, 30) || "boutique";
-      const slug = `${baseSlug}-${Date.now().toString(36)}`;
+      // Slug lisible : suffixe seulement en cas de collision réelle.
+      const slug = await uniqueSlug("shop", user.name || user.email.split("@")[0]);
       const shop = await prisma.vendorShop.create({
         data: {
           instructeurId: inst.id,

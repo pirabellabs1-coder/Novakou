@@ -6,16 +6,8 @@ import { IS_DEV } from "@/lib/env";
 import { DigitalProductType } from "@prisma/client";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { getActiveShopId } from "@/lib/formations/active-shop";
+import { slugify } from "@/lib/formations/slugs";
 
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "")
-    .slice(0, 80);
-}
 
 async function getOrCreateCategory(name: string) {
   const slug = slugify(name);

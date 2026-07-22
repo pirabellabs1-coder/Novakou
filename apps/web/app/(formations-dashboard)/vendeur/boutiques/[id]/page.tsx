@@ -281,17 +281,26 @@ export default function VendorShopDetailPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-[#5c647a] mb-1.5">
-              Description
-            </label>
+            <div className="flex items-baseline justify-between mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[#5c647a]">
+                Description
+              </label>
+              {/* Compteur : la limite de 600 caractères tronquait en silence. */}
+              <span className={`text-[11px] tabular-nums ${description.length > 550 ? "text-amber-600 font-semibold" : "text-[#9aa3b2]"}`}>
+                {description.length}/600
+              </span>
+            </div>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={3}
+              rows={6}
               maxLength={600}
-              placeholder="Présentez votre boutique en quelques phrases…"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-[#191c1e] focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10 resize-none"
+              placeholder={"Présentez votre boutique en quelques phrases…\n\nAstuce : sautez des lignes pour aérer, elles sont conservées sur votre page publique."}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-[#191c1e] leading-relaxed focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10 resize-y"
             />
+            <p className="text-[11px] text-[#9aa3b2] mt-1.5">
+              Vos retours à la ligne sont conservés sur la page publique de la boutique.
+            </p>
           </div>
 
           <div>

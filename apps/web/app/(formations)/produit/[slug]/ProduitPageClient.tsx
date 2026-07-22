@@ -296,7 +296,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
           {/* ── Main content ──────────────────────────────────────────── */}
           <div className="lg:col-span-2 space-y-5">
             {/* Bannière — object-contain sur fond neutre : l'image du produit
@@ -385,7 +385,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
           </div>
 
           {/* ── Sidebar ─────────────────────────────────────────────────── */}
-          <div className="space-y-5">
+          <div className="space-y-5 lg:row-span-2">
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden sticky top-4">
               <div className="p-6">
                 <div className="mb-4">
@@ -513,10 +513,12 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
             </div>
 
           </div>
-        </div>
 
-        {/* Description & détails — pleine largeur (façon Chariow) */}
-        <div className="mt-6">
+        {/* Description & détails — DANS la grille (colonne 2/3). La sidebar,
+            bien plus haute que la bannière + le titre, laissait sinon un grand
+            vide sous le titre : elle s'étend maintenant sur les deux rangées
+            et la description vient combler cet espace. */}
+        <div className="lg:col-span-2">
             {/* Tabs */}
             <div className="flex items-center gap-1 bg-white rounded-xl border border-gray-100 p-1 w-fit">
               {(
@@ -629,6 +631,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                 )}
               </div>
             )}
+        </div>
         </div>
 
         {/* Carrousel d'avis — preuve sociale (affiché s'il y a ≥ 2 avis) */}

@@ -12,6 +12,7 @@ import {
   DigitalProductType,
   FormationStatus,
 } from "@prisma/client";
+import { slugify } from "@/lib/formations/slugs";
 
 /**
  * GET /api/v1/products
@@ -404,15 +405,8 @@ export async function POST(request: NextRequest) {
 
 // ─── helpers ──────────────────────────────────────────────────────────────
 
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "")
-    .slice(0, 80);
-}
+// Slugification partagee : coupe sur une frontiere de mot (l ancienne
+// version tronquait a 80 caracteres au caractere pres).
 
 async function uniqueSlug(
   title: string,

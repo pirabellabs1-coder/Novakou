@@ -6,6 +6,7 @@ import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { removeDomain } from "@/lib/vercel-domains";
 import { SHOP_FONTS } from "@/lib/formations/shop-fonts";
+import { recordSlugChange } from "@/lib/formations/slugs";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -123,6 +124,11 @@ export async function PATCH(req: Request, { params }: Params) {
       ]);
     } else {
       await prisma.vendorShop.update({ where: { id: r.shop.id }, data });
+    }
+    // La mise à jour a réussi : on mémorise l'ancien slug pour que son URL
+    // réponde une redirection permanente au lieu d'un 404.
+    if (typeof data.slug === "string") {
+      await recordSlugChange("shop", r.shop.slug, data.slug);
     }
   } catch (e) {
     // Collision d'unicité (slug déjà pris par une autre boutique).

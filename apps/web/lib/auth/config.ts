@@ -8,6 +8,7 @@ import LinkedInProvider from "next-auth/providers/linkedin";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { checkRateLimit, recordFailedAttempt, resetAttempts } from "./rate-limiter";
+import { uniqueSlug } from "@/lib/formations/slugs";
 
 // Map legacy plan names to new elevation plan names
 const PLAN_NAME_MAP: Record<string, string> = {
@@ -481,14 +482,8 @@ export const authOptions: NextAuthOptions = {
                     create: { userId: dbUser.id, status: "EN_ATTENTE" },
                   });
                   const baseName = user.name || email.split("@")[0];
-                  const baseSlug = baseName
-                    .toLowerCase()
-                    .normalize("NFD")
-                    .replace(/[\u0300-\u036f]/g, "")
-                    .replace(/[^a-z0-9]+/g, "-")
-                    .replace(/^-|-$/g, "")
-                    .slice(0, 30) || "boutique";
-                  const slug = `${baseSlug}-${Date.now().toString(36)}`;
+                  // Slug lisible : suffixe seulement en cas de collision r\u00e9elle.
+                  const slug = await uniqueSlug("shop", baseName);
                   await prisma.vendorShop.create({
                     data: {
                       instructeurId: instProfile.id,

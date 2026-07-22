@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { permanentRedirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { resolveOldSlug } from "@/lib/formations/slugs";
 import ProduitPageClient from "./ProduitPageClient";
 import TrackPageView from "@/components/tracking/TrackPageView";
 
@@ -75,6 +77,14 @@ export default async function ProduitPage({
       },
     })
     .catch(() => null);
+
+  // Produit renommé : redirection permanente vers son slug actuel, pour ne pas
+  // perdre le référencement de l'ancienne URL. (Hors try/catch : `permanentRedirect`
+  // fonctionne en levant une exception que Next intercepte.)
+  if (!product) {
+    const current = await resolveOldSlug("product", slug);
+    if (current) permanentRedirect(`/produit/${current}`);
+  }
 
   const topProductReviews = product
     ? await prisma.digitalProductReview

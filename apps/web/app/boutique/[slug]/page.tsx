@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { resolveOldSlug } from "@/lib/formations/slugs";
 import BoutiqueView from "@/components/formations/BoutiqueView";
 import TrackPageView from "@/components/tracking/TrackPageView";
 import { shopFontHref } from "@/lib/formations/shop-fonts";
@@ -135,7 +136,14 @@ async function resolve(slugParam: string) {
 export default async function BoutiqueBySlugPage({ params }: Props) {
   const { slug } = await params;
   const data = await resolve(slug);
-  if (!data) notFound();
+  if (!data) {
+    // La boutique a peut-être simplement été renommée : on redirige en permanent
+    // vers son slug actuel plutôt que de renvoyer un 404 qui perdrait le
+    // référencement acquis par l'ancienne URL.
+    const current = await resolveOldSlug("shop", slug);
+    if (current) permanentRedirect(`/boutique/${current}`);
+    notFound();
+  }
 
   const { shop, formations, products, bundles, subscriptionPlans } = data;
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";

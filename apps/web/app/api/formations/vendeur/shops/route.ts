@@ -5,19 +5,10 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { ensurePrimaryShop } from "@/lib/formations/ensure-primary-shop";
+import { uniqueSlug } from "@/lib/formations/slugs";
 
 const MAX_SHOPS = 5;
 const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/;
-
-function slugify(s: string) {
-  return s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 40);
-}
 
 async function ctx() {
   const session = await getServerSession(authOptions);
@@ -105,20 +96,9 @@ export async function POST(req: Request) {
     );
   }
 
-  // Generate unique slug from name
-  const base = slugify(name) || "boutique";
-  let slug = base;
-  let i = 2;
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const exists = await prisma.vendorShop.findUnique({ where: { slug } });
-    if (!exists) break;
-    slug = `${base}-${i++}`;
-    if (i > 99) {
-      slug = `${base}-${Date.now().toString(36)}`;
-      break;
-    }
-  }
+  // Slug lisible et unique : coupe sur une frontiere de mot, suffixe -2/-3
+  // seulement en cas de collision reelle (lib partagee).
+  let slug = await uniqueSlug("shop", name);
   if (!SLUG_RE.test(slug)) slug = `boutique-${Date.now().toString(36)}`;
 
   const shop = await prisma.vendorShop.create({
