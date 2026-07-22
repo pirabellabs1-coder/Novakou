@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cache } from "react";
 import { notFound, permanentRedirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { resolveOldSlug } from "@/lib/formations/slugs";
@@ -7,22 +8,29 @@ import TrackPageView from "@/components/tracking/TrackPageView";
 import { shopFontHref } from "@/lib/formations/shop-fonts";
 import { productImageSrc } from "@/lib/utils/image-url";
 
-// ISR : 10min cache for public shop pages — vendors update infrequently
+// ATTENTION — ce `revalidate` n'a AUCUN effet aujourd'hui : le layout racine
+// lit le cookie de langue via next-intl (i18n/request.ts appelle `cookies()`),
+// ce qui rend TOUTE route dynamique. Vérifié en prod : la réponse porte
+// `Cache-Control: private, no-cache, no-store` et `X-Vercel-Cache: MISS` à
+// chaque requête. On le garde car il redeviendra actif si un jour la locale
+// passe par l'URL (next-intl `localePrefix: "as-needed"`) au lieu du cookie.
 export const revalidate = 600;
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const shop = await prisma.vendorShop.findUnique({
-    where: { slug: slug.toLowerCase() },
-    select: { name: true, description: true, logoUrl: true, coverUrl: true },
-  }).catch(() => null);
+  // Réutilise `resolve()` (mémorisé par requête) : avant, generateMetadata et
+  // le composant de page interrogeaient la boutique chacun de leur côté.
+  const shop = (await resolve(slug))?.shop ?? null;
 
   if (!shop) {
-    return { title: "Boutique introuvable" };
+    // Ne pas laisser Google indexer une page vide (une boutique renommée est
+    // de toute façon redirigée en permanent par le composant de page).
+    return { title: "Boutique introuvable", robots: { index: false, follow: false } };
   }
 
   const title = `${shop.name} · Boutique Novakou`;
@@ -54,7 +62,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-async function resolve(slugParam: string) {
+/** Mémorisé pour la durée de la requête (React `cache`) : `generateMetadata`
+ *  et le composant de page l'appellent tous les deux, sans doubler les requêtes. */
+const resolve = cache(async (slugParam: string) => {
   const slug = slugParam.toLowerCase();
   try {
     const shop = await prisma.vendorShop.findUnique({
@@ -131,7 +141,7 @@ async function resolve(slugParam: string) {
     console.error("[boutique/slug] lookup failed:", err);
     return null;
   }
-}
+});
 
 export default async function BoutiqueBySlugPage({ params }: Props) {
   const { slug } = await params;

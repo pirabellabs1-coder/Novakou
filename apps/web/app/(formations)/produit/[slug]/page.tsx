@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cache } from "react";
 import { permanentRedirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { resolveOldSlug } from "@/lib/formations/slugs";
@@ -11,6 +12,27 @@ import TrackPageView from "@/components/tracking/TrackPageView";
 // rendu correct + compteur de ventes/prix toujours à jour.
 export const dynamic = "force-dynamic";
 
+/**
+ * Une seule requête produit par requête HTTP.
+ *
+ * `generateMetadata` et le composant de page demandaient séparément la MÊME
+ * ligne : 2 allers-retours base de données à chaque visite, donc à chaque
+ * passage de Googlebot. `cache()` (React) mémorise le résultat pour la durée
+ * de la requête — les deux appels ne coûtent plus qu'une requête.
+ */
+const getProduct = cache(async (slug: string) =>
+  prisma.digitalProduct
+    .findFirst({
+      where: { slug },
+      select: {
+        id: true, title: true, description: true, banner: true, thumbnail: true, price: true,
+        rating: true, reviewsCount: true, salesCount: true,
+        instructeur: { select: { user: { select: { name: true } } } },
+      },
+    })
+    .catch(() => null),
+);
+
 export async function generateMetadata({
   params,
 }: {
@@ -21,13 +43,12 @@ export async function generateMetadata({
   // version selected `shortDescription` and `thumbnail` (alias for what the
   // model used to call them) — those names never existed on DigitalProduct
   // and the .catch(() => null) silently swallowed every metadata fetch.
-  const product = await prisma.digitalProduct.findFirst({
-    where: { slug },
-    select: { title: true, description: true, banner: true, thumbnail: true, price: true },
-  }).catch(() => null);
+  const product = await getProduct(slug);
 
   if (!product) {
-    return { title: "Produit introuvable" };
+    // Une page introuvable ne doit pas être indexée : sans ça, Google garde en
+    // catalogue des URLs vides qui diluent la qualité perçue du site.
+    return { title: "Produit introuvable", robots: { index: false, follow: false } };
   }
 
   const title = product.title;
@@ -67,16 +88,7 @@ export default async function ProduitPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = await prisma.digitalProduct
-    .findFirst({
-      where: { slug },
-      select: {
-        id: true, title: true, description: true, banner: true, thumbnail: true, price: true,
-        rating: true, reviewsCount: true, salesCount: true,
-        instructeur: { select: { user: { select: { name: true } } } },
-      },
-    })
-    .catch(() => null);
+  const product = await getProduct(slug);
 
   // Produit renommé : redirection permanente vers son slug actuel, pour ne pas
   // perdre le référencement de l'ancienne URL. (Hors try/catch : `permanentRedirect`

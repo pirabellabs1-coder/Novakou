@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cache } from "react";
 import { permanentRedirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { resolveOldSlug } from "@/lib/formations/slugs";
@@ -12,6 +13,31 @@ import TrackPageView from "@/components/tracking/TrackPageView";
 // fraîches (titre, prix, nb d'élèves à jour à chaque visite).
 export const dynamic = "force-dynamic";
 
+/**
+ * Une seule requête formation par requête HTTP : `generateMetadata` et le
+ * composant de page demandaient séparément la MÊME ligne (2 allers-retours
+ * base de données par visite, donc à chaque passage de Googlebot).
+ */
+const getFormation = cache(async (slug: string) =>
+  prisma.formation
+    .findUnique({
+      where: { slug },
+      select: {
+        id: true,
+        title: true,
+        shortDesc: true,
+        description: true,
+        thumbnail: true,
+        price: true,
+        rating: true,
+        reviewsCount: true,
+        studentsCount: true,
+        instructeur: { select: { user: { select: { name: true } } } },
+      },
+    })
+    .catch(() => null),
+);
+
 export async function generateMetadata({
   params,
 }: {
@@ -21,13 +47,11 @@ export async function generateMetadata({
   // The schema field is `shortDesc`, not `shortDescription`. The previous
   // version selected the non-existent name and the .catch(() => null)
   // silently swallowed every metadata fetch — pages had no Open Graph.
-  const formation = await prisma.formation.findUnique({
-    where: { slug },
-    select: { title: true, shortDesc: true, description: true, thumbnail: true, price: true },
-  }).catch(() => null);
+  const formation = await getFormation(slug);
 
   if (!formation) {
-    return { title: "Formation introuvable" };
+    // Ne pas laisser Google indexer une page vide.
+    return { title: "Formation introuvable", robots: { index: false, follow: false } };
   }
 
   const title = formation.title;
@@ -66,23 +90,7 @@ export default async function FormationPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const formation = await prisma.formation
-    .findUnique({
-      where: { slug },
-      select: {
-        id: true,
-        title: true,
-        shortDesc: true,
-        description: true,
-        thumbnail: true,
-        price: true,
-        rating: true,
-        reviewsCount: true,
-        studentsCount: true,
-        instructeur: { select: { user: { select: { name: true } } } },
-      },
-    })
-    .catch(() => null);
+  const formation = await getFormation(slug);
 
   // Formation renommée : redirection permanente vers son slug actuel, pour ne
   // pas perdre le référencement de l'ancienne URL.
