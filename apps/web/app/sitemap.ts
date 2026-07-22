@@ -189,7 +189,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         select: { slug: true, createdAt: true },
         take: 200,
       });
+      // Les slugs de test/démo laissés en base ne doivent pas être soumis aux
+      // moteurs : ce sont des pages vides qui diluent la qualité du sitemap.
+      const isTestSlug = (s: string) => /(^|-)(test|demo|exemple|sample)(-|$)/i.test(s);
       for (const c of cats) {
+        if (isTestSlug(c.slug)) continue;
         dynamicRoutes.push({
           url: `${BASE_URL}/explorer?categorie=${c.slug}`,
           lastModified: c.createdAt,
