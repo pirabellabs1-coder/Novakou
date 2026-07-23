@@ -3,17 +3,16 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
-import {
-  initPayout as initMonerooPayout,
-  isMonerooConfigured,
-  classifyMonerooError,
-} from "@/lib/moneroo";
+import { isMonerooConfigured } from "@/lib/moneroo";
 import {
   getPayoutMethod,
   normalizeMsisdn,
   shortMethodLabel,
 } from "@/lib/moneroo-payout-methods";
 import { sendWithdrawalPaidEmail, sendWithdrawalFailedEmail } from "@/lib/email/withdrawals";
+import { executePayout } from "@/lib/payout/execute";
+import { isFeexpayConfigured } from "@/lib/feexpay";
+import { isFedapayConfigured } from "@/lib/fedapay";
 
 type Params = { params: Promise<{ id: string }> };
 type PayoutMode = "moneroo" | "manual";
@@ -92,7 +91,8 @@ export async function PATCH(request: Request, { params }: Params) {
     const email = w.affiliate?.user?.email ?? "";
 
     // Mode manuel : versement hors plateforme → TRAITE + commissions PAID.
-    if (mode === "manual" || !isMonerooConfigured()) {
+    const anyAutoProvider = isMonerooConfigured() || isFeexpayConfigured() || isFedapayConfigured();
+    if (mode === "manual" || !anyAutoProvider) {
       await prisma.$transaction([
         prisma.affiliateWithdrawal.update({
           where: { id },
@@ -143,45 +143,56 @@ export async function PATCH(request: Request, { params }: Params) {
       return NextResponse.json({ error: `Coordonnées incomplètes : ${missing.join(", ")}` }, { status: 400 });
     }
 
-    let payoutData;
-    try {
-      console.log(`[affiliate moneroo:payout] id=${id} amount=${Math.round(w.amount)} method=${methodDef.id}`);
-      payoutData = await initMonerooPayout({
-        amount: Math.round(w.amount),
-        currency: methodDef.currency,
-        description: `Retrait affilié Novakou - ${shortMethodLabel(methodDef.id)}`,
-        customer: { email, first_name: firstName, last_name: lastName },
-        method: methodDef.id,
-        recipient,
-        metadata: { type: "affiliate_withdrawal", withdrawalId: w.id, affiliateId: w.affiliateId, userId: w.userId },
-        idempotencyKey: `affwd_${w.id}`,
-      });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.error(`[affiliate moneroo:payout:error] id=${id} error=${msg}`);
-      const classified = classifyMonerooError(msg);
+    // ── VERSEMENT via orchestrateur : Moneroo → FeexPay → FedaPay ──────────────
+    console.log(`[affiliate payout] id=${id} amount=${Math.round(w.amount)} method=${methodDef.id}`);
+    const exec = await executePayout({
+      method: methodDef.id,
+      amount: Math.round(w.amount),
+      msisdn: recipient.msisdn,
+      customer: { email, firstName, lastName },
+      description: `Retrait affilié Novakou - ${shortMethodLabel(methodDef.id)}`,
+      withdrawalId: w.id,
+    });
+
+    if (!exec.ok) {
+      if (exec.terminal === "ambiguous") {
+        // Versement PEUT-ÊTRE parti → NE PAS libérer les commissions (sinon
+        // l'affilié pourrait re-retirer le même montant) et NE PAS marquer REFUSE.
+        await prisma.affiliateWithdrawal.update({
+          where: { id },
+          data: { errorMessage: exec.userMessage.slice(0, 500) },
+        }).catch(() => null);
+        console.error(`[affiliate payout:ambiguous] id=${id} ${exec.userMessage}`);
+        return NextResponse.json(
+          { error: exec.userMessage, code: "PAYOUT_AMBIGUOUS", attempts: exec.attempts },
+          { status: 502 },
+        );
+      }
+      // rejected / no_provider → REFUSE + libération des commissions réservées.
       await prisma.affiliateWithdrawal.update({
         where: { id },
         data: {
           status: "REFUSE",
           processedAt: new Date(),
-          paymentProvider: "moneroo",
-          errorMessage: msg.slice(0, 500),
-          refusedReason: `Moneroo: ${classified.userMessage}`,
+          errorMessage: exec.userMessage.slice(0, 500),
+          refusedReason: exec.userMessage.slice(0, 300),
         },
       }).catch(() => null);
       await releaseCommissions(id);
+      console.error(`[affiliate payout:${exec.terminal}] id=${id} ${exec.userMessage}`);
       return NextResponse.json(
-        { error: classified.userMessage, code: "MONEROO_INIT_FAILED", category: classified.category },
+        { error: exec.userMessage, code: "PAYOUT_FAILED", terminal: exec.terminal, attempts: exec.attempts },
         { status: 502 },
       );
     }
 
-    // Succès de l'init : on garde EN_ATTENTE, le webhook confirmera (TRAITE + PAID).
+    // Accepté : on garde EN_ATTENTE, le webhook du fournisseur confirmera
+    // (TRAITE + commissions PAID + paidEarnings).
     await prisma.affiliateWithdrawal.update({
       where: { id },
-      data: { paymentRef: payoutData.id, paymentProvider: "moneroo", errorMessage: null },
+      data: { paymentRef: exec.providerRef, paymentProvider: exec.provider, errorMessage: null },
     });
+    console.log(`[affiliate payout:accepted] id=${id} provider=${exec.provider} ref=${exec.providerRef}`);
     await prisma.notification.create({
       data: {
         userId: w.userId,
@@ -193,7 +204,7 @@ export async function PATCH(request: Request, { params }: Params) {
     }).catch(() => null);
 
     return NextResponse.json({
-      data: { id, status: "EN_ATTENTE", mode: "moneroo", paymentRef: payoutData.id, note: "Envoyé à Moneroo. Le webhook confirmera le versement." },
+      data: { id, status: "EN_ATTENTE", provider: exec.provider, paymentRef: exec.providerRef, note: `Envoyé via ${exec.provider}. Le webhook confirmera le versement.` },
     });
   } catch (err) {
     console.error("[admin/affiliate-withdrawals PATCH]", err);

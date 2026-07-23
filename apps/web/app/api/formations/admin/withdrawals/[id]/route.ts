@@ -3,11 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
-import {
-  initPayout as initMonerooPayout,
-  isMonerooConfigured,
-  classifyMonerooError,
-} from "@/lib/moneroo";
+import { isMonerooConfigured } from "@/lib/moneroo";
 import {
   initPayout as initPayGeniusPayout,
   isPayGeniusConfigured,
@@ -27,6 +23,9 @@ import {
   shortPayGeniusMethodLabel,
   resolvePayGeniusLegacyMethod,
 } from "@/lib/paygenius-payout-methods";
+import { executePayout } from "@/lib/payout/execute";
+import { isFeexpayConfigured } from "@/lib/feexpay";
+import { isFedapayConfigured } from "@/lib/fedapay";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -162,11 +161,14 @@ export async function PATCH(request: Request, { params }: Params) {
 
     // ─── APPROVE : déclencher paiement réel via provider OU manuel ──────────
     if (action === "approve") {
-      // Si le provider sélectionné n'est pas configuré, on retombe en manuel
+      // Si aucun fournisseur automatique n'est configuré, on retombe en manuel.
+      // Le mode "moneroo" (défaut) passe désormais par l'orchestrateur, qui
+      // essaie Moneroo → FeexPay → FedaPay : il suffit qu'UN seul soit configuré.
+      const anyAutoProvider = isMonerooConfigured() || isFeexpayConfigured() || isFedapayConfigured();
       const providerConfigured =
         mode === "paygenius" ? isPayGeniusConfigured() :
-        mode === "moneroo" ? isMonerooConfigured() :
-        true; // mode === "manual"
+        mode === "manual" ? true :
+        anyAutoProvider;
 
       if (mode === "manual" || !providerConfigured) {
         // Mode manuel (ancien comportement) : l'admin vire hors plateforme
@@ -421,58 +423,63 @@ export async function PATCH(request: Request, { params }: Params) {
         );
       }
 
-      let payoutData;
-      try {
-        console.log(`[moneroo:payout] id=${id} amount=${Math.round(w.amount)} currency=${methodDef.currency} method=${resolvedMethod}`);
-        payoutData = await initMonerooPayout({
-          amount: Math.round(w.amount),
-          currency: methodDef.currency,
-          description: `Retrait Novakou - ${shortMethodLabel(resolvedMethod)}`,
-          customer: {
-            email: w.instructeur.user.email,
-            first_name: firstName,
-            last_name: lastName,
-          },
-          method: resolvedMethod,
-          recipient,
-          metadata: sharedMetadata,
-          // Bureau session 4 (P1 Karim) — empêche le double-payout sur
-          // double-click admin ou retry réseau. `wd_<id>` est unique par
-          // demande de retrait : un re-POST renverra le même payoutId.
-          idempotencyKey: `wd_${w.id}`,
-        });
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        console.error(`[moneroo:payout:error] id=${id} amount=${Math.round(w.amount)} currency=${methodDef.currency} method=${resolvedMethod} error=${msg}`);
-        const classified = classifyMonerooError(msg);
+      // ── VERSEMENT via orchestrateur : Moneroo → FeexPay → FedaPay ────────
+      // Bascule automatique : si un fournisseur refuse (solde/IP/validation),
+      // le MÊME versement est rejoué chez le suivant. Sur erreur ambiguë
+      // (réseau/timeout) l'orchestrateur s'arrête sans REFUSE, pour éviter tout
+      // double paiement (le retrait reste EN_ATTENTE + errorMessage à vérifier).
+      console.log(`[payout] id=${id} amount=${Math.round(w.amount)} method=${resolvedMethod}`);
+      const exec = await executePayout({
+        method: resolvedMethod,
+        amount: Math.round(w.amount),
+        msisdn: recipient.msisdn,
+        customer: { email: w.instructeur.user.email, firstName, lastName },
+        description: `Retrait Novakou - ${shortMethodLabel(resolvedMethod)}`,
+        withdrawalId: w.id,
+      });
+
+      if (!exec.ok) {
+        if (exec.terminal === "ambiguous") {
+          // Versement PEUT-ÊTRE pris → on garde EN_ATTENTE, pas de REFUSE.
+          await prisma.instructorWithdrawal.update({
+            where: { id },
+            data: { errorMessage: exec.userMessage.slice(0, 500) },
+          }).catch(() => null);
+          console.error(`[payout:ambiguous] id=${id} ${exec.userMessage}`);
+          return NextResponse.json(
+            { error: exec.userMessage, code: "PAYOUT_AMBIGUOUS", attempts: exec.attempts },
+            { status: 502 },
+          );
+        }
+        // rejected (tous ont refusé) ou no_provider → REFUSE.
         await prisma.instructorWithdrawal.update({
           where: { id },
           data: {
             status: "REFUSE",
             processedAt: new Date(),
-            paymentProvider: "moneroo",
-            errorMessage: msg.slice(0, 500),
-            refusedReason: `Moneroo: ${classified.userMessage}`,
+            errorMessage: exec.userMessage.slice(0, 500),
+            refusedReason: exec.userMessage.slice(0, 300),
           },
         }).catch(() => null);
+        console.error(`[payout:${exec.terminal}] id=${id} ${exec.userMessage}`);
         return NextResponse.json(
-          {
-            error: classified.userMessage,
-            code: "MONEROO_INIT_FAILED",
-            category: classified.category,
-          },
+          { error: exec.userMessage, code: "PAYOUT_FAILED", terminal: exec.terminal, attempts: exec.attempts },
           { status: 502 },
         );
       }
 
+      // Accepté par exec.provider. Statut final confirmé par le webhook du
+      // fournisseur (sauf si déjà "success" au lancement).
       await prisma.instructorWithdrawal.update({
         where: { id },
         data: {
-          paymentRef: payoutData.id,
-          paymentProvider: "moneroo",
+          paymentRef: exec.providerRef,
+          paymentProvider: exec.provider,
           errorMessage: null,
+          ...(exec.status === "success" ? { status: "TRAITE", processedAt: new Date() } : {}),
         },
       });
+      console.log(`[payout:accepted] id=${id} provider=${exec.provider} ref=${exec.providerRef} status=${exec.status}`);
 
       await prisma.notification.create({
         data: {
@@ -487,11 +494,11 @@ export async function PATCH(request: Request, { params }: Params) {
       return NextResponse.json({
         data: {
           id,
-          status: "EN_ATTENTE",
+          status: exec.status === "success" ? "TRAITE" : "EN_ATTENTE",
           role,
-          mode: "moneroo",
-          paymentRef: payoutData.id,
-          note: "Envoyé à Moneroo. Le webhook confirmera le versement.",
+          provider: exec.provider,
+          paymentRef: exec.providerRef,
+          note: `Envoyé via ${exec.provider}. Le webhook confirmera le versement.`,
         },
       });
     }

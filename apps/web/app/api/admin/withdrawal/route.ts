@@ -17,7 +17,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
-import { initPayout as initMonerooPayout, isMonerooConfigured, classifyMonerooError } from "@/lib/moneroo";
+import { isMonerooConfigured } from "@/lib/moneroo";
+import { executePayout } from "@/lib/payout/execute";
+import { isFeexpayConfigured } from "@/lib/feexpay";
+import { isFedapayConfigured } from "@/lib/fedapay";
 import { getPayoutMethod, normalizeMsisdn } from "@/lib/moneroo-payout-methods";
 import { sendWithdrawalRequestedEmail } from "@/lib/email/withdrawals";
 
@@ -152,33 +155,50 @@ export async function POST(req: Request) {
   const monerooMethodId = String(details.monerooMethod ?? "");
   const rawMsisdn = String(details.msisdn ?? details.phone ?? "");
   const methodDef = getPayoutMethod(monerooMethodId);
-  if (method === "mobile_money" && isMonerooConfigured() && methodDef && rawMsisdn) {
+  const anyAutoProvider = isMonerooConfigured() || isFeexpayConfigured() || isFedapayConfigured();
+  if (method === "mobile_money" && anyAutoProvider && methodDef && rawMsisdn) {
     const fullName = (session?.user?.name || session?.user?.email || "Admin Novakou").trim();
     const parts = fullName.split(/\s+/);
-    try {
-      const data = await initMonerooPayout({
-        amount: Math.round(amount),
-        currency: methodDef.currency,
-        description: "Retrait commission Novakou",
-        customer: { email: session?.user?.email || "admin@novakou.com", first_name: parts[0] || "Admin", last_name: parts.slice(1).join(" ") || "Novakou" },
-        method: monerooMethodId,
-        recipient: { msisdn: normalizeMsisdn(rawMsisdn, monerooMethodId) },
-        metadata: { type: "platform_payout", payoutId: payout.id },
-        idempotencyKey: `pfwd_${payout.id}`,
-      });
+    // Orchestrateur : Moneroo → FeexPay → FedaPay, avec bascule sur refus et
+    // arrêt de sûreté sur erreur ambiguë (voir lib/payout/execute.ts).
+    const exec = await executePayout({
+      method: monerooMethodId,
+      amount: Math.round(amount),
+      msisdn: normalizeMsisdn(rawMsisdn, monerooMethodId),
+      customer: {
+        email: session?.user?.email || "admin@novakou.com",
+        firstName: parts[0] || "Admin",
+        lastName: parts.slice(1).join(" ") || "Novakou",
+      },
+      description: "Retrait commission Novakou",
+      withdrawalId: payout.id,
+    });
+
+    if (!exec.ok) {
+      if (exec.terminal === "ambiguous") {
+        // Versement peut-être parti → garder EN_ATTENTE, pas de REFUSE.
+        payout = await prisma.platformPayout.update({
+          where: { id: payout.id },
+          data: { errorMessage: exec.userMessage.slice(0, 500) },
+        });
+        return NextResponse.json({ error: exec.userMessage, data: payout, code: "PAYOUT_AMBIGUOUS" }, { status: 502 });
+      }
       payout = await prisma.platformPayout.update({
         where: { id: payout.id },
-        data: { paymentRef: data.id, paymentProvider: "moneroo", errorMessage: null },
+        data: { status: "REFUSE", processedAt: new Date(), errorMessage: exec.userMessage.slice(0, 500), note: exec.userMessage.slice(0, 300) },
       });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      const classified = classifyMonerooError(msg);
-      payout = await prisma.platformPayout.update({
-        where: { id: payout.id },
-        data: { status: "REFUSE", processedAt: new Date(), paymentProvider: "moneroo", errorMessage: msg.slice(0, 500), note: `Moneroo: ${classified.userMessage}` },
-      });
-      return NextResponse.json({ error: classified.userMessage, data: payout, code: "MONEROO_INIT_FAILED" }, { status: 502 });
+      return NextResponse.json({ error: exec.userMessage, data: payout, code: "PAYOUT_FAILED", terminal: exec.terminal }, { status: 502 });
     }
+
+    payout = await prisma.platformPayout.update({
+      where: { id: payout.id },
+      data: {
+        paymentRef: exec.providerRef,
+        paymentProvider: exec.provider,
+        errorMessage: null,
+        ...(exec.status === "success" ? { status: "TRAITE", processedAt: new Date() } : {}),
+      },
+    });
   }
 
   return NextResponse.json({ data: payout }, { status: 201 });
