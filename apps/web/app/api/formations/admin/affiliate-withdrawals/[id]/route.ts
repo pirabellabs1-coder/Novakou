@@ -15,7 +15,14 @@ import { isFeexpayConfigured } from "@/lib/feexpay";
 import { isFedapayConfigured } from "@/lib/fedapay";
 
 type Params = { params: Promise<{ id: string }> };
-type PayoutMode = "moneroo" | "manual";
+type PayoutMode = "moneroo" | "feexpay" | "fedapay" | "manual";
+function resolveAffiliateMode(raw: unknown): PayoutMode {
+  const v = String(raw ?? "").toLowerCase();
+  if (v === "manual") return "manual";
+  if (v === "feexpay") return "feexpay";
+  if (v === "fedapay") return "fedapay";
+  return "moneroo";
+}
 
 function isAdmin(session: { user?: { role?: string | null } } | null): boolean {
   const role = session?.user?.role?.toString().toUpperCase();
@@ -44,7 +51,7 @@ export async function PATCH(request: Request, { params }: Params) {
     const body = await request.json().catch(() => ({}));
     const action: string = body.action;
     const refusedReason: string = (body.refusedReason ?? "").trim();
-    const mode: PayoutMode = String(body.mode ?? "").toLowerCase() === "manual" ? "manual" : "moneroo";
+    const mode: PayoutMode = resolveAffiliateMode(body.mode);
 
     if (!["approve", "reject"].includes(action)) {
       return NextResponse.json({ error: "Action invalide (approve | reject)." }, { status: 400 });
@@ -92,7 +99,11 @@ export async function PATCH(request: Request, { params }: Params) {
 
     // Mode manuel : versement hors plateforme → TRAITE + commissions PAID.
     const anyAutoProvider = isMonerooConfigured() || isFeexpayConfigured() || isFedapayConfigured();
-    if (mode === "manual" || !anyAutoProvider) {
+    const forcedConfigured =
+      mode === "feexpay" ? isFeexpayConfigured() :
+      mode === "fedapay" ? isFedapayConfigured() :
+      anyAutoProvider;
+    if (mode === "manual" || !forcedConfigured) {
       await prisma.$transaction([
         prisma.affiliateWithdrawal.update({
           where: { id },
@@ -152,6 +163,7 @@ export async function PATCH(request: Request, { params }: Params) {
       customer: { email, firstName, lastName },
       description: `Retrait affilié Novakou - ${shortMethodLabel(methodDef.id)}`,
       withdrawalId: w.id,
+      forceProvider: mode === "feexpay" || mode === "fedapay" ? mode : undefined,
     });
 
     if (!exec.ok) {

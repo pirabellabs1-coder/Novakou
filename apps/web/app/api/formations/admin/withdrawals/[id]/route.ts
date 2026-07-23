@@ -55,13 +55,16 @@ type AccountDetails = {
  *
  * Admin-only (role=ADMIN). En dev, bypass de la verif role.
  */
-type PayoutMode = "moneroo" | "paygenius" | "manual";
+type PayoutMode = "moneroo" | "feexpay" | "fedapay" | "paygenius" | "manual";
 
 function resolvePayoutMode(raw: unknown): PayoutMode {
   const v = String(raw ?? "").toLowerCase();
   if (v === "manual") return "manual";
   if (v === "paygenius") return "paygenius"; // GeniusPay retiré — toléré seulement si explicitement demandé
-  // Moneroo = fournisseur de versement par défaut (GeniusPay retiré le 2026-06-27).
+  // "feexpay"/"fedapay" : forcent un fournisseur précis (test/diagnostic admin),
+  // sans bascule. "moneroo" (défaut) = orchestrateur avec bascule normale.
+  if (v === "feexpay") return "feexpay";
+  if (v === "fedapay") return "fedapay";
   return "moneroo";
 }
 
@@ -168,6 +171,8 @@ export async function PATCH(request: Request, { params }: Params) {
       const providerConfigured =
         mode === "paygenius" ? isPayGeniusConfigured() :
         mode === "manual" ? true :
+        mode === "feexpay" ? isFeexpayConfigured() :
+        mode === "fedapay" ? isFedapayConfigured() :
         anyAutoProvider;
 
       if (mode === "manual" || !providerConfigured) {
@@ -436,6 +441,8 @@ export async function PATCH(request: Request, { params }: Params) {
         customer: { email: w.instructeur.user.email, firstName, lastName },
         description: `Retrait Novakou - ${shortMethodLabel(resolvedMethod)}`,
         withdrawalId: w.id,
+        // Test admin : mode=feexpay|fedapay force ce fournisseur, sans bascule.
+        forceProvider: mode === "feexpay" || mode === "fedapay" ? mode : undefined,
       });
 
       if (!exec.ok) {

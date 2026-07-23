@@ -108,6 +108,7 @@ export default function AdminRetraitsVendeursPage() {
   // ── Test Moneroo direct (outil de diagnostic) ────────────────────────────
   const [showTest, setShowTest] = useState(false);
   const [testMethod, setTestMethod] = useState("mtn_bj");
+  const [testProvider, setTestProvider] = useState<"moneroo" | "feexpay" | "fedapay">("moneroo");
   const [testMsisdn, setTestMsisdn] = useState("");
   const [testAmount, setTestAmount] = useState(500);
   const [testResult, setTestResult] = useState<unknown>(null);
@@ -122,6 +123,7 @@ export default function AdminRetraitsVendeursPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           method: testMethod,
+          provider: testProvider,
           msisdn: testMsisdn,
           amount: testAmount,
         }),
@@ -508,12 +510,25 @@ export default function AdminRetraitsVendeursPage() {
         {/* ── Panneau de test Moneroo direct ──────────────────────────────── */}
         {showTest && (
           <StCard className="!p-[18px_20px]">
-            <h3 className="text-[15px] font-extrabold" style={{ color: ST.text }}>Test Moneroo direct</h3>
+            <h3 className="text-[15px] font-extrabold" style={{ color: ST.text }}>Test de versement</h3>
             <p className="text-[12px] font-semibold mt-0.5 mb-4" style={{ color: ST.textSecondary }}>
-              Envoie un payout direct à Moneroo. ATTENTION : l&apos;argent sort réellement de votre solde.
+              Envoie un vrai payout de test via le fournisseur choisi (sans bascule). ATTENTION : l&apos;argent sort réellement de votre solde.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+              <div>
+                <label className="block text-[10px] font-extrabold uppercase tracking-widest mb-1.5" style={{ color: ST.textMuted }}>Fournisseur</label>
+                <select
+                  value={testProvider}
+                  onChange={(e) => setTestProvider(e.target.value as "moneroo" | "feexpay" | "fedapay")}
+                  className="w-full px-3 py-2 rounded-xl text-[13px] font-semibold focus:outline-none"
+                  style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
+                >
+                  <option value="moneroo">Moneroo</option>
+                  <option value="feexpay">FeexPay</option>
+                  <option value="fedapay">FedaPay</option>
+                </select>
+              </div>
               <div>
                 <label className="block text-[10px] font-extrabold uppercase tracking-widest mb-1.5" style={{ color: ST.textMuted }}>Méthode</label>
                 <select

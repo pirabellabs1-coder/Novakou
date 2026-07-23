@@ -43,6 +43,13 @@ export type PayoutExecutionInput = {
   description: string;
   /** Id du retrait interne — sert d'idempotence et de référence webhook. */
   withdrawalId: string;
+  /**
+   * Test / diagnostic admin : forcer UN fournisseur précis, SANS bascule.
+   * Permet à l'admin de router délibérément un versement de test à travers
+   * FeexPay ou FedaPay (sinon Moneroo, premier dans l'ordre, capterait tout).
+   * En usage normal : laisser vide → ordre + bascule standard.
+   */
+  forceProvider?: PayoutProviderId;
 };
 
 export type PayoutAttempt = {
@@ -92,7 +99,10 @@ export async function executePayout(input: PayoutExecutionInput): Promise<Payout
   const motif = input.description || "Retrait Novakou";
   let lastRejectionMsg: string | null = null;
 
-  for (const provider of PROVIDER_ORDER) {
+  // Forçage de test : un seul fournisseur, aucune bascule. Sinon ordre standard.
+  const order = input.forceProvider ? [input.forceProvider] : PROVIDER_ORDER;
+
+  for (const provider of order) {
     // 1) Configuré ?
     const configured =
       provider === "moneroo" ? isMonerooConfigured() :
