@@ -27,6 +27,8 @@ import {
 
 type Period = "all" | "7d" | "30d" | "90d" | "custom";
 
+type TxnOrigin = "paid" | "free" | "gift" | "subscription" | "bundle" | "test" | "unknown";
+
 type Txn = {
   id: string;
   type: "formation" | "product";
@@ -40,6 +42,8 @@ type Txn = {
   netAmount: number;
   createdAt: string;
   status: "completed" | "refunded" | "pending_refund";
+  origin: TxnOrigin;
+  originLabel: string;
 };
 
 type Summary = {
@@ -50,6 +54,12 @@ type Summary = {
   totalRevenue: number;
   totalCommission: number;
   totalNetPaid: number;
+  paidCount: number;
+  freeCount: number;
+  viaOfferCount: number;
+  realRevenue: number;
+  realCommission: number;
+  realNetPaid: number;
 };
 
 function formatFCFA(n: number) {
@@ -65,8 +75,32 @@ const STATUS_CONFIG: Record<
   pending_refund: { label: "En cours", tone: "amber", icon: Clock },
 };
 
+// Origine réelle de l'accès (préfixe passerelle côté serveur) : répond à
+// « cet acheteur a-t-il payé ou pas ? »
+const ORIGIN_CONFIG: Record<
+  TxnOrigin,
+  { tone: "green" | "rose" | "amber" | "blue" | "neutral" }
+> = {
+  paid: { tone: "green" },
+  free: { tone: "neutral" },
+  gift: { tone: "amber" },
+  subscription: { tone: "blue" },
+  bundle: { tone: "blue" },
+  test: { tone: "neutral" },
+  unknown: { tone: "rose" },
+};
+
+type OriginFilter = "all" | "paid" | "nopay" | "offer";
+function matchOrigin(filter: OriginFilter, origin: TxnOrigin): boolean {
+  if (filter === "all") return true;
+  if (filter === "paid") return origin === "paid";
+  if (filter === "nopay") return origin === "free" || origin === "gift" || origin === "test" || origin === "unknown";
+  return origin === "subscription" || origin === "bundle";
+}
+
 export default function AdminTransactionsPage() {
   const [status, setStatus] = useState<string>("all");
+  const [origin, setOrigin] = useState<OriginFilter>("all");
   const [type, setType] = useState<"all" | "formation" | "product">("all");
   const [period, setPeriod] = useState<Period>("all");
   const [customSince, setCustomSince] = useState("");
@@ -114,13 +148,14 @@ export default function AdminTransactionsPage() {
         t.sellerName.toLowerCase().includes(q) ||
         t.productTitle.toLowerCase().includes(q) ||
         t.productType.toLowerCase().includes(q);
-      return matchStatus && matchType && matchPeriod && matchSearch;
+      return matchStatus && matchOrigin(origin, t.origin) && matchType && matchPeriod && matchSearch;
     });
-  }, [all, status, type, cutoff, search]);
+  }, [all, status, origin, type, cutoff, search]);
 
   const filtersActive =
     search.trim() !== "" ||
     status !== "all" ||
+    origin !== "all" ||
     type !== "all" ||
     period !== "all" ||
     customSince !== "";
@@ -128,6 +163,7 @@ export default function AdminTransactionsPage() {
   function resetFilters() {
     setSearch("");
     setStatus("all");
+    setOrigin("all");
     setType("all");
     setPeriod("all");
     setCustomSince("");
@@ -164,6 +200,7 @@ export default function AdminTransactionsPage() {
       "Montant",
       "Commission",
       "Net",
+      "Origine",
       "Statut",
     ];
     const rows = filtered.map((t) => [
@@ -176,6 +213,7 @@ export default function AdminTransactionsPage() {
       Math.round(t.amount),
       Math.round(t.commission),
       Math.round(t.netAmount),
+      t.originLabel ?? t.origin,
       t.status,
     ]);
     const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
@@ -218,28 +256,36 @@ export default function AdminTransactionsPage() {
           }
         />
 
-        {/* KPIs financiers */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+        {/* KPIs financiers — le VRAI encaissé d'abord (accès payés via
+            passerelle), pas la valeur faciale qui mélange gratuits/offerts. */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3.5">
           <StKpiCompact
-            label="Revenus totaux"
-            value={`${formatFCFA(summary?.totalRevenue ?? 0)}`}
+            label={`Encaissé réellement (${summary?.paidCount ?? 0} ventes)`}
+            value={`${formatFCFA(summary?.realRevenue ?? 0)}`}
             unit="F"
             icon={TrendingUp}
             tone="green"
           />
           <StKpiCompact
-            label="Commission (10 %)"
-            value={`${formatFCFA(summary?.totalCommission ?? 0)}`}
+            label="Commission réelle (10 %)"
+            value={`${formatFCFA(summary?.realCommission ?? 0)}`}
             unit="F"
             icon={Wallet}
             tone="amber"
           />
           <StKpiCompact
-            label="Versé aux vendeurs (90 %)"
-            value={`${formatFCFA(summary?.totalNetPaid ?? 0)}`}
+            label="Net vendeurs réel (90 %)"
+            value={`${formatFCFA(summary?.realNetPaid ?? 0)}`}
             unit="F"
             icon={Banknote}
             tone="green"
+          />
+          <StKpiCompact
+            label="Accès sans paiement direct"
+            value={`${(summary?.freeCount ?? 0) + (summary?.viaOfferCount ?? 0)}`}
+            unit={`dont ${summary?.viaOfferCount ?? 0} abo/pack`}
+            icon={CheckCircle}
+            tone="amber"
           />
         </div>
 
@@ -281,26 +327,51 @@ export default function AdminTransactionsPage() {
             </div>
 
             <div className="flex flex-col md:flex-row gap-3 items-start md:items-center justify-between flex-wrap">
-              <div className="flex flex-wrap gap-1 p-1 rounded-[13px]" style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}>
-                {(
-                  [
-                    { v: "all", l: "Tout type" },
-                    { v: "formation", l: "Formations" },
-                    { v: "product", l: "Produits" },
-                  ] as const
-                ).map((t) => {
-                  const on = type === t.v;
-                  return (
-                    <button
-                      key={t.v}
-                      onClick={() => setType(t.v)}
-                      className="px-3 py-2 rounded-[10px] text-[12.5px] font-extrabold transition-colors"
-                      style={on ? { background: ST.green, color: "#fff" } : { color: ST.textSecondary }}
-                    >
-                      {t.l}
-                    </button>
-                  );
-                })}
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex flex-wrap gap-1 p-1 rounded-[13px]" style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}>
+                  {(
+                    [
+                      { v: "all", l: "Tout type" },
+                      { v: "formation", l: "Formations" },
+                      { v: "product", l: "Produits" },
+                    ] as const
+                  ).map((t) => {
+                    const on = type === t.v;
+                    return (
+                      <button
+                        key={t.v}
+                        onClick={() => setType(t.v)}
+                        className="px-3 py-2 rounded-[10px] text-[12.5px] font-extrabold transition-colors"
+                        style={on ? { background: ST.green, color: "#fff" } : { color: ST.textSecondary }}
+                      >
+                        {t.l}
+                      </button>
+                    );
+                  })}
+                </div>
+                {/* Filtre ORIGINE : payé réel vs gratuit/offert vs abo/pack */}
+                <div className="flex flex-wrap gap-1 p-1 rounded-[13px]" style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}>
+                  {(
+                    [
+                      { v: "all", l: "Toute origine" },
+                      { v: "paid", l: "💰 Payés" },
+                      { v: "nopay", l: "Gratuits / offerts" },
+                      { v: "offer", l: "Abo / packs" },
+                    ] as const
+                  ).map((o) => {
+                    const on = origin === o.v;
+                    return (
+                      <button
+                        key={o.v}
+                        onClick={() => setOrigin(o.v)}
+                        className="px-3 py-2 rounded-[10px] text-[12.5px] font-extrabold transition-colors"
+                        style={on ? { background: ST.greenDark, color: "#fff" } : { color: ST.textSecondary }}
+                      >
+                        {o.l}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex flex-wrap gap-1 p-1 rounded-[13px]" style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}>
@@ -404,6 +475,7 @@ export default function AdminTransactionsPage() {
                       { h: "Montant", align: "text-right" },
                       { h: "Commission", align: "text-right" },
                       { h: "Net", align: "text-right" },
+                      { h: "Origine", align: "text-left" },
                       { h: "Statut", align: "text-left" },
                     ].map((c) => (
                       <th
@@ -461,6 +533,11 @@ export default function AdminTransactionsPage() {
                             {formatFCFA(tx.netAmount)}
                           </p>
                           <p className="text-[9px] uppercase" style={{ color: ST.textFaint }}>90 %</p>
+                        </td>
+                        <td className="px-5 py-3" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                          <StChip tone={ORIGIN_CONFIG[tx.origin]?.tone ?? "neutral"}>
+                            {tx.originLabel ?? "—"}
+                          </StChip>
                         </td>
                         <td className="px-5 py-3" style={{ borderTop: `1px solid ${ST.divider}` }}>
                           <StChip tone={sc.tone} icon={sc.icon}>{sc.label}</StChip>

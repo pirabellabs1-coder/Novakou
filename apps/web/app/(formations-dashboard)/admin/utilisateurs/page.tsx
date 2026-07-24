@@ -39,6 +39,11 @@ type User = {
   enrollmentsCount: number;
   purchasesCount: number;
   totalSpent: number;
+  // Origine réelle des accès (préfixe passerelle côté serveur)
+  hasPaid: boolean;
+  paidOrdersCount: number;
+  realSpent: number;
+  freeAccessCount: number;
 };
 
 type Summary = {
@@ -271,6 +276,12 @@ export default function AdminUtilisateursPage() {
                               Apprenant
                             </StChip>
                           )}
+                          {/* Vrai client payant : au moins un achat encaissé via passerelle */}
+                          {u.hasPaid && (
+                            <div className="mt-1">
+                              <StChip tone="green">💰 Payant</StChip>
+                            </div>
+                          )}
                           {isBlocked && (
                             <div className="mt-1">
                               <StChip tone="rose">{u.status}</StChip>
@@ -291,11 +302,17 @@ export default function AdminUtilisateursPage() {
                           </p>
                         </td>
                         <td className="px-5 py-4 text-right" style={{ borderTop: `1px solid ${ST.divider}` }}>
-                          <p className="text-[13px] font-extrabold tabular-nums" style={{ color: ST.text }}>
-                            {formatFCFA(u.totalSpent)}
+                          {/* Vrai argent encaissé (pas la valeur faciale des accès offerts) */}
+                          <p
+                            className="text-[13px] font-extrabold tabular-nums"
+                            style={{ color: u.realSpent > 0 ? ST.green : ST.textFaint }}
+                          >
+                            {formatFCFA(u.realSpent)}
                           </p>
                           <p className="text-[10px] uppercase tracking-widest" style={{ color: ST.textFaint }}>
-                            {u.enrollmentsCount + u.purchasesCount} achats
+                            {u.paidOrdersCount > 0 || u.freeAccessCount > 0
+                              ? `${u.paidOrdersCount} payé${u.paidOrdersCount > 1 ? "s" : ""} · ${u.freeAccessCount} gratuit${u.freeAccessCount > 1 ? "s" : ""}`
+                              : "0 achats"}
                           </p>
                         </td>
                         <td className="px-5 py-4" style={{ borderTop: `1px solid ${ST.divider}` }}>

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
+import { classifyPaymentOrigin } from "@/lib/formations/payment-origin";
 
 export async function GET(request: Request) {
   try {
@@ -46,29 +47,43 @@ export async function GET(request: Request) {
             digitalProducts: { select: { id: true } },
           },
         },
-        enrollments: { select: { id: true, paidAmount: true } },
-        productPurchases: { select: { id: true, paidAmount: true } },
+        enrollments: { select: { id: true, paidAmount: true, stripeSessionId: true } },
+        productPurchases: { select: { id: true, paidAmount: true, stripeSessionId: true } },
       },
     });
 
-    const enriched = users.map((u) => ({
-      id: u.id,
-      name: u.name,
-      email: u.email,
-      image: u.image,
-      role: u.role,
-      status: u.status,
-      createdAt: u.createdAt,
-      isInstructor: u.instructeurProfile !== null,
-      instructorStatus: u.instructeurProfile?.status ?? null,
-      productsCount: (u.instructeurProfile?.formations.length ?? 0) + (u.instructeurProfile?.digitalProducts.length ?? 0),
-      totalEarned: u.instructeurProfile?.totalEarned ?? 0,
-      enrollmentsCount: u.enrollments.length,
-      purchasesCount: u.productPurchases.length,
-      totalSpent:
-        u.enrollments.reduce((s, e) => s + e.paidAmount, 0) +
-        u.productPurchases.reduce((s, p) => s + p.paidAmount, 0),
-    }));
+    const enriched = users.map((u) => {
+      // Ventilation par origine réelle : distingue un VRAI client payant d'un
+      // compte qui n'a que des accès gratuits/offerts/test.
+      const accesses = [...u.enrollments, ...u.productPurchases].map((a) => ({
+        amount: a.paidAmount,
+        origin: classifyPaymentOrigin(a.stripeSessionId, a.paidAmount),
+      }));
+      const paidAccesses = accesses.filter((a) => a.origin === "paid");
+      return {
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        image: u.image,
+        role: u.role,
+        status: u.status,
+        createdAt: u.createdAt,
+        isInstructor: u.instructeurProfile !== null,
+        instructorStatus: u.instructeurProfile?.status ?? null,
+        productsCount: (u.instructeurProfile?.formations.length ?? 0) + (u.instructeurProfile?.digitalProducts.length ?? 0),
+        totalEarned: u.instructeurProfile?.totalEarned ?? 0,
+        enrollmentsCount: u.enrollments.length,
+        purchasesCount: u.productPurchases.length,
+        totalSpent:
+          u.enrollments.reduce((s, e) => s + e.paidAmount, 0) +
+          u.productPurchases.reduce((s, p) => s + p.paidAmount, 0),
+        // Vrai argent encaissé auprès de ce compte (préfixe passerelle).
+        hasPaid: paidAccesses.length > 0,
+        paidOrdersCount: paidAccesses.length,
+        realSpent: paidAccesses.reduce((s, a) => s + a.amount, 0),
+        freeAccessCount: accesses.length - paidAccesses.length,
+      };
+    });
 
     // Summary
     const [totalUsers, totalInstructors, totalLearners] = await Promise.all([
