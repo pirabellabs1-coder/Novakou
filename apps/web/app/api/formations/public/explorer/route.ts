@@ -21,9 +21,11 @@ export async function GET(request: Request) {
     const minRating = searchParams.get("minRating") ? parseFloat(searchParams.get("minRating")!) : 0;
     const sort = searchParams.get("sort") ?? "relevance"; // relevance | price-asc | price-desc | rating | recent
 
-    // Exclure les produits que les vendeurs ont marqués comme cachés du marketplace
+    // Exclure les produits cachés du marketplace ET les liens de paiement
+    // (produits « cachés » servant uniquement d'URL de checkout — pas des
+    // articles à découvrir dans la marketplace).
     const formationWhere: Record<string, unknown> = { status: "ACTIF", hiddenFromMarketplace: false };
-    const productWhere: Record<string, unknown> = { status: "ACTIF", hiddenFromMarketplace: false };
+    const productWhere: Record<string, unknown> = { status: "ACTIF", hiddenFromMarketplace: false, isPaymentLink: false };
 
     // Découpe la recherche en MOTS (tokens). Avant on cherchait la phrase
     // entière en `contains` → une recherche multi-mots (ex. l'assistant IA qui
@@ -57,8 +59,11 @@ export async function GET(request: Request) {
       ]);
     }
 
+    // Filtre catégorie par SLUG (cohérent avec le sitemap /explorer?categorie=slug),
+    // appliqué aux formations ET aux produits (avant : formations seulement).
     if (category) {
-      formationWhere.customCategory = { equals: category, mode: "insensitive" };
+      formationWhere.category = { slug: category };
+      productWhere.category = { slug: category };
     }
 
     if (maxPrice !== null) {
@@ -105,6 +110,7 @@ export async function GET(request: Request) {
           rating: true, reviewsCount: true, studentsCount: true, customCategory: true,
           shortDesc: true,
           createdAt: true,
+          category: { select: { name: true, slug: true, icon: true, color: true } },
           instructeur: {
             select: {
               user: { select: { name: true, image: true, kyc: true } },
@@ -121,6 +127,7 @@ export async function GET(request: Request) {
           thumbnail: true, banner: true, productType: true,
           rating: true, reviewsCount: true, salesCount: true,
           createdAt: true,
+          category: { select: { name: true, slug: true, icon: true, color: true } },
           instructeur: {
             select: {
               user: { select: { name: true, image: true, kyc: true } },
@@ -131,7 +138,8 @@ export async function GET(request: Request) {
       // Bureau session 4 (P1 Marcus) — bundles découvrables dans l'explorer.
       // Avant : invisibles hors boutique vendeur. Désormais : indexés et triés
       // au même titre que formations/produits.
-      kind === "formations" || kind === "products" ? [] : prisma.productBundle.findMany({
+      // Bundles exclus si un filtre catégorie est actif (ils n'ont pas de catégorie thématique).
+      kind === "formations" || kind === "products" || category ? [] : prisma.productBundle.findMany({
         where: bundleWhere,
         take: 100,
         orderBy: bundleOrderBy,
@@ -149,11 +157,22 @@ export async function GET(request: Request) {
           },
         },
       }),
-      prisma.formation.findMany({
-        where: { status: "ACTIF", customCategory: { not: null } },
-        select: { customCategory: true },
-        distinct: ["customCategory"],
-        take: 20,
+      // Vraie liste de catégories (table FormationCategory), ordonnée par `order`.
+      // On compte les produits publics par catégorie pour n'exposer QUE les
+      // catégories réellement peuplées (les catégories vides / de test polluent).
+      prisma.formationCategory.findMany({
+        where: { isActive: true },
+        select: {
+          name: true, slug: true, icon: true, color: true, order: true,
+          _count: {
+            select: {
+              formations: { where: { status: "ACTIF", hiddenFromMarketplace: false } },
+              digitalProducts: { where: { status: "ACTIF", hiddenFromMarketplace: false, isPaymentLink: false } },
+            },
+          },
+        },
+        orderBy: [{ order: "asc" }, { name: "asc" }],
+        take: 100,
       }),
     ]);
 
@@ -177,7 +196,10 @@ export async function GET(request: Request) {
       rating: f.rating,
       reviewsCount: f.reviewsCount,
       salesCount: f.studentsCount,
-      category: f.customCategory,
+      category: f.category?.name ?? f.customCategory,
+      categorySlug: f.category?.slug ?? null,
+      categoryIcon: f.category?.icon ?? null,
+      categoryColor: f.category?.color ?? null,
       shortDesc: f.shortDesc,
       type: "Formation vidéo",
       seller: f.instructeur.user.name ?? "—",
@@ -199,7 +221,10 @@ export async function GET(request: Request) {
       rating: p.rating,
       reviewsCount: p.reviewsCount,
       salesCount: p.salesCount,
-      category: null,
+      category: p.category?.name ?? null,
+      categorySlug: p.category?.slug ?? null,
+      categoryIcon: p.category?.icon ?? null,
+      categoryColor: p.category?.color ?? null,
       shortDesc: null,
       type: p.productType,
       seller: p.instructeur.user.name ?? "—",
@@ -222,6 +247,9 @@ export async function GET(request: Request) {
       reviewsCount: b.reviewsCount,
       salesCount: b._count.purchases,
       category: null,
+      categorySlug: null,
+      categoryIcon: null,
+      categoryColor: null,
       shortDesc: b.description ? b.description.slice(0, 120) : null,
       type: "Pack",
       seller: b.instructeur.user.name ?? "—",
@@ -238,7 +266,11 @@ export async function GET(request: Request) {
         formations: formationItems,
         products: productItems,
         bundles: bundleItems,
-        categories: categories.map((c) => c.customCategory).filter(Boolean),
+        // Catégories réelles, peuplées uniquement, sans les slugs de test/démo.
+        categories: categories
+          .filter((c) => (c._count.formations + c._count.digitalProducts) > 0)
+          .filter((c) => !/(^|-)(test|demo|exemple|sample)(-|$)/i.test(c.slug))
+          .map((c) => ({ name: c.name, slug: c.slug, icon: c.icon, color: c.color })),
         stats: {
           totalFormations,
           totalProducts,

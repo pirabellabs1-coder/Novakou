@@ -53,6 +53,9 @@ type Item = {
   reviewsCount: number;
   salesCount: number;
   category: string | null;
+  categorySlug?: string | null;
+  categoryIcon?: string | null;
+  categoryColor?: string | null;
   type: string;
   seller: string;
   sellerAvatar: string | null;
@@ -61,11 +64,13 @@ type Item = {
   createdAt: string;
 };
 
+type CategoryMeta = { name: string; slug: string; icon: string | null; color: string | null };
+
 type ExplorerData = {
   formations: Item[];
   products: Item[];
   bundles: Item[];
-  categories: string[];
+  categories: CategoryMeta[];
   stats: { totalFormations: number; totalProducts: number; totalBundles: number; total: number };
 };
 
@@ -328,6 +333,116 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
   );
 }
 
+// ── Rangée horizontale scrollable pour une section catégorie ────────────────
+function CategoryRow({
+  title, items, onSeeAll,
+}: {
+  title: string;
+  items: Item[];
+  onSeeAll: () => void;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollBy = (dir: number) =>
+    scrollRef.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
+
+  return (
+    <section className="mb-10">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <h2 className="text-lg md:text-xl font-extrabold text-[#191c1e] tracking-tight truncate">
+          {title}
+        </h2>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button
+            onClick={onSeeAll}
+            className="inline-flex items-center gap-1 text-xs md:text-sm font-bold text-[#006e2f] hover:underline whitespace-nowrap"
+          >
+            Voir tout
+            <ChevronRight size={16} />
+          </button>
+          {/* Flèches de défilement — desktop uniquement (mobile = swipe). */}
+          <div className="hidden md:flex items-center gap-1">
+            <button
+              onClick={() => scrollBy(-1)}
+              aria-label="Défiler à gauche"
+              className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-[#5c647a] hover:border-[#006e2f] hover:text-[#006e2f] transition-colors"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              onClick={() => scrollBy(1)}
+              aria-label="Défiler à droite"
+              className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-[#5c647a] hover:border-[#006e2f] hover:text-[#006e2f] transition-colors"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+      <div
+        ref={scrollRef}
+        className="flex gap-4 overflow-x-auto pb-2 snap-x scroll-smooth no-scrollbar"
+      >
+        {items.map((item, idx) => (
+          <div
+            key={`${item.kind}-${item.id}`}
+            className="w-[15rem] sm:w-[16rem] flex-shrink-0 snap-start"
+          >
+            <ProductCard item={item} idx={idx} />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ── Vue par défaut de la marketplace : une rangée par catégorie thématique ──
+function CategorySections({
+  categories, formations, products, bundles, onSeeCategory, onSeeBundles,
+}: {
+  categories: CategoryMeta[];
+  formations: Item[];
+  products: Item[];
+  bundles: Item[];
+  onSeeCategory: (slug: string) => void;
+  onSeeBundles: () => void;
+}) {
+  // Regroupe formations + produits par slug de catégorie.
+  const byCat = new Map<string, Item[]>();
+  for (const it of [...formations, ...products]) {
+    const k = it.categorySlug;
+    if (!k) continue;
+    if (!byCat.has(k)) byCat.set(k, []);
+    byCat.get(k)!.push(it);
+  }
+
+  // Rangées dans l'ordre défini par l'admin (`order`), seulement celles avec produits.
+  const rows = categories
+    .map((c) => ({ meta: c, items: byCat.get(c.slug) ?? [] }))
+    .filter((r) => r.items.length > 0);
+
+  return (
+    <div>
+      {rows.map((r) => (
+        <CategoryRow
+          key={r.meta.slug}
+          title={r.meta.name}
+          items={r.items.slice(0, 12)}
+          onSeeAll={() => onSeeCategory(r.meta.slug)}
+        />
+      ))}
+      {/* Les packs n'ont pas de catégorie thématique → leur propre rangée. */}
+      {bundles.length > 0 && (
+        <CategoryRow
+          key="__packs"
+          title="Packs & offres groupées"
+          items={bundles.slice(0, 12)}
+          onSeeAll={onSeeBundles}
+        />
+      )}
+    </div>
+  );
+}
+
 function GiftModal({ item, onClose }: { item: Item | null; onClose: () => void }) {
   const [form, setForm] = useState({ recipientEmail: "", recipientName: "", message: "" });
   const [success, setSuccess] = useState<string | null>(null);
@@ -452,8 +567,9 @@ function ExplorerInner() {
   const [activeTab, setActiveTab] = useState<"all" | "formations" | "products" | "bundles">(
     () => (searchParams.get("tab") as "all" | "formations" | "products" | "bundles") ?? "all",
   );
+  // Accepte `?category=` ET `?categorie=` (l'alias du sitemap). Valeur = slug.
   const [activeCategory, setActiveCategory] = useState<string | null>(
-    () => searchParams.get("category"),
+    () => searchParams.get("category") ?? searchParams.get("categorie"),
   );
   const [minRating, setMinRating] = useState(() => Number(searchParams.get("minRating") ?? "0"));
   const [maxPrice, setMaxPrice] = useState(() => Number(searchParams.get("maxPrice") ?? "1000000"));
@@ -584,6 +700,22 @@ function ExplorerInner() {
     setSort("relevance");
   };
 
+  // Vue « accueil marketplace » (rangées par catégorie) : uniquement quand
+  // AUCUN filtre n'est actif. Dès qu'on cherche/filtre/trie, on repasse à la
+  // grille filtrée classique.
+  const isDefaultView =
+    !search && !activeCategory && activeTab === "all" &&
+    sort === "relevance" && minRating === 0 && maxPrice >= 1000000;
+
+  const handleSeeCategory = (slug: string) => {
+    setActiveCategory(slug);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  const handleSeeBundles = () => {
+    setActiveTab("bundles");
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       {/* Hero */}
@@ -622,20 +754,20 @@ function ExplorerInner() {
             />
           </div>
 
-          {/* Category pills */}
+          {/* Category pills (valeur = slug, libellé = nom) */}
           {categories.length > 0 && (
             <div className="flex flex-wrap justify-center gap-2">
               {categories.map((cat) => (
                 <button
-                  key={cat}
-                  onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
+                  key={cat.slug}
+                  onClick={() => setActiveCategory(activeCategory === cat.slug ? null : cat.slug)}
                   className={`px-4 py-2 rounded-full text-xs font-bold border transition-all duration-200 ${
-                    activeCategory === cat
+                    activeCategory === cat.slug
                       ? "bg-[#006e2f] text-white border-[#006e2f]"
                       : "bg-white text-[#5c647a] border-gray-200 hover:border-[#006e2f] hover:text-[#006e2f]"
                   }`}
                 >
-                  {cat}
+                  {cat.name}
                 </button>
               ))}
             </div>
@@ -810,6 +942,18 @@ function ExplorerInner() {
                 Réinitialiser les filtres
               </button>
             )}
+          </div>
+        ) : isDefaultView ? (
+          /* Vue par défaut : rangées par catégorie thématique (découverte). */
+          <div id="explorer-grid" className="scroll-mt-24">
+            <CategorySections
+              categories={categories}
+              formations={formations}
+              products={products}
+              bundles={bundles}
+              onSeeCategory={handleSeeCategory}
+              onSeeBundles={handleSeeBundles}
+            />
           </div>
         ) : (
           <>
