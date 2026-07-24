@@ -355,9 +355,9 @@ function CategoryRow({
           <ChevronRight size={16} />
         </button>
       </div>
-      {/* 3 par ligne en desktop/tablette (2 rangées = 6 produits) ; 2 par ligne
-          sur mobile pour que les cartes restent lisibles. */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+      {/* 3 par ligne en desktop/tablette (2 rangées = 6 produits) ;
+          1 par ligne sur mobile (carte pleine largeur, plus lisible). */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
         {items.map((item, idx) => (
           <ProductCard key={`${item.kind}-${item.id}`} item={item} idx={idx} />
         ))}
@@ -627,7 +627,9 @@ function ExplorerInner() {
 
   // ── Pagination Précédent/Suivant — bureau 2026-05-26, addendum #3 sur
   // remontée Lissanon : un vrai navigateur de pages, pas un load-more.
-  const PAGE_SIZE = 24;
+  // 12/page (4 rangées de 3 en desktop) : la pagination apparaît dès qu'une
+  // catégorie dépasse une douzaine de produits (« nombre suivant » attendu).
+  const PAGE_SIZE = 12;
   const [currentPage, setCurrentPage] = useState(1);
   useEffect(() => {
     // Reset à la page 1 quand les filtres changent : sinon on peut être
@@ -753,24 +755,9 @@ function ExplorerInner() {
             />
           </div>
 
-          {/* Category pills (valeur = slug, libellé = nom) */}
-          {categories.length > 0 && (
-            <div className="flex flex-wrap justify-center gap-2">
-              {categories.map((cat) => (
-                <button
-                  key={cat.slug}
-                  onClick={() => setActiveCategory(activeCategory === cat.slug ? null : cat.slug)}
-                  className={`px-4 py-2 rounded-full text-xs font-bold border transition-all duration-200 ${
-                    activeCategory === cat.slug
-                      ? "bg-[#006e2f] text-white border-[#006e2f]"
-                      : "bg-white text-[#5c647a] border-gray-200 hover:border-[#006e2f] hover:text-[#006e2f]"
-                  }`}
-                >
-                  {cat.name}
-                </button>
-              ))}
-            </div>
-          )}
+          {/* Pastilles de catégories retirées : la découverte par catégorie se
+              fait via les sections (vue par défaut) + « Voir tout », et l'en-tête
+              de la page dédiée donne déjà le contexte. */}
         </div>
       </section>
 
