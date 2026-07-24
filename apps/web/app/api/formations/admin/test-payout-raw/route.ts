@@ -1,18 +1,24 @@
 import { NextResponse } from "next/server";
+import { IS_DEV } from "@/lib/env";
 
 /**
  * POST /api/formations/admin/test-payout-raw
  *
- * Endpoint ultra-minimal pour tester connectivite + env vars Moneroo.
- * Pas d'auth (DEV seulement), pas de Prisma, pas de getServerSession.
- * Juste : lit env var, appelle Moneroo direct, retourne la reponse brute.
- *
- * Ca evite toute la chaine Next-auth + Prisma qui pourrait crasher.
+ * Diagnostic de connectivité Moneroo qui DÉCLENCHE UN VRAI PAYOUT.
+ * DÉSACTIVÉ EN PRODUCTION : laissé accessible, il permettait à quiconque
+ * connaît `TEST_PAYOUT_TOKEN` (statique, sans rôle) de vider le solde Moneroo.
+ * Les vrais versements passent par /admin/withdrawals ; ce diagnostic ne vit
+ * qu'en dev local.
  */
 export const maxDuration = 30;
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  // Coupe-circuit prod : endpoint de mouvement d'argent réservé au dev local.
+  if (!IS_DEV) {
+    return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
+  }
+
   const trace: string[] = [];
   const push = (s: string) => { trace.push(`[${new Date().toISOString()}] ${s}`); };
 

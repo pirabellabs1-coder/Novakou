@@ -108,25 +108,15 @@ export async function POST(request: Request) {
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
-      if (formationsRole) {
-        // Reject if user already has a DIFFERENT formations role
-        if (existing.formationsRole && existing.formationsRole !== formationsRole) {
-          const roleLabel = existing.formationsRole === "instructeur" ? "instructeur" : "apprenant";
-          return NextResponse.json({
-            error: `Ce compte est deja enregistre en tant que ${roleLabel}. Vous ne pouvez pas etre instructeur et apprenant avec le meme email.`,
-          }, { status: 409 });
-        }
-        // Same role or no existing role — update
-        await prisma.user.update({
-          where: { id: existing.id },
-          data: { formationsRole },
-        });
-        return NextResponse.json({
-          success: true,
-          user: { id: existing.id, email: existing.email, name: existing.name, role: existing.role.toLowerCase() },
-        }, { status: 200 });
-      }
-      return NextResponse.json({ error: "Un compte avec cet email existe deja" }, { status: 409 });
+      // SÉCURITÉ : cet endpoint est PUBLIC et non authentifié. On ne mute JAMAIS
+      // un compte existant ici — sinon un tiers (sans mot de passe) pourrait
+      // changer le `formationsRole` d'autrui. Pour ajouter un rôle vendeur, le
+      // flux authentifié « Devenir vendeur » (/api/auth/update-formations-role,
+      // gate KYC ≥ 2) est le seul chemin.
+      return NextResponse.json(
+        { error: "Un compte avec cet email existe déjà. Connectez-vous." },
+        { status: 409 },
+      );
     }
 
     const isFormationsRegistration = !!formationsRole;

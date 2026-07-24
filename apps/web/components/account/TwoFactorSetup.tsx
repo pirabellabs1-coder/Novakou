@@ -109,11 +109,20 @@ export default function TwoFactorSetup({ initial }: { initial?: InitialState }) 
   }
 
   async function handleDisable() {
-    if (!confirm("Désactiver l'authentification à deux facteurs ? Votre compte sera moins protégé.")) return;
+    // Re-vérification : désactiver la 2FA exige un code TOTP courant (empêche
+    // une session volée de retirer le 2e facteur en silence).
+    const code = window.prompt(
+      "Entrez le code à 6 chiffres de votre application d'authentification pour confirmer la désactivation :",
+    );
+    if (!code || !/^\d{6}$/.test(code.trim())) return;
     setError(null);
     setMode("disabling");
     try {
-      const res = await fetch("/api/auth/setup-2fa", { method: "DELETE" });
+      const res = await fetch("/api/auth/setup-2fa", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: code.trim() }),
+      });
       const j = await res.json();
       if (!res.ok || !j.success) {
         setError(j.error || "Erreur lors de la désactivation.");

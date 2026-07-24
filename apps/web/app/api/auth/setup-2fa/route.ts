@@ -148,41 +148,54 @@ export async function PUT(request: Request) {
   }
 }
 
-// DELETE: Desactiver la 2FA
-export async function DELETE() {
+// DELETE: Desactiver la 2FA — exige un code TOTP courant valide (re-auth).
+export async function DELETE(request: Request) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
+    let code = "";
+    try { code = String(((await request.json()) as { code?: string })?.code ?? "").trim(); } catch { code = ""; }
+
     if (IS_DEV && !USE_PRISMA_FOR_DATA) {
       const { devStore } = await import("@/lib/dev/dev-store");
+      const u = devStore.findById(session.user.id) as Record<string, unknown> | null;
+      const secret = (u?.twoFactorSecret as string | null) ?? null;
+      if (u?.twoFactorEnabled && secret) {
+        if (!/^\d{6}$/.test(code) || !verifySync({ token: code, secret }).valid) {
+          return NextResponse.json({ error: "Code 2FA requis pour désactiver." }, { status: 400 });
+        }
+      }
       devStore.update(session.user.id, {
         twoFactorEnabled: false,
         twoFactorSecret: null,
       } as Record<string, unknown>);
-      return NextResponse.json({
-        success: true,
-        message: "2FA desactivee",
-      });
+      return NextResponse.json({ success: true, message: "2FA desactivee" });
     }
 
-    // Production: Prisma
+    // Production: Prisma — vérifier le code TOTP contre le secret stocké.
     try {
       const { prisma } = await import("@/lib/prisma");
+      const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { twoFactorEnabled: true, twoFactorSecret: true },
+      });
+      if (user?.twoFactorEnabled && user.twoFactorSecret) {
+        if (!/^\d{6}$/.test(code) || !verifySync({ token: code, secret: user.twoFactorSecret }).valid) {
+          return NextResponse.json({ error: "Code 2FA requis pour désactiver." }, { status: 400 });
+        }
+      }
       await prisma.user.update({
         where: { id: session.user.id },
-        data: { twoFactorEnabled: false, twoFactorSecret: null },
+        data: { twoFactorEnabled: false, twoFactorSecret: null, twoFactorVerifiedAt: null },
       });
     } catch {
       // DB non connectee
     }
 
-    return NextResponse.json({
-      success: true,
-      message: "2FA desactivee",
-    });
+    return NextResponse.json({ success: true, message: "2FA desactivee" });
   } catch {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }

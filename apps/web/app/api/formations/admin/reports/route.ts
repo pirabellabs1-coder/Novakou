@@ -19,8 +19,9 @@ import { Prisma } from "@prisma/client";
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user && !IS_DEV) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    const role = (session?.user as { role?: string } | undefined)?.role?.toUpperCase();
+    if ((!session?.user || role !== "ADMIN") && !IS_DEV) {
+      return NextResponse.json({ error: "Accès refusé — admin requis" }, { status: 403 });
     }
 
     const url = new URL(req.url);
@@ -59,8 +60,9 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user && !IS_DEV) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    const role = (session?.user as { role?: string } | undefined)?.role?.toUpperCase();
+    if ((!session?.user || role !== "ADMIN") && !IS_DEV) {
+      return NextResponse.json({ error: "Accès refusé — admin requis" }, { status: 403 });
     }
 
     const body = await req.json();

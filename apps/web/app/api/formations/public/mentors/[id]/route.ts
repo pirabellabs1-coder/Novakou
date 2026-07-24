@@ -13,7 +13,7 @@ export async function GET(_req: Request, { params }: Params) {
     const profile = await prisma.mentorProfile.findUnique({
       where: { id },
       include: {
-        user: { select: { id: true, name: true, image: true, email: true, createdAt: true } },
+        user: { select: { id: true, name: true, image: true, createdAt: true } },
         bookings: {
           where: { status: "COMPLETED", studentRating: { not: null } },
           orderBy: { scheduledAt: "desc" },

@@ -184,6 +184,10 @@ model User {
   twoFactorEnabled Boolean @default(false)
   // TODO(security): encrypt at rest with libsodium or @prisma/client-extension-encrypt — see apps/web/SECURITY.md
   twoFactorSecret  String?
+  // Preuve SERVEUR à usage unique posée par /api/auth/verify-2fa après un code
+  // TOTP valide. Le callback JWT ne lève `tfaPending` que sur cette preuve
+  // fraîche (jamais sur un booléen client) puis la consomme (null).
+  twoFactorVerifiedAt DateTime?
 
   // Formations
   formationsRole String? // "apprenant" ou "instructeur"

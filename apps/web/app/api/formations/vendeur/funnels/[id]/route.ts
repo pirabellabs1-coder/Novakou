@@ -123,8 +123,11 @@ export async function PATCH(request: Request, { params }: Params) {
         if (typeof step.discountPct === "number") stepUpdate.discountPct = step.discountPct;
 
         if (Object.keys(stepUpdate).length > 0) {
-          await prisma.funnelStep.update({
-            where: { id: step.id },
+          // IDOR : contraindre l'étape au tunnel courant (déjà vérifié possédé).
+          // `updateMany` avec `funnelId: id` → une étape d'un AUTRE tunnel touche
+          // 0 ligne (impossible d'écraser/repointer le tunnel d'un autre vendeur).
+          await prisma.funnelStep.updateMany({
+            where: { id: String(step.id), funnelId: id },
             data: stepUpdate,
           });
         }

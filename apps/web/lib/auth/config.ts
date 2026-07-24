@@ -273,7 +273,7 @@ export const authOptions: NextAuthOptions = {
             where: { email },
             select: {
               id: true, email: true, name: true, role: true, kyc: true, plan: true,
-              status: true, formationsRole: true,
+              status: true, formationsRole: true, twoFactorEnabled: true,
             },
           });
           if (!user) {
@@ -290,7 +290,7 @@ export const authOptions: NextAuthOptions = {
               },
               select: {
                 id: true, email: true, name: true, role: true, kyc: true, plan: true,
-                status: true, formationsRole: true,
+                status: true, formationsRole: true, twoFactorEnabled: true,
               },
             });
             user = created;
@@ -298,6 +298,16 @@ export const authOptions: NextAuthOptions = {
           if (user.status !== "ACTIF") {
             throw new Error("Votre compte est desactive.");
           }
+          // Sécurité : le login OTP acheteur ne doit JAMAIS ouvrir un compte
+          // ADMIN (l'admin passe par le flux mot de passe + 2FA derrière le slug
+          // secret). Faille sinon : possession de l'email = accès admin complet.
+          if ((user.role ?? "").toUpperCase() === "ADMIN") {
+            throw new Error("Ce mode de connexion n'est pas disponible pour ce compte.");
+          }
+          // La 2FA doit être HONORÉE (avant : forcée à false → contournement du
+          // 2e facteur). Si le compte a activé la 2FA, requires2FA=true → le
+          // middleware exige le code TOTP via /2fa après l'OTP e-mail.
+          const twoFactorEnabled = !!user.twoFactorEnabled;
           return {
             id: user.id,
             email: user.email,
@@ -306,8 +316,8 @@ export const authOptions: NextAuthOptions = {
             kyc: user.kyc ?? 1,
             plan: mapPlanName(((user.plan as string) || "gratuit").toLowerCase()),
             formationsRole: user.formationsRole?.toLowerCase() || "apprenant",
-            twoFactorEnabled: false,
-            requires2FA: false,
+            twoFactorEnabled,
+            requires2FA: twoFactorEnabled,
           };
         } catch (err) {
           console.error("[AUTH buyer-otp]", err);
@@ -687,16 +697,44 @@ export const authOptions: NextAuthOptions = {
         }
       }
 
-      // The /2fa page calls `update({ tfaVerified: true })` after a valid
-      // TOTP code. Clear the pending flag on the next JWT pass.
-      if (trigger === "update" && (session as { tfaVerified?: boolean } | undefined)?.tfaVerified === true) {
-        token.tfaPending = false;
+      // Le /2fa page appelle `update({ tfaVerified: true })` après un code TOTP.
+      // SÉCURITÉ : on NE fait PAS confiance à ce booléen client (contournable
+      // trivialement via update() en console → bypass total de la 2FA). On lève
+      // `tfaPending` UNIQUEMENT sur la preuve SERVEUR posée par verify-2fa
+      // (`twoFactorVerifiedAt` frais), puis on la consomme (usage unique).
+      if (trigger === "update" && token.tfaPending && token.id) {
+        if (IS_DEV_MODE) {
+          // Dev local : pas de colonne DB de preuve → on garde l'ancien flux.
+          if ((session as { tfaVerified?: boolean } | undefined)?.tfaVerified === true) {
+            token.tfaPending = false;
+          }
+        } else {
+          try {
+            const { prisma } = await import("@freelancehigh/db");
+            const u = await prisma.user.findUnique({
+              where: { id: token.id },
+              select: { twoFactorVerifiedAt: true },
+            });
+            const at = u?.twoFactorVerifiedAt ? new Date(u.twoFactorVerifiedAt).getTime() : 0;
+            if (at && Date.now() - at < 5 * 60 * 1000) {
+              token.tfaPending = false;
+              // Consommer la preuve : empêche tout rejeu (ex. re-login sans TOTP).
+              await prisma.user.update({
+                where: { id: token.id },
+                data: { twoFactorVerifiedAt: null },
+              }).catch(() => null);
+            }
+          } catch { /* pas de preuve valide → tfaPending reste actif */ }
+        }
       }
 
-      // Admin impersonation — set/clear via update()
+      // Admin impersonation — set/clear via update(). SÉCURITÉ : ne poser le
+      // flag que pour un ADMIN (sinon n'importe quel user pourrait, le jour où
+      // impersonatedUserId sert à résoudre l'utilisateur effectif, usurper
+      // n'importe qui via un simple update() client).
       if (trigger === "update") {
         const s = session as { impersonateUserId?: string; stopImpersonation?: boolean } | undefined;
-        if (s?.impersonateUserId) {
+        if (s?.impersonateUserId && token.role === "admin") {
           token.impersonatedUserId = s.impersonateUserId;
           token.impersonationExpiresAt = Date.now() + 30 * 60 * 1000; // 30 minutes
         }

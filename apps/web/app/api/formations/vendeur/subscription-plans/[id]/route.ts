@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { findForeignLinkedIds } from "@/lib/formations/verify-linked-ownership";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -26,8 +27,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (body.bannerUrl !== undefined) update.bannerUrl = body.bannerUrl ? String(body.bannerUrl).trim() : null;
     if (Number.isFinite(Number(body.price)) && Number(body.price) >= 500) update.price = Number(body.price);
     if (typeof body.isActive === "boolean") update.isActive = body.isActive;
-    if (Array.isArray(body.linkedFormationIds)) update.linkedFormationIds = body.linkedFormationIds;
-    if (Array.isArray(body.linkedProductIds)) update.linkedProductIds = body.linkedProductIds;
+    // Un vendeur ne peut lier QUE son propre contenu (sinon ses abonnés
+    // obtiendraient l'accès au payant d'un autre vendeur via access.ts).
+    const linkedF = Array.isArray(body.linkedFormationIds) ? body.linkedFormationIds.map(String) : null;
+    const linkedP = Array.isArray(body.linkedProductIds) ? body.linkedProductIds.map(String) : null;
+    if (linkedF || linkedP) {
+      const foreign = await findForeignLinkedIds(ctx.instructeurId, linkedF ?? [], linkedP ?? []);
+      if (foreign.foreignFormationIds.length > 0 || foreign.foreignProductIds.length > 0) {
+        return NextResponse.json({ error: "Un ou plusieurs éléments liés ne vous appartiennent pas." }, { status: 403 });
+      }
+    }
+    if (linkedF) update.linkedFormationIds = linkedF;
+    if (linkedP) update.linkedProductIds = linkedP;
     // Champs auparavant ignorés au PATCH → l'édition (mensuel↔annuel, essai,
     // plafond) était silencieusement perdue malgré un « Plan mis à jour ✓ ».
     if (body.interval === "monthly" || body.interval === "yearly") update.interval = body.interval;

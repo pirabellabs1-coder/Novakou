@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { IS_DEV } from "@/lib/env";
 
 /**
  * POST /api/formations/admin/apply-migration
@@ -13,6 +14,11 @@ export const maxDuration = 30;
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
+  // Coupe-circuit prod : les migrations s'appliquent via la CLI
+  // (`prisma db execute`), pas par un endpoint HTTP laissé en production.
+  if (!IS_DEV) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   const token = request.headers.get("x-test-token") ?? "";
   if (!process.env.TEST_PAYOUT_TOKEN || token !== process.env.TEST_PAYOUT_TOKEN) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

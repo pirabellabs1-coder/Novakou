@@ -53,7 +53,13 @@ export async function GET(req: Request, { params }: Params) {
         .catch(() => null);
     }
 
-    return NextResponse.json({ data: funnel });
+    // Route PUBLIQUE : ne jamais exposer les métriques financières privées du
+    // vendeur (chiffre d'affaires, conversions). On conserve les compteurs de
+    // rareté légitimes (salesCount/salesLimit/totalViews) utilisés par l'UI.
+    const data = { ...funnel } as Record<string, unknown>;
+    delete data.totalRevenue;
+    delete data.totalConversions;
+    return NextResponse.json({ data });
   } catch (err) {
     console.error("[public/funnel/[slug] GET]", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

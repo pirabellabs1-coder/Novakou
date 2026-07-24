@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { getActiveShopId } from "@/lib/formations/active-shop";
+import { findForeignLinkedIds } from "@/lib/formations/verify-linked-ownership";
 
 /**
  * GET /api/formations/vendeur/subscription-plans
@@ -74,9 +75,16 @@ export async function POST(request: Request) {
     if (!["monthly", "yearly"].includes(interval)) {
       return NextResponse.json({ error: "Intervalle : monthly ou yearly" }, { status: 400 });
     }
-    if ((!Array.isArray(linkedFormationIds) || linkedFormationIds.length === 0) &&
-        (!Array.isArray(linkedProductIds) || linkedProductIds.length === 0)) {
+    const linkedF = Array.isArray(linkedFormationIds) ? linkedFormationIds.map(String) : [];
+    const linkedP = Array.isArray(linkedProductIds) ? linkedProductIds.map(String) : [];
+    if (linkedF.length === 0 && linkedP.length === 0) {
       return NextResponse.json({ error: "Liez au moins 1 formation ou 1 produit au plan" }, { status: 400 });
+    }
+    // Un vendeur ne peut lier QUE son propre contenu (sinon vol de contenu :
+    // ses abonnés obtiendraient l'accès au payant d'un autre vendeur via access.ts).
+    const foreign = await findForeignLinkedIds(ctx.instructeurId, linkedF, linkedP);
+    if (foreign.foreignFormationIds.length > 0 || foreign.foreignProductIds.length > 0) {
+      return NextResponse.json({ error: "Un ou plusieurs éléments liés ne vous appartiennent pas." }, { status: 403 });
     }
 
     const plan = await prisma.subscriptionPlan.create({
@@ -89,8 +97,8 @@ export async function POST(request: Request) {
         bannerUrl: bannerUrl?.trim() || null,
         price: Number(price),
         interval,
-        linkedFormationIds: Array.isArray(linkedFormationIds) ? linkedFormationIds : [],
-        linkedProductIds: Array.isArray(linkedProductIds) ? linkedProductIds : [],
+        linkedFormationIds: linkedF,
+        linkedProductIds: linkedP,
         trialDays: trialDays ? Math.max(0, Math.min(30, Number(trialDays))) : null,
         maxMembers: maxMembers ? Math.max(1, Number(maxMembers)) : null,
       },

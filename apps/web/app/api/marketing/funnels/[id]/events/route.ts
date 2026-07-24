@@ -301,7 +301,10 @@ export async function POST(
         stepType: stepType || "UNKNOWN",
         eventType,
         visitorId: visitorId || `anon_${Math.random().toString(36).substring(2, 8)}`,
-        revenue: revenue || 0,
+        // Route PUBLIQUE non authentifiée : on ne fait JAMAIS confiance au
+        // `revenue` client (sinon empoisonnement du CA d'un tunnel arbitraire).
+        // Le revenu réel provient du fulfillment serveur.
+        revenue: 0,
         metadata: metadata || {},
       },
     });
@@ -312,7 +315,7 @@ export async function POST(
     if (eventType === "click") updateData.totalClicks = { increment: 1 };
     if (eventType === "purchase") {
       updateData.totalPurchases = { increment: 1 };
-      updateData.totalRevenue = { increment: revenue || 0 };
+      // totalRevenue NON incrémenté ici (revenu client non fiable — cf. ci-dessus).
     }
     if (eventType === "skip") updateData.totalSkips = { increment: 1 };
 

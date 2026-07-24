@@ -20,7 +20,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         totalEarned: true,
         status: true,
         user: {
-          select: { id: true, name: true, email: true, image: true, country: true, createdAt: true },
+          select: { id: true, name: true, image: true, country: true, createdAt: true },
         },
         formations: {
           where: { status: "ACTIF" },

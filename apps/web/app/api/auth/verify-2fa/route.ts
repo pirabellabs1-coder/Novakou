@@ -106,6 +106,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Code 2FA incorrect." }, { status: 400 });
     }
 
+    // Preuve SERVEUR à usage unique du TOTP : le callback JWT ne lève le verrou
+    // `tfaPending` que sur cette empreinte fraîche (jamais sur le booléen client
+    // `tfaVerified`, qui était contournable). Sans cette écriture, le verrou
+    // reste actif → aucun accès aux dashboards.
+    if (!(IS_DEV && !USE_PRISMA_FOR_DATA)) {
+      try {
+        const { prisma } = await import("@/lib/prisma");
+        await prisma.user.update({
+          where: { id: userId },
+          data: { twoFactorVerifiedAt: new Date() },
+        });
+      } catch (e) {
+        console.error("[verify-2fa] proof write failed:", e);
+        return NextResponse.json({ error: "Erreur serveur." }, { status: 500 });
+      }
+    }
+
     // Succès : fire l'email d'alerte + mise à jour lastLogin
     try {
       const info = await getClientInfoFromContext();

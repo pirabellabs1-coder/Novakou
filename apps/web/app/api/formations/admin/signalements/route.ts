@@ -7,7 +7,10 @@ import { IS_DEV } from "@/lib/env";
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user && !IS_DEV) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    const role = (session?.user as { role?: string } | undefined)?.role?.toUpperCase();
+    if ((!session?.user || role !== "ADMIN") && !IS_DEV) {
+      return NextResponse.json({ error: "Accès refusé — admin requis" }, { status: 403 });
+    }
 
     const [reports, refundRequests] = await Promise.all([
       prisma.discussionReport.findMany({
