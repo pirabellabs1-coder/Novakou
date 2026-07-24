@@ -308,20 +308,30 @@ export async function POST(req: Request) {
         },
       });
 
-      const invoice = await prisma.subscriptionInvoice.create({
-        data: {
-          subscriptionId: sub.id,
-          userId,
-          amount: plan.price,
-          currency: plan.currency,
-          status: "paid",
-          periodStart,
-          periodEnd,
-          paymentRef: reference,
-          paymentProvider: "paygenius",
-          paidAt: new Date(),
-        },
-      });
+      // `paymentRef @unique` : idempotence DB. En cas de course concurrente,
+      // le 2e webnook lève P2002 ICI (avant le crédit vendeur) → pas de double.
+      let invoice;
+      try {
+        invoice = await prisma.subscriptionInvoice.create({
+          data: {
+            subscriptionId: sub.id,
+            userId,
+            amount: plan.price,
+            currency: plan.currency,
+            status: "paid",
+            periodStart,
+            periodEnd,
+            paymentRef: reference,
+            paymentProvider: "paygenius",
+            paidAt: new Date(),
+          },
+        });
+      } catch (e) {
+        if (e && typeof e === "object" && "code" in e && (e as { code?: string }).code === "P2002") {
+          return NextResponse.json({ ok: true, type, alreadyProcessed: true, race: true });
+        }
+        throw e;
+      }
 
       await prisma.subscriptionPlan
         .update({

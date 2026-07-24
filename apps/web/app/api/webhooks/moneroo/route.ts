@@ -441,21 +441,32 @@ export async function POST(req: Request) {
         },
       });
 
-      // Invoice
-      const invoice = await prisma.subscriptionInvoice.create({
-        data: {
-          subscriptionId: sub.id,
-          userId,
-          amount: plan.price,
-          currency: plan.currency,
-          status: "paid",
-          periodStart,
-          periodEnd,
-          paymentRef: paymentId,
-          paymentProvider: "moneroo",
-          paidAt: new Date(),
-        },
-      });
+      // Invoice — la contrainte `paymentRef @unique` garantit l'idempotence au
+      // niveau DB. Cette création est AVANT le crédit vendeur : en cas de course
+      // concurrente (2 webhooks identiques en même temps), le 2e lève P2002 ICI
+      // et on s'arrête → jamais de double PlatformRevenue / double crédit wallet.
+      let invoice;
+      try {
+        invoice = await prisma.subscriptionInvoice.create({
+          data: {
+            subscriptionId: sub.id,
+            userId,
+            amount: plan.price,
+            currency: plan.currency,
+            status: "paid",
+            periodStart,
+            periodEnd,
+            paymentRef: paymentId,
+            paymentProvider: "moneroo",
+            paidAt: new Date(),
+          },
+        });
+      } catch (e) {
+        if (e && typeof e === "object" && "code" in e && (e as { code?: string }).code === "P2002") {
+          return NextResponse.json({ ok: true, type, alreadyProcessed: true, race: true });
+        }
+        throw e;
+      }
 
       // Update plan stats
       await prisma.subscriptionPlan.update({

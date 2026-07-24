@@ -3645,8 +3645,11 @@ model SubscriptionInvoice {
   periodStart DateTime
   periodEnd   DateTime
 
-  paymentRef      String? // Moneroo payout/payment ID
-  paymentProvider String? // "moneroo"
+  // @unique : garantit l'idempotence du webhook d'abonnement au niveau DB.
+  // Sans ça, deux livraisons concurrentes du même webhook pouvaient créer 2
+  // factures → double PlatformRevenue → double crédit du wallet vendeur.
+  paymentRef      String? @unique // Moneroo/PayGenius payment ID
+  paymentProvider String? // "moneroo" | "paygenius"
   paidAt          DateTime?
   failedAt        DateTime?
   errorMessage    String?
