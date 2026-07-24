@@ -220,6 +220,15 @@ export async function PATCH(request: Request, { params }: Params) {
         });
         const isNewStudent = priorWithSameStudent === 0;
 
+        // Idempotence comptable : UNE seule ligne PlatformRevenue par séance
+        // (le cron mentor-escrow en crée aussi une au RELEASE — audit #7,
+        // double comptage du revenu plateforme). Premier arrivé écrit, l'autre
+        // saute.
+        const revenueAlreadyLogged = await prisma.platformRevenue.findFirst({
+          where: { orderType: "mentor", orderId: booking.id },
+          select: { id: true },
+        });
+
         await prisma.$transaction([
           prisma.mentorBooking.update({
             where: { id: id },
@@ -237,17 +246,21 @@ export async function PATCH(request: Request, { params }: Params) {
               ...(isNewStudent ? { totalStudents: { increment: 1 } } : {}),
             },
           }),
-          prisma.platformRevenue.create({
-            data: {
-              orderId: booking.id,
-              orderType: "mentor",
-              grossAmount: booking.paidAmount,
-              commissionRate: PLATFORM_COMMISSION_RATE,
-              commissionAmount,
-              vendorAmount,
-              currency: "XOF",
-            },
-          }),
+          ...(revenueAlreadyLogged
+            ? []
+            : [
+                prisma.platformRevenue.create({
+                  data: {
+                    orderId: booking.id,
+                    orderType: "mentor",
+                    grossAmount: booking.paidAmount,
+                    commissionRate: PLATFORM_COMMISSION_RATE,
+                    commissionAmount,
+                    vendorAmount,
+                    currency: "XOF",
+                  },
+                }),
+              ]),
         ]);
 
         updated = await prisma.mentorBooking.findUnique({ where: { id } });

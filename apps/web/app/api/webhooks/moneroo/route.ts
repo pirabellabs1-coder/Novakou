@@ -263,6 +263,11 @@ export async function POST(req: Request) {
   // renvoie 200 pour éviter que Moneroo retente indéfiniment.
   const amountCheck = await assertAmountMatches(paymentId, verified.amount ?? 0, metadata);
   if (!amountCheck.ok) {
+    if (amountCheck.retry) {
+      // Lookup DB transitoirement indisponible : 503 → Moneroo rejouera le
+      // webhook plus tard (le paiement reste livrable, rien n'est perdu).
+      return NextResponse.json({ error: "amount_check_unavailable" }, { status: 503 });
+    }
     return NextResponse.json({ ok: true, rejected: "amount_mismatch" });
   }
 
@@ -777,7 +782,7 @@ async function assertAmountMatches(
   paymentId: string,
   verifiedAmount: number,
   metadata: Record<string, unknown>,
-): Promise<{ ok: true } | { ok: false }> {
+): Promise<{ ok: true } | { ok: false; retry?: boolean }> {
   const type = String(metadata.type ?? "");
   const tolerance = 1; // ±1 FCFA (vote 20)
 
@@ -839,7 +844,10 @@ async function assertAmountMatches(
     }
   } catch (err) {
     console.warn("[moneroo.webhook] assertAmountMatches lookup failed", { paymentId, err: err instanceof Error ? err.message : String(err) });
-    return { ok: true }; // fail-open : ne pas bloquer si lookup DB échoue
+    // Fail-RETRY (audit #9) : une erreur DB transitoire ne doit ni valider en
+    // aveugle (fail-open) ni rejeter définitivement une vraie commande. On
+    // signale « rejouable » → l'appelant renvoie 503 et Moneroo retente.
+    return { ok: false, retry: true };
   }
 
   if (verifiedAmount < expectedTotal - tolerance) {

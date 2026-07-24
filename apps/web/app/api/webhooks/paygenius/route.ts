@@ -161,6 +161,10 @@ export async function POST(req: Request) {
   // retrigger le webhook mais on n'effectue PAS le fulfillment.
   const amountCheck = await assertAmountMatches(reference, verified.amount ?? 0, metadata);
   if (!amountCheck.ok) {
+    if (amountCheck.retry) {
+      // Lookup DB transitoirement indisponible : 503 → le provider rejouera.
+      return NextResponse.json({ error: "amount_check_unavailable" }, { status: 503 });
+    }
     return NextResponse.json({ ok: true, rejected: "amount_mismatch" });
   }
 
@@ -624,7 +628,7 @@ async function assertAmountMatches(
   paymentId: string,
   verifiedAmount: number,
   metadata: Record<string, unknown>,
-): Promise<{ ok: true } | { ok: false }> {
+): Promise<{ ok: true } | { ok: false; retry?: boolean }> {
   const type = String(metadata.type ?? "");
   const tolerance = 1; // ±1 FCFA (vote 20)
 
@@ -683,7 +687,8 @@ async function assertAmountMatches(
       paymentId,
       err: err instanceof Error ? err.message : String(err),
     });
-    return { ok: true };
+    // Fail-RETRY (audit #9) — cf. webhook Moneroo.
+    return { ok: false, retry: true };
   }
 
   if (verifiedAmount < expectedTotal - tolerance) {

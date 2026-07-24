@@ -58,6 +58,12 @@ export async function reconcilePayout(
       return { matched: true, kind: "vendor", applied: "TRAITE" };
     }
     if (status === "failed") {
+      // Idempotence + anti-régression : ne JAMAIS écraser un retrait déjà
+      // TRAITE (webhook "failed" périmé arrivé après le "success"), et ne pas
+      // re-notifier/re-mailer si déjà REFUSE (replay du webhook = spam).
+      if (w.status !== "EN_ATTENTE") {
+        return { matched: true, kind: "vendor", applied: "ignored" };
+      }
       await prisma.instructorWithdrawal.update({
         where: { id: w.id },
         data: {
@@ -110,6 +116,12 @@ export async function reconcilePayout(
       return { matched: true, kind: "affiliate", applied: "TRAITE" };
     }
     if (status === "failed") {
+      // Idempotence + anti-régression (cf. branche vendeur) : seul un retrait
+      // encore EN_ATTENTE peut passer REFUSE ; jamais d'écrasement d'un TRAITE,
+      // jamais de double libération/notification sur replay.
+      if (aw.status !== "EN_ATTENTE") {
+        return { matched: true, kind: "affiliate", applied: "ignored" };
+      }
       await prisma.affiliateWithdrawal.update({
         where: { id: aw.id },
         data: {
@@ -145,6 +157,10 @@ export async function reconcilePayout(
       return { matched: true, kind: "platform", applied: "TRAITE" };
     }
     if (status === "failed") {
+      // Idempotence + anti-régression (cf. branche vendeur).
+      if (pp.status !== "EN_ATTENTE") {
+        return { matched: true, kind: "platform", applied: "ignored" };
+      }
       await prisma.platformPayout.update({ where: { id: pp.id }, data: { status: "REFUSE", processedAt: new Date(), errorMessage: `${providerLabel} a rejeté le payout.` } });
       const admin = await prisma.user.findUnique({ where: { id: pp.adminUserId }, select: { email: true, name: true } }).catch(() => null);
       if (admin?.email) await sendWithdrawalFailedEmail(admin.email, admin.name, pp.amount, `Le transfert ${providerLabel} a échoué.`, "/admin/retraits");

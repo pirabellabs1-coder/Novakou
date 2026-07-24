@@ -70,23 +70,31 @@ export async function GET(request: NextRequest) {
           },
         });
 
-        // Log commission
+        // Log commission — idempotent : la route « complete » du mentor crée
+        // déjà cette ligne (audit #7, double comptage du revenu plateforme).
+        // On ne journalise ici que si elle n'existe pas encore.
         const gross = b.paidAmount;
         const commission = Math.round(gross * PLATFORM_COMMISSION_RATE);
         const vendorAmount = gross - commission;
 
-        await prisma.platformRevenue.create({
-          data: {
-            orderId: b.id,
-            orderType: "mentor",
-            grossAmount: gross,
-            commissionRate: PLATFORM_COMMISSION_RATE,
-            commissionAmount: commission,
-            vendorAmount,
-            paymentRef: b.paymentRef,
-          },
+        const alreadyLogged = await prisma.platformRevenue.findFirst({
+          where: { orderType: "mentor", orderId: b.id },
+          select: { id: true },
         });
-        revenuesLogged++;
+        if (!alreadyLogged) {
+          await prisma.platformRevenue.create({
+            data: {
+              orderId: b.id,
+              orderType: "mentor",
+              grossAmount: gross,
+              commissionRate: PLATFORM_COMMISSION_RATE,
+              commissionAmount: commission,
+              vendorAmount,
+              paymentRef: b.paymentRef,
+            },
+          });
+          revenuesLogged++;
+        }
         autoReleased++;
 
         // Notify mentor that funds are available for withdrawal

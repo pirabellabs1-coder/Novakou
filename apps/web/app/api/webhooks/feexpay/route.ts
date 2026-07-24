@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { checkPayoutStatus, normalizeFeexpayStatus, isFeexpayConfigured } from "@/lib/feexpay";
 import { reconcilePayout } from "@/lib/payout/reconcile";
+import { rateLimit } from "@/lib/api-rate-limit";
 
 // Webhook FeexPay — confirmation des payouts.
 //
@@ -22,6 +23,14 @@ function extractReference(body: unknown): string | null {
 }
 
 export async function POST(request: Request) {
+  // Rate limit anti-flood (chaque appel déclenche une re-vérification API) :
+  // 120 webhooks/min par IP suffit largement pour un trafic légitime.
+  const ip = request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const rl = rateLimit(`webhook:feexpay:${ip}`, 120, 60_000);
+  if (!rl.allowed) {
+    return NextResponse.json({ error: "Rate limited" }, { status: 429 });
+  }
+
   if (!isFeexpayConfigured()) {
     // Clés absentes → le fournisseur n'est pas actif ; on ignore proprement.
     return NextResponse.json({ ok: true, ignored: true, reason: "feexpay_not_configured" });
