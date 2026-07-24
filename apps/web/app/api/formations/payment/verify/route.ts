@@ -134,6 +134,12 @@ export async function GET(request: Request) {
         // Defense-in-depth (vote 19) : on passe le montant vérifié par le
         // provider pour que fulfillment refuse en cas de tampering metadata.
         expectedAmountReceived: typeof payment.amount === "number" ? payment.amount : undefined,
+        // Rabais réellement débité (metadata signée) → autorité sur le montant
+        // remisé (cf. webhooks). Absent → recompute gardé.
+        chargedDiscountAmount:
+          metadata.discountAmount != null && String(metadata.discountAmount) !== ""
+            ? Number(metadata.discountAmount)
+            : undefined,
       });
 
       // Clean le panier de l'utilisateur (items achetés)

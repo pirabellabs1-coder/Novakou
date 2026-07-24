@@ -6,6 +6,7 @@ import { IS_DEV } from "@/lib/env";
 import { initPayment as initMoneroo, isMonerooConfigured } from "@/lib/moneroo";
 import { initPayment as initPayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
+import { computeCheckoutDiscount } from "@/lib/formations/checkout-discount";
 import { isAllowedBuyerEmail, ALLOWED_BUYER_EMAIL_MESSAGE } from "@/lib/email/allowed-buyer-email";
 import { cookies } from "next/headers";
 import crypto from "crypto";
@@ -165,19 +166,26 @@ export async function POST(request: Request) {
 
     const subTotal = customAmount ?? (formations.reduce((s, f) => s + f.price, 0) + products.reduce((s, p) => s + p.price, 0));
 
-    // Apply discount code
+    // ── Code promo (source unique : computeCheckoutDiscount) ──────────────
+    // La MÊME fonction est rappelée au fulfillment → montant débité ici ==
+    // montant réparti là-bas (déterministe). La remise ne porte QUE sur les
+    // items du vendeur propriétaire du code et dans sa portée : jamais sur les
+    // items d'un autre vendeur (fuite inter-vendeur fermée). Un lien de
+    // paiement à prix libre n'accepte aucun code.
     let discountAmount = 0;
     let appliedCode: string | null = null;
-    const discountStr = body.discountCode?.trim().toUpperCase();
-    if (discountStr) {
-      const code = await prisma.discountCode.findUnique({ where: { code: discountStr } });
-      if (code && code.isActive && (!code.expiresAt || code.expiresAt > new Date()) && (!code.maxUses || code.usedCount < code.maxUses)) {
-        if (!code.minOrderAmount || subTotal >= code.minOrderAmount) {
-          discountAmount = code.discountType === "PERCENTAGE"
-            ? Math.round(subTotal * (code.discountValue / 100))
-            : Math.min(code.discountValue, subTotal);
-          appliedCode = code.code;
-        }
+    if (customAmount == null && body.discountCode) {
+      const disc = await computeCheckoutDiscount(
+        body.discountCode,
+        userId,
+        [
+          ...formations.map((f) => ({ id: f.id, kind: "formation" as const, price: f.price, instructeurId: f.instructeurId })),
+          ...products.map((p) => ({ id: p.id, kind: "product" as const, price: p.price, instructeurId: p.instructeurId })),
+        ],
+      );
+      if (disc.applied) {
+        discountAmount = disc.discountAmount;
+        appliedCode = disc.code;
       }
     }
 
@@ -222,6 +230,9 @@ export async function POST(request: Request) {
           discountCodeStr: appliedCode ?? null,
           sessionRef,
           affiliate: affiliateProfile,
+          // Commande rendue gratuite par le code : on transmet le rabais exact
+          // décidé ici pour que le fulfillment réparte le même montant.
+          chargedDiscountAmount: discountAmount,
         });
         return NextResponse.json({
           data: {
@@ -326,6 +337,11 @@ export async function POST(request: Request) {
       formationIds: formationIds.join(","),
       productIds: productIds.join(","),
       discountCode: appliedCode ?? "",
+      // Montant net réellement débité + remise appliquée → le webhook
+      // (assertAmountMatches) valide une commande REMISÉE sans la rejeter,
+      // même si l'acheteur ferme l'onglet avant /payment/verify.
+      totalAmount: Math.round(totalAmount),
+      discountAmount: Math.round(discountAmount),
       internalRef,
       attemptId: attempt.id,
       paymentProvider: provider,

@@ -190,6 +190,12 @@ export async function POST(req: Request) {
           : null,
         // Defense-in-depth (vote 19).
         expectedAmountReceived: verified.amount ?? undefined,
+        // Rabais réellement débité (metadata signée) → autorité sur le montant
+        // remisé (cf. webhook Moneroo). Absent → recompute gardé.
+        chargedDiscountAmount:
+          metadata.discountAmount != null && String(metadata.discountAmount) !== ""
+            ? Number(metadata.discountAmount)
+            : undefined,
       });
       // Attribution conversion campagne (lien UTM tracké). Idempotent : on ne
       // crédite que si le fulfillment a créé de nouveaux enregistrements.

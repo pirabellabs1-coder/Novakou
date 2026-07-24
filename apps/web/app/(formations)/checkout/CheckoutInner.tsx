@@ -411,7 +411,15 @@ export default function CheckoutInner() {
         const res = await fetch("/api/formations/public/validate-discount", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code, orderAmount: subTotal }),
+          // On envoie les lignes du panier : l'aperçu applique EXACTEMENT la
+          // logique du débit réel (propriétaire du code + portée) → jamais de
+          // remise affichée que le paiement refuserait.
+          body: JSON.stringify({
+            code,
+            orderAmount: subTotal,
+            formationIds: cartItems.filter((i) => i.kind === "formation").map((i) => i.id),
+            productIds: cartItems.filter((i) => i.kind === "product").map((i) => i.id),
+          }),
         });
         const j = await res.json();
         if (j.valid) {

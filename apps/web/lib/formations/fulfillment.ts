@@ -17,6 +17,7 @@
  */
 
 import { prisma } from "@/lib/prisma";
+import { computeCheckoutDiscount, lineFinalPrice } from "@/lib/formations/checkout-discount";
 import {
   sendEnrollmentConfirmedEmail,
   sendDigitalProductDeliveryEmail,
@@ -55,6 +56,14 @@ export interface FulfillParams {
   expectedAmountReceived?: number;
   /** Tolérance d'arrondi (défaut 1 unité — vote 20). */
   amountTolerance?: number;
+  /**
+   * Rabais RÉELLEMENT débité à l'init, lu depuis la metadata provider (signée).
+   * Fourni par les webhooks de paiement : fait AUTORITÉ sur le montant remisé,
+   * pour que le fulfillment ne recalcule jamais un rabais différent de ce qui a
+   * été payé — un garde stateful (maxUses, firstOrderOnly…) peut avoir basculé
+   * entre l'init et le webhook. Absent (chemin gratuit/mock) → décision fraîche.
+   */
+  chargedDiscountAmount?: number | null;
 }
 
 /** Levée quand le montant reçu ne correspond pas au prix recalculé serveur. */
@@ -132,44 +141,58 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
     ? Math.round(p.expectedAmountReceived as number)
     : formations.reduce((s, f) => s + f.price, 0) + products.reduce((s, p) => s + p.price, 0);
 
-  // Apply discount code (idempotent : on récupère le code mais on incrémente
-  // usedCount seulement si on crée des enrollments). Jamais de code sur un lien
-  // de paiement à prix libre.
+  // Code promo — MÊME source de vérité qu'au checkout (computeCheckoutDiscount) :
+  // le montant recalculé ici == le montant débité à l'init (déterministe), donc
+  // le garde-fou anti-fraude plus bas ne casse jamais une vraie commande. La
+  // remise ne porte QUE sur les items éligibles (vendeur propriétaire du code +
+  // sa portée) → jamais de fuite de marge inter-vendeur. Jamais de code sur un
+  // lien de paiement à prix libre.
   let discountAmount = 0;
-  let appliedCode: { id: string; code: string } | null = null;
+  let appliedCode: { id: string; code: string; maxUses: number | null } | null = null;
+  let discountEligible = new Set<string>();
+  let discountEligibleSubtotal = 0;
   if (discountCodeStr && !singleCustomLink) {
-    const code = await prisma.discountCode.findUnique({ where: { code: discountCodeStr } });
-    if (code && code.isActive && (!code.expiresAt || code.expiresAt >= new Date())) {
-      if (!code.minOrderAmount || subTotal >= code.minOrderAmount) {
-        // Atomic per-user limit : empêche un user d'utiliser le code plus de
-        // maxUsesPerUser fois. Si dépassé, on n'applique pas le rabais (mais
-        // on continue le fulfillment pour ne pas annuler une commande payée).
-        let allowed = true;
-        if (code.maxUsesPerUser != null) {
-          const userPriorUses = await prisma.discountUsage.count({
-            where: { discountId: code.id, userId },
-          });
-          if (userPriorUses >= code.maxUsesPerUser) {
-            console.warn(
-              `[fulfillment] discount ${code.code} maxUsesPerUser dépassé pour ${userId} — rabais ignoré`,
-            );
-            allowed = false;
-          }
-        }
-        if (allowed) {
-          if (code.discountType === "PERCENTAGE") {
-            discountAmount = Math.round(subTotal * (code.discountValue / 100));
-          } else {
-            discountAmount = Math.min(code.discountValue, subTotal);
-          }
-          appliedCode = { id: code.id, code: code.code };
-        }
+    const disc = await computeCheckoutDiscount(discountCodeStr, userId, [
+      ...formations.map((f) => ({ id: f.id, kind: "formation" as const, price: f.price, instructeurId: f.instructeurId })),
+      ...products.map((pr) => ({ id: pr.id, kind: "product" as const, price: pr.price, instructeurId: pr.instructeurId })),
+    ]);
+    if (disc.codeId && disc.code && disc.eligibleIds.length > 0) {
+      // Montant remisé : AUTORITÉ = ce qui a été DÉBITÉ à l'init (webhook, via
+      // chargedDiscountAmount) ; sinon la décision fraîche gardée (chemin
+      // gratuit/mock). Toujours clampé au sous-total éligible.
+      const charged = p.chargedDiscountAmount;
+      const amount =
+        typeof charged === "number" && Number.isFinite(charged)
+          ? Math.max(0, Math.min(Math.round(charged), disc.eligibleSubtotal))
+          : disc.applied
+            ? disc.discountAmount
+            : 0;
+      if (amount > 0) {
+        discountAmount = amount;
+        appliedCode = { id: disc.codeId, code: disc.code, maxUses: disc.maxUses };
+        discountEligible = new Set(disc.eligibleIds);
+        discountEligibleSubtotal = disc.eligibleSubtotal;
       }
     }
   }
 
   const totalAmount = Math.max(0, subTotal - discountAmount);
-  const applyDiscount = (price: number) => (subTotal > 0 ? Math.round(price * (totalAmount / subTotal)) : price);
+  // Prix final d'un item : remise répartie au prorata SUR LES SEULS items
+  // éligibles ; un item non éligible garde son prix plein.
+  const applyDiscount = (id: string, price: number) =>
+    lineFinalPrice(price, discountEligible.has(id), discountAmount, discountEligibleSubtotal);
+
+  // Auto-parrainage : un affilié ne perçoit JAMAIS de commission sur les ventes
+  // de son propre catalogue. On résout son userId une fois pour le comparer au
+  // vendeur de chaque item plus bas.
+  let affiliateUserId: string | null = null;
+  if (affiliate) {
+    const ap = await prisma.affiliateProfile.findUnique({
+      where: { id: affiliate.profileId },
+      select: { userId: true },
+    });
+    affiliateUserId = ap?.userId ?? null;
+  }
 
   // ── Validation montant payé (votes 19 & 20) ──────────────────────────
   // Si le webhook a transmis le montant reçu, on refuse si l'écart dépasse
@@ -210,10 +233,13 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
       continue;
     }
 
-    const finalPrice = applyDiscount(f.price);
+    const finalPrice = applyDiscount(f.id, f.price);
     const platformAmount = Math.round(finalPrice * commissionRate);
-    const clampedAffRate = affiliate ? Math.min(affiliate.commissionRate, 0.40) : 0;
-    const affAmount = affiliate ? Math.round(finalPrice * clampedAffRate) : 0;
+    // Commission affilié coupée si l'affilié EST le vendeur (auto-parrainage).
+    const affActive = affiliate != null && affiliateUserId != null && affiliateUserId !== f.instructeur?.user?.id;
+    const clampedAffRate = affActive ? Math.min(affiliate!.commissionRate, 0.40) : 0;
+    const affAmount = affActive ? Math.round(finalPrice * clampedAffRate) : 0;
+    const affProfileId = affActive ? affiliate!.profileId : null;
     const vendorNet = Math.max(0, finalPrice - platformAmount - affAmount);
 
     // Atomicité (vote 21) : tous les writes d'un item dans UNE transaction.
@@ -248,7 +274,7 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
             commissionRate: commissionRate,
             commissionAmount: platformAmount,
             vendorAmount: vendorNet,
-            affiliateId: affiliate?.profileId ?? null,
+            affiliateId: affProfileId,
             affiliateAmount: affAmount,
             paymentRef: sessionRef,
             currency: "XOF",
@@ -256,20 +282,20 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
             shopId: f.shopId ?? null,
           },
         });
-        if (affiliate && affAmount > 0) {
+        if (affProfileId && affAmount > 0) {
           await tx.affiliateCommission.create({
             data: {
-              affiliateId: affiliate.profileId,
+              affiliateId: affProfileId,
               orderId: created.id,
               orderType: "formation",
               orderAmount: finalPrice,
-              commissionPct: affiliate.commissionRate * 100,
+              commissionPct: affiliate!.commissionRate * 100,
               commissionAmount: affAmount,
               status: "PENDING",
             },
           });
           await tx.affiliateProfile.update({
-            where: { id: affiliate.profileId },
+            where: { id: affProfileId },
             data: { totalConversions: { increment: 1 } },
           });
         }
@@ -311,10 +337,13 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
     // Lien de paiement à PRIX LIBRE : on crédite le montant réellement payé
     // (déjà porté par subTotal pour ce cas single-item, cf. plus haut), et non
     // p.price qui n'est qu'une suggestion.
-    const finalPrice = singleCustomLink ? subTotal : applyDiscount(p.price);
+    const finalPrice = singleCustomLink ? subTotal : applyDiscount(p.id, p.price);
     const platformAmount = Math.round(finalPrice * commissionRate);
-    const clampedAffRate = affiliate ? Math.min(affiliate.commissionRate, 0.40) : 0;
-    const affAmount = affiliate ? Math.round(finalPrice * clampedAffRate) : 0;
+    // Commission affilié coupée si l'affilié EST le vendeur (auto-parrainage).
+    const affActive = affiliate != null && affiliateUserId != null && affiliateUserId !== p.instructeur?.user?.id;
+    const clampedAffRate = affActive ? Math.min(affiliate!.commissionRate, 0.40) : 0;
+    const affAmount = affActive ? Math.round(finalPrice * clampedAffRate) : 0;
+    const affProfileId = affActive ? affiliate!.profileId : null;
     const vendorNet = Math.max(0, finalPrice - platformAmount - affAmount);
 
     // Atomicité (vote 21) — l'absence d'unique constraint native sur
@@ -348,7 +377,7 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
             commissionRate: commissionRate,
             commissionAmount: platformAmount,
             vendorAmount: vendorNet,
-            affiliateId: affiliate?.profileId ?? null,
+            affiliateId: affProfileId,
             affiliateAmount: affAmount,
             paymentRef: sessionRef,
             currency: "XOF",
@@ -356,20 +385,20 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
             shopId: p.shopId ?? null,
           },
         });
-        if (affiliate && affAmount > 0) {
+        if (affProfileId && affAmount > 0) {
           await tx.affiliateCommission.create({
             data: {
-              affiliateId: affiliate.profileId,
+              affiliateId: affProfileId,
               orderId: created.id,
               orderType: "product",
               orderAmount: finalPrice,
-              commissionPct: affiliate.commissionRate * 100,
+              commissionPct: affiliate!.commissionRate * 100,
               commissionAmount: affAmount,
               status: "PENDING",
             },
           });
           await tx.affiliateProfile.update({
-            where: { id: affiliate.profileId },
+            where: { id: affProfileId },
             data: { totalConversions: { increment: 1 } },
           });
         }
@@ -420,14 +449,20 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
 
   // ── Usage du code promo ─────────────────────────────────────────────
   if (appliedCode && createdEnrollments.length + createdPurchases.length > 0) {
-    await prisma.discountCode.update({
-      where: { id: appliedCode.id },
+    // Réservation atomique de maxUses : un seul UPDATE gardé par `usedCount <
+    // maxUses`. Deux commandes concurrentes ne peuvent pas dépasser la limite
+    // globale (la 2e voit 0 ligne affectée). Sans maxUses → incrément simple.
+    await prisma.discountCode.updateMany({
+      where: {
+        id: appliedCode.id,
+        ...(appliedCode.maxUses != null ? { usedCount: { lt: appliedCode.maxUses } } : {}),
+      },
       data: {
         usedCount: { increment: 1 },
         totalDiscounted: { increment: discountAmount },
         revenue: { increment: totalAmount },
       },
-    }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
+    }).catch((e) => console.error("[fulfillment discount usedCount]", e?.message ?? e));
     await prisma.discountUsage
       .create({
         data: {

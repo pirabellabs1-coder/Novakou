@@ -293,6 +293,13 @@ export async function POST(req: Request) {
         // Defense-in-depth (vote 19) : fulfillment refait le check montant
         // côté serveur. Double rempart en plus de assertAmountMatches.
         expectedAmountReceived: verified.amount ?? undefined,
+        // Rabais réellement débité (metadata signée) → autorité sur le montant
+        // remisé, pour ne jamais recalculer un rabais différent de ce qui a été
+        // payé. Absent (commande antérieure au déploiement) → recompute gardé.
+        chargedDiscountAmount:
+          metadata.discountAmount != null && String(metadata.discountAmount) !== ""
+            ? Number(metadata.discountAmount)
+            : undefined,
       });
       // Attribution conversion campagne (idempotent : seulement si fulfillment frais).
       if (result.enrollments.length + result.purchases.length > 0) {
