@@ -165,6 +165,19 @@ export function classifyFedapayError(msg: string): { category: FedapayErrorCateg
       userMessage: "Le solde de votre compte FedaPay est insuffisant pour ce virement.",
     };
   }
+  // « Opération non autorisée », 401/403, décaissement non activé : le compte
+  // n'a pas le droit de verser. C'est un refus AVANT tout mouvement d'argent →
+  // catégorie `not_available` (bascule propre / arrêt net, PAS ambigu).
+  if (
+    lower.includes("autoris") || lower.includes("unauthorized") || lower.includes("not authorized") ||
+    lower.includes("forbidden") || lower.includes("403") || lower.includes("401") ||
+    lower.includes("not enabled") || lower.includes("disburs") || lower.includes("décaiss") || lower.includes("decaiss")
+  ) {
+    return {
+      category: "not_available",
+      userMessage: "FedaPay n'est pas autorisé à effectuer ce versement (compte ou fonction de décaissement non activée).",
+    };
+  }
   if (lower.includes("invalid") || lower.includes("validation") || lower.includes("phone") || lower.includes("mode")) {
     return {
       category: "validation",
