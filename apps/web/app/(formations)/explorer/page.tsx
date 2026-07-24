@@ -333,7 +333,7 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
   );
 }
 
-// ── Rangée horizontale scrollable pour une section catégorie ────────────────
+// ── Section catégorie : grille fixe 3×2 (6 produits max) + « Voir tout » ─────
 function CategoryRow({
   title, items, onSeeAll,
 }: {
@@ -341,54 +341,25 @@ function CategoryRow({
   items: Item[];
   onSeeAll: () => void;
 }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const scrollBy = (dir: number) =>
-    scrollRef.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
-
   return (
-    <section className="mb-10">
+    <section className="mb-12">
       <div className="flex items-center justify-between gap-3 mb-4">
         <h2 className="text-lg md:text-xl font-extrabold text-[#191c1e] tracking-tight truncate">
           {title}
         </h2>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <button
-            onClick={onSeeAll}
-            className="inline-flex items-center gap-1 text-xs md:text-sm font-bold text-[#006e2f] hover:underline whitespace-nowrap"
-          >
-            Voir tout
-            <ChevronRight size={16} />
-          </button>
-          {/* Flèches de défilement — desktop uniquement (mobile = swipe). */}
-          <div className="hidden md:flex items-center gap-1">
-            <button
-              onClick={() => scrollBy(-1)}
-              aria-label="Défiler à gauche"
-              className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-[#5c647a] hover:border-[#006e2f] hover:text-[#006e2f] transition-colors"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <button
-              onClick={() => scrollBy(1)}
-              aria-label="Défiler à droite"
-              className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-[#5c647a] hover:border-[#006e2f] hover:text-[#006e2f] transition-colors"
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        </div>
+        <button
+          onClick={onSeeAll}
+          className="inline-flex items-center gap-1 text-xs md:text-sm font-bold text-[#006e2f] hover:underline whitespace-nowrap flex-shrink-0"
+        >
+          Voir tout
+          <ChevronRight size={16} />
+        </button>
       </div>
-      <div
-        ref={scrollRef}
-        className="flex gap-4 overflow-x-auto pb-2 snap-x scroll-smooth no-scrollbar"
-      >
+      {/* 3 par ligne en desktop/tablette (2 rangées = 6 produits) ; 2 par ligne
+          sur mobile pour que les cartes restent lisibles. */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
         {items.map((item, idx) => (
-          <div
-            key={`${item.kind}-${item.id}`}
-            className="w-[15rem] sm:w-[16rem] flex-shrink-0 snap-start"
-          >
-            <ProductCard item={item} idx={idx} />
-          </div>
+          <ProductCard key={`${item.kind}-${item.id}`} item={item} idx={idx} />
         ))}
       </div>
     </section>
@@ -426,7 +397,7 @@ function CategorySections({
         <CategoryRow
           key={r.meta.slug}
           title={r.meta.name}
-          items={r.items.slice(0, 12)}
+          items={r.items.slice(0, 6)}
           onSeeAll={() => onSeeCategory(r.meta.slug)}
         />
       ))}
@@ -435,7 +406,7 @@ function CategorySections({
         <CategoryRow
           key="__packs"
           title="Packs & offres groupées"
-          items={bundles.slice(0, 12)}
+          items={bundles.slice(0, 6)}
           onSeeAll={onSeeBundles}
         />
       )}
@@ -618,6 +589,10 @@ function ExplorerInner() {
   const products = useMemo(() => data?.products ?? [], [data?.products]);
   const categories = data?.categories ?? [];
   const stats = data?.stats;
+  // Nom de la catégorie active (pour l'en-tête « page dédiée »).
+  const activeCategoryName = activeCategory
+    ? (categories.find((c) => c.slug === activeCategory)?.name ?? null)
+    : null;
 
   // ── Tracking : recherche acheteur (debounced) ─────────────────────────
   const trackSearchRef = useRef(
@@ -721,18 +696,42 @@ function ExplorerInner() {
       {/* Hero */}
       <section className="bg-white border-b border-gray-100 py-12 px-4 md:px-8">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-[#006e2f] mb-3">
-            Marketplace Novakou
-          </p>
-          <h1 className="text-3xl md:text-5xl font-extrabold text-[#191c1e] tracking-tight mb-4 leading-tight">
-            Explorez nos formations<br className="hidden md:block" /> & produits digitaux
-          </h1>
-          <p className="text-[#5c647a] text-base md:text-lg mb-8">
-            {isLoading ? "Chargement…" : stats && stats.total > 0
-              ? `${stats.total} produit${stats.total > 1 ? "s" : ""} disponible${stats.total > 1 ? "s" : ""} créé${stats.total > 1 ? "s" : ""} par nos experts.`
-              : "Les premiers produits arrivent bientôt."
-            }
-          </p>
+          {activeCategoryName ? (
+            /* Vue « page dédiée » d'une catégorie : titre = nom de la catégorie
+               + lien retour vers toute la marketplace. */
+            <>
+              <button
+                onClick={() => setActiveCategory(null)}
+                className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-[#006e2f] mb-3 hover:underline"
+              >
+                <ArrowLeft size={14} />
+                Toutes les catégories
+              </button>
+              <h1 className="text-3xl md:text-5xl font-extrabold text-[#191c1e] tracking-tight mb-4 leading-tight">
+                {activeCategoryName}
+              </h1>
+              <p className="text-[#5c647a] text-base md:text-lg mb-8">
+                {isLoading
+                  ? "Chargement…"
+                  : `${displayedItems.length} produit${displayedItems.length > 1 ? "s" : ""} dans cette catégorie.`}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[#006e2f] mb-3">
+                Marketplace Novakou
+              </p>
+              <h1 className="text-3xl md:text-5xl font-extrabold text-[#191c1e] tracking-tight mb-4 leading-tight">
+                Explorez nos formations<br className="hidden md:block" /> & produits digitaux
+              </h1>
+              <p className="text-[#5c647a] text-base md:text-lg mb-8">
+                {isLoading ? "Chargement…" : stats && stats.total > 0
+                  ? `${stats.total} produit${stats.total > 1 ? "s" : ""} disponible${stats.total > 1 ? "s" : ""} créé${stats.total > 1 ? "s" : ""} par nos experts.`
+                  : "Les premiers produits arrivent bientôt."
+                }
+              </p>
+            </>
+          )}
 
           <div className="relative max-w-2xl mx-auto mb-8">
             <Search size={22} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#5c647a]" />
