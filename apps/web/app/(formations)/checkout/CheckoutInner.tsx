@@ -11,7 +11,6 @@ import {
   Lock,
   CheckCircle2,
   Info,
-  Sparkles,
   Wallet,
   Loader2,
   XCircle,
@@ -807,11 +806,7 @@ export default function CheckoutInner() {
                           : "border-gray-200 bg-white hover:border-gray-300"
                       }`}
                     >
-                      {p.id === "paygenius" ? (
-                        <Sparkles size={22} className={`mt-0.5 ${provider === p.id ? "text-[#006e2f]" : "text-[#5c647a]"}`} />
-                      ) : (
-                        <Wallet size={22} className={`mt-0.5 ${provider === p.id ? "text-[#006e2f]" : "text-[#5c647a]"}`} />
-                      )}
+                      <Wallet size={22} className={`mt-0.5 ${provider === p.id ? "text-[#006e2f]" : "text-[#5c647a]"}`} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span
@@ -898,7 +893,7 @@ export default function CheckoutInner() {
 
           {/* Error — avec fallback automatique vers l'autre provider si
               le provider courant est indisponible. Décidé en post-mortem
-              PayGenius "Server Error" du 2026-05-26. */}
+              passerelle "Server Error" du 2026-05-26. */}
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4">
               <div className="flex items-start gap-3">

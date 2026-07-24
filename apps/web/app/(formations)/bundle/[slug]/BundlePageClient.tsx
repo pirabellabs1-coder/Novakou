@@ -6,7 +6,6 @@ import {
   Gift,
   GraduationCap,
   Package,
-  Sparkles,
   Wallet,
   Loader2,
   ShoppingCart,
@@ -54,7 +53,7 @@ export default function BundlePageClient({ bundle }: { bundle: Bundle }) {
   const [error, setError] = useState<string | null>(null);
   const themeColor = bundle.shop?.themeColor ?? "#006e2f";
 
-  // Liste des providers disponibles (Moneroo / PayGenius). Source de vérité :
+  // Liste des passerelles disponibles (Moneroo uniquement). Source de vérité :
   // /api/formations/payment/providers (vérifie les env vars côté serveur).
   // Si un seul est dispo on cache le sélecteur — sinon le visiteur choisit.
   const [providers, setProviders] = useState<ProviderInfo[]>([]);
@@ -226,11 +225,7 @@ export default function BundlePageClient({ bundle }: { bundle: Bundle }) {
                           : "border-gray-200 bg-white hover:border-gray-300"
                       }`}
                     >
-                      {p.id === "paygenius" ? (
-                        <Sparkles size={18} className={provider === p.id ? "text-[#006e2f]" : "text-[#5c647a]"} />
-                      ) : (
-                        <Wallet size={18} className={provider === p.id ? "text-[#006e2f]" : "text-[#5c647a]"} />
-                      )}
+                      <Wallet size={18} className={provider === p.id ? "text-[#006e2f]" : "text-[#5c647a]"} />
                       <span className={`text-xs font-bold ${provider === p.id ? "text-[#006e2f]" : "text-[#191c1e]"}`}>
                         {p.label}
                       </span>

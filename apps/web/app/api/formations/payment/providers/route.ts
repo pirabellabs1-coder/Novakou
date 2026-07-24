@@ -1,59 +1,35 @@
 import { NextResponse } from "next/server";
 import { isMonerooConfigured } from "@/lib/moneroo";
-import { isPayGeniusConfigured } from "@/lib/paygenius";
 
 /**
  * GET /api/formations/payment/providers
  *
- * Retourne la liste des providers de paiement utilisables côté checkout.
- * Le frontend s'en sert pour afficher (ou masquer) le sélecteur Moneroo / PayGenius.
+ * Retourne la liste des passerelles de paiement utilisables côté checkout.
+ * Moneroo est la SEULE passerelle du site (décision fondateur, définitive) :
+ * aucun autre nom de fournisseur ne doit jamais apparaître ici — cette route
+ * alimente directement les libellés affichés à l'acheteur.
  *
  * Sécurité : on n'expose AUCUNE clé. Juste des booléens.
  */
 export async function GET() {
-  // Provider actif piloté par env PAYMENT_PROVIDER (par défaut "moneroo" depuis
-  // le 2026-06-27, settlement GeniusPay bloqué). Repasser à GeniusPay =
-  // PAYMENT_PROVIDER=paygenius. On annonce uniquement le provider actif.
-  const pref = (process.env.PAYMENT_PROVIDER || "moneroo").toLowerCase();
-  const usePayGenius = pref === "paygenius" && isPayGeniusConfigured();
-  const useMoneroo = !usePayGenius && isMonerooConfigured();
-
-  const providers = usePayGenius
+  const providers = isMonerooConfigured()
     ? [
         {
-          id: "paygenius",
-          label: "GeniusPay",
+          id: "moneroo",
+          label: "Moneroo",
           available: true,
-          description: "Paiement Mobile Money / carte via GeniusPay",
+          description: "Paiement Mobile Money / carte",
         },
       ]
-    : useMoneroo
-      ? [
-          {
-            id: "moneroo",
-            label: "Moneroo",
-            available: true,
-            description: "Paiement Mobile Money / carte",
-          },
-        ]
-      : isPayGeniusConfigured()
-        ? [
-            {
-              id: "paygenius",
-              label: "GeniusPay",
-              available: true,
-              description: "Paiement Mobile Money / carte via GeniusPay",
-            },
-          ]
-        : [
-            {
-              // Dev sans passerelle : entrée factice pour que le checkout s'affiche
-              id: "paygenius",
-              label: "GeniusPay (mock)",
-              available: false,
-              description: "Mode développement — aucune vraie passerelle configurée",
-            },
-          ];
+    : [
+        {
+          // Dev sans passerelle : entrée factice pour que le checkout s'affiche
+          id: "moneroo",
+          label: "Paiement (mode développement)",
+          available: false,
+          description: "Mode développement — aucune vraie passerelle configurée",
+        },
+      ];
 
   return NextResponse.json({ data: providers });
 }

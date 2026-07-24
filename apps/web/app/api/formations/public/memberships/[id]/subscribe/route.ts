@@ -17,12 +17,9 @@ import { initPayment as initPayGenius, isPayGeniusConfigured } from "@/lib/payge
 
 type Provider = "moneroo" | "paygenius";
 function resolveProvider(_raw: unknown): Provider {
-  // Provider actif piloté par env PAYMENT_PROVIDER. Basculé sur Moneroo le
-  // 2026-06-27 (settlement GeniusPay bloqué). Revenir à GeniusPay = PAYMENT_PROVIDER=paygenius.
-  const _pref = (process.env.PAYMENT_PROVIDER || "moneroo").toLowerCase();
-  if (_pref === "paygenius" && isPayGeniusConfigured()) return "paygenius";
-  if (isMonerooConfigured()) return "moneroo";
-  return isPayGeniusConfigured() ? "paygenius" : "moneroo";
+  // Moneroo est la SEULE passerelle du site (décision fondateur, définitive).
+  // Aucune préférence env ni repli automatique vers un autre fournisseur.
+  return "moneroo";
 }
 
 type Params = { params: Promise<{ id: string }> };
@@ -161,7 +158,7 @@ export async function POST(req: Request, { params }: Params) {
     const providerOk = provider === "paygenius" ? isPayGeniusConfigured() : isMonerooConfigured();
     if (!providerOk) {
       return NextResponse.json(
-        { error: `${provider === "paygenius" ? "PayGenius" : "Moneroo"} non configuré` },
+        { error: "Le paiement est momentanément indisponible. Réessayez plus tard." },
         { status: 503 },
       );
     }

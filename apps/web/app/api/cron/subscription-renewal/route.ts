@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { initPayment as initMoneroo, isMonerooConfigured } from "@/lib/moneroo";
-import { initPayment as initPayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
 import { sendSubscriptionRenewalEmail } from "@/lib/email/formations";
 import { requireCronAuth } from "@/lib/cron/auth";
 
@@ -27,11 +26,11 @@ export async function GET(request: NextRequest) {
   const authError = requireCronAuth(request);
   if (authError) return authError;
 
-  // Au moins un provider doit être configuré
-  if (!isMonerooConfigured() && !isPayGeniusConfigured()) {
+  // Moneroo (seule passerelle du site) doit être configuré
+  if (!isMonerooConfigured()) {
     return NextResponse.json({
       skipped: true,
-      reason: "Aucun provider configuré (ni MONEROO_SECRET_KEY ni PAYGENIUS_API_KEY)",
+      reason: "Moneroo non configuré (MONEROO_SECRET_KEY manquant)",
     });
   }
 
@@ -77,26 +76,10 @@ export async function GET(request: NextRequest) {
       const firstName = (sub.user.name || sub.user.email.split("@")[0]).split(" ")[0];
       const lastName = (sub.user.name || "").split(" ").slice(1).join(" ") || "Membre";
 
-      // Choix du provider pour la relance : on regarde la dernière facture
-      // payée. Si elle existe, on garde le même provider (cohérence pour
-      // l'abonné). Sinon on prend Moneroo si configuré, sinon PayGenius.
-      const lastInvoice = await prisma.subscriptionInvoice.findFirst({
-        where: { subscriptionId: sub.id, status: "paid" },
-        orderBy: { createdAt: "desc" },
-        select: { paymentProvider: true },
-      });
-      const preferredProvider: "moneroo" | "paygenius" =
-        lastInvoice?.paymentProvider === "paygenius"
-          ? "paygenius"
-          : isMonerooConfigured()
-          ? "moneroo"
-          : "paygenius";
-      const provider: "moneroo" | "paygenius" =
-        preferredProvider === "paygenius" && isPayGeniusConfigured()
-          ? "paygenius"
-          : isMonerooConfigured()
-          ? "moneroo"
-          : "paygenius";
+      // Moneroo est la SEULE passerelle du site (décision fondateur, définitive) :
+      // toutes les relances passent par elle, même si une vieille facture
+      // référençait l'ancienne passerelle retirée.
+      const provider = "moneroo";
 
       const sharedMeta = {
         type: "subscription_renewal",
@@ -110,28 +93,15 @@ export async function GET(request: NextRequest) {
       const description = `Renouvellement : ${sub.plan.name}`;
       const returnUrl = `${APP_URL}/payment/return?provider=${provider}`;
 
-      let checkoutUrl: string;
-      if (provider === "paygenius") {
-        const pg = await initPayGenius({
-          amount: Math.round(sub.plan.price),
-          currency: sub.plan.currency || "XOF",
-          description,
-          customer: { email: sub.user.email, name: `${firstName} ${lastName}`.trim() },
-          return_url: returnUrl,
-          metadata: sharedMeta,
-        });
-        checkoutUrl = pg.checkout_url;
-      } else {
-        const mnr = await initMoneroo({
-          amount: Math.round(sub.plan.price),
-          currency: sub.plan.currency || "XOF",
-          description,
-          customer: { email: sub.user.email, first_name: firstName, last_name: lastName },
-          return_url: returnUrl,
-          metadata: sharedMeta,
-        });
-        checkoutUrl = mnr.checkout_url;
-      }
+      const mnr = await initMoneroo({
+        amount: Math.round(sub.plan.price),
+        currency: sub.plan.currency || "XOF",
+        description,
+        customer: { email: sub.user.email, first_name: firstName, last_name: lastName },
+        return_url: returnUrl,
+        metadata: sharedMeta,
+      });
+      const checkoutUrl = mnr.checkout_url;
 
       // Note l'instant de relance pour dédupliquer dans les 23h (on n'écrit PAS
       // l'URL dans paymentMethod : ce champ = snapshot du moyen de paiement, pas

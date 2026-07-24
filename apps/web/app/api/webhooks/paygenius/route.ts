@@ -771,7 +771,7 @@ async function handlePayoutWebhook(reference: string, eventName: string, declare
             userId: w.instructeur.user.id,
             type: "PAYMENT",
             title: "Retrait versé ✅",
-            message: `Vos ${Math.round(w.amount)} FCFA viennent d'être envoyés via ${shortMethodLabel(w.method)} (PayGenius). Vérifiez votre compte.`,
+            message: `Vos ${Math.round(w.amount)} FCFA viennent d'être envoyés via ${shortMethodLabel(w.method)}. Vérifiez votre compte.`,
             link: w.method.endsWith("_mentor") ? "/mentor/finances" : "/wallet",
           },
         })
@@ -786,8 +786,8 @@ async function handlePayoutWebhook(reference: string, eventName: string, declare
       data: {
         status: "REFUSE",
         processedAt: new Date(),
-        errorMessage: `PayGenius a rejeté le payout (status=${status}).`,
-        refusedReason: "Échec du transfert PayGenius — vérifiez vos coordonnées de réception et réessayez.",
+        errorMessage: `Le fournisseur de payout a rejeté le transfert (status=${status}).`,
+        refusedReason: "Échec du transfert — vérifiez vos coordonnées de réception et réessayez.",
       },
     });
     await prisma.notification
@@ -842,7 +842,7 @@ async function handleAffiliatePayout(
           userId: wd.userId,
           type: "PAYMENT",
           title: "Retrait versé ✅",
-          message: `Vos ${Math.round(wd.amount)} FCFA viennent d'être envoyés (PayGenius). Vérifiez votre compte.`,
+          message: `Vos ${Math.round(wd.amount)} FCFA viennent d'être envoyés. Vérifiez votre compte.`,
           link: "/affilie/retraits",
         },
       }).catch(() => null);
@@ -858,7 +858,7 @@ async function handleAffiliatePayout(
           status: "REFUSE",
           processedAt: new Date(),
           errorMessage: `PayGenius a rejeté le payout (status=${status}).`,
-          refusedReason: "Échec du transfert PayGenius — vérifiez vos coordonnées et réessayez.",
+          refusedReason: "Échec du transfert — vérifiez vos coordonnées et réessayez.",
         },
       }),
       // Libère les commissions réservées → redeviennent retirables.

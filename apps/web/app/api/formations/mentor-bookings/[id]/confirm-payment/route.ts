@@ -53,12 +53,17 @@ export async function POST(_request: Request, { params }: Params) {
     }
 
     // ── Verify payment ─────────────────────────────────────────────────────
-    if (booking.paymentProvider === "moneroo") {
-      if (!isMonerooConfigured()) {
-        return NextResponse.json({ error: "Moneroo non configuré" }, { status: 500 });
-      }
-      if (!booking.paymentRef) {
-        return NextResponse.json({ error: "Référence paiement manquante" }, { status: 400 });
+    // Vérification OBLIGATOIRE dès qu'une passerelle est configurée : on ne
+    // passe JAMAIS en HELD sur simple parole du client. Seul le mode dev sans
+    // passerelle (mock local) est exempté. L'ancienne branche « else trust »
+    // acceptait n'importe quel paymentProvider ≠ moneroo sans aucune vérif →
+    // argent mentor créé du néant. Fermée.
+    if (isMonerooConfigured()) {
+      if (booking.paymentProvider !== "moneroo" || !booking.paymentRef) {
+        return NextResponse.json(
+          { error: "Paiement non vérifiable — référence de paiement absente ou invalide." },
+          { status: 400 },
+        );
       }
       const payment = await retrievePayment(booking.paymentRef);
       if (payment.status !== "success") {
@@ -67,8 +72,24 @@ export async function POST(_request: Request, { params }: Params) {
           { status: 402 },
         );
       }
+      // Le montant reçu doit couvrir le prix de la séance (tolérance 1 FCFA).
+      if (typeof payment.amount === "number" && payment.amount < booking.paidAmount - 1) {
+        console.error("[confirm-payment] AMOUNT MISMATCH", {
+          bookingId: booking.id, expected: booking.paidAmount, received: payment.amount,
+        });
+        return NextResponse.json(
+          { error: "Montant payé insuffisant pour cette réservation." },
+          { status: 402 },
+        );
+      }
+    } else if (!IS_DEV) {
+      // Prod sans passerelle configurée : refuser plutôt que de faire confiance.
+      return NextResponse.json(
+        { error: "Le paiement est momentanément indisponible. Réessayez plus tard." },
+        { status: 503 },
+      );
     }
-    // else mock: trust the call (dev only, no-op verification)
+    // else : dev local sans passerelle → mock accepté (aucune vraie somme en jeu)
 
     // ── Finalize ──────────────────────────────────────────────────────────
     const now = new Date();

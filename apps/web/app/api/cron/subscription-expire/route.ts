@@ -121,6 +121,35 @@ export async function GET(request: NextRequest) {
     movedToExpired++;
   }
 
+  // 4) Balayage auto-guérisseur : si un deleteMany a échoué lors d'un run
+  // précédent, la sub est déjà `expired`/`cancelled` mais ses Enrollments/
+  // Purchases tagués `sub_<id>` traînent encore. On les ramasse à chaque run
+  // (access.ts les refuse déjà — ceci nettoie les listings et la dette).
+  let sweptEnrollments = 0;
+  let sweptPurchases = 0;
+  const revokedSubs = await prisma.subscription.findMany({
+    where: { status: { in: ["expired", "cancelled"] } },
+    select: { id: true },
+  });
+  if (revokedSubs.length > 0) {
+    const tags = revokedSubs.map((s) => `sub_${s.id}`);
+    const [sweepE, sweepP] = await Promise.all([
+      prisma.enrollment.deleteMany({
+        where: { stripeSessionId: { in: tags } },
+      }).catch(() => ({ count: 0 })),
+      prisma.digitalProductPurchase.deleteMany({
+        where: { stripeSessionId: { in: tags } },
+      }).catch(() => ({ count: 0 })),
+    ]);
+    sweptEnrollments = sweepE.count;
+    sweptPurchases = sweepP.count;
+    if (sweptEnrollments + sweptPurchases > 0) {
+      console.warn("[cron/subscription-expire] sweep : accès orphelins purgés", {
+        sweptEnrollments, sweptPurchases,
+      });
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     movedToPastDue,
@@ -128,6 +157,8 @@ export async function GET(request: NextRequest) {
     movedToExpired,
     revokedEnrollments,
     revokedPurchases,
+    sweptEnrollments,
+    sweptPurchases,
     runAt: now.toISOString(),
   });
 }

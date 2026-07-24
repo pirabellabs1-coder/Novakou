@@ -5,11 +5,6 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { isMonerooConfigured } from "@/lib/moneroo";
 import {
-  initPayout as initPayGeniusPayout,
-  isPayGeniusConfigured,
-  classifyPayGeniusError,
-} from "@/lib/paygenius";
-import {
   getPayoutMethod,
   normalizeMsisdn,
   resolveLegacyMethod,
@@ -17,12 +12,6 @@ import {
 } from "@/lib/moneroo-payout-methods";
 import { computeVendorBalance, computeMentorBalance } from "@/lib/formations/wallet-balance";
 import { sendWithdrawalPaidEmail, sendWithdrawalFailedEmail } from "@/lib/email/withdrawals";
-import {
-  getPayGeniusPayoutMethod,
-  normalizePayGeniusMsisdn,
-  shortPayGeniusMethodLabel,
-  resolvePayGeniusLegacyMethod,
-} from "@/lib/paygenius-payout-methods";
 import { executePayout } from "@/lib/payout/execute";
 import { isFeexpayConfigured } from "@/lib/feexpay";
 import { isFedapayConfigured } from "@/lib/fedapay";
@@ -46,23 +35,23 @@ type AccountDetails = {
  * PATCH /api/formations/admin/withdrawals/[id]
  *
  * Body :
- *   { action: "approve", mode?: "moneroo" | "paygenius" | "manual" }
- *     → "moneroo" (défaut) : payout via Moneroo
- *     → "paygenius"        : payout via PayGenius (wallet pré-financé requis)
+ *   { action: "approve", mode?: "moneroo" | "manual" }
+ *     → "moneroo" (défaut) : payout via l'orchestrateur Moneroo → FeexPay → FedaPay
  *     → "manual"           : virement hors plateforme, marque TRAITE direct
  *
  *   { action: "refuse", refusedReason: string } → REFUSE + motif
  *
  * Admin-only (role=ADMIN). En dev, bypass de la verif role.
  */
-type PayoutMode = "moneroo" | "feexpay" | "fedapay" | "paygenius" | "manual";
+type PayoutMode = "moneroo" | "feexpay" | "fedapay" | "manual";
 
 function resolvePayoutMode(raw: unknown): PayoutMode {
   const v = String(raw ?? "").toLowerCase();
   if (v === "manual") return "manual";
-  if (v === "paygenius") return "paygenius"; // GeniusPay retiré — toléré seulement si explicitement demandé
   // "feexpay"/"fedapay" : forcent un fournisseur précis (test/diagnostic admin),
   // sans bascule. "moneroo" (défaut) = orchestrateur avec bascule normale.
+  // Tout autre valeur (y compris l'ancienne passerelle retirée du site) retombe
+  // sur l'orchestrateur.
   if (v === "feexpay") return "feexpay";
   if (v === "fedapay") return "fedapay";
   return "moneroo";
@@ -169,7 +158,6 @@ export async function PATCH(request: Request, { params }: Params) {
       // essaie Moneroo → FeexPay → FedaPay : il suffit qu'UN seul soit configuré.
       const anyAutoProvider = isMonerooConfigured() || isFeexpayConfigured() || isFedapayConfigured();
       const providerConfigured =
-        mode === "paygenius" ? isPayGeniusConfigured() :
         mode === "manual" ? true :
         mode === "feexpay" ? isFeexpayConfigured() :
         mode === "fedapay" ? isFedapayConfigured() :
@@ -201,7 +189,7 @@ export async function PATCH(request: Request, { params }: Params) {
         return NextResponse.json({ data: { id, status: "TRAITE", role, mode: "manual" } });
       }
 
-      // Mode Moneroo OU PayGenius : déclencher un vrai payout.
+      // Mode automatique (orchestrateur) : déclencher un vrai payout.
       // Re-validation du solde via la SOURCE UNIQUE (wallet-balance) — évite de
       // payer si un remboursement est survenu depuis la demande, et calcule
       // correctement le solde mentor (via bookings, pas PlatformRevenue).
@@ -253,131 +241,6 @@ export async function PATCH(request: Request, { params }: Params) {
       let payoutRefId: string;
       let methodLabelHumain: string;
 
-      // ── BRANCH PAYGENIUS ───────────────────────────────────────────────
-      if (mode === "paygenius") {
-        // Résolution : si le vendeur a stocké un code générique ("orange_money",
-        // "wave"…) ou un code Moneroo ("orange_ci"), on le convertit en code
-        // PayGenius via le pays du vendeur.
-        const pgMethodId =
-          getPayGeniusPayoutMethod(rawMethod)?.id ??
-          resolvePayGeniusLegacyMethod(rawMethod, userCountry);
-        const methodDef = pgMethodId ? getPayGeniusPayoutMethod(pgMethodId) : undefined;
-        if (!methodDef) {
-          await prisma.instructorWithdrawal.update({
-            where: { id },
-            data: { errorMessage: `Méthode inconnue dans le catalogue PayGenius : ${rawMethod}` },
-          }).catch(() => null);
-          return NextResponse.json(
-            {
-              error: `Méthode "${rawMethod}" non supportée par PayGenius. Utilisez le versement manuel (mode=manual).`,
-              code: "UNKNOWN_METHOD_PAYGENIUS",
-            },
-            { status: 400 },
-          );
-        }
-
-        // Récupère le numéro / IBAN selon les champs requis
-        const missing: string[] = [];
-        let account = "";
-        let recipientPhone = details.msisdn || details.phone || "";
-        if (methodDef.requiredFields.includes("msisdn")) {
-          if (!recipientPhone || !String(recipientPhone).trim()) {
-            missing.push("msisdn (numéro Mobile Money)");
-          } else {
-            account = normalizePayGeniusMsisdn(String(recipientPhone), methodDef.id);
-            recipientPhone = account; // PayGenius veut le même numéro côté recipient + destination
-          }
-        } else if (methodDef.requiredFields.includes("iban")) {
-          const ibanRaw = details.iban || "";
-          if (!ibanRaw.trim()) {
-            missing.push("iban");
-          } else {
-            account = ibanRaw.trim().toUpperCase().replace(/\s/g, "");
-            // pour bank_transfer, recipient.phone reste optionnel mais requis par l'API → on
-            // utilise l'email du bénéficiaire comme contact si pas de phone
-            if (!recipientPhone) recipientPhone = ""; // gérer plus bas
-          }
-        }
-        if (missing.length > 0) {
-          return NextResponse.json(
-            { error: `Coordonnées incomplètes. Champs manquants : ${missing.join(", ")}` },
-            { status: 400 },
-          );
-        }
-
-        try {
-          console.log(`[paygenius:payout] id=${id} amount=${Math.round(w.amount)} method=${methodDef.id}`);
-          const payoutData = await initPayGeniusPayout({
-            amount: Math.round(w.amount),
-            currency: "XOF",
-            description: `Retrait Novakou - ${shortPayGeniusMethodLabel(methodDef.id)}`,
-            recipient: {
-              name: `${firstName} ${lastName}`.trim(),
-              phone: recipientPhone || normalizePayGeniusMsisdn("0000000000", methodDef.id),
-              email: w.instructeur.user.email,
-            },
-            destination: {
-              type: methodDef.destinationType,
-              provider: methodDef.destinationProvider,
-              account,
-            },
-            metadata: sharedMetadata,
-            idempotency_key: `wd_${w.id}`,
-          });
-          payoutRefId = payoutData.reference; // on stocke la `reference` PYT-…
-          methodLabelHumain = shortPayGeniusMethodLabel(methodDef.id);
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err);
-          console.error(`[paygenius:payout:error] id=${id} amount=${Math.round(w.amount)} method=${methodDef.id} error=${msg}`);
-          const classified = classifyPayGeniusError(msg);
-          await prisma.instructorWithdrawal.update({
-            where: { id },
-            data: {
-              status: "REFUSE",
-              processedAt: new Date(),
-              paymentProvider: "paygenius",
-              errorMessage: msg.slice(0, 500),
-              refusedReason: `PayGenius: ${classified.userMessage}`,
-            },
-          }).catch(() => null);
-          return NextResponse.json(
-            { error: classified.userMessage, code: "PAYGENIUS_INIT_FAILED", category: classified.category },
-            { status: 502 },
-          );
-        }
-
-        // Statut final via webhook (cashout.completed / payout.completed)
-        await prisma.instructorWithdrawal.update({
-          where: { id },
-          data: {
-            paymentRef: payoutRefId,
-            paymentProvider: "paygenius",
-            errorMessage: null,
-          },
-        });
-
-        await prisma.notification.create({
-          data: {
-            userId: w.instructeur.user.id,
-            type: "PAYMENT",
-            title: "Retrait en cours",
-            message: `Votre retrait de ${Math.round(w.amount)} FCFA via ${methodLabelHumain} (PayGenius) est en cours. Vous serez notifié quand les fonds arriveront.`,
-            link: isMentor ? "/mentor/finances" : "/wallet",
-          },
-        }).catch(() => null);
-
-        return NextResponse.json({
-          data: {
-            id,
-            status: "EN_ATTENTE",
-            role,
-            mode: "paygenius",
-            paymentRef: payoutRefId,
-            note: "Envoyé à PayGenius. Le webhook confirmera le versement.",
-          },
-        });
-      }
-
       // ── BRANCH MONEROO (par défaut) ─────────────────────────────────────
       // Si le vendeur a enregistré "orange_money" (legacy), on le résout selon le pays
       const resolvedMethod = getPayoutMethod(rawMethod)
@@ -394,7 +257,7 @@ export async function PATCH(request: Request, { params }: Params) {
         }).catch(() => null);
         return NextResponse.json(
           {
-            error: `Méthode "${rawMethod}" non supportée par Moneroo. Utilisez mode=manual ou mode=paygenius selon votre besoin.`,
+            error: `Méthode "${rawMethod}" non supportée. Utilisez le versement manuel (mode=manual).`,
             code: "UNKNOWN_METHOD",
           },
           { status: 400 },

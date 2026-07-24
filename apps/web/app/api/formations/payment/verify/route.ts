@@ -51,7 +51,7 @@ export async function GET(request: Request) {
     const provider = resolveProvider(searchParams.get("provider"));
 
     if (provider === "paygenius" && !isPayGeniusConfigured()) {
-      return NextResponse.json({ error: "PayGenius non configuré" }, { status: 503 });
+      return NextResponse.json({ error: "Vérification du paiement momentanément indisponible" }, { status: 503 });
     }
     if (provider === "moneroo" && !isMonerooConfigured()) {
       return NextResponse.json({ error: "Moneroo non configuré" }, { status: 503 });

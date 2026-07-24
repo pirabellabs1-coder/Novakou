@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
-import { shortPayGeniusMethodLabel } from "@/lib/paygenius-payout-methods";
+import { shortMethodLabel } from "@/lib/moneroo-payout-methods";
 
 function isAdmin(session: { user?: { role?: string | null } } | null): boolean {
   const role = session?.user?.role?.toString().toUpperCase();
@@ -44,7 +44,7 @@ export async function GET(req: Request) {
         id: w.id,
         amount: w.amount,
         method: w.method,
-        methodLabel: shortPayGeniusMethodLabel(w.method) || w.method,
+        methodLabel: shortMethodLabel(w.method) || w.method,
         accountDetails: w.accountDetails,
         status: w.status,
         refusedReason: w.refusedReason,

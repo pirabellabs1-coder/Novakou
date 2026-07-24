@@ -93,8 +93,8 @@ function ReturnInner() {
         return;
       }
 
-      // Real Moneroo / PayGenius flow: verify by ID returned in querystring.
-      // PayGenius returns ?reference=... ; Moneroo returns ?paymentId=... or ?id=...
+      // Flux réel : vérification par l'ID renvoyé en querystring.
+      // Selon la passerelle : ?paymentId=..., ?reference=... ou ?id=...
       const paymentId =
         params.get("paymentId") ||
         params.get("reference") ||

@@ -17,7 +17,7 @@ Slogan : « La plateforme qui élève votre activité au plus haut niveau ».
 
 ## En bref (faits clés)
 - Vendre en ligne en Afrique francophone : formations, produits numériques, mentorat.
-- Paiements : Mobile Money (Wave, Orange Money, MTN, Moov) et carte bancaire, via la passerelle GeniusPay. Devise principale : FCFA (XOF).
+- Paiements : Mobile Money (Wave, Orange Money, MTN, Moov) et carte bancaire. Devise principale : FCFA (XOF).
 - Programme d'affiliation : jusqu'à 40 % de commission sur chaque vente parrainée.
 - Pays desservis : Sénégal, Côte d'Ivoire, Bénin, Togo, Mali, Burkina Faso, Cameroun + diaspora (France et international).
 - Espaces : vendeur, acheteur (apprenant), mentor, affilié, administration.

@@ -7,7 +7,6 @@ import {
   CreditCard,
   GraduationCap,
   Package,
-  Sparkles,
   Wallet,
   Loader2,
   Ban,
@@ -228,11 +227,7 @@ export default function MembershipPageClient({ plan }: { plan: Plan }) {
                           : "border-gray-200 bg-white hover:border-gray-300"
                       }`}
                     >
-                      {p.id === "paygenius" ? (
-                        <Sparkles size={18} className={provider === p.id ? "text-purple-600" : "text-[#5c647a]"} />
-                      ) : (
-                        <Wallet size={18} className={provider === p.id ? "text-purple-600" : "text-[#5c647a]"} />
-                      )}
+                      <Wallet size={18} className={provider === p.id ? "text-purple-600" : "text-[#5c647a]"} />
                       <span className={`text-xs font-bold ${provider === p.id ? "text-purple-700" : "text-[#191c1e]"}`}>
                         {p.label}
                       </span>

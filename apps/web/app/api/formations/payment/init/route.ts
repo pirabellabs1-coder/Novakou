@@ -14,12 +14,9 @@ import crypto from "crypto";
 type PaymentProvider = "moneroo" | "paygenius";
 
 function resolveProvider(_raw: unknown): PaymentProvider {
-  // Provider actif piloté par env PAYMENT_PROVIDER. Basculé sur Moneroo le
-  // 2026-06-27 (settlement GeniusPay bloqué). Revenir à GeniusPay = PAYMENT_PROVIDER=paygenius.
-  const _pref = (process.env.PAYMENT_PROVIDER || "moneroo").toLowerCase();
-  if (_pref === "paygenius" && isPayGeniusConfigured()) return "paygenius";
-  if (isMonerooConfigured()) return "moneroo";
-  return isPayGeniusConfigured() ? "paygenius" : "moneroo";
+  // Moneroo est la SEULE passerelle du site (décision fondateur, définitive).
+  // Aucune préférence env ni repli automatique vers un autre fournisseur.
+  return "moneroo";
 }
 
 /**
@@ -410,7 +407,7 @@ export async function POST(request: Request) {
         .catch(() => null);
       console.error(`[payment/init:${provider}]`, err);
       return NextResponse.json(
-        { error: `${provider === "paygenius" ? "PayGenius" : "Moneroo"}: ${message}` },
+        { error: `Paiement : ${message}` },
         { status: 500 },
       );
     }
