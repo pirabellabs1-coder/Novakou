@@ -250,10 +250,25 @@ export async function POST(request: Request) {
     //
     // Commandes gratuites (totalAmount = 0) : fulfillment immédiat.
     // Moneroo non configuré (ex. dev) : fulfillment immédiat (mode mock).
-    const isFree = totalAmount <= 0 || paymentMethod === "free";
+    // SÛRETÉ MONÉTAIRE : une commande est « gratuite » UNIQUEMENT si le total
+    // recalculé côté serveur (à partir des vrais prix des items, remises
+    // comprises) est ≤ 0. On IGNORE délibérément tout `paymentMethod:"free"`
+    // envoyé par le client : c'était un bypass qui permettait de s'attribuer
+    // n'importe quel produit PAYANT gratuitement (et créditait du revenu fantôme).
+    const isFree = totalAmount <= 0;
     const requestedProvider: PaymentProvider = resolveProvider((body as { provider?: string }).provider);
     const providerConfigured =
       requestedProvider === "paygenius" ? isPayGeniusConfigured() : isMonerooConfigured();
+    // Commande PAYANTE mais aucun fournisseur de paiement configuré → on REFUSE.
+    // On ne « fulfill » JAMAIS gratuitement une commande à total > 0 (ferme le
+    // repli mock qui, sans clés provider en prod, rendait tout gratuit).
+    if (!isFree && !providerConfigured) {
+      console.error(`[checkout] commande payante (${totalAmount} FCFA) mais aucun fournisseur configuré — refusée`);
+      return NextResponse.json(
+        { error: "Le paiement est momentanément indisponible. Réessayez dans quelques instants." },
+        { status: 503 },
+      );
+    }
     const useProvider = !isFree && providerConfigured;
 
     if (useProvider) {
