@@ -29,16 +29,18 @@ type Summary = {
   cancelled: number;
 };
 
+// Une teinte DISTINCTE par statut (fond pâle + texte soutenu) — chaque état se
+// reconnaît d'un coup d'œil.
 const STATUS_META: Record<OrderStatus, { label: string; bg: string; color: string }> = {
-  paye: { label: "Payé", bg: "#e7f5ec", color: "#137a3f" },
-  abonnement: { label: "Abonnement", bg: "#eef2ff", color: "#4f46e5" },
-  pack: { label: "Pack", bg: "#e0f2f1", color: "#0f766e" },
-  offert: { label: "Offert", bg: "#e0f2fe", color: "#0369a1" },
-  gratuit: { label: "Gratuit", bg: "#f1f5f2", color: "#5c647a" },
-  en_attente: { label: "En attente", bg: "#fef6e7", color: "#b45309" },
-  echoue: { label: "Échoué", bg: "#fdecec", color: "#b91c1c" },
-  annule: { label: "Abandonné", bg: "#f3f4f6", color: "#6b7280" },
-  rembourse: { label: "Remboursé", bg: "#fdecec", color: "#9f1239" },
+  paye: { label: "Payé", bg: "#dcfce7", color: "#137a3f" },        // vert
+  abonnement: { label: "Abonnement", bg: "#f3e8ff", color: "#7c3aed" }, // violet
+  pack: { label: "Pack", bg: "#ccfbf1", color: "#0f766e" },        // turquoise
+  offert: { label: "Offert", bg: "#dbeafe", color: "#1d4ed8" },    // bleu
+  gratuit: { label: "Gratuit", bg: "#f1f5f9", color: "#475569" },  // gris ardoise
+  en_attente: { label: "En attente", bg: "#fef3c7", color: "#b45309" }, // ambre
+  echoue: { label: "Échoué", bg: "#fee2e2", color: "#b91c1c" },    // rouge
+  annule: { label: "Abandonné", bg: "#ffedd5", color: "#c2410c" }, // orange
+  rembourse: { label: "Remboursé", bg: "#fae8ff", color: "#a21caf" }, // magenta
 };
 
 function formatFCFA(n: number) {

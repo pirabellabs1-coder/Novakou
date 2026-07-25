@@ -148,6 +148,29 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
   });
   const counts: SidebarCounts = countsResp?.data ?? { abandons: 0, inquiries: 0, retraits: 0 };
 
+  // Badges « à traiter » : on mémorise le compteur DÉJÀ VU par le vendeur pour
+  // que le badge disparaisse après la visite de la page (et réapparaisse
+  // seulement si de nouveaux éléments arrivent). Corrige « la notification ne
+  // quitte pas » sur Abandons.
+  const [seenCounts, setSeenCounts] = useState<Partial<SidebarCounts>>({});
+  useEffect(() => {
+    try {
+      setSeenCounts(JSON.parse(localStorage.getItem("nk-vendor-seen-counts") || "{}"));
+    } catch { /* ignore */ }
+  }, []);
+  useEffect(() => {
+    for (const [href, key] of Object.entries(COUNT_KEY_BY_HREF)) {
+      if ((pathname === href || pathname.startsWith(href + "/")) && counts[key] != null) {
+        setSeenCounts((prev) => {
+          if (prev[key] === counts[key]) return prev;
+          const next = { ...prev, [key]: counts[key] };
+          try { localStorage.setItem("nk-vendor-seen-counts", JSON.stringify(next)); } catch { /* ignore */ }
+          return next;
+        });
+      }
+    }
+  }, [pathname, counts]);
+
   useEffect(() => {
     try {
       const saved = localStorage.getItem("vendeur-sidebar-collapsed");
@@ -318,7 +341,9 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
                     const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
                     const countKey = COUNT_KEY_BY_HREF[item.href];
                     const count = countKey ? counts[countKey] : 0;
-                    const showCountBadge = count > 0;
+                    // Badge visible seulement si le compteur dépasse ce que le
+                    // vendeur a déjà vu (→ disparaît après visite de la page).
+                    const showCountBadge = countKey ? count > (seenCounts[countKey] ?? 0) : false;
                     const Icon = item.icon;
                     return (
                       <li key={item.href}>
