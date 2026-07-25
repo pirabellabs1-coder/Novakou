@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     const userId = session.user.id;
 
     // Rate limit sur l'email (6 tentatives / 15 min).
-    const rateLimitResult = checkRateLimit(`2fa:${email}`);
+    const rateLimitResult = await checkRateLimit(`2fa:${email}`);
     if (!rateLimitResult.allowed) {
       return NextResponse.json(
         { error: "Trop de tentatives. Réessayez dans 15 minutes." },
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
 
     const result = verifySync({ token: code, secret: storedSecret });
     if (!result.valid) {
-      recordFailedAttempt(`2fa:${email}`);
+      await recordFailedAttempt(`2fa:${email}`);
       return NextResponse.json({ error: "Code 2FA incorrect." }, { status: 400 });
     }
 

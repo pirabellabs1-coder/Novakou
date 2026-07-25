@@ -32,14 +32,14 @@ export async function POST(request: NextRequest) {
 
     // Rate limit: 5 attempts per 15 min per email
     const rateLimitKey = `contact:${email}`;
-    const rateCheck = checkRateLimit(rateLimitKey);
+    const rateCheck = await checkRateLimit(rateLimitKey);
     if (!rateCheck.allowed) {
       return NextResponse.json(
         { error: "Trop de tentatives. Veuillez patienter avant de reessayer." },
         { status: 429 }
       );
     }
-    recordFailedAttempt(rateLimitKey);
+    await recordFailedAttempt(rateLimitKey);
 
     // --- DEV mode: save to in-memory store ---
     if (IS_DEV && !USE_PRISMA_FOR_DATA) {

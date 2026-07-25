@@ -35,7 +35,7 @@ export async function POST(request: Request) {
 
     // Rate limit (auth rate-limiter): 5 attempts per 15 min per email
     const rateLimitKey = `verify-email:${email}`;
-    const rateCheck = checkRateLimit(rateLimitKey);
+    const rateCheck = await checkRateLimit(rateLimitKey);
     if (!rateCheck.allowed) {
       return NextResponse.json(
         { error: "Trop de tentatives. Veuillez patienter avant de reessayer." },
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     }
 
     // Rate limit: 3 req/min per email
-    const rl = rateLimit(`verify-send:${email.toLowerCase()}`, 3, 60_000);
+    const rl = await rateLimit(`verify-send:${email.toLowerCase()}`, 3, 60_000);
     if (!rl.allowed) {
       return NextResponse.json(
         { error: "Trop de demandes. Veuillez patienter avant de renvoyer un code." },
@@ -81,7 +81,7 @@ export async function PUT(request: Request) {
     const { email, code } = parsed.data;
 
     // Rate limit: 5 req/min per email
-    const rl = rateLimit(`verify-check:${email.toLowerCase()}`, 5, 60_000);
+    const rl = await rateLimit(`verify-check:${email.toLowerCase()}`, 5, 60_000);
     if (!rl.allowed) {
       return NextResponse.json(
         { error: "Trop de tentatives. Veuillez patienter." },

@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
     // Rate limit: 5 attempts per 15 min per email
     const rateLimitKey = `register:${email}`;
-    const rateCheck = checkRateLimit(rateLimitKey);
+    const rateCheck = await checkRateLimit(rateLimitKey);
     if (!rateCheck.allowed) {
       return NextResponse.json(
         { error: "Trop de tentatives. Veuillez patienter avant de reessayer." },

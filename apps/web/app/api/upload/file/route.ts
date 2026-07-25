@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Rate limit: 20 uploads/hour per user
-    const rl = rateLimit(`upload:${userId}`, 20, 3600_000);
+    const rl = await rateLimit(`upload:${userId}`, 20, 3600_000);
     if (!rl.allowed) {
       return NextResponse.json({ error: "Trop d'uploads. Réessayez dans quelques minutes." }, { status: 429 });
     }

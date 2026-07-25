@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     }
 
     // Rate limit: 5 subscriptions per hour per email
-    const rl = rateLimit(`newsletter:${email}`, 5, 3600_000);
+    const rl = await rateLimit(`newsletter:${email}`, 5, 3600_000);
     if (!rl.allowed) {
       return NextResponse.json({ error: "Vous êtes déjà inscrit." }, { status: 429 });
     }

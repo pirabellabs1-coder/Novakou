@@ -39,8 +39,8 @@ export async function POST(req: Request) {
 
     // Anti-spam : 5 dépôts / 10 min par IP, 3 par email.
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
-    const ipLimit = rateLimit(`funnel-lead-ip:${ip}`, 5, 10 * 60_000);
-    const emailLimit = rateLimit(`funnel-lead-email:${email}`, 3, 10 * 60_000);
+    const ipLimit = await rateLimit(`funnel-lead-ip:${ip}`, 5, 10 * 60_000);
+    const emailLimit = await rateLimit(`funnel-lead-email:${email}`, 3, 10 * 60_000);
     if (!ipLimit.allowed || !emailLimit.allowed) {
       return NextResponse.json({ error: "Trop de tentatives. Réessayez dans quelques minutes." }, { status: 429 });
     }

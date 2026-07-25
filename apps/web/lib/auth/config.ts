@@ -123,7 +123,7 @@ export const authOptions: NextAuthOptions = {
         if (!email || !password) return null;
 
         // Rate limiting
-        const rateCheck = checkRateLimit(email);
+        const rateCheck = await checkRateLimit(email);
         if (!rateCheck.allowed) {
           throw new Error("Trop de tentatives. Reessayez dans 15 minutes.");
         }
@@ -134,7 +134,7 @@ export const authOptions: NextAuthOptions = {
             const { devStore } = await import("../dev/dev-store");
             const user = devStore.findByEmail(email);
             if (!user) {
-              recordFailedAttempt(email);
+              await recordFailedAttempt(email);
               return null;
             }
             if (user.status.toUpperCase() !== "ACTIF") {
@@ -142,7 +142,7 @@ export const authOptions: NextAuthOptions = {
             }
             const valid = await bcrypt.compare(password, user.passwordHash);
             if (!valid) {
-              recordFailedAttempt(email);
+              await recordFailedAttempt(email);
               return null;
             }
             // 2FA : on laisse l'utilisateur se connecter, mais on marque
@@ -151,7 +151,7 @@ export const authOptions: NextAuthOptions = {
             const userRecord = user as unknown as Record<string, unknown>;
             const twoFactorEnabled = !!userRecord.twoFactorEnabled;
 
-            resetAttempts(email);
+            await resetAttempts(email);
             devStore.updateLastLogin(user.id);
             return {
               id: user.id,
@@ -192,7 +192,7 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (!user || !user.passwordHash) {
-            recordFailedAttempt(email);
+            await recordFailedAttempt(email);
             return null;
           }
 
@@ -202,7 +202,7 @@ export const authOptions: NextAuthOptions = {
 
           const valid = await bcrypt.compare(password, user.passwordHash);
           if (!valid) {
-            recordFailedAttempt(email);
+            await recordFailedAttempt(email);
             return null;
           }
 
@@ -217,7 +217,7 @@ export const authOptions: NextAuthOptions = {
             }).catch(() => null);
           }
 
-          resetAttempts(email);
+          await resetAttempts(email);
 
           // 2FA : on ne bloque pas l'authentification ici ; le JWT portera un
           // flag tfaPending et le middleware redirigera vers /2fa.

@@ -71,7 +71,7 @@ export async function POST(request: Request) {
     if (!session?.user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
     // Rate limit: 5 KYC submissions per hour
-    const rl = rateLimit(`kyc:${session.user.id}`, 5, 3600_000);
+    const rl = await rateLimit(`kyc:${session.user.id}`, 5, 3600_000);
     if (!rl.allowed) {
       return NextResponse.json({ error: "Trop de soumissions KYC. Réessayez plus tard." }, { status: 429 });
     }

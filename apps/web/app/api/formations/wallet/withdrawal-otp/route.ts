@@ -47,7 +47,7 @@ export async function POST() {
     }
 
     // Rate limit : max 3 codes / 15 min par utilisateur.
-    const rl = rateLimit(`withdrawal-otp:${userId}`, 3, 15 * 60_000);
+    const rl = await rateLimit(`withdrawal-otp:${userId}`, 3, 15 * 60_000);
     if (!rl.allowed) {
       return NextResponse.json(
         { error: "Trop de demandes de code. Réessayez dans quelques minutes." },

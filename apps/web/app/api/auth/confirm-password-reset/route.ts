@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     // Rate limit: 5 attempts per 15 min per token prefix (prevent brute force)
     const tokenPrefix = token.slice(0, 16);
-    const rl = rateLimit(`confirm-reset:${tokenPrefix}`, 5, 15 * 60 * 1000);
+    const rl = await rateLimit(`confirm-reset:${tokenPrefix}`, 5, 15 * 60 * 1000);
     if (!rl.allowed) {
       return NextResponse.json(
         { error: "Trop de tentatives. Reessayez dans quelques minutes." },
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate token
-    const validation = validateResetToken(token);
+    const validation = await validateResetToken(token);
     if (!validation.valid || !validation.email) {
       return NextResponse.json(
         { error: validation.error || "Lien invalide ou expire." },
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Consume token so it cannot be reused
-    consumeResetToken(token);
+    await consumeResetToken(token);
 
     return NextResponse.json({
       success: true,

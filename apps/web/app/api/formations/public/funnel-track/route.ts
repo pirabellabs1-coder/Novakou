@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 
     // Anti-spam : 30 événements / minute / IP
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
-    if (!rateLimit(`funnel-track:${ip}`, 30, 60_000).allowed) {
+    if (!(await rateLimit(`funnel-track:${ip}`, 30, 60_000)).allowed) {
       return NextResponse.json({ error: "Trop de requêtes" }, { status: 429 });
     }
 

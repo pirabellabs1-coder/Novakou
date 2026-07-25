@@ -75,8 +75,8 @@ export async function POST(req: Request) {
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       req.headers.get("x-real-ip") ||
       "unknown";
-    const emailLimit = rateLimit(`otp-email:${email}`, 3, 15 * 60_000);
-    const ipLimit = rateLimit(`otp-ip:${ip}`, 5, 15 * 60_000);
+    const emailLimit = await rateLimit(`otp-email:${email}`, 3, 15 * 60_000);
+    const ipLimit = await rateLimit(`otp-ip:${ip}`, 5, 15 * 60_000);
     if (!emailLimit.allowed || !ipLimit.allowed) {
       return NextResponse.json(
         { error: "Trop de tentatives. Réessayez dans quelques minutes." },

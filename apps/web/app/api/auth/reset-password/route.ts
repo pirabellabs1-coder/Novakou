@@ -20,14 +20,14 @@ export async function POST(request: Request) {
 
     // Rate limit: 5 attempts per 15 min per token/userId
     const rateLimitKey = `reset-password:${userId}`;
-    const rateCheck = checkRateLimit(rateLimitKey);
+    const rateCheck = await checkRateLimit(rateLimitKey);
     if (!rateCheck.allowed) {
       return NextResponse.json(
         { error: "Trop de tentatives. Veuillez patienter avant de reessayer." },
         { status: 429 }
       );
     }
-    recordFailedAttempt(rateLimitKey);
+    await recordFailedAttempt(rateLimitKey);
 
     // Generer un mot de passe temporaire securise
     const tempPassword = crypto.randomBytes(6).toString("base64url").slice(0, 12) + "!A1";

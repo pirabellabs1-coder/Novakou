@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const rl = rateLimit(`cinetpay:${session.user.id}`, 10, 60_000);
+    const rl = await rateLimit(`cinetpay:${session.user.id}`, 10, 60_000);
     if (!rl.allowed) {
       return NextResponse.json({ error: "Trop de requetes. Reessayez dans 1 minute." }, { status: 429 });
     }

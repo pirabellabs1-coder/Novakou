@@ -18,17 +18,17 @@ export async function POST(request: NextRequest) {
 
     // Rate limit (auth rate-limiter): 5 attempts per 15 min per email
     const rateLimitKey = `password-reset:${email}`;
-    const rateCheck = checkRateLimit(rateLimitKey);
+    const rateCheck = await checkRateLimit(rateLimitKey);
     if (!rateCheck.allowed) {
       return NextResponse.json(
         { error: "Trop de tentatives. Veuillez patienter avant de reessayer." },
         { status: 429 }
       );
     }
-    recordFailedAttempt(rateLimitKey);
+    await recordFailedAttempt(rateLimitKey);
 
     // Rate limit: 3 requests per 15 min per email
-    const rl = rateLimit(`reset:${email.toLowerCase()}`, 3, 15 * 60 * 1000);
+    const rl = await rateLimit(`reset:${email.toLowerCase()}`, 3, 15 * 60 * 1000);
     if (!rl.allowed) {
       return NextResponse.json(
         { error: "Trop de tentatives. Reessayez dans quelques minutes." },
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
 
     // Only send email if user exists (but always return success)
     if (userExists) {
-      const token = generateResetToken(email);
+      const token = await generateResetToken(email);
       try {
         await emitEvent("system.password_reset", {
           userId: "", userName, userEmail: email, resetToken: token,

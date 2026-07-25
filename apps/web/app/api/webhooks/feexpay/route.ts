@@ -26,7 +26,7 @@ export async function POST(request: Request) {
   // Rate limit anti-flood (chaque appel déclenche une re-vérification API) :
   // 120 webhooks/min par IP suffit largement pour un trafic légitime.
   const ip = request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  const rl = rateLimit(`webhook:feexpay:${ip}`, 120, 60_000);
+  const rl = await rateLimit(`webhook:feexpay:${ip}`, 120, 60_000);
   if (!rl.allowed) {
     return NextResponse.json({ error: "Rate limited" }, { status: 429 });
   }

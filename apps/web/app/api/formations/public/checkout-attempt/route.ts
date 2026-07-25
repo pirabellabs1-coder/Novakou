@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       request.headers.get("x-real-ip") ||
       "unknown";
-    const rl = rateLimit(`checkout-attempt:${ip}`, 60, 60_000);
+    const rl = await rateLimit(`checkout-attempt:${ip}`, 60, 60_000);
     if (!rl.allowed) {
       return NextResponse.json({ error: "Trop de requêtes" }, { status: 429 });
     }
