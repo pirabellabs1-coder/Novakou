@@ -28,6 +28,7 @@ import {
   Star,
   HelpCircle,
   Users,
+  Contact,
   Headphones,
   FolderOpen,
   KeyRound,
@@ -85,6 +86,7 @@ const navItems: NavItem[] = [
   { icon: Layers, label: "Bundles", href: "/vendeur/bundles", section: "Catalogue" },
   { icon: Store, label: "Mes boutiques", href: "/vendeur/boutiques", section: "Catalogue" },
   { icon: Receipt, label: "Transactions", href: "/vendeur/transactions", section: "Catalogue" },
+  { icon: Contact, label: "Clients", href: "/vendeur/clients", section: "Catalogue" },
   { icon: AlertCircle, label: "Abandons & Échecs", href: "/vendeur/abandons", section: "Catalogue" },
   { icon: Wallet, label: "Revenus & retraits", href: "/wallet", section: "Catalogue" },
   // Croissance

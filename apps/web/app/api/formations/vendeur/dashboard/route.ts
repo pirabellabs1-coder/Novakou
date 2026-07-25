@@ -11,12 +11,26 @@ import { PLATFORM_COMMISSION_RATE } from "@/lib/formations/constants";
 
 const PLATFORM_FEE = PLATFORM_COMMISSION_RATE; // 10% platform commission (single source of truth)
 
-export async function GET() {
+// Plages de visualisation sélectionnables sur le dashboard.
+// ≤ 30 j → buckets JOURNALIERS ; au-delà → buckets MENSUELS.
+const RANGES: Record<string, { days?: number; months?: number }> = {
+  "7d": { days: 7 },
+  "14d": { days: 14 },
+  "30d": { days: 30 },
+  "3m": { months: 3 },
+  "6m": { months: 6 },
+  "9m": { months: 9 },
+  "12m": { months: 12 },
+};
+
+export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user && !IS_DEV) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
+    const rangeKey = new URL(request.url).searchParams.get("range") ?? "6m";
+    const range = RANGES[rangeKey] ?? RANGES["6m"];
     // Resolve the real user (by session.id OR session.email fallback) + ensure profile
     const ctx = await resolveVendorContext(session, {
       devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
@@ -93,6 +107,7 @@ export async function GET() {
         data: {
           kpis: { totalRevenue: 0, netRevenue: 0, totalStudents: 0, totalProducts: 0, avgRating: 0, totalReviews: 0 },
           monthlyChart: [],
+          series: [],
           recentSales: [],
           topProducts: [],
           sparkline7d: [],
@@ -311,14 +326,72 @@ export async function GET() {
     const now = new Date();
     const months = Array.from({ length: 6 }, (_, i) => {
       const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
-      return { year: d.getFullYear(), month: d.getMonth(), label: d.toLocaleDateString("fr-FR", { month: "short" }), amount: 0, sales: 0 };
+      return {
+        year: d.getFullYear(),
+        month: d.getMonth(),
+        label: d.toLocaleDateString("fr-FR", { month: "short" }),
+        amount: 0,
+        sales: 0,
+        clientSet: new Set<string>(),
+      };
     });
     for (const txn of completedTxns) {
       const d = new Date(txn.createdAt);
       const entry = months.find((m) => m.year === d.getFullYear() && m.month === d.getMonth());
-      if (entry) { entry.amount += txn.amount; entry.sales += 1; }
+      if (entry) {
+        entry.amount += txn.amount;
+        entry.sales += 1;
+        if (txn.userId) entry.clientSet.add(txn.userId);
+      }
     }
-    const monthlyChart = months.map((m) => ({ month: m.label, amount: Math.round(m.amount), sales: m.sales }));
+    // `clients` = acheteurs uniques du mois (3e courbe du dashboard).
+    const monthlyChart = months.map((m) => ({
+      month: m.label,
+      amount: Math.round(m.amount),
+      sales: m.sales,
+      clients: m.clientSet.size,
+    }));
+
+    // ── Série selon la plage sélectionnée (7j/14j/30j/3m/6m/9m/12m) ──
+    // ≤ 30 j → buckets journaliers ; sinon → mensuels. Calculé en mémoire à
+    // partir de completedTxns (aucune requête supplémentaire).
+    const series = (() => {
+      type B = { key: string; label: string; amount: number; sales: number; clientSet: Set<string> };
+      const buckets: B[] = [];
+      const now2 = new Date();
+      if (range.days) {
+        for (let i = range.days - 1; i >= 0; i--) {
+          const d = new Date(now2.getFullYear(), now2.getMonth(), now2.getDate() - i);
+          buckets.push({
+            key: d.toISOString().slice(0, 10),
+            label: d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }),
+            amount: 0, sales: 0, clientSet: new Set<string>(),
+          });
+        }
+        const byKey = new Map(buckets.map((b) => [b.key, b]));
+        for (const t of completedTxns) {
+          const b = byKey.get(new Date(t.createdAt).toISOString().slice(0, 10));
+          if (b) { b.amount += t.amount; b.sales += 1; if (t.userId) b.clientSet.add(t.userId); }
+        }
+      } else {
+        const n = range.months ?? 6;
+        for (let i = n - 1; i >= 0; i--) {
+          const d = new Date(now2.getFullYear(), now2.getMonth() - i, 1);
+          buckets.push({
+            key: `${d.getFullYear()}-${d.getMonth()}`,
+            label: d.toLocaleDateString("fr-FR", { month: "short" }),
+            amount: 0, sales: 0, clientSet: new Set<string>(),
+          });
+        }
+        const byKey = new Map(buckets.map((b) => [b.key, b]));
+        for (const t of completedTxns) {
+          const d = new Date(t.createdAt);
+          const b = byKey.get(`${d.getFullYear()}-${d.getMonth()}`);
+          if (b) { b.amount += t.amount; b.sales += 1; if (t.userId) b.clientSet.add(t.userId); }
+        }
+      }
+      return buckets.map((b) => ({ month: b.label, amount: Math.round(b.amount), sales: b.sales, clients: b.clientSet.size }));
+    })();
 
     // ── Recent sales (with buyer names — separate query) ──
     const [recentEnrollments, recentPurchases] = await Promise.all([
@@ -445,6 +518,8 @@ export async function GET() {
         },
         monthlyGoal: profile.monthlyGoal ?? null,
         monthlyChart,
+        series,
+        range: rangeKey,
         recentSales,
         topProducts,
         sparkline7d,
