@@ -347,11 +347,14 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: "jwt",
-    // Financial platform: keep tokens short-lived (2h max) and rotate them
-    // every 30 min of activity so an idle/stolen token expires quickly while
-    // active users stay seamlessly logged in.
-    maxAge: 2 * 60 * 60, // 2h hard cap
-    updateAge: 30 * 60, // refresh JWT every 30 min of activity
+    // Marketplace UX : les acheteurs/vendeurs reviennent sur plusieurs jours —
+    // un plafond à 2 h les déconnectait « à chaque visite ». On passe à 30 jours
+    // (standard e-commerce : Shopify/Gumroad gardent connecté des semaines), avec
+    // rotation quotidienne du JWT. La sécurité forte reste sur les actions
+    // sensibles : retrait = OTP + KYC à chaque fois, admin derrière slug + 2FA,
+    // JWT signé (secret fail-closed en prod).
+    maxAge: 30 * 24 * 60 * 60, // 30 jours
+    updateAge: 24 * 60 * 60, // rotation quotidienne du JWT
   },
   pages: {
     signIn: "/connexion",
