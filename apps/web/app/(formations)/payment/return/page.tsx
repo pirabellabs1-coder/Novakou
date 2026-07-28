@@ -231,7 +231,14 @@ function ReturnInner() {
       {status === "success" && purchasePixels.length > 0 && (
         <PixelInjector
           pixels={purchasePixels}
-          event={{ name: "Purchase", value: purchaseAmount, currency: "XOF" }}
+          event={{
+            name: "Purchase",
+            value: purchaseAmount,
+            currency: "XOF",
+            // Même identifiant que l'API de Conversion serveur (sessionRef =
+            // ref) → Meta/TikTok dédupliquent navigateur + serveur.
+            eventId: params.get("ref") ?? undefined,
+          }}
         />
       )}
       <div className="max-w-md w-full text-center">

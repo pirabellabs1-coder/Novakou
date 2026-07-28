@@ -19,6 +19,8 @@ interface Props {
     name: string;
     value?: number;
     currency?: string;
+    // Identifiant partagé avec l'API de Conversion serveur → déduplication.
+    eventId?: string;
   };
 }
 
@@ -37,18 +39,22 @@ export function PixelInjector({ pixels, event }: Props) {
   useEffect(() => {
     if (!event) return;
     const w = window as unknown as {
-      fbq?: (action: string, eventName: string, params?: Record<string, unknown>) => void;
+      fbq?: (action: string, eventName: string, params?: Record<string, unknown>, options?: Record<string, unknown>) => void;
       gtag?: (...args: unknown[]) => void;
-      ttq?: { track: (event: string, params?: Record<string, unknown>) => void };
+      ttq?: { track: (event: string, params?: Record<string, unknown>, options?: Record<string, unknown>) => void };
       snaptr?: (action: string, eventName: string, params?: Record<string, unknown>) => void;
       pintrk?: (action: string, eventName: string, params?: Record<string, unknown>) => void;
     };
     setTimeout(() => {
       try {
         const val = event.value ? { value: event.value, currency: event.currency ?? "XOF" } : undefined;
-        if (w.fbq) w.fbq("track", event.name, val);
+        // eventID (Meta) / event_id (TikTok) : même identifiant que l'évènement
+        // serveur → la plateforme fusionne les deux (pas de double comptage).
+        const fbOpts = event.eventId ? { eventID: event.eventId } : undefined;
+        const ttOpts = event.eventId ? { event_id: event.eventId } : undefined;
+        if (w.fbq) w.fbq("track", event.name, val, fbOpts);
         if (w.gtag) w.gtag("event", event.name, val ?? {});
-        if (w.ttq) w.ttq.track(event.name, val);
+        if (w.ttq) w.ttq.track(event.name, val, ttOpts);
         if (w.snaptr) w.snaptr("track", SNAP_EVENTS[event.name] ?? event.name, event.value ? { price: event.value, currency: event.currency ?? "XOF" } : undefined);
         if (w.pintrk && PIN_EVENTS[event.name]) w.pintrk("track", PIN_EVENTS[event.name], val);
       } catch {

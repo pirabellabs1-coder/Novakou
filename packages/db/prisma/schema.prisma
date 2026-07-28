@@ -1843,6 +1843,11 @@ model MarketingPixel {
   type          PixelType
   pixelId       String // ID du pixel (ex: "123456789012345" pour Facebook)
   isActive      Boolean   @default(true)
+  // API de Conversion (server-side) : token d'accès Meta/TikTok. Permet
+  // d'envoyer les conversions serveur-à-serveur (fiable, anti ad-block/iOS).
+  accessToken   String?
+  // Meta : code d'évènement test (facultatif, pour le Test Events du gestionnaire).
+  testEventCode String?
 
   instructeur InstructeurProfile @relation("InstructeurPixels", fields: [instructeurId], references: [id], onDelete: Cascade)
 

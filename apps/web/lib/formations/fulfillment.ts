@@ -18,6 +18,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { computeCheckoutDiscount, lineFinalPrice } from "@/lib/formations/checkout-discount";
+import { fireServerConversion, platformCapiPixels } from "@/lib/marketing/capi";
 import {
   sendEnrollmentConfirmedEmail,
   sendDigitalProductDeliveryEmail,
@@ -675,6 +676,73 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
   // vente fraîche est enregistrée — sinon la home/fiche reste figée (ISR 300s).
   if (createdEnrollments.length + createdPurchases.length > 0) {
     revalidatePublicCatalog();
+  }
+
+  // ── API de Conversion (server-side) : évènement Purchase vers Meta/TikTok ──
+  // Serveur-à-serveur = fiable (résiste ad-block / iOS). Dédup avec le pixel
+  // navigateur via event_id = sessionRef. Uniquement sur un vrai encaissement.
+  // Fire-and-forget : ne bloque jamais, n'échoue jamais le fulfillment.
+  if (totalAmount > 0 && createdEnrollments.length + createdPurchases.length > 0) {
+    try {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || undefined;
+      const byVendor = new Map<string, { amount: number; contentIds: string[] }>();
+      for (const e of createdEnrollments) {
+        const f = formations.find((x) => x.id === e.id);
+        if (!f) continue;
+        const v = byVendor.get(f.instructeurId) ?? { amount: 0, contentIds: [] };
+        v.amount += e.price; v.contentIds.push(f.id); byVendor.set(f.instructeurId, v);
+      }
+      for (const pr of createdPurchases) {
+        const prod = products.find((x) => x.id === pr.id);
+        if (!prod) continue;
+        const v = byVendor.get(prod.instructeurId) ?? { amount: 0, contentIds: [] };
+        v.amount += pr.price; v.contentIds.push(prod.id); byVendor.set(prod.instructeurId, v);
+      }
+      const vendorIds = [...byVendor.keys()];
+      const vendorPixels = vendorIds.length > 0
+        ? await prisma.marketingPixel.findMany({
+            where: {
+              instructeurId: { in: vendorIds },
+              isActive: true,
+              type: { in: ["FACEBOOK", "TIKTOK"] },
+              accessToken: { not: null },
+            },
+            select: { instructeurId: true, type: true, pixelId: true, accessToken: true, testEventCode: true },
+          })
+        : [];
+      const capiCalls: Promise<unknown>[] = [];
+      for (const [vid, agg] of byVendor) {
+        const vpx = vendorPixels
+          .filter((x) => x.instructeurId === vid && x.accessToken)
+          .map((x) => ({ type: x.type as "FACEBOOK" | "TIKTOK", pixelId: x.pixelId, accessToken: x.accessToken as string, testEventCode: x.testEventCode }));
+        if (vpx.length === 0) continue;
+        capiCalls.push(fireServerConversion(vpx, {
+          eventName: "Purchase",
+          eventId: sessionRef,
+          value: agg.amount,
+          currency: "XOF",
+          email: user.email,
+          contentIds: agg.contentIds,
+          eventSourceUrl: appUrl,
+        }));
+      }
+      // Pixels PLATEFORME (pubs Novakou) : total encaissé de la commande.
+      capiCalls.push(fireServerConversion(platformCapiPixels(), {
+        eventName: "Purchase",
+        eventId: sessionRef,
+        value: totalAmount,
+        currency: "XOF",
+        email: user.email,
+        eventSourceUrl: appUrl,
+      }));
+      // Attendre l'envoi (serverless) — borné à 4 s pour ne pas retenir le webhook.
+      await Promise.race([
+        Promise.allSettled(capiCalls),
+        new Promise((r) => setTimeout(r, 4000)),
+      ]);
+    } catch (e) {
+      console.error("[fulfillment capi]", e);
+    }
   }
 
   return {

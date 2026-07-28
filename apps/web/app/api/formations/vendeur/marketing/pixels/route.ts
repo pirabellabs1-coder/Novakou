@@ -25,9 +25,12 @@ export async function GET() {
     const pixels = await prisma.marketingPixel.findMany({
       where: { instructeurId: pid, ...(activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {}) },
       orderBy: { createdAt: "asc" },
+      select: { id: true, type: true, pixelId: true, isActive: true, createdAt: true, shopId: true, testEventCode: true, accessToken: true },
     });
 
-    return NextResponse.json({ data: pixels });
+    // Ne pas renvoyer le token brut au client — juste un indicateur.
+    const data = pixels.map(({ accessToken, ...rest }) => ({ ...rest, hasAccessToken: !!accessToken }));
+    return NextResponse.json({ data });
   } catch (err) {
     console.error("[pixels GET]", err);
     return NextResponse.json({ data: [] });
@@ -47,20 +50,35 @@ export async function POST(request: Request) {
     const pid = _ctx.instructeurId;
 
     const body = await request.json();
-    const { type, pixelId } = body;
+    const { type, pixelId, accessToken, testEventCode } = body;
 
     if (!type || !pixelId) return NextResponse.json({ error: "type et pixelId requis" }, { status: 400 });
     if (!["FACEBOOK", "GOOGLE", "TIKTOK", "SNAPCHAT", "PINTEREST"].includes(type)) {
       return NextResponse.json({ error: "Type invalide" }, { status: 400 });
     }
 
+    // Token API de Conversion : pertinent seulement pour FACEBOOK / TIKTOK.
+    // `undefined` = ne pas toucher ; chaîne vide = effacer.
+    const tokenProvided = accessToken !== undefined && (type === "FACEBOOK" || type === "TIKTOK");
+    const tokenValue = tokenProvided ? (String(accessToken).trim() || null) : undefined;
+    const codeProvided = testEventCode !== undefined && type === "FACEBOOK";
+    const codeValue = codeProvided ? (String(testEventCode).trim() || null) : undefined;
+
     const pixel = await prisma.marketingPixel.upsert({
       where: { instructeurId_type: { instructeurId: pid, type: type as PixelType } },
-      create: { instructeurId: pid, type: type as PixelType, pixelId: pixelId.trim(), isActive: true },
-      update: { pixelId: pixelId.trim(), isActive: true },
+      create: {
+        instructeurId: pid, type: type as PixelType, pixelId: pixelId.trim(), isActive: true,
+        ...(tokenValue !== undefined ? { accessToken: tokenValue } : {}),
+        ...(codeValue !== undefined ? { testEventCode: codeValue } : {}),
+      },
+      update: {
+        pixelId: pixelId.trim(), isActive: true,
+        ...(tokenValue !== undefined ? { accessToken: tokenValue } : {}),
+        ...(codeValue !== undefined ? { testEventCode: codeValue } : {}),
+      },
     });
 
-    return NextResponse.json({ data: pixel });
+    return NextResponse.json({ data: { id: pixel.id, type: pixel.type, pixelId: pixel.pixelId, hasAccessToken: !!pixel.accessToken } });
   } catch (err) {
     console.error("[pixels POST]", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

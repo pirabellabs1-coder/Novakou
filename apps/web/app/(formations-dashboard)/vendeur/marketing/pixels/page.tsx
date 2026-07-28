@@ -30,6 +30,13 @@ type Pixel = {
   pixelId: string;
   isActive: boolean;
   createdAt: string;
+  hasAccessToken?: boolean;
+};
+
+// Aide « où trouver le token de l'API de Conversion » par plateforme.
+const CAPI_HELP: Record<string, string> = {
+  FACEBOOK: "Gestionnaire d'évènements Meta → votre pixel → Paramètres → « API de conversions » → Générer un token d'accès.",
+  TIKTOK: "TikTok Events Manager → votre pixel → Settings → « Events API » → Generate Access Token.",
 };
 
 const PIXEL_CONFIG: Record<string, { label: string; icon: LucideIcon; bg: string; color: string; placeholder: string; description: string }> = {
@@ -79,6 +86,7 @@ export default function PixelsPage() {
   const qc = useQueryClient();
   const [editingType, setEditingType] = useState<string | null>(null);
   const [pixelInputs, setPixelInputs] = useState<Record<string, string>>({});
+  const [tokenInputs, setTokenInputs] = useState<Record<string, string>>({});
 
   const { data: response, isLoading } = useQuery<{ data: Pixel[] }>({
     queryKey: ["vendeur-pixels"],
@@ -90,7 +98,7 @@ export default function PixelsPage() {
   const pixelMap = Object.fromEntries(pixels.map((p) => [p.type, p]));
 
   const saveMutation = useMutation({
-    mutationFn: (body: { type: string; pixelId: string }) =>
+    mutationFn: (body: { type: string; pixelId: string; accessToken?: string }) =>
       fetch("/api/formations/vendeur/marketing/pixels", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -174,8 +182,13 @@ export default function PixelsPage() {
                       <code className="text-xs tabular-nums bg-gray-100 px-2.5 py-1 rounded-lg text-[#191c1e] flex-1 truncate">
                         {existing.pixelId}
                       </code>
+                      {(type === "FACEBOOK" || type === "TIKTOK") && existing.hasAccessToken && (
+                        <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 whitespace-nowrap">
+                          API Conversion ✓
+                        </span>
+                      )}
                       <button
-                        onClick={() => { setEditingType(type); setPixelInputs((p) => ({ ...p, [type]: existing.pixelId })); }}
+                        onClick={() => { setEditingType(type); setPixelInputs((p) => ({ ...p, [type]: existing.pixelId })); setTokenInputs((p) => ({ ...p, [type]: "" })); }}
                         className="p-1.5 rounded-lg hover:bg-gray-100 text-[#5c647a] transition-colors"
                       >
                         <Pencil className="w-4 h-4" />
@@ -199,25 +212,47 @@ export default function PixelsPage() {
                   )}
 
                   {isEditing && (
-                    <div className="flex gap-2 mt-3">
+                    <div className="mt-3 space-y-2">
                       <input
                         type="text"
                         value={pixelInputs[type] ?? ""}
                         onChange={(e) => setPixelInputs((p) => ({ ...p, [type]: e.target.value }))}
                         placeholder={cfg.placeholder}
-                        className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm tabular-nums text-[#191c1e] placeholder-[#5c647a]/50 focus:outline-none focus:border-[#006e2f]/40 focus:ring-2 focus:ring-[#006e2f]/10"
+                        className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm tabular-nums text-[#191c1e] placeholder-[#5c647a]/50 focus:outline-none focus:border-[#006e2f]/40 focus:ring-2 focus:ring-[#006e2f]/10"
                       />
-                      <button
-                        onClick={() => saveMutation.mutate({ type, pixelId: pixelInputs[type] ?? "" })}
-                        disabled={!pixelInputs[type]?.trim() || saveMutation.isPending}
-                        className="px-4 py-2 rounded-xl text-white text-sm font-bold disabled:opacity-50 hover:opacity-90"
-                        style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-                      >
-                        {saveMutation.isPending ? "…" : "Sauvegarder"}
-                      </button>
-                      <button onClick={() => setEditingType(null)} className="px-3 py-2 rounded-xl border border-gray-200 text-sm text-[#5c647a] hover:bg-gray-50">
-                        Annuler
-                      </button>
+                      {(type === "FACEBOOK" || type === "TIKTOK") && (
+                        <div>
+                          <input
+                            type="password"
+                            value={tokenInputs[type] ?? ""}
+                            onChange={(e) => setTokenInputs((p) => ({ ...p, [type]: e.target.value }))}
+                            placeholder="Clé API de Conversion (token d'accès) — optionnel"
+                            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-[#5c647a]/50 focus:outline-none focus:border-[#006e2f]/40 focus:ring-2 focus:ring-[#006e2f]/10"
+                          />
+                          <p className="text-[10.5px] text-[#5c647a] mt-1 leading-snug">
+                            <strong>API de Conversion (server-side)</strong> — remonte les achats en serveur-à-serveur (fiable, résiste aux bloqueurs et à iOS).{" "}
+                            {CAPI_HELP[type]}{" "}
+                            {existing?.hasAccessToken && <span className="text-purple-700 font-semibold">Déjà configurée — laissez vide pour ne pas la changer.</span>}
+                          </p>
+                        </div>
+                      )}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => saveMutation.mutate({
+                            type,
+                            pixelId: pixelInputs[type] ?? "",
+                            accessToken: (type === "FACEBOOK" || type === "TIKTOK") && tokenInputs[type]?.trim() ? tokenInputs[type].trim() : undefined,
+                          })}
+                          disabled={!pixelInputs[type]?.trim() || saveMutation.isPending}
+                          className="px-4 py-2 rounded-xl text-white text-sm font-bold disabled:opacity-50 hover:opacity-90"
+                          style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+                        >
+                          {saveMutation.isPending ? "…" : "Sauvegarder"}
+                        </button>
+                        <button onClick={() => setEditingType(null)} className="px-3 py-2 rounded-xl border border-gray-200 text-sm text-[#5c647a] hover:bg-gray-50">
+                          Annuler
+                        </button>
+                      </div>
                     </div>
                   )}
 
