@@ -27,7 +27,8 @@ import {
   StInput,
   ST,
 } from "@/components/stitch";
-import { shortMethodLabel } from "@/lib/moneroo-payout-methods";
+import { shortMethodLabel, getAvailablePayoutMethods, PAYOUT_METHODS } from "@/lib/moneroo-payout-methods";
+import { COUNTRIES } from "@/lib/countries";
 
 interface VendorWallet {
   instructeurId: string;
@@ -142,6 +143,22 @@ function withdrawalMethodLabel(method: string): string {
   return shortMethodLabel(base) + (isMentor ? " · Mentor" : "");
 }
 
+// Pays couverts par au moins une méthode de retrait (sélecteur pays, comme au checkout).
+const PAYOUT_COUNTRY_OPTIONS = Array.from(new Set(PAYOUT_METHODS.flatMap((m) => m.countries)))
+  .map((code) => COUNTRIES.find((c) => c.code === code))
+  .filter((c): c is (typeof COUNTRIES)[number] => !!c)
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+// Résout un pays (nom OU code) → code ISO-2 (le profil stocke souvent le nom).
+function toCountryCode(v: string | null | undefined): string {
+  const raw = (v ?? "").trim();
+  if (!raw) return "";
+  const up = raw.toUpperCase();
+  if (up.length === 2 && COUNTRIES.some((c) => c.code === up)) return up;
+  const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  return COUNTRIES.find((c) => norm(c.name) === norm(raw))?.code ?? "";
+}
+
 export default function WalletPage() {
   const [data, setData] = useState<WalletData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -151,6 +168,8 @@ export default function WalletPage() {
   // Payout methods fetched dynamically from /api/formations/wallet/payout-methods
   const [methods, setMethods] = useState<PayoutMethodDef[]>([]);
   const [userCountry, setUserCountry] = useState<string | null>(null);
+  // Pays choisi pour le retrait (par défaut le pays du profil) → filtre les méthodes.
+  const [selectedCountry, setSelectedCountry] = useState<string>("");
 
   // Withdrawal form state — fields is a Record keyed by field name (phone, iban, etc)
   const [amount, setAmount] = useState<number>(0);
@@ -188,10 +207,14 @@ export default function WalletPage() {
       setData(walletJson.data ?? null);
 
       const methodsJson = await methodsRes.json();
-      const list = (methodsJson.data?.methods ?? []) as PayoutMethodDef[];
+      const uc = methodsJson.data?.userCountry ?? null;
+      setUserCountry(uc);
+      // Pays par défaut = celui du profil (résolu en code ISO-2). Les méthodes
+      // sont calculées côté client depuis le catalogue selon le pays choisi.
+      const initialCode = toCountryCode(uc);
+      setSelectedCountry(initialCode);
+      const list = getAvailablePayoutMethods(initialCode || null) as PayoutMethodDef[];
       setMethods(list);
-      setUserCountry(methodsJson.data?.userCountry ?? null);
-      // Presélectionne la première méthode dispo (en général Wave ou Orange Money selon pays)
       if (list.length > 0 && !method) setMethod(list[0].id);
     } finally {
       setLoading(false);
@@ -204,6 +227,15 @@ export default function WalletPage() {
   }, []);
 
   const selectedMethod = methods.find((m) => m.id === method);
+
+  // Changement de pays → recalcule les méthodes disponibles (comme au checkout).
+  function onCountryChange(code: string) {
+    setSelectedCountry(code);
+    const list = getAvailablePayoutMethods(code || null) as PayoutMethodDef[];
+    setMethods(list);
+    setMethod(list[0]?.id ?? "");
+    setFields({});
+  }
 
   function openWithdrawDialog(source: "vendor" | "mentor") {
     if (!data) return;
@@ -230,6 +262,8 @@ export default function WalletPage() {
         accountDetails[f] = f === "msisdn" ? normalizeMsisdn(val) : val;
       }
     }
+    // Pays du retrait → visible par l'admin dans les coordonnées.
+    if (selectedCountry) accountDetails.country = selectedCountry;
     if (missing.length > 0) {
       setError(`Champs requis : ${missing.join(", ")}`);
       setSubmitting(false);
@@ -687,22 +721,41 @@ export default function WalletPage() {
                 hint="Minimum : 1 000 FCFA"
               />
 
+              {/* Pays du retrait — pilote la liste des méthodes (comme au paiement). */}
+              <div>
+                <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>
+                  Pays
+                </label>
+                <select
+                  value={selectedCountry}
+                  onChange={(e) => onCountryChange(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-[12px] text-[13px] font-semibold outline-none"
+                  style={{ border: `2px solid ${ST.cardBorder}`, background: "#fff", color: ST.text }}
+                >
+                  <option value="">Choisir mon pays…</option>
+                  {PAYOUT_COUNTRY_OPTIONS.map((c) => (
+                    <option key={c.code} value={c.code}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
               <div>
                 <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>
                   Méthode de retrait
-                  {userCountry && (
-                    <span className="text-[10.5px] font-semibold ml-1" style={{ color: ST.textMuted }}>
-                      (disponibles dans votre pays : {userCountry})
-                    </span>
-                  )}
                 </label>
-                {methods.length === 0 ? (
+                {!selectedCountry ? (
+                  <div
+                    className="rounded-[13px] p-3 text-[12px] font-bold"
+                    style={{ background: "#f1f8fe", border: "1px solid #cfe3f5", color: "#0c447c" }}
+                  >
+                    Sélectionnez d&apos;abord votre pays pour voir les méthodes disponibles.
+                  </div>
+                ) : methods.length === 0 ? (
                   <div
                     className="rounded-[13px] p-3 text-[12px] font-bold"
                     style={{ background: "#fdf8ec", border: "1px solid #f3e2bd", color: ST.amberText }}
                   >
-                    Aucune méthode de retrait disponible pour votre pays. Configurez
-                    votre pays dans <strong>Paramètres → Compte</strong>.
+                    Aucune méthode de retrait disponible pour ce pays pour le moment.
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">

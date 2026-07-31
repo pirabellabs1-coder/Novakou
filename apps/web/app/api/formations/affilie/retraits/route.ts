@@ -19,6 +19,7 @@ const withdrawSchema = z.object({
   method: z.string().min(2), // id méthode Moneroo (ex: "wave_ci")
   msisdn: z.string().optional(),
   iban: z.string().optional(),
+  country: z.string().optional(), // pays choisi → visible par l'admin
 });
 
 /**
@@ -103,7 +104,7 @@ export async function POST(req: NextRequest) {
     const parsed = withdrawSchema.safeParse(body);
     if (!parsed.success)
       return NextResponse.json({ error: "Données invalides" }, { status: 400 });
-    const { amount, method, msisdn } = parsed.data;
+    const { amount, method, msisdn, country } = parsed.data;
 
     // Méthode Moneroo valide ?
     const methodDef = getPayoutMethod(method);
@@ -118,6 +119,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Numéro Mobile Money requis." }, { status: 400 });
       accountDetails.msisdn = normalizeMsisdn(msisdn.trim(), methodDef.id);
     }
+    if (country) accountDetails.country = country;
 
     const profile = await prisma.affiliateProfile.findUnique({
       where: { userId },

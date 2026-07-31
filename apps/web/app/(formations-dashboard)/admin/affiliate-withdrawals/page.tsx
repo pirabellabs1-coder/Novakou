@@ -101,7 +101,9 @@ export default function AdminAffiliateWithdrawalsPage() {
         ) : (
           <div className="space-y-2.5">
             {items.map((r) => {
-              const dest = (r.accountDetails?.msisdn as string) || (r.accountDetails?.iban as string) || "—";
+              const destCore = (r.accountDetails?.msisdn as string) || (r.accountDetails?.iban as string) || "—";
+              const destCountry = (r.accountDetails?.country as string) || r.country || "";
+              const dest = destCountry ? `${destCore} · ${destCountry}` : destCore;
               const date = new Date(r.createdAt).toLocaleString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
               return (
                 <StCard key={r.id}>

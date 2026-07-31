@@ -1,12 +1,30 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDraftField, clearDrafts } from "@/lib/hooks/use-draft-storage";
+import { getAvailablePayoutMethods, PAYOUT_METHODS } from "@/lib/moneroo-payout-methods";
+import { COUNTRIES } from "@/lib/countries";
 
 const DRAFT_PREFIX = "affilie:retrait";
 const MIN = 5000;
+
+// Pays couverts par au moins une méthode (sélecteur pays, comme au checkout).
+const PAYOUT_COUNTRY_OPTIONS = Array.from(new Set(PAYOUT_METHODS.flatMap((m) => m.countries)))
+  .map((code) => COUNTRIES.find((c) => c.code === code))
+  .filter((c): c is (typeof COUNTRIES)[number] => !!c)
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+// Résout un pays (nom OU code) → code ISO-2 (le profil stocke souvent le nom).
+function toCountryCode(v: string | null | undefined): string {
+  const raw = (v ?? "").trim();
+  if (!raw) return "";
+  const up = raw.toUpperCase();
+  if (up.length === 2 && COUNTRIES.some((c) => c.code === up)) return up;
+  const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  return COUNTRIES.find((c) => norm(c.name) === norm(raw))?.code ?? "";
+}
 
 type PayoutMethod = {
   id: string;
@@ -59,13 +77,22 @@ export default function RetraitsPage() {
     queryFn: () => fetch("/api/formations/affilie/retraits").then((r) => r.json()),
     staleTime: 30_000,
   });
-  const { data: methodsData } = useQuery<{ data: { methods: PayoutMethod[] } }>({
+  const { data: methodsData } = useQuery<{ data: { methods: PayoutMethod[]; userCountry: string | null } }>({
     queryKey: ["affilie-payout-methods"],
     queryFn: () => fetch("/api/formations/affilie/payout-methods").then((r) => r.json()),
     staleTime: 300_000,
   });
 
-  const methods = useMemo(() => methodsData?.data?.methods ?? [], [methodsData]);
+  // Pays choisi → filtre les méthodes côté client (comme au checkout).
+  const userCountry = methodsData?.data?.userCountry ?? null;
+  const [selectedCountry, setSelectedCountry] = useState<string>("");
+  useEffect(() => {
+    if (!selectedCountry && userCountry) setSelectedCountry(toCountryCode(userCountry));
+  }, [userCountry, selectedCountry]);
+  const methods = useMemo(
+    () => getAvailablePayoutMethods(selectedCountry || null) as unknown as PayoutMethod[],
+    [selectedCountry],
+  );
   const available = data?.balance ?? 0;
   const reserved = data?.reserved ?? 0;
   const pendingValidation = data?.pending ?? 0;
@@ -81,7 +108,7 @@ export default function RetraitsPage() {
   const isValid = !!method && amountNum >= MIN && amountNum <= available && detailsOk;
 
   const withdrawMutation = useMutation({
-    mutationFn: (body: { amount: number; method: string; msisdn?: string; iban?: string }) =>
+    mutationFn: (body: { amount: number; method: string; msisdn?: string; iban?: string; country?: string }) =>
       fetch("/api/formations/affilie/retraits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -109,6 +136,7 @@ export default function RetraitsPage() {
         method: method.id,
         msisdn: needsMsisdn ? msisdn.trim() : undefined,
         iban: needsIban ? iban.trim() : undefined,
+        country: selectedCountry || undefined,
       });
     }
   };
@@ -201,6 +229,21 @@ export default function RetraitsPage() {
                     </button>
                   </div>
                   {amountNum > available && <p className="text-xs text-red-400 mt-2">Montant supérieur au solde disponible.</p>}
+                </div>
+
+                {/* Country — pilote la liste des méthodes (comme au paiement) */}
+                <div className="bg-[#0d1f17] rounded-2xl border border-[#1e3a2f] p-5">
+                  <label className="text-xs font-bold text-white mb-3 block">Pays</label>
+                  <select
+                    value={selectedCountry}
+                    onChange={(e) => { setSelectedCountry(e.target.value); setSelectedMethod(""); }}
+                    className="w-full bg-[#1e3a2f] text-white text-sm rounded-xl px-4 py-3 outline-none border border-[#1e3a2f] focus:border-[#22c55e] transition-colors"
+                  >
+                    <option value="">Choisir mon pays…</option>
+                    {PAYOUT_COUNTRY_OPTIONS.map((c) => (
+                      <option key={c.code} value={c.code}>{c.name}</option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Method */}

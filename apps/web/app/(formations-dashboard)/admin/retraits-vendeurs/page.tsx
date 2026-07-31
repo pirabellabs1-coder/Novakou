@@ -470,11 +470,16 @@ export default function AdminRetraitsVendeursPage() {
   function renderAccountInfo(w: Withdrawal) {
     const d = w.accountDetails || {};
     const parts: string[] = [];
+    // Mobile Money : le vendeur enregistre `msisdn` (pas `phone`) → il faut le
+    // lire, sinon l'admin ne voyait « — » pour tous les retraits Mobile Money.
+    if (d.msisdn) parts.push(`📱 ${String(d.msisdn)}`);
     if (d.phone) parts.push(String(d.phone));
+    if (d.account_number) parts.push(`Compte : ${String(d.account_number)}`);
     if (d.iban) parts.push(String(d.iban));
     if (d.email) parts.push(String(d.email));
     if (d.bankName) parts.push(String(d.bankName));
     if (d.accountHolder) parts.push(String(d.accountHolder));
+    if (d.country) parts.push(`Pays : ${String(d.country)}`);
     return parts.length ? parts.join(" · ") : "—";
   }
 
