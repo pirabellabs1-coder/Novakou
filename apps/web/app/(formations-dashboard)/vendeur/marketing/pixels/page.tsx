@@ -178,8 +178,11 @@ export default function PixelsPage() {
                   <p className="text-[11px] text-[#5c647a] leading-snug">{cfg.description}</p>
 
                   {existing && !isEditing && (
-                    <div className="flex items-center gap-2 mt-3">
-                      <code className="text-xs tabular-nums bg-gray-100 px-2.5 py-1 rounded-lg text-[#191c1e] flex-1 truncate">
+                    // flex-wrap + basis-full : sur mobile le code passe sur sa
+                    // propre ligne et le badge + boutons restent visibles en
+                    // dessous (avant, la ligne débordait et cachait les boutons).
+                    <div className="flex flex-wrap items-center gap-2 mt-3">
+                      <code className="text-xs tabular-nums bg-gray-100 px-2.5 py-1 rounded-lg text-[#191c1e] min-w-0 flex-1 basis-full sm:basis-auto truncate">
                         {existing.pixelId}
                       </code>
                       {(type === "FACEBOOK" || type === "TIKTOK") && existing.hasAccessToken && (
@@ -187,27 +190,31 @@ export default function PixelsPage() {
                           API Conversion ✓
                         </span>
                       )}
-                      <button
-                        onClick={() => { setEditingType(type); setPixelInputs((p) => ({ ...p, [type]: existing.pixelId })); setTokenInputs((p) => ({ ...p, [type]: "" })); }}
-                        className="p-1.5 rounded-lg hover:bg-gray-100 text-[#5c647a] transition-colors"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={async () => {
-                          const ok = await confirmAction({
-                            title: "Supprimer ce pixel ?",
-                            message: "Le tracking sera désactivé pour ce canal.",
-                            confirmLabel: "Supprimer",
-                            confirmVariant: "danger",
-                            icon: "delete",
-                          });
-                          if (ok) deleteMutation.mutate(type);
-                        }}
-                        className="p-1.5 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-500 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-1 ml-auto">
+                        <button
+                          onClick={() => { setEditingType(type); setPixelInputs((p) => ({ ...p, [type]: existing.pixelId })); setTokenInputs((p) => ({ ...p, [type]: "" })); }}
+                          className="p-1.5 rounded-lg hover:bg-gray-100 text-[#5c647a] transition-colors"
+                          aria-label="Modifier"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={async () => {
+                            const ok = await confirmAction({
+                              title: "Supprimer ce pixel ?",
+                              message: "Le tracking sera désactivé pour ce canal.",
+                              confirmLabel: "Supprimer",
+                              confirmVariant: "danger",
+                              icon: "delete",
+                            });
+                            if (ok) deleteMutation.mutate(type);
+                          }}
+                          className="p-1.5 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-500 transition-colors"
+                          aria-label="Supprimer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -244,7 +251,7 @@ export default function PixelsPage() {
                             accessToken: (type === "FACEBOOK" || type === "TIKTOK") && tokenInputs[type]?.trim() ? tokenInputs[type].trim() : undefined,
                           })}
                           disabled={!pixelInputs[type]?.trim() || saveMutation.isPending}
-                          className="px-4 py-2 rounded-xl text-white text-sm font-bold disabled:opacity-50 hover:opacity-90"
+                          className="flex-1 sm:flex-initial px-4 py-2 rounded-xl text-white text-sm font-bold disabled:opacity-50 hover:opacity-90"
                           style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
                         >
                           {saveMutation.isPending ? "…" : "Sauvegarder"}
