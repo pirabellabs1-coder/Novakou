@@ -14,13 +14,11 @@ export async function GET(_req: Request, { params }: Params) {
     const product = await prisma.digitalProduct.findUnique({
       where: { slug },
       include: {
+        // Anonymat : on n'expose que l'id (pixels/reco/inquiry cote client) et
+        // les pixels marketing. JAMAIS le nom/avatar/bio perso du vendeur.
         instructeur: {
           select: {
             id: true,
-            user: { select: { id: true, name: true, image: true, kyc: true } },
-            bioFr: true,
-            expertise: true,
-            yearsExp: true,
             marketingPixels: {
               where: { isActive: true },
               select: { type: true, pixelId: true },
@@ -91,13 +89,6 @@ export async function GET(_req: Request, { params }: Params) {
       category: product.category,
       instructeur: {
         id: product.instructeur.id,
-        userId: product.instructeur.user.id,
-        name: product.instructeur.user.name,
-        image: product.instructeur.user.image,
-        verified: (product.instructeur.user.kyc ?? 1) >= 3,
-        bio: product.instructeur.bioFr,
-        expertise: product.instructeur.expertise,
-        yearsExp: product.instructeur.yearsExp,
         marketingPixels: product.instructeur.marketingPixels,
       },
       reviews: product.reviews.map((r) => ({

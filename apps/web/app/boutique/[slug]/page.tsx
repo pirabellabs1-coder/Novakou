@@ -84,7 +84,7 @@ const resolve = cache(async (slugParam: string) => {
           select: {
             id: true,
             bioFr: true,
-            user: { select: { name: true, email: true, image: true } },
+            // Anonymat : on ne charge PAS l'identite perso (nom/email/avatar).
           },
         },
       },
@@ -181,9 +181,7 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
             ...(shop.logoUrl ? { logo: shop.logoUrl } : {}),
             ...(shop.coverUrl ? { image: shop.coverUrl } : {}),
             parentOrganization: { "@type": "Organization", name: "Novakou", url: baseUrl },
-            ...(shop.instructeur?.user?.name
-              ? { founder: { "@type": "Person", name: shop.instructeur.user.name } }
-              : {}),
+            // Anonymat : pas de "founder" Person — l'identite exposee est la boutique.
             numberOfItems: formations.length + products.length + bundles.length,
           }),
         }}
@@ -207,9 +205,10 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
       shopSlug={shop.slug}
       font={shop.font}
       owner={{
-        name: shop.name || shop.instructeur.user?.name || "Créateur",
-        email: shop.instructeur.user?.email ?? null,
-        image: shop.logoUrl ?? shop.instructeur.user?.image ?? null,
+        // Anonymat : identite = boutique uniquement (jamais nom/email/avatar perso).
+        name: shop.name || "Boutique",
+        email: null,
+        image: shop.logoUrl ?? null,
         coverUrl: shop.coverUrl ?? null,
         bio: shop.description ?? shop.instructeur.bioFr,
         kind: "vendor",

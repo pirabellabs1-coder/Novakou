@@ -10,7 +10,11 @@ import { prisma } from "@/lib/prisma";
  * (Évolution prévue : recherche sémantique pgvector pour des recos plus fines.)
  *
  * Query :
- *   categoryId : id de catégorie (optionnel — sinon top ventes global)
+ *   instructeurId : id du vendeur — PRIORITAIRE : recommande UNIQUEMENT ses
+ *                   propres produits (anti-fuite du trafic pub vers d'autres
+ *                   vendeurs). Sur une fiche produit/formation on passe toujours
+ *                   celui du vendeur courant.
+ *   categoryId : repli par catégorie si aucun instructeurId (contextes marketplace)
  *   excludeId  : id de l'élément courant à exclure
  *   limit      : nombre de recos (défaut 4, max 8)
  */
@@ -33,14 +37,18 @@ type Reco = {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
+    const instructeurId = searchParams.get("instructeurId") || undefined;
     const categoryId = searchParams.get("categoryId") || undefined;
     const excludeId = searchParams.get("excludeId") || "";
     const limit = Math.min(parseInt(searchParams.get("limit") ?? "4"), 8);
 
+    // Priorité au MÊME vendeur : on ne propose que ses produits (le trafic pub
+    // d'un vendeur ne doit pas partir vers un concurrent). Repli catégorie
+    // seulement si aucun vendeur n'est fourni.
     const baseWhere = {
       status: "ACTIF" as const,
       hiddenFromMarketplace: false,
-      ...(categoryId ? { categoryId } : {}),
+      ...(instructeurId ? { instructeurId } : categoryId ? { categoryId } : {}),
       ...(excludeId ? { id: { not: excludeId } } : {}),
     };
 
@@ -60,7 +68,7 @@ export async function GET(request: Request) {
             rating: true,
             studentsCount: true,
             category: { select: { name: true } },
-            instructeur: { select: { user: { select: { name: true } } } },
+            shop: { select: { name: true } },
           },
         })
         .catch(() => []),
@@ -80,7 +88,7 @@ export async function GET(request: Request) {
             rating: true,
             salesCount: true,
             category: { select: { name: true } },
-            instructeur: { select: { user: { select: { name: true } } } },
+            shop: { select: { name: true } },
           },
         })
         .catch(() => []),
@@ -97,7 +105,7 @@ export async function GET(request: Request) {
         thumbnail: f.thumbnail,
         rating: f.rating,
         salesCount: f.studentsCount,
-        seller: f.instructeur?.user?.name ?? "Créateur",
+        seller: f.shop?.name ?? "Boutique",
         category: f.category?.name ?? null,
       })),
       ...products.map((p) => ({
@@ -110,7 +118,7 @@ export async function GET(request: Request) {
         thumbnail: p.thumbnail ?? p.banner,
         rating: p.rating,
         salesCount: p.salesCount,
-        seller: p.instructeur?.user?.name ?? "Créateur",
+        seller: p.shop?.name ?? "Boutique",
         category: p.category?.name ?? null,
       })),
     ]

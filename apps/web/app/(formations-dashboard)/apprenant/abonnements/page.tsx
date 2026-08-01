@@ -42,7 +42,7 @@ type Subscription = {
     interval: "monthly" | "yearly";
     linkedFormationIds: string[];
     linkedProductIds: string[];
-    instructeur?: { user?: { id: string; name: string | null; image: string | null } };
+    shop?: { name: string; slug: string } | null;
   };
   invoices: {
     id: string;
@@ -248,8 +248,8 @@ function SubscriptionCard({
               <h3 className="font-extrabold text-[15px] leading-tight" style={{ color: ST.text }}>
                 {sub.plan?.name ?? "Abonnement"}
               </h3>
-              {sub.plan?.instructeur?.user?.name && (
-                <p className="text-[12px] font-semibold mt-0.5" style={{ color: ST.textSecondary }}>par {sub.plan.instructeur.user.name}</p>
+              {sub.plan?.shop?.name && (
+                <p className="text-[12px] font-semibold mt-0.5" style={{ color: ST.textSecondary }}>par {sub.plan.shop.name}</p>
               )}
             </div>
           </div>

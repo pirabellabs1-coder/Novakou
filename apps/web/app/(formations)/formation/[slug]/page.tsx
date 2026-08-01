@@ -32,7 +32,8 @@ const getFormation = cache(async (slug: string) =>
         rating: true,
         reviewsCount: true,
         studentsCount: true,
-        instructeur: { select: { user: { select: { name: true } } } },
+        // Anonymat : identite = BOUTIQUE, jamais le nom perso du vendeur.
+        shop: { select: { name: true } },
       },
     })
     .catch(() => null),
@@ -140,11 +141,11 @@ export default async function FormationPage({
                   name: "Novakou",
                   url: "https://novakou.com",
                 },
-                ...(formation.instructeur?.user?.name
+                ...(formation.shop?.name
                   ? {
                       author: {
-                        "@type": "Person",
-                        name: formation.instructeur.user.name,
+                        "@type": "Organization",
+                        name: formation.shop.name,
                       },
                     }
                   : {}),

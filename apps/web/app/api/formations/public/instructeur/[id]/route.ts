@@ -6,22 +6,21 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     const { id } = await params;
 
     // Accept either user.id or instructeur.id or user name-slug (fallback)
+    // Anonymat : identite exposee = BOUTIQUE (nom + logo). On ne selectionne
+    // JAMAIS le nom/avatar/pays/reseaux sociaux perso du vendeur.
+    const identitySelect = {
+      id: true,
+      bioFr: true,
+      expertise: true,
+      yearsExp: true,
+      status: true,
+      shops: { select: { name: true, logoUrl: true, slug: true, isPrimary: true } },
+    } as const;
+
     let profile = await prisma.instructeurProfile.findFirst({
       where: { OR: [{ userId: id }, { id: id }] },
       select: {
-        id: true,
-        userId: true,
-        bioFr: true,
-        expertise: true,
-        linkedin: true,
-        website: true,
-        youtube: true,
-        yearsExp: true,
-        totalEarned: true,
-        status: true,
-        user: {
-          select: { id: true, name: true, image: true, country: true, createdAt: true },
-        },
+        ...identitySelect,
         formations: {
           where: { status: "ACTIF" },
           orderBy: { createdAt: "desc" },
@@ -57,9 +56,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         profile = await prisma.instructeurProfile.findUnique({
           where: { userId: matched.id },
           select: {
-            id: true, userId: true, bioFr: true, expertise: true, linkedin: true,
-            website: true, youtube: true, yearsExp: true, totalEarned: true, status: true,
-            user: { select: { id: true, name: true, email: true, image: true, country: true, createdAt: true } },
+            ...identitySelect,
             formations: {
               where: { status: "ACTIF" },
               orderBy: { createdAt: "desc" },
@@ -111,21 +108,19 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       },
     });
 
+    // Identite exposee = BOUTIQUE (principale sinon 1re), jamais l'identite perso.
+    const shop = profile.shops.find((s) => s.isPrimary) ?? profile.shops[0] ?? null;
+
     return NextResponse.json({
       data: {
         profile: {
           id: profile.id,
-          userId: profile.userId,
-          name: profile.user.name,
-          image: profile.user.image,
-          country: profile.user.country,
+          name: shop?.name ?? "Boutique",
+          image: shop?.logoUrl ?? null,
+          shopSlug: shop?.slug ?? null,
           bio: profile.bioFr,
           expertise: profile.expertise,
-          linkedin: profile.linkedin,
-          website: profile.website,
-          youtube: profile.youtube,
           yearsExp: profile.yearsExp,
-          joinedAt: profile.user.createdAt,
           status: profile.status,
         },
         formations: profile.formations,

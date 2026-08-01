@@ -27,7 +27,8 @@ const getProduct = cache(async (slug: string) =>
       select: {
         id: true, title: true, description: true, banner: true, thumbnail: true, price: true,
         rating: true, reviewsCount: true, salesCount: true,
-        instructeur: { select: { user: { select: { name: true } } } },
+        // Anonymat : identite = BOUTIQUE, jamais le nom perso du vendeur.
+        shop: { select: { name: true } },
       },
     })
     .catch(() => null),
@@ -143,11 +144,8 @@ export default async function ProduitPage({
                   availability: "https://schema.org/InStock",
                   url: `${baseUrl}/produit/${slug}`,
                 },
-                ...(product.instructeur?.user?.name
-                  ? {
-                      brand: { "@type": "Brand", name: product.instructeur.user.name },
-                      manufacturer: { "@type": "Person", name: product.instructeur.user.name },
-                    }
+                ...(product.shop?.name
+                  ? { brand: { "@type": "Brand", name: product.shop.name } }
                   : {}),
                 category: "Digital Goods",
                 ...(product.reviewsCount > 0

@@ -43,8 +43,8 @@ interface Bundle {
   savings: number;
   savingsPct: number;
   purchases: number;
-  instructeur: { id: string; name: string; image: string | null };
-  shop: { id: string; slug: string; name: string; themeColor: string | null } | null;
+  instructeur: { id: string };
+  shop: { id: string; slug: string; name: string; logoUrl: string | null; themeColor: string | null } | null;
   items: BundleItem[];
 }
 
@@ -128,17 +128,15 @@ export default function BundlePageClient({ bundle }: { bundle: Bundle }) {
             <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e] leading-tight">{bundle.title}</h1>
             {bundle.shop && (
               <Link href={`/boutique/${bundle.shop.slug}`} className="inline-flex items-center gap-2 mt-3 text-sm text-[#5c647a] hover:text-[#191c1e]">
-                {bundle.instructeur.image ? (
+                {bundle.shop.logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={bundle.instructeur.image} alt="" className="w-7 h-7 rounded-full" />
+                  <img src={bundle.shop.logoUrl} alt="" className="w-7 h-7 rounded-full object-cover" />
                 ) : (
                   <span className="w-7 h-7 rounded-full bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white text-xs font-bold">
-                    {bundle.instructeur.name.slice(0, 2).toUpperCase()}
+                    {bundle.shop.name.slice(0, 2).toUpperCase()}
                   </span>
                 )}
-                <span className="font-semibold">{bundle.instructeur.name}</span>
-                <span className="text-zinc-300">·</span>
-                <span>{bundle.shop.name}</span>
+                <span className="font-semibold">{bundle.shop.name}</span>
               </Link>
             )}
             {bundle.description && (

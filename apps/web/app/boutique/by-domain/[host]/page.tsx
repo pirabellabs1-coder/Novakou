@@ -26,7 +26,7 @@ async function resolve(hostParam: string) {
           select: {
             id: true,
             bioFr: true,
-            user: { select: { name: true, email: true, image: true } },
+            // Anonymat : on ne charge PAS l'identite perso (nom/email/avatar).
           },
         },
       },
@@ -95,9 +95,10 @@ export default async function BoutiqueByDomainPage({ params }: Props) {
     <BoutiqueView
       font={shop.font}
       owner={{
-        name: shop.name || shop.instructeur.user?.name || "Créateur",
-        email: shop.instructeur.user?.email ?? null,
-        image: shop.logoUrl ?? shop.instructeur.user?.image ?? null,
+        // Anonymat : identite = boutique uniquement (jamais nom/email/avatar perso).
+        name: shop.name || "Boutique",
+        email: null,
+        image: shop.logoUrl ?? null,
         coverUrl: shop.coverUrl ?? null,
         bio: shop.description ?? shop.instructeur.bioFr,
         kind: "vendor",

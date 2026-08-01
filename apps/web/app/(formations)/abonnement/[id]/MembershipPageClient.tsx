@@ -34,8 +34,8 @@ interface Plan {
   trialDays: number | null;
   maxMembers: number | null;
   activeCount: number;
-  instructeur: { id: string; name: string; image: string | null };
-  shop: { id: string; slug: string; name: string; themeColor: string | null } | null;
+  instructeur: { id: string };
+  shop: { id: string; slug: string; name: string; logoUrl: string | null; themeColor: string | null } | null;
   includedFormations: IncludedItem[];
   includedProducts: IncludedItem[];
 }
@@ -126,17 +126,15 @@ export default function MembershipPageClient({ plan }: { plan: Plan }) {
             <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e] leading-tight">{plan.name}</h1>
             {plan.shop && (
               <Link href={`/boutique/${plan.shop.slug}`} className="inline-flex items-center gap-2 mt-3 text-sm text-[#5c647a] hover:text-[#191c1e]">
-                {plan.instructeur.image ? (
+                {plan.shop.logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={plan.instructeur.image} alt="" className="w-7 h-7 rounded-full" />
+                  <img src={plan.shop.logoUrl} alt="" className="w-7 h-7 rounded-full object-cover" />
                 ) : (
                   <span className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center text-white text-xs font-bold">
-                    {plan.instructeur.name.slice(0, 2).toUpperCase()}
+                    {plan.shop.name.slice(0, 2).toUpperCase()}
                   </span>
                 )}
-                <span className="font-semibold">{plan.instructeur.name}</span>
-                <span className="text-zinc-300">·</span>
-                <span>{plan.shop.name}</span>
+                <span className="font-semibold">{plan.shop.name}</span>
               </Link>
             )}
             {plan.description && (

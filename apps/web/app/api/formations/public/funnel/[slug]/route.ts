@@ -16,10 +16,11 @@ export async function GET(req: Request, { params }: Params) {
       where: { slug },
       include: {
         steps: { orderBy: { stepOrder: "asc" } },
+        // Anonymat : on n'expose que l'id (pixels cote client) + pixels marketing.
+        // JAMAIS le nom/avatar perso du vendeur.
         instructeur: {
           select: {
             id: true,
-            user: { select: { id: true, name: true, image: true } },
             marketingPixels: {
               where: { isActive: true },
               select: { type: true, pixelId: true },

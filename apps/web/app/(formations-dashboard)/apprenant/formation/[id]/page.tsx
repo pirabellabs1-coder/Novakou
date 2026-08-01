@@ -73,7 +73,7 @@ interface ApiFormation {
   hasAccess: boolean;
   enrollmentId: string | null;
   progressPct: number;
-  instructeur: { user: { name: string | null; image: string | null } } | null;
+  shop: { name: string } | null;
   sections: ApiSection[];
 }
 
@@ -325,7 +325,7 @@ export default function FormationPlayerPage({
     );
   }
 
-  const instructorName = formation.instructeur?.user?.name ?? "Instructeur";
+  const instructorName = formation.shop?.name ?? "Boutique";
 
   return (
     <div className="min-h-screen bg-[#0f1117] flex flex-col">

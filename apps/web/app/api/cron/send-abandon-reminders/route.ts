@@ -56,9 +56,9 @@ async function handle(request: NextRequest) {
     select: {
       id: true, visitorEmail: true, visitorName: true, amount: true, currency: true,
       userId: true, instructeurId: true, formationId: true, productId: true, funnelId: true,
-      formation: { select: { title: true, slug: true } },
-      product: { select: { title: true, slug: true } },
-      instructeur: { select: { user: { select: { name: true } } } },
+      // Anonymat : identite = BOUTIQUE, jamais le nom perso du vendeur.
+      formation: { select: { title: true, slug: true, shop: { select: { name: true } } } },
+      product: { select: { title: true, slug: true, shop: { select: { name: true } } } },
     },
   });
 
@@ -75,7 +75,7 @@ async function handle(request: NextRequest) {
         productKind: a.formation ? "formation" : "product",
         amount: a.amount,
         currency: a.currency,
-        vendorName: a.instructeur?.user?.name ?? null,
+        vendorName: (a.formation?.shop?.name ?? a.product?.shop?.name) ?? null,
         attemptId: a.id,
       });
       await prisma.checkoutAttempt.update({
@@ -114,9 +114,9 @@ async function handle(request: NextRequest) {
     take: 50,
     select: {
       id: true, visitorEmail: true, visitorName: true, amount: true, currency: true,
-      formation: { select: { title: true, slug: true } },
-      product: { select: { title: true, slug: true } },
-      instructeur: { select: { user: { select: { name: true } } } },
+      // Anonymat : identite = BOUTIQUE, jamais le nom perso du vendeur.
+      formation: { select: { title: true, slug: true, shop: { select: { name: true } } } },
+      product: { select: { title: true, slug: true, shop: { select: { name: true } } } },
     },
   });
 
@@ -133,7 +133,7 @@ async function handle(request: NextRequest) {
         productKind: a.formation ? "formation" : "product",
         amount: a.amount,
         currency: a.currency,
-        vendorName: a.instructeur?.user?.name ?? null,
+        vendorName: (a.formation?.shop?.name ?? a.product?.shop?.name) ?? null,
         attemptId: a.id,
       });
       await prisma.checkoutAttempt.update({

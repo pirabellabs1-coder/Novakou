@@ -26,12 +26,8 @@ export async function GET(_req: Request, { params }: Params) {
           },
         },
       },
-      instructeur: {
-        select: {
-          id: true,
-          user: { select: { id: true, name: true, image: true } },
-        },
-      },
+      // Anonymat : on ne charge PAS l'identite perso du vendeur (nom/avatar).
+      instructeur: { select: { id: true } },
       shop: {
         select: { id: true, slug: true, name: true, themeColor: true, logoUrl: true },
       },
@@ -90,12 +86,7 @@ export async function GET(_req: Request, { params }: Params) {
         }
         return null;
       }).filter(Boolean),
-      instructeur: {
-        id: bundle.instructeur.id,
-        userId: bundle.instructeur.user?.id,
-        name: bundle.instructeur.user?.name,
-        image: bundle.instructeur.user?.image,
-      },
+      instructeur: { id: bundle.instructeur.id },
       shop: bundle.shop,
     },
   });

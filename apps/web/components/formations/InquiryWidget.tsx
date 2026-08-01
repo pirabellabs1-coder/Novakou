@@ -69,7 +69,7 @@ export function InquiryWidget({ formationId, productId, productTitle, vendorName
         className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-[#006e2f]/20 text-[#006e2f] font-bold text-sm hover:border-[#006e2f]/40 hover:bg-[#006e2f]/5 transition-colors"
       >
         <span className="material-symbols-outlined text-[18px]">chat</span>
-        Une question ? Contactez {vendorName ? vendorName.split(" ")[0] : "le vendeur"}
+        Une question ? Contactez {vendorName || "la boutique"}
       </button>
 
       {open && (
@@ -88,7 +88,7 @@ export function InquiryWidget({ formationId, productId, productTitle, vendorName
                 </div>
                 <h3 className="text-xl font-extrabold text-[#191c1e] mb-2">Question envoyée !</h3>
                 <p className="text-sm text-[#5c647a]">
-                  {vendorName ?? "Le vendeur"} va vous répondre par email à <strong>{email}</strong>.
+                  {vendorName || "La boutique"} vous répondra par email à <strong>{email}</strong>.
                 </p>
               </div>
             ) : (

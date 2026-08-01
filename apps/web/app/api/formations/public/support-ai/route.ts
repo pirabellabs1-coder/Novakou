@@ -35,18 +35,30 @@ export async function GET(request: NextRequest) {
         supportAiWelcome: true,
         supportAiContext: true,
         supportAiColor: true,
-        user: { select: { name: true, image: true, avatar: true } },
+        // Anonymat : on n'expose JAMAIS l'identite perso du vendeur (nom/avatar
+        // du compte). Le chatbot se presente sous l'identite de la BOUTIQUE.
+        shops: {
+          select: { name: true, logoUrl: true, slug: true, isPrimary: true },
+        },
       },
     });
 
     if (!inst) return NextResponse.json({ data: null });
 
+    // Choix de la boutique : celle demandee (shopSlug) sinon la principale sinon la 1re.
+    const shop =
+      (shopSlug && inst.shops.find((s) => s.slug === shopSlug)) ||
+      inst.shops.find((s) => s.isPrimary) ||
+      inst.shops[0] ||
+      null;
+    const shopName = shop?.name ?? "La boutique";
+
     return NextResponse.json({
       data: {
         instructeurId: inst.id,
-        vendorName: inst.user?.name ?? "Le vendeur",
-        vendorAvatar: inst.user?.avatar ?? inst.user?.image ?? null,
-        welcome: inst.supportAiWelcome ?? `Bonjour ! Je suis l'assistant de ${inst.user?.name ?? "cette boutique"}. Comment puis-je vous aider ?`,
+        vendorName: shopName,
+        vendorAvatar: shop?.logoUrl ?? null,
+        welcome: inst.supportAiWelcome ?? `Bonjour ! Je suis l'assistant de ${shopName}. Comment puis-je vous aider ?`,
         context: inst.supportAiContext ?? "",
         color: inst.supportAiColor ?? "#006e2f",
       },

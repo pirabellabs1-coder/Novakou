@@ -45,8 +45,9 @@ export default async function BundlePage({ params }: Props) {
           product: { select: { id: true, slug: true, title: true, banner: true, price: true, description: true } },
         },
       },
-      instructeur: { select: { id: true, user: { select: { id: true, name: true, image: true } } } },
-      shop: { select: { id: true, slug: true, name: true, themeColor: true } },
+      // Anonymat : on ne charge PAS l'identite perso du vendeur (nom/avatar).
+      instructeur: { select: { id: true } },
+      shop: { select: { id: true, slug: true, name: true, logoUrl: true, themeColor: true } },
       _count: { select: { purchases: true } },
     },
   });
@@ -75,11 +76,7 @@ export default async function BundlePage({ params }: Props) {
         savings,
         savingsPct,
         purchases: bundle._count.purchases,
-        instructeur: {
-          id: bundle.instructeur.id,
-          name: bundle.instructeur.user?.name ?? "Créateur",
-          image: bundle.instructeur.user?.image ?? null,
-        },
+        instructeur: { id: bundle.instructeur.id },
         shop: bundle.shop,
         items: bundle.items.flatMap((it) => {
           if (it.itemKind === "formation" && it.formation) {

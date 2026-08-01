@@ -93,8 +93,8 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
         visitorEmail: true,
         visitorName: true,
         amount: true,
-        formation: { select: { slug: true, title: true, instructeur: { select: { user: { select: { name: true } } } } } },
-        product: { select: { slug: true, title: true, instructeur: { select: { user: { select: { name: true } } } } } },
+        formation: { select: { slug: true, title: true, shop: { select: { name: true } } } },
+        product: { select: { slug: true, title: true, shop: { select: { name: true } } } },
       },
     });
 
@@ -114,10 +114,11 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
       : `${APP_URL}/explorer`;
 
     const itemTitle = attempt.formation?.title || attempt.product?.title || "Votre achat";
+    // Anonymat : identite = BOUTIQUE, jamais le nom perso du vendeur.
     const vendorName =
-      attempt.formation?.instructeur?.user?.name ||
-      attempt.product?.instructeur?.user?.name ||
-      "Votre vendeur";
+      attempt.formation?.shop?.name ||
+      attempt.product?.shop?.name ||
+      "La boutique";
 
     if (!process.env.RESEND_API_KEY) {
       // Dev mode : log + mark contacted, don't actually send

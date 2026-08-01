@@ -25,7 +25,8 @@ export async function GET() {
           select: {
             id: true, name: true, description: true, imageUrl: true, price: true, currency: true,
             interval: true, linkedFormationIds: true, linkedProductIds: true,
-            instructeur: { select: { user: { select: { id: true, name: true, image: true } } } },
+            // Anonymat : identite = BOUTIQUE, jamais le nom perso du vendeur.
+            shop: { select: { name: true, slug: true } },
           },
         },
         invoices: {

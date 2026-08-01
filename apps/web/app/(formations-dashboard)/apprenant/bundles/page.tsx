@@ -32,7 +32,6 @@ type BundlePurchase = {
     rating: number;
     reviewsCount: number;
     items: { itemKind: "formation" | "digital" }[];
-    instructeur: { user: { name: string | null; image: string | null } };
     shop: { slug: string; name: string } | null;
     reviews: { id: string; rating: number; comment: string | null }[];
   };
@@ -118,7 +117,6 @@ export default function ApprenantBundlesPage() {
               const productCount = p.bundle.items.filter((i) => i.itemKind === "digital").length;
               const itemCount = p.bundle.items.length;
               const heroImg = p.bundle.thumbnail ?? p.bundle.banner;
-              const seller = p.bundle.instructeur.user.name ?? "Créateur";
               const myReview = p.bundle.reviews[0];
 
               return (
@@ -160,14 +158,15 @@ export default function ApprenantBundlesPage() {
 
                     <p className="text-[12px] font-semibold mb-3 flex items-center gap-1.5 flex-wrap" style={{ color: ST.textSecondary }}>
                       <UserIcon className="w-3 h-3" />
-                      par <span className="font-extrabold" style={{ color: ST.text }}>{seller}</span>
-                      {p.bundle.shop && (
+                      {p.bundle.shop ? (
                         <>
-                          <span style={{ color: ST.textFaint }}>·</span>
-                          <Link href={`/boutique/${p.bundle.shop.slug}`} className="hover:underline">
+                          par{" "}
+                          <Link href={`/boutique/${p.bundle.shop.slug}`} className="font-extrabold hover:underline" style={{ color: ST.text }}>
                             {p.bundle.shop.name}
                           </Link>
                         </>
+                      ) : (
+                        <span className="font-extrabold" style={{ color: ST.text }}>Boutique</span>
                       )}
                     </p>
 

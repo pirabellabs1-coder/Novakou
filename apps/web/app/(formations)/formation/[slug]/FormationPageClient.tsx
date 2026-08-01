@@ -71,14 +71,9 @@ interface Review {
 }
 
 interface Instructeur {
+  // Anonymat : identite perso jamais exposee. On ne garde que l'id (pixels/reco/
+  // inquiry) et les pixels marketing du vendeur.
   id: string;
-  userId: string;
-  name: string | null;
-  image: string | null;
-  verified?: boolean;
-  bio: string | null;
-  expertise: string[];
-  yearsExp: number;
   marketingPixels?: Array<{ type: "FACEBOOK" | "GOOGLE" | "TIKTOK" | "SNAPCHAT" | "PINTEREST"; pixelId: string }>;
 }
 
@@ -671,7 +666,7 @@ export default function FormationPageClient({ slug }: { slug: string }) {
                   <InquiryWidget
                     formationId={formation.id}
                     productTitle={formation.title}
-                    vendorName={formation.instructeur.name}
+                    vendorName={formation.shop?.name ?? "la boutique"}
                   />
                 </div>
 
@@ -718,7 +713,11 @@ export default function FormationPageClient({ slug }: { slug: string }) {
 
         {/* Recommandations « Vous aimerez aussi » (v2 Phase 2) */}
         <div className="mt-6">
-          <RelatedProducts categoryId={formation.category?.id} excludeId={formation.id} />
+          <RelatedProducts
+            instructeurId={formation.instructeur?.id}
+            excludeId={formation.id}
+            title="Autres produits de la boutique"
+          />
         </div>
       </div>
 

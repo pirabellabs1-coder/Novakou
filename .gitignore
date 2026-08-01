@@ -95,3 +95,6 @@ _*.mjs
 
 .vercel
 .env*.local
+
+# Local backup of .claude (worktrees, do not commit)
+.claude_backup/

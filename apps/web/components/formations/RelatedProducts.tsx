@@ -30,10 +30,13 @@ const fmtFCFA = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(
 export function RelatedProducts({
   categoryId,
   excludeId,
+  instructeurId,
   title = "Vous aimerez aussi",
 }: {
   categoryId?: string | null;
   excludeId: string;
+  /** Vendeur courant : ne recommander QUE ses produits (anti-fuite). */
+  instructeurId?: string | null;
   title?: string;
 }) {
   const [items, setItems] = useState<Reco[]>([]);
@@ -41,7 +44,8 @@ export function RelatedProducts({
 
   useEffect(() => {
     const qs = new URLSearchParams();
-    if (categoryId) qs.set("categoryId", categoryId);
+    if (instructeurId) qs.set("instructeurId", instructeurId);
+    else if (categoryId) qs.set("categoryId", categoryId);
     qs.set("excludeId", excludeId);
     qs.set("limit", "4");
     fetch(`/api/formations/public/recommendations?${qs.toString()}`)
@@ -49,7 +53,7 @@ export function RelatedProducts({
       .then((j) => setItems(j.data ?? []))
       .catch(() => setItems([]))
       .finally(() => setLoaded(true));
-  }, [categoryId, excludeId]);
+  }, [categoryId, excludeId, instructeurId]);
 
   if (!loaded || items.length === 0) return null;
 

@@ -14,13 +14,11 @@ export async function GET(_req: Request, { params }: Params) {
     const formation = await prisma.formation.findUnique({
       where: { slug },
       include: {
+        // Anonymat : on n'expose que l'id (pixels/reco/inquiry cote client) et
+        // les pixels marketing. JAMAIS le nom/avatar/bio perso du vendeur.
         instructeur: {
           select: {
             id: true,
-            yearsExp: true,
-            expertise: true,
-            bioFr: true,
-            user: { select: { id: true, name: true, image: true, kyc: true } },
             marketingPixels: {
               where: { isActive: true },
               select: { type: true, pixelId: true },
@@ -113,13 +111,6 @@ export async function GET(_req: Request, { params }: Params) {
         : null,
       instructeur: {
         id: formation.instructeur.id,
-        userId: formation.instructeur.user.id,
-        name: formation.instructeur.user.name,
-        image: formation.instructeur.user.image,
-        verified: (formation.instructeur.user.kyc ?? 1) >= 3,
-        bio: formation.instructeur.bioFr,
-        expertise: formation.instructeur.expertise,
-        yearsExp: formation.instructeur.yearsExp,
         marketingPixels: formation.instructeur.marketingPixels ?? [],
       },
       sections: formation.sections.map((s) => ({

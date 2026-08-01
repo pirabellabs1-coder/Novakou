@@ -41,7 +41,6 @@ export interface ShopStaticSource {
   aboutText: string | null;
   description: string | null;
   updatedAt: Date | string | null;
-  owner: { name: string | null; email: string | null; phone: string | null; country: string | null };
 }
 
 export interface ShopLegalInfo {
@@ -54,11 +53,16 @@ export interface ShopLegalInfo {
   updatedLabel: string;
 }
 
-/** Résout les infos affichées avec repli sur le compte propriétaire. */
+/**
+ * Résout les infos affichées. ANONYMAT : on n'expose JAMAIS l'email/téléphone
+ * PERSONNEL du compte propriétaire. Seules les coordonnées légales que le
+ * vendeur a explicitement saisies (legalEmail/legalPhone) sont affichées ;
+ * sinon la ligne correspondante est simplement omise.
+ */
 export function resolveShopLegalInfo(src: ShopStaticSource): ShopLegalInfo {
-  const email = src.legalEmail || src.owner.email || null;
-  const phone = src.legalPhone || src.owner.phone || null;
-  const country = src.legalCountry || src.owner.country || "France";
+  const email = src.legalEmail || null;
+  const phone = src.legalPhone || null;
+  const country = src.legalCountry || "France";
   const d = src.updatedAt ? new Date(src.updatedAt) : new Date(0);
   const updatedLabel = Number.isNaN(d.getTime()) || d.getTime() === 0
     ? ""

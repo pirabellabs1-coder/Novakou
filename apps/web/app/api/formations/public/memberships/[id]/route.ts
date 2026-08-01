@@ -13,7 +13,8 @@ export async function GET(_req: Request, { params }: Params) {
   const plan = await prisma.subscriptionPlan.findUnique({
     where: { id },
     include: {
-      instructeur: { select: { id: true, user: { select: { id: true, name: true, image: true } } } },
+      // Anonymat : on ne charge PAS l'identite perso du vendeur (nom/avatar).
+      instructeur: { select: { id: true } },
       shop: { select: { id: true, slug: true, name: true, themeColor: true, logoUrl: true } },
     },
   });
@@ -50,12 +51,7 @@ export async function GET(_req: Request, { params }: Params) {
       trialDays: plan.trialDays,
       maxMembers: plan.maxMembers,
       activeCount: plan.activeCount,
-      instructeur: {
-        id: plan.instructeur.id,
-        userId: plan.instructeur.user?.id,
-        name: plan.instructeur.user?.name,
-        image: plan.instructeur.user?.image,
-      },
+      instructeur: { id: plan.instructeur.id },
       shop: plan.shop,
       includedFormations: formations,
       includedProducts: products,

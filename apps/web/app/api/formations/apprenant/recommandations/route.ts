@@ -60,7 +60,8 @@ export async function GET() {
           rating: true,
           price: true,
           category: { select: { name: true } },
-          instructeur: { select: { user: { select: { name: true } } } },
+          // Anonymat : identite = BOUTIQUE, jamais le nom perso du vendeur.
+          shop: { select: { name: true } },
         },
       })
       .catch(() => []);
@@ -73,7 +74,7 @@ export async function GET() {
       category: f.category?.name ?? undefined,
       rating: f.rating,
       price: f.price,
-      instructorName: f.instructeur?.user?.name ?? undefined,
+      instructorName: f.shop?.name ?? undefined,
     }));
 
     return NextResponse.json({ data });

@@ -35,11 +35,8 @@ export async function GET(_req: Request, { params }: Params) {
       thumbnail: true,
       price: true,
       isFree: true,
-      instructeur: {
-        select: {
-          user: { select: { name: true, image: true } },
-        },
-      },
+      // Anonymat : identite = BOUTIQUE, jamais le nom perso du vendeur.
+      shop: { select: { name: true } },
       sections: {
         orderBy: { order: "asc" },
         select: {

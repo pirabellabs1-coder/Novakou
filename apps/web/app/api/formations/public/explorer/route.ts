@@ -111,11 +111,10 @@ export async function GET(request: Request) {
           shortDesc: true,
           createdAt: true,
           category: { select: { name: true, slug: true, icon: true, color: true } },
-          instructeur: {
-            select: {
-              user: { select: { name: true, image: true, kyc: true } },
-            },
-          },
+          // Anonymat : vendeur = BOUTIQUE (nom + logo), jamais l'identite perso.
+          // kyc (un entier) sert uniquement au badge « verifie ».
+          shop: { select: { name: true, logoUrl: true } },
+          instructeur: { select: { user: { select: { kyc: true } } } },
         },
       }),
       kind === "formations" || kind === "bundles" ? [] : prisma.digitalProduct.findMany({
@@ -128,11 +127,9 @@ export async function GET(request: Request) {
           rating: true, reviewsCount: true, salesCount: true,
           createdAt: true,
           category: { select: { name: true, slug: true, icon: true, color: true } },
-          instructeur: {
-            select: {
-              user: { select: { name: true, image: true, kyc: true } },
-            },
-          },
+          // Anonymat : vendeur = BOUTIQUE (nom + logo), jamais l'identite perso.
+          shop: { select: { name: true, logoUrl: true } },
+          instructeur: { select: { user: { select: { kyc: true } } } },
         },
       }),
       // Bureau session 4 (P1 Marcus) — bundles découvrables dans l'explorer.
@@ -150,11 +147,8 @@ export async function GET(request: Request) {
           rating: true, reviewsCount: true,
           createdAt: true,
           _count: { select: { purchases: true } },
-          instructeur: {
-            select: {
-              user: { select: { name: true, image: true } },
-            },
-          },
+          // Anonymat : vendeur = BOUTIQUE (nom + logo), jamais l'identite perso.
+          shop: { select: { name: true, logoUrl: true } },
         },
       }),
       // Vraie liste de catégories (table FormationCategory), ordonnée par `order`.
@@ -202,8 +196,8 @@ export async function GET(request: Request) {
       categoryColor: f.category?.color ?? null,
       shortDesc: f.shortDesc,
       type: "Formation vidéo",
-      seller: f.instructeur.user.name ?? "—",
-      sellerAvatar: f.instructeur.user.image,
+      seller: f.shop?.name ?? "Boutique",
+      sellerAvatar: f.shop?.logoUrl ?? null,
       verified: (f.instructeur.user.kyc ?? 1) >= 3,
       createdAt: f.createdAt,
     }));
@@ -227,8 +221,8 @@ export async function GET(request: Request) {
       categoryColor: p.category?.color ?? null,
       shortDesc: null,
       type: p.productType,
-      seller: p.instructeur.user.name ?? "—",
-      sellerAvatar: p.instructeur.user.image,
+      seller: p.shop?.name ?? "Boutique",
+      sellerAvatar: p.shop?.logoUrl ?? null,
       verified: (p.instructeur.user.kyc ?? 1) >= 3,
       createdAt: p.createdAt,
     }));
@@ -252,8 +246,8 @@ export async function GET(request: Request) {
       categoryColor: null,
       shortDesc: b.description ? b.description.slice(0, 120) : null,
       type: "Pack",
-      seller: b.instructeur.user.name ?? "—",
-      sellerAvatar: b.instructeur.user.image,
+      seller: b.shop?.name ?? "Boutique",
+      sellerAvatar: b.shop?.logoUrl ?? null,
       createdAt: b.createdAt,
     }));
 

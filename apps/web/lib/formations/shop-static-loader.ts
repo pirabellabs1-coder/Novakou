@@ -17,11 +17,7 @@ const SHOP_SELECT = {
   legalCountry: true,
   aboutText: true,
   updatedAt: true,
-  instructeur: {
-    select: {
-      user: { select: { name: true, email: true, phone: true, country: true } },
-    },
-  },
+  // Anonymat : on ne charge JAMAIS l'identite perso du vendeur (nom/email/tel).
 } as const;
 
 export interface ShopStaticResolved {
@@ -38,9 +34,7 @@ function toResolved(shop: {
   themeColor: string | null; font: string | null; legalName: string | null; legalAddress: string | null;
   legalPhone: string | null; legalEmail: string | null; legalCountry: string | null;
   aboutText: string | null; updatedAt: Date;
-  instructeur: { user: { name: string | null; email: string | null; phone: string | null; country: string | null } | null } | null;
 }): ShopStaticResolved {
-  const owner = shop.instructeur?.user ?? { name: null, email: null, phone: null, country: null };
   const info = resolveShopLegalInfo({
     name: shop.name,
     legalName: shop.legalName,
@@ -51,7 +45,6 @@ function toResolved(shop: {
     aboutText: shop.aboutText,
     description: shop.description,
     updatedAt: shop.updatedAt,
-    owner,
   });
   return { shopId: shop.id, slug: shop.slug, themeColor: shop.themeColor, logoUrl: shop.logoUrl, font: shop.font, info };
 }

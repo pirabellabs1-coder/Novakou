@@ -60,7 +60,8 @@ async function getOrder(id: string, userId: string): Promise<RealOrder | null> {
           select: {
             title: true,
             thumbnail: true,
-            instructeur: { select: { user: { select: { name: true } } } },
+            // Anonymat : identite = BOUTIQUE, jamais le nom perso du vendeur.
+            shop: { select: { name: true } },
             sections: { select: { _count: { select: { lessons: true } } } },
           },
         },
@@ -73,7 +74,7 @@ async function getOrder(id: string, userId: string): Promise<RealOrder | null> {
       reference: `NK-${enrollment.createdAt.getFullYear()}-${id.slice(-8).toUpperCase()}`,
       title: enrollment.formation?.title ?? "Formation",
       typeLabel: "Formation vidéo",
-      instructor: enrollment.formation?.instructeur?.user?.name ?? null,
+      instructor: enrollment.formation?.shop?.name ?? null,
       lessons: lessons || null,
       thumbnail: enrollment.formation?.thumbnail ?? null,
       amountFcfa: enrollment.paidAmount,
@@ -95,7 +96,8 @@ async function getOrder(id: string, userId: string): Promise<RealOrder | null> {
             productType: true,
             banner: true,
             thumbnail: true,
-            instructeur: { select: { user: { select: { name: true } } } },
+            // Anonymat : identite = BOUTIQUE, jamais le nom perso du vendeur.
+            shop: { select: { name: true } },
           },
         },
       },
@@ -106,7 +108,7 @@ async function getOrder(id: string, userId: string): Promise<RealOrder | null> {
       reference: `NK-${purchase.createdAt.getFullYear()}-${id.slice(-8).toUpperCase()}`,
       title: purchase.product?.title ?? "Produit",
       typeLabel: purchase.product?.productType ?? "Produit digital",
-      instructor: purchase.product?.instructeur?.user?.name ?? null,
+      instructor: purchase.product?.shop?.name ?? null,
       lessons: null,
       thumbnail: purchase.product?.thumbnail ?? purchase.product?.banner ?? null,
       amountFcfa: purchase.paidAmount,

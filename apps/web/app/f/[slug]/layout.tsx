@@ -14,9 +14,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     select: {
       name: true,
       description: true,
-      instructeur: {
-        select: { user: { select: { name: true } } },
-      },
+      // Anonymat : on ne charge PAS l'identite perso du vendeur.
     },
   }).catch(() => null);
 
@@ -24,11 +22,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: "Page introuvable" };
   }
 
-  const vendorName = funnel.instructeur?.user?.name || "Novakou";
-  const title = `${funnel.name} — ${vendorName}`;
+  // Anonymat : la marque affichee est le nom du tunnel, jamais le nom perso.
+  const title = `${funnel.name} — Novakou`;
   const description = funnel.description
     ? funnel.description.replace(/<[^>]+>/g, " ").trim().slice(0, 160)
-    : `Découvrez ${funnel.name} par ${vendorName} sur Novakou.`;
+    : `Découvrez ${funnel.name} sur Novakou.`;
 
   return {
     title,

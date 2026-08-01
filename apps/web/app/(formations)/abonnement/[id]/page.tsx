@@ -33,8 +33,9 @@ export default async function MembershipPage({ params }: Props) {
   const plan = await prisma.subscriptionPlan.findUnique({
     where: { id },
     include: {
-      instructeur: { select: { id: true, user: { select: { id: true, name: true, image: true } } } },
-      shop: { select: { id: true, slug: true, name: true, themeColor: true } },
+      // Anonymat : on ne charge PAS l'identite perso du vendeur (nom/avatar).
+      instructeur: { select: { id: true } },
+      shop: { select: { id: true, slug: true, name: true, logoUrl: true, themeColor: true } },
     },
   });
   if (!plan || !plan.isActive) notFound();
@@ -68,11 +69,7 @@ export default async function MembershipPage({ params }: Props) {
         trialDays: plan.trialDays,
         maxMembers: plan.maxMembers,
         activeCount: plan.activeCount,
-        instructeur: {
-          id: plan.instructeur.id,
-          name: plan.instructeur.user?.name ?? "Créateur",
-          image: plan.instructeur.user?.image ?? null,
-        },
+        instructeur: { id: plan.instructeur.id },
         shop: plan.shop,
         includedFormations: formations,
         includedProducts: products,

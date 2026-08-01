@@ -23,9 +23,8 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
       formation: {
         include: {
           sections: { include: { lessons: { select: { id: true } } } },
-          instructeur: {
-            include: { user: { select: { name: true } } },
-          },
+          // Anonymat : le certificat est emis au nom de la BOUTIQUE.
+          shop: { select: { name: true } },
         },
       },
     },
@@ -44,7 +43,7 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
       <CertificateView
         studentName={studentName}
         formationTitle={cert.formation.title}
-        instructorName={cert.formation.instructeur?.user?.name ?? null}
+        instructorName={cert.formation.shop?.name ?? null}
         issuedAt={new Date(cert.issuedAt)}
         score={cert.score}
         totalLessons={totalLessons}

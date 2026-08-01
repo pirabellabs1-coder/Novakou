@@ -53,14 +53,9 @@ interface Review {
 }
 
 interface Instructeur {
+  // Anonymat : identite perso jamais exposee. On ne garde que l'id (pixels/reco/
+  // inquiry) et les pixels marketing du vendeur.
   id: string;
-  userId: string;
-  name: string | null;
-  image: string | null;
-  verified?: boolean;
-  bio: string | null;
-  expertise: string[];
-  yearsExp: number;
   marketingPixels?: Array<{ type: "FACEBOOK" | "GOOGLE" | "TIKTOK" | "SNAPCHAT" | "PINTEREST"; pixelId: string }>;
 }
 
@@ -473,7 +468,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                   <InquiryWidget
                     productId={product.id}
                     productTitle={product.title}
-                    vendorName={product.instructeur.name}
+                    vendorName={product.shop?.name ?? "la boutique"}
                   />
                 </div>
 
@@ -643,7 +638,11 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
 
         {/* Recommandations « Vous aimerez aussi » (v2 Phase 2) */}
         <div className="mt-6">
-          <RelatedProducts categoryId={product.category?.id} excludeId={product.id} />
+          <RelatedProducts
+            instructeurId={product.instructeur?.id}
+            excludeId={product.id}
+            title="Autres produits de la boutique"
+          />
         </div>
       </div>
 

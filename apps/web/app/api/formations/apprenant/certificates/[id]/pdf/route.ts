@@ -260,7 +260,8 @@ export async function GET(_req: Request, { params }: Params) {
         formation: {
           include: {
             sections: { include: { lessons: { select: { id: true } } } },
-            instructeur: { include: { user: { select: { name: true } } } },
+            // Anonymat : le certificat est emis au nom de la BOUTIQUE.
+            shop: { select: { name: true } },
           },
         },
       },
@@ -282,7 +283,7 @@ export async function GET(_req: Request, { params }: Params) {
     );
     const studentName = cert.user.name || cert.user.email.split("@")[0] || "Apprenant";
     const formationTitle = cert.formation.title;
-    const instructorName = cert.formation.instructeur?.user?.name || "";
+    const instructorName = cert.formation.shop?.name || "";
     const issuedDate = new Date(cert.issuedAt).toLocaleDateString("fr-FR", {
       day: "numeric",
       month: "long",
