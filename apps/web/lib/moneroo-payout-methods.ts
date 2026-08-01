@@ -378,6 +378,31 @@ export function getPayoutMethod(id: string): PayoutMethodDef | undefined {
   return PAYOUT_METHODS.find((m) => m.id === id);
 }
 
+/**
+ * Pays (ISO-2) dont le RETRAIT Mobile Money n'est pas encore activé.
+ * Le versement y sera ouvert très bientôt. En attendant, le sélecteur les
+ * affiche avec un message d'indisponibilité et bloque la demande côté serveur.
+ */
+export const PAYOUT_DISABLED_COUNTRIES = ["SN", "CM", "CI"];
+
+/** Message affiché quand un vendeur cible un pays de retrait pas encore ouvert. */
+export const PAYOUT_DISABLED_MESSAGE =
+  "Les retraits vers le Sénégal, le Cameroun et la Côte d'Ivoire sont temporairement indisponibles. Cette option sera activée très bientôt.";
+
+/** Vrai si le pays (code ISO-2 ou nom) fait partie des pays de retrait non ouverts. */
+export function isPayoutCountryDisabled(country: string | null | undefined): boolean {
+  const code = resolveCountryCode(country ?? "");
+  return !!code && PAYOUT_DISABLED_COUNTRIES.includes(code);
+}
+
+/** Vrai si la méthode de retrait cible un pays pas encore ouvert. */
+export function isPayoutMethodDisabled(methodId: string | null | undefined): boolean {
+  if (!methodId) return false;
+  const m = getPayoutMethod(methodId);
+  if (!m) return false;
+  return m.countries.some((c) => PAYOUT_DISABLED_COUNTRIES.includes(c));
+}
+
 /** Libellé court pour l'UI (ex : "Wave", "MTN Mobile Money"). */
 export function shortMethodLabel(id: string): string {
   const m = getPayoutMethod(id);

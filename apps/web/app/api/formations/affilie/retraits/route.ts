@@ -8,9 +8,15 @@ import {
   getPayoutMethod,
   normalizeMsisdn,
   shortMethodLabel,
+  isPayoutMethodDisabled,
+  PAYOUT_DISABLED_MESSAGE,
 } from "@/lib/moneroo-payout-methods";
 import { notifyAdmins } from "@/lib/agents/notify";
 import { sendWithdrawalRequestedEmail } from "@/lib/email/withdrawals";
+import { processAffiliateWithdrawalAuto } from "@/lib/payout/process-withdrawal";
+
+// Le POST déclenche un vrai versement fournisseur (appel API externe).
+export const maxDuration = 60;
 
 const MIN_WITHDRAWAL = 5000;
 
@@ -112,6 +118,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Méthode de paiement non reconnue." }, { status: 400 });
     }
 
+    // Pays de retrait pas encore ouvert (SN / CM / CI) → bloqué avec message.
+    if (isPayoutMethodDisabled(method)) {
+      return NextResponse.json(
+        { error: PAYOUT_DISABLED_MESSAGE, code: "PAYOUT_COUNTRY_DISABLED" },
+        { status: 400 },
+      );
+    }
+
     // Coordonnées requises (méthodes Moneroo affiliés = Mobile Money → msisdn).
     const accountDetails: Record<string, string> = {};
     if (methodDef.requiredFields.includes("msisdn")) {
@@ -175,28 +189,31 @@ export async function POST(req: NextRequest) {
       return wd;
     });
 
-    // Notification à l'affilié (demande enregistrée, en attente de versement).
-    await prisma.notification.create({
-      data: {
-        userId,
-        type: "PAYMENT",
-        title: "Demande de retrait enregistrée",
-        message: `Votre retrait de ${reservedTotal} FCFA via ${shortMethodLabel(methodDef.id)} est en attente de versement. Vous serez notifié dès qu'il sera traité.`,
-        link: "/affilie/retraits",
-      },
-    }).catch(() => null);
+    // ── VALIDATION AUTO : déclenche le versement fournisseur immédiatement ──
+    // (plus d'attente admin). Refus provider → REFUSE + commissions re-libérées ;
+    // aucun fournisseur configuré → reste EN_ATTENTE (versement manuel admin).
+    const payout = await processAffiliateWithdrawalAuto(withdrawal.id);
+    if (payout.status === "REFUSED") {
+      return NextResponse.json(
+        { error: `Le versement a échoué : ${payout.reason}. Vos gains restent disponibles, réessayez.`, code: "PAYOUT_FAILED" },
+        { status: 400 },
+      );
+    }
 
     await sendWithdrawalRequestedEmail(profile.user?.email ?? "", profile.user?.name, reservedTotal, shortMethodLabel(methodDef.id), "/affilie/retraits");
 
-    // Alerte admin (Telegram + e-mail) pour traiter le versement.
-    await notifyAdmins({
-      subject: `Retrait affilié à verser — ${reservedTotal} FCFA`,
-      body: `${profile.user?.name ?? "Un affilié"} (${profile.user?.email ?? "?"}) demande un retrait de ${reservedTotal} FCFA via ${shortMethodLabel(methodDef.id)}. À valider et verser depuis l'espace admin.`,
-      url: `${process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com"}/admin/affiliate-withdrawals`,
-    }).catch(() => null);
+    // Si le versement n'a pas pu partir automatiquement (aucun fournisseur /
+    // opérateur non routable), alerter l'admin pour un versement manuel.
+    if (payout.status === "PENDING_MANUAL" || payout.status === "PENDING_REVIEW") {
+      await notifyAdmins({
+        subject: `Retrait affilié à verser — ${reservedTotal} FCFA`,
+        body: `${profile.user?.name ?? "Un affilié"} (${profile.user?.email ?? "?"}) demande un retrait de ${reservedTotal} FCFA via ${shortMethodLabel(methodDef.id)}. Versement auto non abouti (${payout.reason}) — à traiter depuis l'espace admin.`,
+        url: `${process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com"}/admin/affiliate-withdrawals`,
+      }).catch(() => null);
+    }
 
     return NextResponse.json(
-      { success: true, withdrawalId: withdrawal.id, amount: reservedTotal, payoutRef, message: "Demande de retrait enregistrée. Versement après validation." },
+      { success: true, withdrawalId: withdrawal.id, amount: reservedTotal, payoutRef, payout, message: "Demande de retrait enregistrée." },
       { status: 201 },
     );
   } catch (err) {

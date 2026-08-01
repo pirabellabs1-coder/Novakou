@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDraftField, clearDrafts } from "@/lib/hooks/use-draft-storage";
-import { getAvailablePayoutMethods, PAYOUT_METHODS } from "@/lib/moneroo-payout-methods";
+import { getAvailablePayoutMethods, PAYOUT_METHODS, isPayoutCountryDisabled, PAYOUT_DISABLED_MESSAGE } from "@/lib/moneroo-payout-methods";
 import { COUNTRIES } from "@/lib/countries";
 
 const DRAFT_PREFIX = "affilie:retrait";
@@ -105,7 +105,9 @@ export default function RetraitsPage() {
 
   const amountNum = parseFloat(String(amount).replace(/\s/g, "")) || 0;
   const detailsOk = (needsMsisdn && msisdn.trim().length >= 8) || (needsIban && iban.trim().length >= 10);
-  const isValid = !!method && amountNum >= MIN && amountNum <= available && detailsOk;
+  // Pays de retrait pas encore ouvert (SN / CM / CI) → bloque la demande.
+  const countryDisabled = isPayoutCountryDisabled(selectedCountry);
+  const isValid = !!method && amountNum >= MIN && amountNum <= available && detailsOk && !countryDisabled;
 
   const withdrawMutation = useMutation({
     mutationFn: (body: { amount: number; method: string; msisdn?: string; iban?: string; country?: string }) =>
@@ -246,7 +248,16 @@ export default function RetraitsPage() {
                   </select>
                 </div>
 
+                {/* Pays de retrait pas encore ouvert → message d'indisponibilité */}
+                {countryDisabled && (
+                  <div className="bg-[#1f1a0d] rounded-2xl border border-[#3a331e] p-5 flex items-start gap-3">
+                    <span className="material-symbols-outlined text-[20px] text-amber-400">schedule</span>
+                    <p className="text-xs text-amber-200 font-semibold leading-relaxed">{PAYOUT_DISABLED_MESSAGE}</p>
+                  </div>
+                )}
+
                 {/* Method */}
+                {!countryDisabled && (
                 <div className="bg-[#0d1f17] rounded-2xl border border-[#1e3a2f] p-5">
                   <label className="text-xs font-bold text-white mb-3 block">Méthode de retrait</label>
                   <div className="space-y-2">
@@ -295,6 +306,7 @@ export default function RetraitsPage() {
                     </div>
                   )}
                 </div>
+                )}
 
                 <button
                   onClick={handleWithdraw} disabled={!isValid}

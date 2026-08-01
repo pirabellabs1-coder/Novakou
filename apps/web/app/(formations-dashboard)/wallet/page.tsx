@@ -27,7 +27,7 @@ import {
   StInput,
   ST,
 } from "@/components/stitch";
-import { shortMethodLabel, getAvailablePayoutMethods, PAYOUT_METHODS } from "@/lib/moneroo-payout-methods";
+import { shortMethodLabel, getAvailablePayoutMethods, PAYOUT_METHODS, isPayoutCountryDisabled, PAYOUT_DISABLED_MESSAGE } from "@/lib/moneroo-payout-methods";
 import { COUNTRIES } from "@/lib/countries";
 
 interface VendorWallet {
@@ -227,6 +227,8 @@ export default function WalletPage() {
   }, []);
 
   const selectedMethod = methods.find((m) => m.id === method);
+  // Pays de retrait pas encore ouvert (SN / CM / CI) → bloque la demande.
+  const countryDisabled = isPayoutCountryDisabled(selectedCountry);
 
   // Changement de pays → recalcule les méthodes disponibles (comme au checkout).
   function onCountryChange(code: string) {
@@ -247,6 +249,10 @@ export default function WalletPage() {
 
   async function handleWithdraw() {
     if (!showWithdraw || submitting || !selectedMethod) return;
+    if (isPayoutCountryDisabled(selectedCountry)) {
+      setError(PAYOUT_DISABLED_MESSAGE);
+      return;
+    }
     setSubmitting(true);
     setError(null);
 
@@ -750,6 +756,14 @@ export default function WalletPage() {
                   >
                     Sélectionnez d&apos;abord votre pays pour voir les méthodes disponibles.
                   </div>
+                ) : countryDisabled ? (
+                  <div
+                    className="rounded-[13px] p-3 text-[12px] font-bold flex items-start gap-2"
+                    style={{ background: "#fdf8ec", border: "1px solid #f3e2bd", color: ST.amberText }}
+                  >
+                    <Clock size={15} className="mt-0.5 flex-shrink-0" />
+                    <span>{PAYOUT_DISABLED_MESSAGE}</span>
+                  </div>
                 ) : methods.length === 0 ? (
                   <div
                     className="rounded-[13px] p-3 text-[12px] font-bold"
@@ -825,7 +839,7 @@ export default function WalletPage() {
                   <StButton
                     variant="secondary"
                     className="w-full"
-                    disabled={sendingOtp}
+                    disabled={sendingOtp || countryDisabled}
                     onClick={sendWithdrawalOtp}
                   >
                     {sendingOtp ? "Envoi du code…" : "Recevoir le code par e-mail"}
@@ -865,7 +879,7 @@ export default function WalletPage() {
                 <StButton
                   className="flex-1"
                   icon={Send}
-                  disabled={submitting || !amount || otp.trim().length !== 6}
+                  disabled={submitting || !amount || otp.trim().length !== 6 || countryDisabled}
                   onClick={handleWithdraw}
                 >
                   {submitting ? "Envoi…" : `Demander ${fmt(amount)} FCFA`}

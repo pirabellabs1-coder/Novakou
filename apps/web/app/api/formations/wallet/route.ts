@@ -14,7 +14,14 @@ import {
   getPayoutMethod,
   normalizeMsisdn,
   resolveLegacyMethod,
+  isPayoutMethodDisabled,
+  PAYOUT_DISABLED_MESSAGE,
 } from "@/lib/moneroo-payout-methods";
+import { processInstructorWithdrawalAuto } from "@/lib/payout/process-withdrawal";
+
+// Le POST déclenche un vrai versement fournisseur (appel API externe) → laisser
+// le temps à l'orchestrateur (Moneroo → FeexPay → FedaPay) de répondre.
+export const maxDuration = 60;
 
 /**
  * GET /api/formations/wallet
@@ -376,6 +383,15 @@ export async function POST(request: Request) {
     // Si method reste non reconnu (bank_transfer sans mapping exact), on laisse passer
     // — l'admin pourra traiter manuellement.
 
+    // ── PAYS DE RETRAIT NON ENCORE OUVERT (SN / CM / CI) ──────────────────────
+    // Bloqué en amont de l'OTP/KYC pour échouer vite sans consommer de code.
+    if (isPayoutMethodDisabled(method)) {
+      return NextResponse.json(
+        { error: PAYOUT_DISABLED_MESSAGE, code: "PAYOUT_COUNTRY_DISABLED" },
+        { status: 400 },
+      );
+    }
+
     // ── KYC CHECK : obligatoire pour tout retrait (vendeur ou mentor) ──
     // Niveau 2 minimum requis (pièce d'identité vérifiée par admin)
     const kycUser = await prisma.user.findUnique({
@@ -486,20 +502,20 @@ export async function POST(request: Request) {
         },
       });
 
-      // In-app notification for the user
-      await prisma.notification.create({
-        data: {
-          userId,
-          type: "PAYMENT",
-          title: "Demande de retrait enregistrée",
-          message: `Votre retrait de ${Math.round(amount)} FCFA via ${method} est en cours de traitement (24-48h ouvrées).`,
-          link: "/vendeur/transactions",
-        },
-      }).catch(() => null);
+      // ── VALIDATION AUTO : déclenche le versement fournisseur immédiatement ──
+      // (plus d'attente d'approbation admin). Échec provider → REFUSE + solde
+      // re-crédité ; aucun fournisseur configuré → reste EN_ATTENTE (admin).
+      const payout = await processInstructorWithdrawalAuto(withdrawal.id);
+      if (payout.status === "REFUSED") {
+        return NextResponse.json(
+          { error: `Le versement a échoué : ${payout.reason}. Votre solde reste disponible, réessayez.`, code: "PAYOUT_FAILED" },
+          { status: 400 },
+        );
+      }
 
       await sendWithdrawalRequestedEmail(otpUser.email, otpUser.name, amount, method, "/wallet");
 
-      return NextResponse.json({ data: withdrawal });
+      return NextResponse.json({ data: { ...withdrawal, payout } });
     }
 
     // Mentor withdrawal — reuse the same table tagging with method prefix
@@ -556,19 +572,18 @@ export async function POST(request: Request) {
         },
       });
 
-      await prisma.notification.create({
-        data: {
-          userId,
-          type: "PAYMENT",
-          title: "Retrait mentor enregistré",
-          message: `Votre retrait de ${Math.round(amount)} FCFA via ${method} est en cours de traitement.`,
-          link: "/mentor/dashboard",
-        },
-      }).catch(() => null);
+      // ── VALIDATION AUTO (mentor) : versement fournisseur immédiat ──────────
+      const payout = await processInstructorWithdrawalAuto(withdrawal.id);
+      if (payout.status === "REFUSED") {
+        return NextResponse.json(
+          { error: `Le versement a échoué : ${payout.reason}. Votre solde reste disponible, réessayez.`, code: "PAYOUT_FAILED" },
+          { status: 400 },
+        );
+      }
 
       await sendWithdrawalRequestedEmail(otpUser.email, otpUser.name, amount, method, "/mentor/finances");
 
-      return NextResponse.json({ data: withdrawal });
+      return NextResponse.json({ data: { ...withdrawal, payout } });
     }
 
     return NextResponse.json({ error: "Source invalide" }, { status: 400 });
