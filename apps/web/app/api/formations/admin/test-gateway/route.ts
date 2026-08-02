@@ -7,7 +7,7 @@ import { getGatewayCredentials } from "@/lib/payments/gateways";
 
 /**
  * POST /api/formations/admin/test-gateway   (admin uniquement)
- * Body : { provider: "feexpay" | "fedapay" }
+ * Body : { provider: "feexpay" | "fedapay" | "kkiapay" }
  *
  * TEST DE CONNEXION — NE DÉPLACE AUCUN ARGENT.
  *
@@ -30,14 +30,75 @@ async function probeFeexpay(creds: Record<string, string>): Promise<Probe> {
   if (!apiKey || !shopId) {
     return { ok: false, httpStatus: null, detail: "Clé API ou identifiant boutique manquant." };
   }
+  const auth = { Authorization: `Bearer ${apiKey}`, Accept: "application/json" };
+
+  // FeexPay sert l'ENCAISSEMENT et le VERSEMENT depuis DEUX hôtes distincts.
+  // Ne sonder qu'un seul rend le diagnostic faux : un encaissement en panne
+  // passerait pour une clé refusée, ou l'inverse.
+  const results: string[] = [];
+  let collectOk = false;
+  let payoutOk = false;
+  let lastStatus: number | null = null;
+
   try {
-    const res = await payoutFetch(`https://api.feexpay.me/api/shop/${encodeURIComponent(shopId)}`, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${apiKey}`, Accept: "application/json" },
+    const res = await payoutFetch(`https://api.feexpay.me/api/shop/${encodeURIComponent(shopId)}`, { method: "GET", headers: auth });
+    lastStatus = res.status;
+    collectOk = res.ok;
+    results.push(
+      res.ok
+        ? "Encaissement : OK."
+        : `Encaissement : HTTP ${res.status}${res.status >= 500 ? " — service FeexPay indisponible (api.feexpay.me)" : ""}.`,
+    );
+  } catch (e) {
+    results.push(`Encaissement : injoignable (${e instanceof Error ? e.message : String(e)}).`);
+  }
+
+  try {
+    // Référence inexistante : la réponse dit seulement si la clé est acceptée.
+    const res = await payoutFetch("https://api-v2.feexpay.me/api/payouts/status/public/diagnostic", { method: "GET", headers: auth });
+    // 404 = clé acceptée, référence inconnue. 401/403 = clé ou IP refusée.
+    payoutOk = res.ok || res.status === 404 || res.status === 400;
+    lastStatus = lastStatus ?? res.status;
+    results.push(payoutOk ? "Versement : OK." : `Versement : HTTP ${res.status}.`);
+  } catch (e) {
+    results.push(`Versement : injoignable (${e instanceof Error ? e.message : String(e)}).`);
+  }
+
+  return { ok: collectOk && payoutOk, httpStatus: lastStatus, detail: results.join(" ") };
+}
+
+async function probeKkiapay(creds: Record<string, string>): Promise<Probe> {
+  const { publicKey, privateKey, secret } = creds;
+  if (!publicKey || !privateKey || !secret) {
+    return { ok: false, httpStatus: null, detail: "Clé publique, clé privée ou secret manquant." };
+  }
+  const sandbox = (await import("@/lib/payments/credentials")).isSandbox;
+  const isSb = await sandbox("kkiapay");
+  const base = isSb ? "https://api-sandbox.kkiapay.me" : "https://api.kkiapay.me";
+  try {
+    // Vérification d'une transaction volontairement inexistante : aucune
+    // écriture, et la réponse dit si les clés sont acceptées.
+    const res = await fetch(`${base}/api/v1/transactions/status`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": publicKey,
+        "x-private-key": privateKey,
+        "x-secret-key": secret,
+      },
+      body: JSON.stringify({ transactionId: "diagnostic-novakou" }),
     });
     const text = (await res.text().catch(() => "")).slice(0, 300);
-    if (res.ok) return { ok: true, httpStatus: res.status, detail: "Identifiants acceptés et IP autorisée." };
-    return { ok: false, httpStatus: res.status, detail: text || `HTTP ${res.status}` };
+    // INVALID_KEY = clés refusées. Toute autre réponse = clés acceptées, seule
+    // la transaction est introuvable — ce qui est exactement attendu ici.
+    if (text.includes("INVALID_KEY") || res.status === 401) {
+      return { ok: false, httpStatus: res.status, detail: `Clés refusées. ${text}` };
+    }
+    return {
+      ok: true,
+      httpStatus: res.status,
+      detail: `Clés acceptées (${isSb ? "bac à sable" : "production"}). ${text}`,
+    };
   } catch (e) {
     return { ok: false, httpStatus: null, detail: e instanceof Error ? e.message : String(e) };
   }
@@ -80,6 +141,9 @@ function diagnose(p: Probe): string {
   if (p.httpStatus === 404) {
     return "RESSOURCE INTROUVABLE (404) : l'identifiant boutique est probablement incorrect.";
   }
+  if (p.httpStatus !== null && p.httpStatus >= 500) {
+    return "LE FOURNISSEUR EST EN PANNE (erreur 5xx de son côté). Vos identifiants ne sont pas en cause — contactez son support.";
+  }
   if (l.includes("timeout") || l.includes("fetch failed")) {
     return "FOURNISSEUR INJOIGNABLE. Réessayez ; si cela persiste, vérifiez l'URL du proxy.";
   }
@@ -95,7 +159,7 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => ({}));
   const provider = String(body.provider ?? "").trim().toLowerCase();
-  if (!["feexpay", "fedapay"].includes(provider)) {
+  if (!["feexpay", "fedapay", "kkiapay"].includes(provider)) {
     return NextResponse.json({ error: "Fournisseur non testable : " + provider }, { status: 400 });
   }
 
@@ -107,7 +171,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const probe = provider === "feexpay" ? await probeFeexpay(creds) : await probeFedapay(creds);
+  const probe =
+    provider === "feexpay" ? await probeFeexpay(creds)
+    : provider === "kkiapay" ? await probeKkiapay(creds)
+    : await probeFedapay(creds);
 
   return NextResponse.json({
     data: {

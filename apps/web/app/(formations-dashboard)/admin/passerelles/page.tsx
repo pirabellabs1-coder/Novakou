@@ -277,7 +277,7 @@ export default function PasserellesPage() {
                       {saveMut.isPending ? "Enregistrement…" : "Enregistrer les identifiants"}
                     </StButton>
 
-                    {(g.provider === "feexpay" || g.provider === "fedapay") && (
+                    {(g.provider === "feexpay" || g.provider === "fedapay" || g.provider === "kkiapay") && (
                       <>
                         <StButton
                           variant="secondary"
