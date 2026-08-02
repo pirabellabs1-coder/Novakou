@@ -244,8 +244,17 @@ export type PaymentOption = {
  * plus prioritaire, et les autres restent disponibles en repli côté serveur.
  */
 export async function paymentOptionsForCountry(countryIso2: string): Promise<PaymentOption[]> {
-  const country = (countryIso2 || "").trim().toLowerCase();
-  const providers = await activeProviders("collect");
+  return optionsFor((countryIso2 || "").trim().toLowerCase(), await activeProviders("collect"));
+}
+
+/**
+ * Calcul pur, à providers déjà connus. Extrait pour que la liste des pays et
+ * les moyens d'un pays partagent EXACTEMENT la même logique : quand les deux
+ * étaient calculés séparément, un pays payable uniquement par carte
+ * n'apparaissait jamais dans la liste — le Mali était invendable en silence
+ * alors que la carte y fonctionnait.
+ */
+function optionsFor(country: string, providers: ProviderId[]): PaymentOption[] {
   if (providers.length === 0) return [];
 
   // Devises réellement pertinentes pour ce pays (d'après le registre).
@@ -283,14 +292,17 @@ export async function paymentOptionsForCountry(countryIso2: string): Promise<Pay
 export async function availableCountries(): Promise<Array<{ code: string; operators: number }>> {
   const providers = await activeProviders("collect");
   if (providers.length === 0) return [];
-  const counts = new Map<string, number>();
-  for (const [code, op] of Object.entries(OPERATORS)) {
-    if (!op.country) continue; // la carte n'appartient à aucun pays
-    const served = providers.some((p) => routeFor(code, p, "collect"));
-    if (served) counts.set(op.country, (counts.get(op.country) ?? 0) + 1);
-  }
-  return [...counts.entries()]
-    .map(([code, operators]) => ({ code, operators }))
+
+  // Un pays est proposable dès qu'il a AU MOINS un moyen encaissable — la
+  // carte comprise. On interroge le même calcul que l'écran de paiement pour
+  // qu'aucun pays ne soit listé sans moyen, ni écarté alors qu'il en a un.
+  const countries = new Set(
+    Object.values(OPERATORS).map((o) => o.country).filter((c): c is string => Boolean(c)),
+  );
+
+  return [...countries]
+    .map((code) => ({ code, operators: optionsFor(code, providers).length }))
+    .filter((c) => c.operators > 0)
     .sort((a, b) => a.code.localeCompare(b.code));
 }
 

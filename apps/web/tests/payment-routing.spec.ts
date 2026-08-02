@@ -148,3 +148,19 @@ test("tout opérateur encaissable appartient à un pays listé", () => {
     expect(OPERATORS[op.code], `${op.code} absent de OPERATORS`).toBeTruthy();
   }
 });
+
+test("un pays payable uniquement par carte reste proposable", () => {
+  // Le calcul des pays ignorait les entrées « carte » (qui n'ont pas de pays) :
+  // tout pays sans mobile money encaissable disparaissait de la liste, alors
+  // que la carte y fonctionnait. Le Mali était invendable en silence.
+  const paysXof = new Set(
+    Object.values(OPERATORS)
+      .filter((o) => o.currency === "XOF" && o.country)
+      .map((o) => o.country),
+  );
+  expect(paysXof.has("ml"), "le Mali doit rester connu du registre").toBe(true);
+
+  // La carte XOF doit avoir au moins une route, sinon aucun pays sans mobile
+  // money encaissable ne serait vendable.
+  expect(providersFor("card_xof", "collect").length).toBeGreaterThan(0);
+});
