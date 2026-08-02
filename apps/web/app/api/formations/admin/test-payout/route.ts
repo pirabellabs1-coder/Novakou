@@ -46,10 +46,10 @@ export async function POST(request: NextRequest) {
 
     debug.step = "env_check";
     debug.provider = provider;
-    debug.hasFeexpayKey = isFeexpayConfigured();
-    debug.hasFedapayKey = isFedapayConfigured();
+    debug.hasFeexpayKey = await isFeexpayConfigured();
+    debug.hasFedapayKey = await isFedapayConfigured();
 
-    const configured = provider === "feexpay" ? isFeexpayConfigured() : isFedapayConfigured();
+    const configured = provider === "feexpay" ? await isFeexpayConfigured() : await isFedapayConfigured();
     if (!configured) {
       return NextResponse.json(
         { error: `Le fournisseur "${provider}" n'est pas configuré (clés absentes dans Vercel).`, debug },

@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Rate limited" }, { status: 429 });
   }
 
-  if (!isFedapayConfigured()) {
+  if (!(await isFedapayConfigured())) {
     return NextResponse.json({ ok: true, ignored: true, reason: "fedapay_not_configured" });
   }
 

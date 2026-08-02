@@ -17,7 +17,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
-import { isMonerooConfigured } from "@/lib/moneroo";
 import { executePayout } from "@/lib/payout/execute";
 import { isFeexpayConfigured } from "@/lib/feexpay";
 import { isFedapayConfigured } from "@/lib/fedapay";
@@ -155,7 +154,7 @@ export async function POST(req: Request) {
   const monerooMethodId = String(details.monerooMethod ?? "");
   const rawMsisdn = String(details.msisdn ?? details.phone ?? "");
   const methodDef = getPayoutMethod(monerooMethodId);
-  const anyAutoProvider = isMonerooConfigured() || isFeexpayConfigured() || isFedapayConfigured();
+  const anyAutoProvider = (await isFeexpayConfigured()) || (await isFedapayConfigured());
   if (method === "mobile_money" && anyAutoProvider && methodDef && rawMsisdn) {
     const fullName = (session?.user?.name || session?.user?.email || "Admin Novakou").trim();
     const parts = fullName.split(/\s+/);

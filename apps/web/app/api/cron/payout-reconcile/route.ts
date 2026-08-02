@@ -36,11 +36,11 @@ async function providerStatus(provider: ProviderId, ref: string): Promise<Reconc
   try {
     if (provider === "feexpay") {
       const { checkPayoutStatus, normalizeFeexpayStatus, isFeexpayConfigured } = await import("@/lib/feexpay");
-      if (!isFeexpayConfigured()) return null;
+      if (!(await isFeexpayConfigured())) return null;
       return normalizeFeexpayStatus((await checkPayoutStatus(ref)).status);
     }
     const { checkPayoutStatus, normalizeFedapayStatus, isFedapayConfigured } = await import("@/lib/fedapay");
-    if (!isFedapayConfigured()) return null;
+    if (!(await isFedapayConfigured())) return null;
     return normalizeFedapayStatus((await checkPayoutStatus(ref)).status);
   } catch (err) {
     // Fournisseur injoignable : surtout ne rien conclure. Marquer « échoué »

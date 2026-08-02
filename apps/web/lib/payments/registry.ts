@@ -166,12 +166,12 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // ────────────────────── Côte d'Ivoire (XOF) ─────────────────────
   orange_ci: {
     label: "Orange Money (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
-    collect: { feexpay: { code: "ORANGE CI" } },
+    collect: { feexpay: { code: "ORANGE CI" }, kkiapay: { code: "momo", params: { country: "CI" } } },
     payout: { feexpay: { code: "orange_ci" } },
   },
   wave_ci: {
     label: "Wave (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
-    collect: { feexpay: { code: "WAVE CI" } },
+    collect: { feexpay: { code: "WAVE CI" }, kkiapay: { code: "momo", params: { country: "CI" } } },
     payout: { feexpay: { code: "wave_ci" } },
   },
   mtn_ci: {
@@ -197,18 +197,22 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // ───────────────────────── Sénégal (XOF) ────────────────────────
   orange_sn: {
     label: "Orange Money (Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
-    collect: { feexpay: { code: "ORANGE SN" } },
+    collect: { feexpay: { code: "ORANGE SN" }, kkiapay: { code: "momo", params: { country: "SN" } } },
     payout: { feexpay: { code: "orange_sn" } },
   },
   wave_sn: {
     label: "Wave (Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
-    // « WAVE SN » n'apparaît pas dans le SDK FeexPay : encaissement non couvert.
-    collect: {},
+    // « WAVE SN » n'apparaît pas dans le SDK FeexPay ; KkiaPay sert le Sénégal.
+    collect: { kkiapay: { code: "momo", params: { country: "SN" } } },
     payout: { feexpay: { code: "wave_sn" } },
   },
   freemoney_sn: {
     label: "Free Money (Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
-    collect: { feexpay: { code: "FREE SN" }, fedapay: { code: "free_sn" } },
+    collect: {
+      feexpay: { code: "FREE SN" },
+      fedapay: { code: "free_sn" },
+      kkiapay: { code: "momo", params: { country: "SN" } },
+    },
     payout: { feexpay: { code: "free_sn" }, fedapay: { code: "free_sn" } },
   },
   e_money_sn: {
@@ -242,7 +246,11 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   },
   togocel: {
     label: "Togocel Money (Togo)", country: "tg", currency: "XOF", family: "mobile_money",
-    collect: { feexpay: { code: "TOGOCOM TG" }, fedapay: { code: "togocel" } },
+    collect: {
+      feexpay: { code: "TOGOCOM TG" },
+      fedapay: { code: "togocel" },
+      kkiapay: { code: "momo", params: { country: "TG" } },
+    },
     payout: {
       feexpay: { code: "togo", params: { network: "TOGOCOM TG" } },
       fedapay: { code: "togocel" },
@@ -277,7 +285,10 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // ────────────────────────── Niger (XOF) ─────────────────────────
   airtel_ne: {
     label: "Airtel Money (Niger)", country: "ne", currency: "XOF", family: "mobile_money",
-    collect: { fedapay: { code: "airtel_ne" } },
+    collect: {
+      fedapay: { code: "airtel_ne" },
+      kkiapay: { code: "momo", params: { country: "NE" } },
+    },
     payout: { fedapay: { code: "airtel_ne" } },
   },
 

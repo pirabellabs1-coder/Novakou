@@ -184,6 +184,11 @@ export async function upsertGateway(input: {
     create: { provider: input.provider, ...data },
     update: data,
   });
+
+  // Sans ça, l'admin sauvegarde et le paiement continue d'utiliser les
+  // anciennes clés pendant la durée du cache — impossible à comprendre.
+  const { invalidateCredentialsCache } = await import("@/lib/payments/credentials");
+  invalidateCredentialsCache(input.provider);
 }
 
 /**

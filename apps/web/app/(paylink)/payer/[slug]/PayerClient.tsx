@@ -6,6 +6,7 @@ import { ShieldCheck, Loader2, Lock, ChevronLeft } from "lucide-react";
 import AdaptiveImage from "@/components/formations/AdaptiveImage";
 import { PixelInjector, type Pixel } from "@/components/formations/PixelInjector";
 import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
+import { KkiapayWidget, type KkiapayInit } from "@/components/formations/KkiapayWidget";
 import { useToastStore } from "@/store/toast";
 
 interface Link {
@@ -31,6 +32,9 @@ export default function PayerClient({ link, pixels = [] }: { link: Link; pixels?
   // Coordonnées d'abord, puis l'écran unique (pays → moyen de paiement).
   const [step, setStep] = useState<"form" | "pay">("form");
   const [payError, setPayError] = useState<string | null>(null);
+  // Fenêtre KkiaPay : la seule passerelle qui débite depuis le navigateur.
+  const [kkiapay, setKkiapay] = useState<KkiapayInit | null>(null);
+
 
   const themeColor = "#006e2f";
 
@@ -81,8 +85,7 @@ export default function PayerClient({ link, pixels = [] }: { link: Link; pixels?
         return;
       }
       if (json.data?.mode === "widget") {
-        setPayError("Ce moyen de paiement n'est pas encore actif. Choisissez le Mobile Money.");
-        setLoading(false);
+        setKkiapay(json.data as KkiapayInit);
         return;
       }
       const url = json.data?.checkout_url ?? json.checkout_url;
@@ -123,6 +126,13 @@ export default function PayerClient({ link, pixels = [] }: { link: Link; pixels?
           <ChevronLeft size={16} />
           Revenir
         </button>
+        {kkiapay && (
+          <KkiapayWidget
+            init={kkiapay}
+            onDelivered={() => { window.location.href = `/payment/return?ref=${encodeURIComponent(kkiapay.internalRef)}`; }}
+            onFailed={(m) => { setKkiapay(null); setPayError(m); setLoading(false); }}
+          />
+        )}
         <UnifiedPaymentScreen
           amount={resolveAmount() ?? link.price}
           buyerName={name.trim() || null}

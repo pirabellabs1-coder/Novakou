@@ -103,7 +103,7 @@ export async function executePayout(input: PayoutExecutionInput): Promise<Payout
 
   for (const provider of order) {
     // 1) Configuré ?
-    const configured = provider === "feexpay" ? isFeexpayConfigured() : isFedapayConfigured();
+    const configured = provider === "feexpay" ? await isFeexpayConfigured() : await isFedapayConfigured();
     if (!configured) {
       attempts.push({ provider, outcome: "skipped", detail: "non configuré" });
       continue;

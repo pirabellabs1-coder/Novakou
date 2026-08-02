@@ -11,24 +11,25 @@
 
 import { payoutFetch } from "@/lib/payout/proxy-fetch";
 import { routeFor } from "@/lib/payments/registry";
+import { credential, hasCredentials } from "@/lib/payments/credentials";
 
 const FEEXPAY_API_BASE = "https://api-v2.feexpay.me";
 
-function getApiKey(): string {
-  const key = process.env.FEEXPAY_API_KEY;
-  if (!key) throw new Error("FEEXPAY_API_KEY env var is not set");
+async function getApiKey(): Promise<string> {
+  const key = await credential("feexpay", "apiKey");
+  if (!key) throw new Error("Clé API FeexPay absente (admin ou FEEXPAY_API_KEY)");
   return key;
 }
 
-function getShopId(): string {
-  const shop = process.env.FEEXPAY_SHOP_ID;
-  if (!shop) throw new Error("FEEXPAY_SHOP_ID env var is not set");
+async function getShopId(): Promise<string> {
+  const shop = await credential("feexpay", "shopId");
+  if (!shop) throw new Error("Identifiant boutique FeexPay absent (admin ou FEEXPAY_SHOP_ID)");
   return shop;
 }
 
 /** FeexPay est utilisable seulement si la clé ET l'ID de boutique sont fournis. */
-export function isFeexpayConfigured(): boolean {
-  return Boolean(process.env.FEEXPAY_API_KEY && process.env.FEEXPAY_SHOP_ID);
+export function isFeexpayConfigured(): Promise<boolean> {
+  return hasCredentials("feexpay");
 }
 
 // ─── PAYOUT ──────────────────────────────────────────────────────────────────
@@ -70,8 +71,8 @@ export type FeexpayPayoutResult = {
  * l'orchestrateur puisse décider de basculer vers un autre fournisseur.
  */
 export async function initPayout(params: FeexpayPayoutInitParams): Promise<FeexpayPayoutResult> {
-  const apiKey = getApiKey();
-  const shop = getShopId();
+  const apiKey = await getApiKey();
+  const shop = await getShopId();
 
   // `motif` : FeexPay refuse les caractères spéciaux et coupe à 30. On assainit.
   const motif = (params.motif || "Novakou")
@@ -128,7 +129,7 @@ export async function initPayout(params: FeexpayPayoutInitParams): Promise<Feexp
  * GET /api/payouts/status/public/<reference>
  */
 export async function checkPayoutStatus(reference: string): Promise<{ status: FeexpayPayoutStatus; raw: unknown }> {
-  const apiKey = getApiKey();
+  const apiKey = await getApiKey();
   const res = await payoutFetch(`${FEEXPAY_API_BASE}/api/payouts/status/public/${encodeURIComponent(reference)}`, {
     method: "GET",
     headers: { Authorization: `Bearer ${apiKey}`, Accept: "application/json" },
@@ -245,8 +246,8 @@ export type FeexpayCollectResult = {
  * ou en interrogeant checkCollectStatus.
  */
 export async function initCollect(params: FeexpayCollectParams): Promise<FeexpayCollectResult> {
-  const apiKey = getApiKey();
-  const shop = getShopId();
+  const apiKey = await getApiKey();
+  const shop = await getShopId();
 
   const reseau = feexpayNetworkFor(params.operator);
   if (!reseau) {

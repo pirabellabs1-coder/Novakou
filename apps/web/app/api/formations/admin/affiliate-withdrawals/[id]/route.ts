@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
-import { isMonerooConfigured } from "@/lib/moneroo";
 import {
   getPayoutMethod,
   normalizeMsisdn,
@@ -98,10 +97,10 @@ export async function PATCH(request: Request, { params }: Params) {
     const email = w.affiliate?.user?.email ?? "";
 
     // Mode manuel : versement hors plateforme → TRAITE + commissions PAID.
-    const anyAutoProvider = isMonerooConfigured() || isFeexpayConfigured() || isFedapayConfigured();
+    const anyAutoProvider = (await isFeexpayConfigured()) || (await isFedapayConfigured());
     const forcedConfigured =
-      mode === "feexpay" ? isFeexpayConfigured() :
-      mode === "fedapay" ? isFedapayConfigured() :
+      mode === "feexpay" ? await isFeexpayConfigured() :
+      mode === "fedapay" ? await isFedapayConfigured() :
       anyAutoProvider;
     if (mode === "manual" || !forcedConfigured) {
       await prisma.$transaction([

@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
-import { isMonerooConfigured } from "@/lib/moneroo";
 import {
   getPayoutMethod,
   normalizeMsisdn,
@@ -156,11 +155,11 @@ export async function PATCH(request: Request, { params }: Params) {
       // Si aucun fournisseur automatique n'est configuré, on retombe en manuel.
       // Le mode "moneroo" (défaut) passe désormais par l'orchestrateur, qui
       // essaie Moneroo → FeexPay → FedaPay : il suffit qu'UN seul soit configuré.
-      const anyAutoProvider = isMonerooConfigured() || isFeexpayConfigured() || isFedapayConfigured();
+      const anyAutoProvider = (await isFeexpayConfigured()) || (await isFedapayConfigured());
       const providerConfigured =
         mode === "manual" ? true :
-        mode === "feexpay" ? isFeexpayConfigured() :
-        mode === "fedapay" ? isFedapayConfigured() :
+        mode === "feexpay" ? await isFeexpayConfigured() :
+        mode === "fedapay" ? await isFedapayConfigured() :
         anyAutoProvider;
 
       if (mode === "manual" || !providerConfigured) {

@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Rate limited" }, { status: 429 });
   }
 
-  if (!isFeexpayConfigured()) {
+  if (!(await isFeexpayConfigured())) {
     // Clés absentes → le fournisseur n'est pas actif ; on ignore proprement.
     return NextResponse.json({ ok: true, ignored: true, reason: "feexpay_not_configured" });
   }

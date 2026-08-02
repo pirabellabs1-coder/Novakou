@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { PixelInjector } from "@/components/formations/PixelInjector";
 import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
+import { KkiapayWidget, type KkiapayInit } from "@/components/formations/KkiapayWidget";
 import { COUNTRIES as ALL_COUNTRIES } from "@/lib/countries";
 import { useDraftField, clearDrafts } from "@/lib/hooks/use-draft-storage";
 import { trackEvents } from "@/lib/tracking/events";
@@ -126,6 +127,9 @@ export default function CheckoutInner() {
   // Deux temps : le formulaire (coordonnées, bump, promo, CGV) puis l'écran
   // unique de paiement. Le pays et le moyen ne sont plus demandés ici.
   const [step, setStep] = useState<"form" | "pay">("form");
+  // Fenêtre KkiaPay : la seule passerelle qui débite depuis le navigateur.
+  const [kkiapay, setKkiapay] = useState<KkiapayInit | null>(null);
+
   // Méthodes acceptées par le(s) vendeur(s) du panier (intersection côté API).
   const [acceptedMethods, setAcceptedMethods] = useState<PaymentMethod[]>([]);
   const [countrySearch, setCountrySearch] = useState("");
@@ -479,12 +483,9 @@ export default function CheckoutInner() {
       // qu'un prochain achat ne réaffiche pas les coordonnées précédentes.
       clearDrafts(CHECKOUT_DRAFT_PREFIX);
 
-      // Moyen à widget (fenêtre du fournisseur ouverte dans le navigateur).
+      // Moyen à widget : la fenêtre du fournisseur s'ouvre sur notre page.
       if (json.data.mode === "widget") {
-        setError(
-          "Ce moyen de paiement n'est pas encore actif chez nous. Choisissez le Mobile Money.",
-        );
-        setLoading(false);
+        setKkiapay(json.data as KkiapayInit);
         return;
       }
 
@@ -528,6 +529,13 @@ export default function CheckoutInner() {
             Revenir à ma commande
           </button>
         </div>
+        {kkiapay && (
+          <KkiapayWidget
+            init={kkiapay}
+            onDelivered={() => router.push(`/payment/return?ref=${encodeURIComponent(kkiapay.internalRef)}`)}
+            onFailed={(m) => { setKkiapay(null); setError(m); setLoading(false); }}
+          />
+        )}
         <UnifiedPaymentScreen
           amount={totalAmount}
           buyerName={firstName || null}

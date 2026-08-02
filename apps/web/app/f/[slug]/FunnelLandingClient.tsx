@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
+import { KkiapayWidget, type KkiapayInit } from "@/components/formations/KkiapayWidget";
 import {
   Activity,
   ArrowRight,
@@ -917,6 +918,9 @@ function CheckoutBlock({ data, theme }: { data: Record<string, unknown>; theme: 
   const [phone, setPhone] = useState("");
   const [payMethod, setPayMethod] = useState<string | null>(null);
   const [payStep, setPayStep] = useState(false);
+  // Fenêtre KkiaPay : la seule passerelle qui débite depuis le navigateur.
+  const [kkiapay, setKkiapay] = useState<KkiapayInit | null>(null);
+
   const [promo, setPromo] = useState("");
   const [promoState, setPromoState] = useState<{ status: "idle" | "checking" | "ok" | "bad"; amount?: number; msg?: string }>({ status: "idle" });
   const [paying, setPaying] = useState(false);
@@ -1004,7 +1008,8 @@ function CheckoutBlock({ data, theme }: { data: Record<string, unknown>; theme: 
       const j = await res.json();
       if (!res.ok) throw new Error(j.error || "Le paiement n'a pas pu démarrer.");
       if (j.data?.mode === "widget") {
-        throw new Error("Ce moyen de paiement n'est pas encore actif. Choisissez le Mobile Money.");
+        setKkiapay(j.data as KkiapayInit);
+        return;
       }
       const url = j.data?.checkout_url;
       if (url) window.location.href = url;
@@ -1041,6 +1046,13 @@ function CheckoutBlock({ data, theme }: { data: Record<string, unknown>; theme: 
           <ChevronLeft size={16} />
           Revenir à ma commande
         </button>
+        {kkiapay && (
+          <KkiapayWidget
+            init={kkiapay}
+            onDelivered={() => { window.location.href = `/payment/return?ref=${encodeURIComponent(kkiapay.internalRef)}`; }}
+            onFailed={(m) => { setKkiapay(null); setError(m); setPaying(false); }}
+          />
+        )}
         <UnifiedPaymentScreen
           amount={total}
           buyerName={name.trim() || null}

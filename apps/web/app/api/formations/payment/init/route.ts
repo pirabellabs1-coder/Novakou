@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveCollectProviders, activeProviders } from "@/lib/payments/gateways";
-import { resolveOperatorCode, getProvider, countryFromPhone, currencyForOperator, type ProviderId } from "@/lib/payments/registry";
+import { resolveOperatorCode, getProvider, getOperator, countryFromPhone, currencyForOperator, type ProviderId } from "@/lib/payments/registry";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
 import { computeCheckoutDiscount } from "@/lib/formations/checkout-discount";
 import { isAllowedBuyerEmail, ALLOWED_BUYER_EMAIL_MESSAGE } from "@/lib/email/allowed-buyer-email";
@@ -410,8 +410,8 @@ export async function POST(request: Request) {
     // avant toute livraison.
     const meta = getProvider(resolved.provider);
     if (meta?.collectIntegration === "widget") {
-      const { getKkiapayPublicKey, isKkiapayConfigured } = await import("@/lib/kkiapay");
-      if (resolved.provider !== "kkiapay" || !isKkiapayConfigured()) {
+      const { getKkiapayPublicKey, isKkiapayConfigured, isKkiapaySandbox } = await import("@/lib/kkiapay");
+      if (resolved.provider !== "kkiapay" || !(await isKkiapayConfigured())) {
         await failAttempt(`Passerelle widget non configurée : ${resolved.provider}`, "widget_not_configured");
         return NextResponse.json(
           { error: "Ce moyen de paiement n'est pas disponible pour le moment.", code: "NO_GATEWAY" },
@@ -422,8 +422,15 @@ export async function POST(request: Request) {
         data: {
           mode: "widget",
           provider: resolved.provider,
-          publicKey: getKkiapayPublicKey(),
+          publicKey: await getKkiapayPublicKey(),
+          // Bac à sable : le widget et la vérification doivent viser le MÊME
+          // environnement, sinon la transaction est introuvable à la vérif.
+          sandbox: await isKkiapaySandbox(),
           paymentMethod: resolved.code, // "momo" | "card"
+          // Pays de l'opérateur : la fenêtre KkiaPay s'y limite, sinon elle
+          // propose tous ses marchés et l'acheteur peut choisir un opérateur
+          // qui n'est pas le sien.
+          country: (getOperator(chosenOperator)?.country ?? "").toUpperCase(),
           amount: Math.round(totalAmount),
           phone: phoneRaw ?? "",
           email: userEmail ?? "",

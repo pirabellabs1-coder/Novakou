@@ -32,8 +32,9 @@ export type AutoPayoutResult =
   | { status: "PENDING_REVIEW"; reason: string }               // ambigu → vérif admin
   | { status: "REFUSED"; reason: string };                     // refusé → solde re-crédité
 
-function anyAutoProviderConfigured(): boolean {
-  return isFeexpayConfigured() || isFedapayConfigured();
+async function anyAutoProviderConfigured(): Promise<boolean> {
+  const [fx, fd] = await Promise.all([isFeexpayConfigured(), isFedapayConfigured()]);
+  return fx || fd;
 }
 
 async function notify(userId: string, title: string, message: string, link: string) {
@@ -63,7 +64,7 @@ export async function processInstructorWithdrawalAuto(withdrawalId: string): Pro
   const uid = w.instructeur.user.id;
 
   // Aucun fournisseur auto → laisser EN_ATTENTE (versement manuel admin).
-  if (!anyAutoProviderConfigured()) {
+  if (!(await anyAutoProviderConfigured())) {
     await notify(uid, "Demande de retrait enregistrée", `Votre retrait de ${Math.round(w.amount)} FCFA est en cours de traitement (24-48h ouvrées).`, link);
     return { status: "PENDING_MANUAL", reason: "Aucun fournisseur de versement configuré" };
   }

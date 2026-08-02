@@ -11,6 +11,7 @@
 
 import { payoutFetch } from "@/lib/payout/proxy-fetch";
 import { routeFor } from "@/lib/payments/registry";
+import { credential, hasCredentials } from "@/lib/payments/credentials";
 
 function getBaseUrl(): string {
   // FEDAPAY_ENVIRONMENT = "live" | "sandbox" (défaut : live).
@@ -20,21 +21,21 @@ function getBaseUrl(): string {
     : "https://api.fedapay.com/v1";
 }
 
-function getSecretKey(): string {
-  const key = process.env.FEDAPAY_SECRET_KEY;
-  if (!key) throw new Error("FEDAPAY_SECRET_KEY env var is not set");
+async function getSecretKey(): Promise<string> {
+  const key = await credential("fedapay", "secretKey");
+  if (!key) throw new Error("Clé secrète FedaPay absente (admin ou FEDAPAY_SECRET_KEY)");
   return key;
 }
 
 /** FedaPay est utilisable seulement si la clé secrète est fournie. */
-export function isFedapayConfigured(): boolean {
-  return Boolean(process.env.FEDAPAY_SECRET_KEY);
+export function isFedapayConfigured(): Promise<boolean> {
+  return hasCredentials("fedapay");
 }
 
-function authHeaders(): Record<string, string> {
+async function authHeaders(): Promise<Record<string, string>> {
   return {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${getSecretKey()}`,
+    Authorization: `Bearer ${await getSecretKey()}`,
     Accept: "application/json",
   };
 }
@@ -79,7 +80,7 @@ type FedapayPayoutObject = {
  */
 export async function initPayout(params: FedapayPayoutInitParams): Promise<FedapayPayoutResult> {
   const base = getBaseUrl();
-  const headers = authHeaders();
+  const headers = await authHeaders();
 
   // 1) Créer le payout
   const createBody = {
@@ -142,7 +143,7 @@ export async function checkPayoutStatus(payoutId: string): Promise<{ status: Fed
   const base = getBaseUrl();
   const res = await fetch(`${base}/payouts/${encodeURIComponent(payoutId)}`, {
     method: "GET",
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   const json = (await res.json().catch(() => ({}))) as {
     "v1/payout"?: FedapayPayoutObject;
@@ -267,7 +268,7 @@ export type FedapayCollectResult = {
  */
 export async function initCollect(params: FedapayCollectParams): Promise<FedapayCollectResult> {
   const base = getBaseUrl();
-  const headers = authHeaders();
+  const headers = await authHeaders();
 
   // 1) Créer la transaction.
   const createRes = await payoutFetch(`${base}/transactions`, {

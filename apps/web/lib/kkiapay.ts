@@ -17,28 +17,24 @@
 // laisserait n'importe qui réclamer une commande. Seule la réponse de KkiaPay
 // à notre appel authentifié fait foi.
 
-const KKIAPAY_API_BASE = "https://api.kkiapay.me";
+import { credential, credentialsFor, hasCredentials, isSandbox } from "@/lib/payments/credentials";
 
-function getPrivateKey(): string {
-  const k = process.env.KKIAPAY_PRIVATE_KEY;
-  if (!k) throw new Error("KKIAPAY_PRIVATE_KEY env var is not set");
-  return k;
-}
-function getSecret(): string {
-  const k = process.env.KKIAPAY_SECRET;
-  if (!k) throw new Error("KKIAPAY_SECRET env var is not set");
-  return k;
-}
+const KKIAPAY_API_LIVE = "https://api.kkiapay.me";
+const KKIAPAY_API_SANDBOX = "https://api-sandbox.kkiapay.me";
+
 /** Clé PUBLIQUE — la seule exposable au navigateur (elle ouvre le widget). */
-export function getKkiapayPublicKey(): string | null {
-  return process.env.KKIAPAY_PUBLIC_KEY?.trim() || null;
+export function getKkiapayPublicKey(): Promise<string | null> {
+  return credential("kkiapay", "publicKey");
 }
 
 /** KkiaPay est utilisable si les trois clés sont présentes. */
-export function isKkiapayConfigured(): boolean {
-  return Boolean(
-    process.env.KKIAPAY_PUBLIC_KEY && process.env.KKIAPAY_PRIVATE_KEY && process.env.KKIAPAY_SECRET,
-  );
+export function isKkiapayConfigured(): Promise<boolean> {
+  return hasCredentials("kkiapay");
+}
+
+/** Bac à sable coché dans l'admin : le widget ET la vérification doivent suivre. */
+export function isKkiapaySandbox(): Promise<boolean> {
+  return isSandbox("kkiapay");
 }
 
 export type KkiapayStatus = "success" | "failed" | "pending";
@@ -67,13 +63,23 @@ export type KkiapayVerifyResult = {
  * navigateur, son paramètre `amount` n'est pas digne de confiance.
  */
 export async function verifyTransaction(transactionId: string): Promise<KkiapayVerifyResult> {
-  const res = await fetch(`${KKIAPAY_API_BASE}/api/v1/transactions/status`, {
+  const [creds, sandbox] = await Promise.all([
+    credentialsFor("kkiapay"),
+    isKkiapaySandbox(),
+  ]);
+  if (!creds.privateKey || !creds.secret) {
+    throw new Error("Clés KkiaPay absentes (admin ou variables d'environnement)");
+  }
+  // La vérification DOIT viser le même environnement que le widget : vérifier
+  // en production une transaction de bac à sable renverrait « introuvable ».
+  const base = sandbox ? KKIAPAY_API_SANDBOX : KKIAPAY_API_LIVE;
+  const res = await fetch(`${base}/api/v1/transactions/status`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key": getKkiapayPublicKey() ?? "",
-      "x-private-key": getPrivateKey(),
-      "x-secret-key": getSecret(),
+      "x-api-key": creds.publicKey ?? "",
+      "x-private-key": creds.privateKey,
+      "x-secret-key": creds.secret,
     },
     body: JSON.stringify({ transactionId }),
   });
