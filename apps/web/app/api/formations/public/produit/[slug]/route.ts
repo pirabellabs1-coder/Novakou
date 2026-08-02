@@ -27,7 +27,7 @@ export async function GET(_req: Request, { params }: Params) {
         },
         category: { select: { id: true, slug: true, name: true } },
         // Boutique du produit → footer boutique + identité sur la page produit.
-        shop: { select: { slug: true, name: true, legalName: true, font: true, themeColor: true } },
+        shop: { select: { slug: true, name: true, legalName: true, font: true, themeColor: true, logoUrl: true } },
         files: {
           orderBy: { order: "asc" },
           select: { id: true, name: true, mimeType: true },
@@ -109,6 +109,7 @@ export async function GET(_req: Request, { params }: Params) {
             legalName: product.shop.legalName,
             font: product.shop.font,
             themeColor: product.shop.themeColor,
+            logoUrl: product.shop.logoUrl,
           }
         : null,
       createdAt: product.createdAt,

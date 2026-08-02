@@ -26,7 +26,7 @@ export async function GET(_req: Request, { params }: Params) {
           },
         },
         category: { select: { id: true, slug: true, name: true } },
-        shop: { select: { slug: true, name: true, legalName: true, font: true, themeColor: true } },
+        shop: { select: { slug: true, name: true, legalName: true, font: true, themeColor: true, logoUrl: true } },
         sections: {
           orderBy: { order: "asc" },
           include: {
@@ -107,6 +107,7 @@ export async function GET(_req: Request, { params }: Params) {
             legalName: formation.shop.legalName,
             font: formation.shop.font,
             themeColor: formation.shop.themeColor,
+            logoUrl: formation.shop.logoUrl,
           }
         : null,
       instructeur: {

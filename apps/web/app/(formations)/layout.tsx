@@ -1,6 +1,6 @@
 import "./formations.css";
 import { Inter } from "next/font/google";
-import { FormationsNavbar } from "@/components/formations/FormationsNavbar";
+import { ConditionalPlatformNavbar, MainWithChrome } from "@/components/formations/ConditionalPlatformNavbar";
 import { ConditionalPlatformFooter } from "@/components/formations/ConditionalPlatformFooter";
 import { ToastContainer } from "@/components/ui/toast";
 
@@ -24,8 +24,8 @@ export default function FormationsLayout({
       className={`${inter.variable} formations-root flex min-h-screen flex-col bg-[#f7f9fb]`}
       style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
     >
-      <FormationsNavbar />
-      <main className="flex-1 pt-16 overflow-x-hidden">{children}</main>
+      <ConditionalPlatformNavbar />
+      <MainWithChrome>{children}</MainWithChrome>
       <ConditionalPlatformFooter />
       <ToastContainer />
     </div>

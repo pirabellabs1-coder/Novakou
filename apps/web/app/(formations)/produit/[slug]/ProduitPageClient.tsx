@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ShopFooter from "@/components/formations/ShopFooter";
 import { FormationsFooter } from "@/components/formations/FormationsFooter";
+import { FormationsNavbar } from "@/components/formations/FormationsNavbar";
+import { ShopHeader } from "@/components/formations/ShopHeader";
 import { productImageSrc, avatarSrc } from "@/lib/utils/image-url";
 import { shopFontStack, shopFontHref } from "@/lib/formations/shop-fonts";
 import {
@@ -86,7 +88,7 @@ interface Product {
   category: { id: string; slug: string; name: string } | null;
   instructeur: Instructeur;
   reviews: Review[];
-  shop: { slug: string; name: string; legalName: string | null; font: string | null; themeColor: string | null } | null;
+  shop: { slug: string; name: string; legalName: string | null; font: string | null; themeColor: string | null; logoUrl?: string | null } | null;
   createdAt: string;
 }
 
@@ -255,6 +257,21 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
       className="min-h-screen bg-[#f7f9fb] pb-24 md:pb-0"
       style={product.shop?.font ? { fontFamily: shopFontStack(product.shop.font) } : undefined}
     >
+      {/* En-tête : celui de la BOUTIQUE quand le produit en a une, pour que
+          l'acheteur reste dans son univers. Le menu plateforme est masqué sur
+          cette route (ConditionalPlatformNavbar) ; on le remet seulement si le
+          produit n'appartient à aucune boutique. */}
+      {product.shop ? (
+        <ShopHeader
+          shopName={product.shop.name}
+          logoUrl={product.shop.logoUrl ?? null}
+          themeColor={product.shop.themeColor}
+          staticBase={`/boutique/${product.shop.slug}`}
+        />
+      ) : (
+        <FormationsNavbar />
+      )}
+
       {/* Pixels vendeur : FB, Google, TikTok — event ViewContent */}
       <PixelInjector
         pixels={product.instructeur.marketingPixels ?? []}
