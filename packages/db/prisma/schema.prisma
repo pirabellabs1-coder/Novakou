@@ -3913,3 +3913,45 @@ model AcademyResource {
   @@index([published, category])
   @@index([order])
 }
+
+/// Passerelle de paiement branchée par l'admin Novakou.
+///
+/// Novakou agrège lui-même ses passerelles (FeexPay, FedaPay, …) au lieu de
+/// passer par un méta-agrégateur tiers. Chaque ligne = un compte marchand que
+/// l'admin connecte depuis /admin/passerelles.
+///
+/// SÉCURITÉ : `credentials` contient un JSON CHIFFRÉ (AES-256-GCM, voir
+/// lib/crypto/secret-box.ts). Jamais de clé en clair en base — ces
+/// identifiants permettent d'encaisser et de verser de l'argent réel.
+model PaymentGateway {
+  id       String @id @default(cuid())
+  /// Identifiant technique du fournisseur ("feexpay", "fedapay", "moneroo"…).
+  /// Correspond à un ProviderId du registre lib/payments/registry.ts.
+  provider String @unique
+  label    String
+
+  /// Identifiants chiffrés (JSON : {apiKey, shopId, secretKey…}).
+  credentials String? @db.Text
+
+  /// Directions activées par l'admin pour cette passerelle.
+  canCollect Boolean @default(false)
+  canPayout  Boolean @default(false)
+
+  /// Désactivable sans perdre la configuration.
+  isActive Boolean @default(false)
+  /// Ordre de tentative (petit = essayé en premier).
+  priority Int     @default(100)
+
+  /// Mode bac à sable du fournisseur, quand il en propose un.
+  isSandbox Boolean @default(false)
+
+  /// Dernier test de connexion lancé depuis l'admin.
+  lastTestAt      DateTime?
+  lastTestOk      Boolean?
+  lastTestMessage String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, priority])
+}
