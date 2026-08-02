@@ -280,3 +280,23 @@ export async function availableCountries(): Promise<Array<{ code: string; operat
     .map(([code, operators]) => ({ code, operators }))
     .sort((a, b) => a.code.localeCompare(b.code));
 }
+
+/**
+ * Passerelle qui doit traiter l'ENCAISSEMENT de cet opérateur : la plus
+ * prioritaire parmi celles qui sont activées, configurées, autorisées à
+ * encaisser ET qui savent router cet opérateur.
+ *
+ * Renvoie null si personne ne peut → l'appelant retombe alors sur le chemin
+ * historique plutôt que de faire échouer la vente. Aucun encaissement ne doit
+ * être perdu à cause d'une passerelle mal configurée.
+ */
+export async function resolveCollectProvider(
+  operator: string,
+): Promise<{ provider: ProviderId; code: string } | null> {
+  if (!operator) return null;
+  for (const provider of await activeProviders("collect")) {
+    const route = routeFor(operator, provider, "collect");
+    if (route) return { provider, code: route.code };
+  }
+  return null;
+}

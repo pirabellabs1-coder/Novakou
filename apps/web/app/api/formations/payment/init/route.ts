@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { initPayment as initMoneroo, isMonerooConfigured } from "@/lib/moneroo";
 import { resolveMonerooMethods } from "@/lib/payments/moneroo-checkout-methods";
+import { resolveCollectProvider } from "@/lib/payments/gateways";
 import { initPayment as initPayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
 import { computeCheckoutDiscount } from "@/lib/formations/checkout-discount";
@@ -359,6 +360,60 @@ export async function POST(request: Request) {
 
     let providerId: string;
     let checkoutUrl: string;
+
+    // ── ROUTAGE PAR LE REGISTRE ────────────────────────────────────────────
+    // On demande au registre quelle passerelle activée sait encaisser
+    // l'opérateur choisi. Si c'en est une qui encaisse EN DIRECT (push sur le
+    // téléphone, sans page hébergée), on la prend : l'acheteur reste chez nous.
+    // Sinon on garde le chemin historique — jamais de vente perdue parce qu'une
+    // passerelle est mal configurée.
+    const chosenOperator = typeof body.paymentMethod === "string" ? body.paymentMethod : "";
+    let directCollect: { provider: string; reference: string } | null = null;
+    try {
+      const resolved = await resolveCollectProvider(chosenOperator);
+      if (resolved?.provider === "feexpay" && phoneRaw) {
+        const { initCollect: feexpayCollect } = await import("@/lib/feexpay");
+        const r = await feexpayCollect({
+          operator: chosenOperator,
+          amount: Math.round(totalAmount),
+          phoneNumber: phoneRaw,
+          currency: "XOF",
+          description,
+          customId: internalRef,
+          firstName: first || "Client",
+          email: userEmail || undefined,
+        });
+        directCollect = { provider: "feexpay", reference: r.reference };
+      }
+    } catch (err) {
+      // Échec de l'encaissement direct : on NE bloque PAS la vente, on retombe
+      // sur le chemin historique. L'erreur est tracée pour diagnostic.
+      console.error("[payment/init] encaissement direct impossible, repli :", err);
+    }
+
+    if (directCollect) {
+      // Pas de page hébergée : l'acheteur confirme sur son téléphone. On
+      // l'envoie sur NOTRE page d'attente, qui interroge le statut.
+      await prisma.checkoutAttempt
+        .update({
+          where: { id: attempt.id },
+          data: { metadata: { ...(providerMetadata as object), paymentProvider: directCollect.provider } as never },
+        })
+        .catch(() => null);
+
+      return NextResponse.json({
+        data: {
+          checkout_url:
+            `/payment/attente?ref=${encodeURIComponent(internalRef)}` +
+            `&provider=${directCollect.provider}` +
+            `&pid=${encodeURIComponent(directCollect.reference)}` +
+            `&attempt=${attempt.id}`,
+          provider: directCollect.provider,
+          reference: directCollect.reference,
+          internalRef,
+        },
+      });
+    }
 
     try {
       if (provider === "paygenius") {
