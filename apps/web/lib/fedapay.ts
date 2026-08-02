@@ -9,6 +9,8 @@
 //   2. PUT  /v1/payouts/start  → le DÉCLENCHE réellement (sinon rien n'est envoyé)
 // puis GET /v1/payouts/{id} pour suivre le statut final (sent / failed).
 
+import { payoutFetch } from "@/lib/payout/proxy-fetch";
+
 function getBaseUrl(): string {
   // FEDAPAY_ENVIRONMENT = "live" | "sandbox" (défaut : live).
   const env = (process.env.FEDAPAY_ENVIRONMENT || "live").toLowerCase();
@@ -93,7 +95,7 @@ export async function initPayout(params: FedapayPayoutInitParams): Promise<Fedap
     },
   };
 
-  const createRes = await fetch(`${base}/payouts`, {
+  const createRes = await payoutFetch(`${base}/payouts`, {
     method: "POST",
     headers,
     body: JSON.stringify(createBody),
@@ -113,7 +115,7 @@ export async function initPayout(params: FedapayPayoutInitParams): Promise<Fedap
   const payoutId = String(created.id);
 
   // 2) Déclencher (sendNow). Sans ce PUT, le payout reste "pending" sans jamais partir.
-  const startRes = await fetch(`${base}/payouts/start`, {
+  const startRes = await payoutFetch(`${base}/payouts/start`, {
     method: "PUT",
     headers,
     body: JSON.stringify({ payouts: [{ id: Number(payoutId) }] }),

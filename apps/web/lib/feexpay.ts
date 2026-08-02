@@ -9,6 +9,8 @@
 // lancement. Il FAUT ensuite interroger l'endpoint de statut pour connaître le
 // résultat final (SUCCESSFUL / FAILED). Le webhook confirme aussi de son côté.
 
+import { payoutFetch } from "@/lib/payout/proxy-fetch";
+
 const FEEXPAY_API_BASE = "https://api-v2.feexpay.me";
 
 function getApiKey(): string {
@@ -88,7 +90,7 @@ export async function initPayout(params: FeexpayPayoutInitParams): Promise<Feexp
   if (params.callbackInfo) body.callback_info = params.callbackInfo;
   if (params.email) body.email = params.email;
 
-  const res = await fetch(`${FEEXPAY_API_BASE}/api/payouts/public/${params.endpoint}`, {
+  const res = await payoutFetch(`${FEEXPAY_API_BASE}/api/payouts/public/${params.endpoint}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -126,7 +128,7 @@ export async function initPayout(params: FeexpayPayoutInitParams): Promise<Feexp
  */
 export async function checkPayoutStatus(reference: string): Promise<{ status: FeexpayPayoutStatus; raw: unknown }> {
   const apiKey = getApiKey();
-  const res = await fetch(`${FEEXPAY_API_BASE}/api/payouts/status/public/${encodeURIComponent(reference)}`, {
+  const res = await payoutFetch(`${FEEXPAY_API_BASE}/api/payouts/status/public/${encodeURIComponent(reference)}`, {
     method: "GET",
     headers: { Authorization: `Bearer ${apiKey}`, Accept: "application/json" },
   });
