@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Loader2, ShieldCheck, ExternalLink, ChevronDown } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Loader2, ShieldCheck, ExternalLink, ChevronDown, Check } from "lucide-react";
 import { COUNTRIES } from "@/lib/countries";
-import { OperatorLogo, flagEmoji } from "@/components/formations/OperatorLogo";
+import { OperatorLogo } from "@/components/formations/OperatorLogo";
+import { CountryFlag, NovakouLogo } from "@/components/formations/CountryFlag";
 
 // ÉCRAN UNIQUE DE PAIEMENT.
 //
@@ -68,6 +69,23 @@ export function UnifiedPaymentScreen({
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
+  const [countryOpen, setCountryOpen] = useState(false);
+  const countryRef = useRef<HTMLDivElement>(null);
+
+  // Fermeture de la liste des pays au clic extérieur / touche Échap.
+  useEffect(() => {
+    if (!countryOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (countryRef.current && !countryRef.current.contains(e.target as Node)) setCountryOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setCountryOpen(false); };
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [countryOpen]);
 
   // Pays réellement servis (ceux qui ont au moins un moyen encaissable).
   useEffect(() => {
@@ -148,6 +166,15 @@ export function UnifiedPaymentScreen({
             {fmt(amount)}
             <span className="text-[22px] ml-2">{currencyLabel}</span>
           </p>
+
+          {/* Marque de la plateforme : rassure l'acheteur sur qui sécurise la
+              transaction, sans voler la vedette à la boutique en haut. */}
+          <div className="flex items-center gap-2 mt-10 pt-6 border-t border-gray-100">
+            <NovakouLogo size={22} />
+            <span className="text-[12px] font-semibold text-[#98a1b3]">
+              Paiement sécurisé par <span className="text-[#5c647a] font-bold">Novakou</span>
+            </span>
+          </div>
         </div>
 
         {/* ── Colonne droite : moyen + numéro + payer ──────────────────── */}
@@ -158,23 +185,56 @@ export function UnifiedPaymentScreen({
           <label className="block text-[15px] font-extrabold text-[#191c1e] mt-7 mb-2.5">
             Votre pays
           </label>
-          <div className="relative">
-            <select
-              value={country}
-              onChange={(e) => { setCountry(e.target.value); setPhone(""); }}
-              className="w-full appearance-none pl-4 pr-10 py-3.5 rounded-2xl border-2 border-gray-200 text-[15px] font-semibold bg-white outline-none focus:border-[#006e2f] transition-colors"
+          {/* Liste déroulante maison : un <select> natif ne peut pas afficher
+              d'image, donc pas de vrai drapeau. */}
+          <div className="relative" ref={countryRef}>
+            <button
+              type="button"
+              onClick={() => setCountryOpen((v) => !v)}
+              className="w-full flex items-center gap-3 pl-4 pr-10 py-3.5 rounded-2xl border-2 bg-white text-[15px] font-semibold text-left transition-colors"
+              style={{ borderColor: countryOpen ? "#006e2f" : "#e5e7eb" }}
             >
-              <option value="">Choisir mon pays…</option>
-              {countries.map((c) => {
-                const meta = COUNTRIES.find((x) => x.code.toLowerCase() === c.code);
-                return (
-                  <option key={c.code} value={c.code}>
-                    {flagEmoji(c.code)}  {meta?.name ?? c.code.toUpperCase()}
-                  </option>
-                );
-              })}
-            </select>
-            <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#98a1b3] pointer-events-none" />
+              {country ? (
+                <>
+                  <CountryFlag code={country} />
+                  <span className="text-[#191c1e] truncate">{countryMeta?.name ?? country.toUpperCase()}</span>
+                </>
+              ) : (
+                <span className="text-[#98a1b3]">Choisir mon pays…</span>
+              )}
+              <ChevronDown
+                size={18}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#98a1b3] transition-transform"
+                style={{ transform: `translateY(-50%) rotate(${countryOpen ? 180 : 0}deg)` }}
+              />
+            </button>
+
+            {countryOpen && (
+              <div className="absolute z-30 left-0 right-0 mt-2 max-h-64 overflow-y-auto rounded-2xl border-2 border-gray-100 bg-white shadow-xl py-1.5">
+                {countries.length === 0 && (
+                  <p className="px-4 py-3 text-[13px] font-semibold text-[#98a1b3]">
+                    Aucun pays disponible pour le moment.
+                  </p>
+                )}
+                {countries.map((c) => {
+                  const meta = COUNTRIES.find((x) => x.code.toLowerCase() === c.code);
+                  const on = c.code === country;
+                  return (
+                    <button
+                      key={c.code}
+                      type="button"
+                      onClick={() => { setCountry(c.code); setPhone(""); setCountryOpen(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-[14px] font-semibold text-left hover:bg-[#f5f8f6] transition-colors"
+                      style={{ color: on ? "#006e2f" : "#191c1e" }}
+                    >
+                      <CountryFlag code={c.code} />
+                      <span className="flex-1 truncate">{meta?.name ?? c.code.toUpperCase()}</span>
+                      {on && <Check size={16} />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Moyens */}
@@ -249,8 +309,8 @@ export function UnifiedPaymentScreen({
                 Numéro de téléphone <span className="text-rose-500">*</span>
               </label>
               <div className="flex items-center rounded-2xl border-2 border-gray-200 bg-white focus-within:border-[#006e2f] transition-colors overflow-hidden">
-                <span className="flex items-center gap-1.5 pl-4 pr-3 py-3.5 text-[15px] font-bold text-[#5c647a] border-r border-gray-200 flex-shrink-0">
-                  <span className="text-[18px] leading-none">{flagEmoji(country)}</span>
+                <span className="flex items-center gap-2 pl-4 pr-3 py-3.5 text-[15px] font-bold text-[#5c647a] border-r border-gray-200 flex-shrink-0">
+                  <CountryFlag code={country} />
                   {dial}
                 </span>
                 <input
