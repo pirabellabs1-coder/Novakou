@@ -145,9 +145,17 @@ export function UnifiedPaymentScreen({
 
   return (
     <div className="bg-white rounded-[28px] border border-gray-100 shadow-[0_2px_24px_rgba(16,52,32,.06)] overflow-hidden">
-      <div className="grid md:grid-cols-2">
+      {/*
+        `min-w-0` sur les colonnes n'est PAS cosmétique. Un élément de grille a
+        `min-width: auto` par défaut : la piste s'élargit jusqu'à la largeur
+        minimale de son contenu, même si la grille, elle, est plus étroite. Sur
+        téléphone la colonne réclamait 403 px dans un écran de 375 — et comme le
+        conteneur parent masque le débordement, l'écran de paiement était
+        simplement COUPÉ à droite : montant et bouton « Payer » hors champ.
+      */}
+      <div className="grid md:grid-cols-2 [&>*]:min-w-0">
         {/* ── Colonne gauche : marchand + montant ─────────────────────── */}
-        <div className="p-8 md:p-10 md:border-r border-gray-100">
+        <div className="p-6 sm:p-8 md:p-10 md:border-r border-gray-100">
           <div className="flex items-center gap-3">
             {merchantLogoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -157,7 +165,7 @@ export function UnifiedPaymentScreen({
                 {(merchantName ?? "N").slice(0, 1).toUpperCase()}
               </span>
             )}
-            <span className="text-[20px] font-extrabold text-[#191c1e] truncate">
+            <span className="text-[20px] font-extrabold text-[#191c1e] truncate min-w-0">
               {merchantName ?? "Novakou"}
             </span>
           </div>
@@ -187,7 +195,7 @@ export function UnifiedPaymentScreen({
         </div>
 
         {/* ── Colonne droite : moyen + numéro + payer ──────────────────── */}
-        <div className="p-8 md:p-10">
+        <div className="p-6 sm:p-8 md:p-10">
           <h2 className="text-[24px] font-extrabold text-[#191c1e]">Vos informations</h2>
 
           {/* Pays */}

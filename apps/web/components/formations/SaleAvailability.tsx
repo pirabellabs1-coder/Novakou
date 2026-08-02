@@ -12,6 +12,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
+import { effectiveSalesDeadline, isSaleOpen } from "@/lib/sales-window";
 
 interface Props {
   salesEndAt: string | null | undefined;
@@ -41,45 +42,37 @@ export function SaleAvailability({
   themeColor = "#006e2f",
   onAvailabilityChange,
 }: Props) {
-  const targetMs = useMemo(() => (salesEndAt ? new Date(salesEndAt).getTime() : null), [salesEndAt]);
   const [now, setNow] = useState(() => Date.now());
 
-  // Tick chaque seconde uniquement si on a une deadline future à afficher.
+  // Tick chaque seconde tant qu'une échéance est affichée.
   useEffect(() => {
-    if (!targetMs) return;
+    if (!salesEndAt) return;
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
-  }, [targetMs]);
+  }, [salesEndAt]);
 
-  const expired = !!(targetMs && now >= targetMs);
+  // Échéance recalculée à chaque seconde : arrivée à zéro, elle repart d'un
+  // cycle toute seule. Aucune intervention du vendeur, jamais d'écran
+  // « vente terminée » qui dort tout un week-end.
+  const targetMs = useMemo(
+    () => effectiveSalesDeadline(salesEndAt, now)?.getTime() ?? null,
+    [salesEndAt, now],
+  );
+
   const hasMax = typeof maxBuyers === "number" && maxBuyers > 0;
   const sold = Math.max(0, currentBuyers ?? 0);
   const remaining = hasMax ? Math.max(0, (maxBuyers as number) - sold) : null;
   const percent = hasMax ? Math.min(100, (sold / (maxBuyers as number)) * 100) : 0;
   const soldOut = hasMax && remaining === 0;
 
-  const canBuy = !expired && !soldOut;
+  // La date ne ferme JAMAIS la vente — seul le nombre de places le peut.
+  const canBuy = isSaleOpen({ maxBuyers, currentBuyers });
   useEffect(() => {
     onAvailabilityChange?.(canBuy);
   }, [canBuy, onAvailabilityChange]);
 
   // Rien à afficher si aucune limite n'est définie
   if (!targetMs && !hasMax) return null;
-
-  // Vente terminée (priorité visuelle sur le sold-out)
-  if (expired) {
-    return (
-      <div className="rounded-xl bg-red-50 border border-red-200 p-4 mt-4">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="material-symbols-outlined text-red-600 text-[20px]">block</span>
-          <p className="text-sm font-extrabold text-red-700">Vente terminée</p>
-        </div>
-        <p className="text-xs text-red-600/80">
-          Ce produit n&apos;est plus disponible à l&apos;achat. Le vendeur peut décider de le remettre en vente.
-        </p>
-      </div>
-    );
-  }
 
   if (soldOut) {
     return (

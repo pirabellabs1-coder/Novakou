@@ -103,14 +103,16 @@ export async function POST(request: Request) {
 
     // ── Vérification disponibilité (date de fin + stock) ──────────────────
     // Refuser tôt avec un message clair plutôt que de laisser le checkout
-    // créer un attempt et un appel provider pour rien. Ces deux limites
-    // existent côté schéma : maxBuyers/maxStudents (Int? nullable) et
-    // salesEndAt (DateTime? nullable). Null = pas de limite.
-    const now = new Date();
+    // créer un attempt et un appel provider pour rien.
+    //
+    // `salesEndAt` NE BLOQUE PLUS (décision fondateur 2026-08-03). Le compte à
+    // rebours est un ressort d'urgence qui repart de lui-même à zéro ; le
+    // laisser fermer la vente coupait les encaissements du jour au lendemain,
+    // sans que personne s'en aperçoive. Seul un plafond d'acheteurs, posé
+    // explicitement par le vendeur, ferme encore la vente.
     const blocked: string[] = [];
     for (const f of formations) {
-      if (f.salesEndAt && f.salesEndAt <= now) blocked.push(`${f.title} — vente terminée`);
-      else if (typeof f.maxStudents === "number" && f.maxStudents > 0 && (f.currentStudents ?? 0) >= f.maxStudents) {
+      if (typeof f.maxStudents === "number" && f.maxStudents > 0 && (f.currentStudents ?? 0) >= f.maxStudents) {
         blocked.push(`${f.title} — places épuisées`);
       }
     }
@@ -121,8 +123,7 @@ export async function POST(request: Request) {
       // pour empêcher tout dépassement réel ET respecter un éventuel cap
       // anticipé par le vendeur.
       const sold = Math.max(p.currentBuyers ?? 0, p.salesCount ?? 0);
-      if (p.salesEndAt && p.salesEndAt <= now) blocked.push(`${p.title} — vente terminée`);
-      else if (typeof p.maxBuyers === "number" && p.maxBuyers > 0 && sold >= p.maxBuyers) {
+      if (typeof p.maxBuyers === "number" && p.maxBuyers > 0 && sold >= p.maxBuyers) {
         blocked.push(`${p.title} — stock épuisé`);
       }
     }

@@ -367,7 +367,16 @@
   font-size: 15px;
   line-height: 1.7;
   color: #3f4a45;
+  /* Filet de sécurité : un contenu collé peut contenir une suite
+     insécable (URL interminable, texte importé). Sans ça, le bloc part sur
+     une seule ligne et se retrouve tronqué sur mobile. La normalisation des
+     espaces insécables se fait en amont (lib/sanitize-html) ; ceci ne couvre
+     que ce qui est réellement insécable. */
+  overflow-wrap: break-word;
 }
+/* Les tableaux importés dépassent souvent la largeur d'un téléphone : on les
+   fait défiler dans leur coin plutôt que d'élargir toute la page. */
+.nk-rich table { display: block; overflow-x: auto; max-width: 100%; }
 .nk-rich > :first-child { margin-top: 0; }
 .nk-rich > :last-child { margin-bottom: 0; }
 .nk-rich h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.025em; margin: 1.6rem 0 0.6rem; color: #18181b; line-height: 1.25; }

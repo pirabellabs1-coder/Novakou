@@ -140,7 +140,34 @@ export function renderRichContent(input: string | null | undefined): string {
   const trimmed = input.trim();
   if (!trimmed) return "";
   const html = looksLikeHtml(trimmed) ? trimmed : markdownToHtml(trimmed);
-  return sanitizeRichHtml(html);
+  return normalizeHardSpaces(sanitizeRichHtml(html));
+}
+
+/**
+ * Remplace les espaces INSÉCABLES parasites par des espaces ordinaires.
+ *
+ * Un texte collé depuis Word, Google Docs ou une page de vente arrive souvent
+ * avec TOUS ses espaces convertis en insécables. Or un espace insécable
+ * interdit au navigateur de couper la ligne : le paragraphe part sur une seule
+ * ligne interminable et se retrouve tronqué sur mobile. Constaté sur une fiche
+ * produit réelle : 21 espaces insécables, zéro espace normal, texte coupé net.
+ *
+ * On préserve les insécables TYPOGRAPHIQUES du français — ceux qui précèdent
+ * « ; : ! ? » et qui bordent les guillemets — parce que là, ils sont voulus :
+ * les supprimer ferait passer la ponctuation à la ligne toute seule.
+ */
+function normalizeHardSpaces(html: string): string {
+  return html
+    // Entité HTML → caractère, pour n'avoir qu'une seule forme à traiter.
+    .replace(/&nbsp;|&#160;|&#xA0;/gi, " ")
+    // Insécable suivi d'une ponctuation haute, ou précédant un guillemet
+    // fermant : typographie française correcte, on garde.
+    .replace(/ (?![;:!?»])/g, (m, offset, str) => {
+      const prev = str[offset - 1];
+      return prev === "«" ? m : " ";
+    })
+    // Insécables restants en série (indentations collées) : un seul espace.
+    .replace(/[  ]{3,}/g, " ");
 }
 
 /**

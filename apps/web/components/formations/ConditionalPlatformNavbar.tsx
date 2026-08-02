@@ -20,9 +20,31 @@ export function isShopScopedPath(pathname: string): boolean {
   return pathname.startsWith("/produit/") || pathname.startsWith("/formation/");
 }
 
+/**
+ * Parcours de paiement : ni menu plateforme, ni pied de page.
+ *
+ * Une page où l'acheteur sort sa carte ou son téléphone ne doit rien proposer
+ * d'autre. Le menu affichait « Créer ma boutique », un panier et un burger —
+ * autant de sorties au moment précis où l'on demande de payer — et le pied de
+ * page ajoutait des dizaines de liens sous le bouton.
+ */
+export function isCheckoutPath(pathname: string): boolean {
+  return (
+    pathname === "/checkout" ||
+    pathname.startsWith("/checkout/") ||
+    pathname.startsWith("/payment/") ||
+    pathname.startsWith("/payer/")
+  );
+}
+
+/** Vrai si le décor de la plateforme doit disparaître complètement. */
+export function hidesPlatformChrome(pathname: string): boolean {
+  return isShopScopedPath(pathname) || isCheckoutPath(pathname);
+}
+
 export function ConditionalPlatformNavbar() {
   const pathname = usePathname() || "";
-  if (isShopScopedPath(pathname)) return null;
+  if (hidesPlatformChrome(pathname)) return null;
   return <FormationsNavbar />;
 }
 
@@ -33,6 +55,6 @@ export function ConditionalPlatformNavbar() {
  */
 export function MainWithChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || "";
-  const pad = isShopScopedPath(pathname) ? "" : "pt-16";
+  const pad = hidesPlatformChrome(pathname) ? "" : "pt-16";
   return <main className={`flex-1 ${pad} overflow-x-hidden`}>{children}</main>;
 }
