@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2, ShieldCheck, ExternalLink, ChevronDown, Check } from "lucide-react";
 import { COUNTRIES } from "@/lib/countries";
 import { OperatorLogo } from "@/components/formations/OperatorLogo";
@@ -29,8 +29,9 @@ type Option = {
 
 const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n));
 
-/** Au-delà de ce seuil, les moyens sont paginés plutôt qu'entassés. */
-const PER_PAGE = 6;
+/** « Orange Money (Côte d'Ivoire) » → « Orange Money » : le pays est déjà
+ *  choisi juste au-dessus, le répéter alourdit la ligne. */
+const shortLabel = (label: string) => label.replace(/\s*\([^)]*\)\s*$/, "");
 
 export function UnifiedPaymentScreen({
   amount,
@@ -68,9 +69,25 @@ export function UnifiedPaymentScreen({
   const [selected, setSelected] = useState<string | null>(null);
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(0);
   const [countryOpen, setCountryOpen] = useState(false);
   const countryRef = useRef<HTMLDivElement>(null);
+  const [methodOpen, setMethodOpen] = useState(false);
+  const methodRef = useRef<HTMLDivElement>(null);
+
+  // Même comportement de fermeture pour la liste des moyens.
+  useEffect(() => {
+    if (!methodOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (methodRef.current && !methodRef.current.contains(e.target as Node)) setMethodOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setMethodOpen(false); };
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [methodOpen]);
 
   // Fermeture de la liste des pays au clic extérieur / touche Échap.
   useEffect(() => {
@@ -105,12 +122,10 @@ export function UnifiedPaymentScreen({
     if (demoData) {
       setOptions(demoData.options);
       setSelected(demoData.options[0]?.code ?? null);
-      setPage(0);
       return;
     }
     if (!country) { setOptions([]); setSelected(null); return; }
     setLoading(true);
-    setPage(0);
     fetch(`/api/formations/public/payment-options?country=${encodeURIComponent(country)}`)
       .then((r) => r.json())
       .then((j) => {
@@ -127,12 +142,6 @@ export function UnifiedPaymentScreen({
   const countryMeta = COUNTRIES.find((c) => c.code.toLowerCase() === country);
   const dial = countryMeta?.dial ?? "";
   const canPay = Boolean(current) && (!needsPhone || phone.replace(/\D/g, "").length >= 8) && !submitting;
-
-  const pageCount = Math.ceil(options.length / PER_PAGE);
-  const visible = useMemo(
-    () => options.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE),
-    [options, page],
-  );
 
   return (
     <div className="bg-white rounded-[28px] border border-gray-100 shadow-[0_2px_24px_rgba(16,52,32,.06)] overflow-hidden">
@@ -255,51 +264,54 @@ export function UnifiedPaymentScreen({
               Aucun moyen de paiement disponible pour ce pays pour le moment.
             </div>
           ) : (
-            <>
-              <div className="grid grid-cols-3 gap-3">
-                {visible.map((o) => {
-                  const on = selected === o.code;
-                  // « Orange Money (Côte d'Ivoire) » → « Orange Money » : le pays
-                  // est déjà choisi juste au-dessus, le répéter alourdit la carte.
-                  const short = o.label.replace(/\s*\([^)]*\)\s*$/, "");
-                  return (
-                    <button
-                      key={o.code}
-                      type="button"
-                      onClick={() => { setSelected(o.code); setPhone(""); }}
-                      className="flex flex-col items-center justify-center gap-2 px-2 py-4 rounded-2xl bg-white transition-all"
-                      style={{
-                        border: on ? "2px solid #006e2f" : "2px solid #e9edf1",
-                        boxShadow: on ? "0 0 0 4px rgba(0,110,47,.08)" : "none",
-                      }}
-                    >
-                      <OperatorLogo code={o.code} size={34} />
-                      <span className="text-[12px] font-bold text-[#191c1e] leading-tight text-center line-clamp-2">
-                        {short}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+            /* Liste déroulante plutôt qu'une grille : avec une dizaine
+               d'opérateurs la page devenait interminable, surtout sur mobile.
+               Un seul moyen visible à la fois, la liste s'ouvre au besoin. */
+            <div className="relative" ref={methodRef}>
+              <button
+                type="button"
+                onClick={() => setMethodOpen((v) => !v)}
+                className="w-full flex items-center gap-3 pl-4 pr-10 py-3 rounded-2xl border-2 bg-white text-left transition-colors"
+                style={{ borderColor: methodOpen ? "#006e2f" : "#e5e7eb" }}
+              >
+                {current ? (
+                  <>
+                    <OperatorLogo code={current.code} size={30} />
+                    <span className="text-[15px] font-semibold text-[#191c1e] truncate">
+                      {shortLabel(current.label)}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-[15px] font-semibold text-[#98a1b3]">Choisir un moyen…</span>
+                )}
+                <ChevronDown
+                  size={18}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#98a1b3] transition-transform"
+                  style={{ transform: `translateY(-50%) rotate(${methodOpen ? 180 : 0}deg)` }}
+                />
+              </button>
 
-              {pageCount > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-4">
-                  {Array.from({ length: pageCount }).map((_, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      aria-label={`Page ${i + 1}`}
-                      onClick={() => setPage(i)}
-                      className="h-2 rounded-full transition-all"
-                      style={{
-                        width: i === page ? 26 : 8,
-                        background: i === page ? "#006e2f" : "#dbe1e8",
-                      }}
-                    />
-                  ))}
+              {methodOpen && (
+                <div className="absolute z-20 left-0 right-0 mt-2 max-h-72 overflow-y-auto rounded-2xl border-2 border-gray-100 bg-white shadow-xl py-1.5">
+                  {options.map((o) => {
+                    const on = selected === o.code;
+                    return (
+                      <button
+                        key={o.code}
+                        type="button"
+                        onClick={() => { setSelected(o.code); setPhone(""); setMethodOpen(false); }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-[#f5f8f6] transition-colors"
+                        style={{ color: on ? "#006e2f" : "#191c1e" }}
+                      >
+                        <OperatorLogo code={o.code} size={28} />
+                        <span className="flex-1 text-[14px] font-semibold truncate">{shortLabel(o.label)}</span>
+                        {on && <Check size={16} />}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
-            </>
+            </div>
           )}
 
           {/* Mobile Money : numéro saisi ici */}

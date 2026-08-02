@@ -3925,13 +3925,44 @@ model AcademyResource {
 /// identifiants permettent d'encaisser et de verser de l'argent réel.
 model PaymentGateway {
   id       String @id @default(cuid())
-  /// Identifiant technique du fournisseur ("feexpay", "fedapay", "moneroo"…).
-  /// Correspond à un ProviderId du registre lib/payments/registry.ts.
+  /// Identifiant technique du fournisseur ("feexpay", "fedapay"…), choisi par
+  /// l'admin à la création. Sert de clé de routage et d'URL de webhook.
   provider String @unique
   label    String
 
   /// Identifiants chiffrés (JSON : {apiKey, shopId, secretKey…}).
   credentials String? @db.Text
+
+  /// RECETTE D'INTÉGRATION, saisie depuis l'admin — c'est elle qui rend le
+  /// système générique : ajouter une passerelle ne demande AUCUN code, on
+  /// décrit son API ici et le moteur (lib/payments/engine.ts) s'en sert.
+  ///
+  /// Forme attendue (tous les champs sont optionnels sauf baseUrl/auth) :
+  /// {
+  ///   "baseUrl": "https://api.exemple.com/v1",
+  ///   "auth": { "type": "bearer|basic|header", "credentialKey": "apiKey",
+  ///             "headerName": "X-API-KEY" },
+  ///   "collect": {
+  ///     "path": "/payments", "method": "POST",
+  ///     "body": { "amount": "{{amount}}", "msisdn": "{{phone}}",
+  ///               "operator": "{{operatorCode}}" },
+  ///     "referencePath": "data.id",
+  ///     "redirectUrlPath": "data.checkout_url",
+  ///     "statusPath": "data.status"
+  ///   },
+  ///   "payout": { ... même forme ... },
+  ///   "statusCheck": { "path": "/payments/{{reference}}", "method": "GET",
+  ///                    "statusPath": "data.status" },
+  ///   "statusMap": { "success": ["SUCCESSFUL","sent"], "failed": ["FAILED"],
+  ///                  "pending": ["PENDING"] },
+  ///   "webhook": { "referencePath": "data.id", "signatureHeader": "X-Signature" },
+  ///   "operators": { "orange_ci": "orange_ci", "wave_ci": "WAVE" }
+  /// }
+  ///
+  /// Placeholders reconnus : {{amount}} {{currency}} {{phone}} {{operatorCode}}
+  /// {{reference}} {{description}} {{email}} {{firstName}} {{lastName}}
+  /// {{callbackUrl}} {{returnUrl}} — plus {{cred.<clé>}} pour un identifiant.
+  config Json?
 
   /// Directions activées par l'admin pour cette passerelle.
   canCollect Boolean @default(false)

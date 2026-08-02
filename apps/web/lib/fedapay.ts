@@ -199,3 +199,151 @@ export function normalizeFedapayStatus(s: FedapayPayoutStatus | string): "succes
   if (v === "failed" || v === "canceled") return "failed";
   return "pending";
 }
+
+// ─── ENCAISSEMENT (collect) ──────────────────────────────────────────────────
+//
+// Documentation officielle (docs.fedapay.com/api-reference/transactions/*).
+// Trois appels enchaînés :
+//   1. POST /transactions            → crée la transaction, renvoie {id}
+//   2. POST /transactions/{id}/token → renvoie {token, url}
+//   3. POST /transactions/{mode}     → {token, phone_number} : push sur le
+//                                      téléphone de l'acheteur
+//
+// La carte n'utilise PAS l'étape 3 : on renvoie l'`url` de l'étape 2, page
+// bancaire hébergée par FedaPay. Aucune donnée de carte ne transite chez nous
+// (périmètre PCI-DSS).
+//
+// Sortie par le proxy à IP fixe, comme le versement.
+
+/**
+ * Valeur du champ `mode` attendue par FedaPay, par code opérateur interne.
+ * ⚠️ N'inscrire QUE des modes confirmés par la doc : un mode inconnu route le
+ * paiement vers le mauvais réseau. Compléter au fil des confirmations dans le
+ * tableau de bord FedaPay (Décaissements → sélecteur opérateur).
+ */
+const FEDAPAY_MODE: Record<string, string> = {
+  mtn_bj: "mtn_open",
+  moov_bj: "moov",
+  togocel: "togocel",
+};
+
+/** Mode FedaPay pour cet opérateur, ou null si non confirmé. */
+export function fedapayModeFor(operator: string): string | null {
+  return FEDAPAY_MODE[operator] ?? null;
+}
+
+export type FedapayCollectParams = {
+  /** Code opérateur interne ; absent/inconnu ⇒ paiement par page hébergée. */
+  operator?: string;
+  amount: number;
+  currencyIso: string;
+  description: string;
+  /** Numéro international AVEC le « + » (ex "+2290166000000"). */
+  phoneNumber?: string;
+  countryIso?: string;
+  customer: { firstname: string; lastname: string; email: string };
+  /** Notre référence interne, tracée par FedaPay. */
+  merchantReference: string;
+  callbackUrl?: string;
+};
+
+export type FedapayCollectResult = {
+  reference: string;
+  status: "success" | "failed" | "pending";
+  /** Renseignée pour un paiement par page hébergée (carte). */
+  redirectUrl?: string;
+  raw: unknown;
+};
+
+/**
+ * Lance un encaissement FedaPay.
+ * - opérateur Mobile Money connu → push direct sur le téléphone.
+ * - sinon → renvoie l'URL de la page de paiement hébergée.
+ */
+export async function initCollect(params: FedapayCollectParams): Promise<FedapayCollectResult> {
+  const base = getBaseUrl();
+  const headers = authHeaders();
+
+  // 1) Créer la transaction.
+  const createRes = await payoutFetch(`${base}/transactions`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      description: params.description.slice(0, 100),
+      amount: Math.round(params.amount),
+      currency: { iso: params.currencyIso },
+      merchant_reference: params.merchantReference,
+      ...(params.callbackUrl ? { callback_url: params.callbackUrl } : {}),
+      customer: {
+        firstname: params.customer.firstname,
+        lastname: params.customer.lastname,
+        email: params.customer.email,
+        ...(params.phoneNumber && params.countryIso
+          ? { phone_number: { number: params.phoneNumber, country: params.countryIso } }
+          : {}),
+      },
+    }),
+  });
+  const createJson = (await createRes.json().catch(() => ({}))) as {
+    "v1/transaction"?: { id?: number | string };
+    transaction?: { id?: number | string };
+    message?: string;
+    errors?: unknown;
+  };
+  const created = createJson["v1/transaction"] || createJson.transaction;
+  if (!createRes.ok || !created?.id) {
+    const detail = createJson.errors ? ` — ${JSON.stringify(createJson.errors)}` : "";
+    throw new Error((createJson.message || "FedaPay transaction create failed") + detail);
+  }
+  const txId = String(created.id);
+
+  // 2) Générer le jeton de paiement (+ l'URL hébergée).
+  const tokenRes = await payoutFetch(`${base}/transactions/${encodeURIComponent(txId)}/token`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({}),
+  });
+  const tokenJson = (await tokenRes.json().catch(() => ({}))) as {
+    token?: string;
+    url?: string;
+    message?: string;
+  };
+  if (!tokenRes.ok || !tokenJson.token) {
+    throw new Error(tokenJson.message || `FedaPay token failed (HTTP ${tokenRes.status})`);
+  }
+
+  // 3) Mobile Money : push direct. Sinon on rend la main à la page hébergée.
+  const mode = params.operator ? fedapayModeFor(params.operator) : null;
+  if (!mode || !params.phoneNumber || !params.countryIso) {
+    return { reference: txId, status: "pending", redirectUrl: tokenJson.url, raw: { createJson, tokenJson } };
+  }
+
+  const sendRes = await payoutFetch(`${base}/transactions/${encodeURIComponent(mode)}`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      token: tokenJson.token,
+      phone_number: { number: params.phoneNumber, country: params.countryIso },
+    }),
+  });
+  const sendJson = (await sendRes.json().catch(() => ({}))) as { message?: string; status?: string };
+  if (!sendRes.ok) {
+    throw new Error(sendJson.message || `FedaPay send-payment failed (HTTP ${sendRes.status})`);
+  }
+
+  // Statut le plus frais possible ; le webhook confirmera de toute façon.
+  const after = await checkPayoutStatus(txId).catch(() => null);
+  return {
+    reference: txId,
+    status: after ? normalizeFedapayStatus(after.status) : "pending",
+    raw: { createJson, tokenJson, sendJson },
+  };
+}
+
+/** Statut d'un encaissement — même endpoint que pour un versement. */
+export async function checkCollectStatus(
+  transactionId: string,
+): Promise<{ status: "success" | "failed" | "pending"; raw: unknown }> {
+  const r = await checkPayoutStatus(transactionId);
+  return { status: normalizeFedapayStatus(r.status), raw: r.raw };
+}

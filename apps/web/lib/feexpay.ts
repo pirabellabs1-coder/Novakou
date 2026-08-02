@@ -185,3 +185,147 @@ export function normalizeFeexpayStatus(s: FeexpayPayoutStatus | string): "succes
   if (up === "FAILED") return "failed";
   return "pending";
 }
+
+// ─── ENCAISSEMENT (collect) ──────────────────────────────────────────────────
+//
+// Endpoints relevés dans le SDK React officiel publié par FeexPay
+// (@feexpay/react-sdk, dist/index.cjs.js) — leur documentation REST n'étant
+// pas publique. Aucun code inventé : URL, noms de champs et valeurs de réseau
+// proviennent tous du code du fournisseur.
+//
+//   POST /api/transactions/requesttopay/integration      → push Mobile Money
+//   GET  /api/transactions/getrequesttopay/integration/{id} → statut
+//
+// L'appel sort par le proxy à IP fixe : FeexPay filtre par IP, et les IP de
+// Vercel sont dynamiques (même contrainte que pour le versement).
+
+const FEEXPAY_COLLECT_BASE = "https://api.feexpay.me";
+
+/**
+ * Valeur du champ `reseau` attendue par FeexPay, par code opérateur interne.
+ * Reprise telle quelle du SDK : ne PAS inventer de variante — un réseau
+ * inconnu de FeexPay fait échouer la transaction.
+ */
+const FEEXPAY_NETWORK: Record<string, string> = {
+  mtn_bj: "MTN",
+  moov_bj: "MOOV",
+  celtiis_bj: "CELTIIS BJ",
+  mtn_ci: "MTN CI",
+  moov_ci: "MOOV CI",
+  orange_ci: "ORANGE CI",
+  wave_ci: "WAVE CI",
+  orange_sn: "ORANGE SN",
+  freemoney_sn: "FREE SN",
+  moov_tg: "MOOV TG",
+  togocel: "TOGOCOM TG",
+  moov_bf: "MOOV BF",
+  orange_bf: "ORANGE BF",
+};
+
+/** Réseau FeexPay pour cet opérateur, ou null si FeexPay ne le sert pas. */
+export function feexpayNetworkFor(operator: string): string | null {
+  return FEEXPAY_NETWORK[operator] ?? null;
+}
+
+export type FeexpayCollectParams = {
+  /** Code opérateur interne (ex. "orange_ci"). */
+  operator: string;
+  amount: number;
+  /** Numéro complet, chiffres uniquement, indicatif compris. */
+  phoneNumber: string;
+  currency?: string;
+  description: string;
+  /** Notre référence interne — renvoyée telle quelle par le webhook. */
+  customId: string;
+  firstName?: string;
+  email?: string;
+};
+
+export type FeexpayCollectResult = {
+  reference: string;
+  status: "success" | "failed" | "pending";
+  raw: unknown;
+};
+
+/**
+ * Déclenche un paiement Mobile Money : l'acheteur reçoit une demande de
+ * confirmation sur son téléphone. Le statut définitif arrive par le webhook,
+ * ou en interrogeant checkCollectStatus.
+ */
+export async function initCollect(params: FeexpayCollectParams): Promise<FeexpayCollectResult> {
+  const apiKey = getApiKey();
+  const shop = getShopId();
+
+  const reseau = feexpayNetworkFor(params.operator);
+  if (!reseau) {
+    throw new Error(`FeexPay ne sert pas l'opérateur "${params.operator}"`);
+  }
+
+  // Le SDK retire le « + » et corrige les indicatifs doublés (« 229229… »).
+  let phone = params.phoneNumber.replace(/\D/g, "");
+  if (phone.length >= 8) {
+    const p3 = phone.slice(0, 3);
+    if (phone.startsWith(p3 + p3)) phone = phone.slice(p3.length);
+  }
+
+  // MTN refuse les caractères spéciaux dans le libellé (comportement du SDK).
+  let description = params.description || "Novakou";
+  if (reseau.startsWith("MTN")) description = description.replace(/[^a-zA-Z0-9 ]/g, "");
+
+  const body = {
+    phoneNumber: phone,
+    amount: Math.round(params.amount),
+    reseau,
+    description,
+    customId: params.customId,
+    shop,
+    token: apiKey,
+    payment_interface: "API",
+    callback_info: { ref: params.customId },
+    currency: params.currency || "XOF",
+    first_name: params.firstName || "Client",
+    email: params.email || "",
+    otp: "",
+  };
+
+  const res = await payoutFetch(`${FEEXPAY_COLLECT_BASE}/api/transactions/requesttopay/integration`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+      Accept: "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  const json = (await res.json().catch(() => ({}))) as {
+    reference?: string;
+    transaction_id?: string;
+    status?: string;
+    message?: string;
+    code?: string;
+  };
+
+  const reference = json.reference || json.transaction_id;
+  if (!res.ok || !reference) {
+    const parts = [json.code, json.message, `HTTP ${res.status}`].filter(Boolean);
+    throw new Error(parts.join(" — ") || "FeexPay collect init failed");
+  }
+
+  return { reference, status: normalizeFeexpayStatus(json.status ?? "PENDING"), raw: json };
+}
+
+/** Statut d'un encaissement FeexPay. À appeler depuis le webhook pour re-vérifier. */
+export async function checkCollectStatus(
+  reference: string,
+): Promise<{ status: "success" | "failed" | "pending"; raw: unknown }> {
+  const res = await payoutFetch(
+    `${FEEXPAY_COLLECT_BASE}/api/transactions/getrequesttopay/integration/${encodeURIComponent(reference)}`,
+    { method: "GET", headers: { Accept: "application/json" } },
+  );
+  const json = (await res.json().catch(() => ({}))) as { status?: string; message?: string };
+  if (!res.ok || !json.status) {
+    throw new Error(json.message || `FeexPay collect status failed (HTTP ${res.status})`);
+  }
+  return { status: normalizeFeexpayStatus(json.status), raw: json };
+}
