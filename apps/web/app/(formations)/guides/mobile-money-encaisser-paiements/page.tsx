@@ -148,7 +148,7 @@ const sections: GuideSection[] = [
     content: (
       <>
         <GP>
-          Novakou a intégré nativement <GStrong>Moneroo</GStrong>, l'agrégateur de paiement leader en Afrique francophone. Vous ne contractez pas individuellement avec chaque opérateur.
+          Novakou agrège nativement <GStrong>tous les opérateurs Mobile Money</GStrong> derrière un écran de paiement unique. Vous ne contractez pas individuellement avec chaque opérateur.
         </GP>
         <GH3>Étape 1 — Activer les méthodes de paiement</GH3>
         <GP>

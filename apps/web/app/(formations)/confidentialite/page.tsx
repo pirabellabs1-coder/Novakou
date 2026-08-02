@@ -62,7 +62,7 @@ export default function ConfidentialitePage() {
               <li><strong>Données d&apos;identification et de compte</strong> : prénom, nom, adresse e-mail, mot de passe (haché), rôle (apprenant, vendeur, mentor, affilié), pays, langue, photo de profil éventuelle.</li>
               <li><strong>Données de contact et de facturation</strong> : adresse e-mail, téléphone (le cas échéant), informations nécessaires à l&apos;émission des factures.</li>
               <li><strong>Données de vérification d&apos;identité (KYC)</strong> — vendeurs, mentors : pièce d&apos;identité, justificatifs, coordonnées de versement (Mobile Money, RIB), nécessaires à la lutte contre la fraude et au versement des gains.</li>
-              <li><strong>Données de paiement</strong> : les informations bancaires et de carte sont collectées et traitées directement par nos prestataires de paiement (Moneroo, Stripe). Novakou n&apos;a jamais accès aux numéros complets de carte bancaire.</li>
+              <li><strong>Données de paiement</strong> : les informations bancaires et de carte sont collectées et traitées directement par nos prestataires de paiement agréés. Novakou n&apos;a jamais accès aux numéros complets de carte bancaire.</li>
               <li><strong>Données de transaction</strong> : historique d&apos;achats, ventes, retraits, commissions, litiges.</li>
               <li><strong>Contenu que vous publiez</strong> : formations, produits, descriptions, avis, messages, réponses aux questions.</li>
               <li><strong>Données techniques et d&apos;usage</strong> : adresse IP, type d&apos;appareil et de navigateur, pages consultées, mesures d&apos;audience anonymisées ou pseudonymisées, journaux de sécurité (connexions).</li>
@@ -122,7 +122,7 @@ export default function ConfidentialitePage() {
             <ul className="list-disc pl-6 space-y-1">
               <li><strong>Supabase</strong> — hébergement de la base de données, authentification et stockage (région UE, Francfort).</li>
               <li><strong>Vercel</strong> — hébergement et diffusion de l&apos;application web.</li>
-              <li><strong>Moneroo</strong> — traitement des paiements et versements Mobile Money.</li>
+              <li><strong>Prestataires de paiement agréés</strong> — traitement des paiements et versements Mobile Money.</li>
               <li><strong>Stripe</strong> — traitement des paiements internationaux par carte.</li>
               <li><strong>Resend</strong> — envoi des e-mails transactionnels et marketing.</li>
               <li><strong>Cloudinary</strong> — hébergement et optimisation des images publiques.</li>

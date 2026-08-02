@@ -118,7 +118,7 @@ export default async function CGUPage() {
 
           <Section n="8" title="Paiements, séquestre (escrow) et retraits">
             <p>
-              Les paiements sont traités par nos prestataires <strong>Moneroo</strong> et <strong>Stripe</strong>. À la
+              Les paiements sont traités par nos prestataires de paiement agréés. À la
               commande, les fonds sont sécurisés puis crédités sur le solde du vendeur une fois la vente confirmée. Un
               délai de sécurité s&apos;applique avant retrait. Les retraits sont disponibles vers Mobile Money (Orange, Wave,
               MTN, Moov) ou virement, sous réserve de la validation KYC.

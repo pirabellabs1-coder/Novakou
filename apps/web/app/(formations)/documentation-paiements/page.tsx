@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Documentation des paiements — Novakou",
   description:
-    "Comment fonctionnent les paiements sur Novakou : processeur Moneroo, carte bancaire et Mobile Money, séquestre, retraits, commissions, codes promo, order bumps et affiliation. Cadre de sécurité et obligations.",
+    "Comment fonctionnent les paiements sur Novakou : écran de paiement unique, carte bancaire et Mobile Money, séquestre, retraits, commissions, codes promo, order bumps et affiliation. Cadre de sécurité et obligations.",
 };
 
 function Section({ id, icon: Icon, title, children }: { id: string; icon: typeof ShieldCheck; title: string; children: React.ReactNode }) {
@@ -72,18 +72,19 @@ export default function DocumentationPaiementsPage() {
           <Section id="fonctionnement" icon={CreditCard} title="Comment fonctionne un paiement">
             <p>
               Novakou n&apos;encaisse jamais l&apos;argent directement sur ses serveurs. Chaque paiement est traité par
-              <strong> Moneroo</strong>, notre processeur de paiement partenaire, spécialisé sur l&apos;Afrique francophone.
-              Le parcours est le suivant :
+              un <strong>prestataire de paiement agréé</strong>, choisi automatiquement selon le pays et le moyen
+              retenus par le client. Le parcours est le suivant :
             </p>
             <ol className="list-decimal pl-5 space-y-1.5">
               <li>Le client clique sur « Payer » depuis votre page de vente ou votre tunnel.</li>
-              <li>Il est redirigé vers la <strong>page de paiement sécurisée de Moneroo</strong>, où il saisit ses informations (carte ou Mobile Money).</li>
-              <li>Une fois le paiement confirmé, Moneroo notifie Novakou de façon sécurisée.</li>
+              <li>Il arrive sur <strong>l&apos;écran de paiement Novakou</strong> : il choisit son pays, puis son moyen de paiement parmi ceux réellement disponibles chez lui.</li>
+              <li>En Mobile Money, la demande de paiement part directement sur son téléphone. Par carte, il est redirigé vers une page bancaire sécurisée.</li>
+              <li>Une fois le paiement confirmé, le prestataire notifie Novakou de façon sécurisée.</li>
               <li>L&apos;accès au produit est débloqué <strong>immédiatement et automatiquement</strong>, un e-mail de confirmation est envoyé, et la vente apparaît dans votre tableau de bord.</li>
             </ol>
             <p className="text-sm text-[#5c647a]">
               Les données bancaires de vos clients ne transitent jamais par Novakou : elles sont saisies uniquement
-              sur l&apos;environnement certifié de Moneroo.
+              sur l&apos;environnement certifié du prestataire bancaire.
             </p>
           </Section>
 
@@ -102,16 +103,16 @@ export default function DocumentationPaiementsPage() {
               </div>
             </div>
             <p className="text-sm text-[#5c647a]">
-              La liste exacte des opérateurs dépend du pays du client. C&apos;est Moneroo qui présente les options
-              disponibles au moment du paiement — vous n&apos;avez rien à configurer.
+              La liste exacte des opérateurs dépend du pays du client : il le sélectionne au moment de payer et ne
+              voit que les moyens réellement encaissables chez lui — vous n&apos;avez rien à configurer.
             </p>
           </Section>
 
           <Section id="securite" icon={ShieldCheck} title="Sécurité & conformité">
             <ul className="space-y-2">
               {[
-                "Aucune donnée bancaire n'est stockée par Novakou. La saisie se fait exclusivement chez Moneroo, sur une page chiffrée (SSL).",
-                "Chaque notification de paiement est vérifiée par signature cryptographique, puis recontrôlée directement auprès de Moneroo avant de débloquer l'accès — impossible de falsifier une vente.",
+                "Aucune donnée bancaire n'est stockée par Novakou. La saisie se fait exclusivement chez le prestataire bancaire, sur une page chiffrée (SSL).",
+                "Chaque notification de paiement est vérifiée par signature cryptographique, puis recontrôlée directement auprès du prestataire avant de débloquer l'accès — impossible de falsifier une vente.",
                 "Le montant reçu est comparé au montant attendu à chaque transaction : toute incohérence bloque la commande.",
                 "Les accès (retrait de fonds, publication) sont protégés par une vérification d'identité progressive (KYC).",
               ].map((t, i) => (
@@ -133,7 +134,7 @@ export default function DocumentationPaiementsPage() {
               <p className="text-[14px]">
                 <strong>Retraits :</strong> vous demandez un retrait vers votre compte Mobile Money ou bancaire depuis
                 l&apos;onglet Finances. Les demandes sont traitées après un court délai de sécurité. Le
-                versement effectif dépend de l&apos;ouverture des payouts Moneroo dans votre pays.
+                versement effectif dépend de l&apos;ouverture des versements dans votre pays.
               </p>
             </div>
             <p className="text-sm text-[#5c647a]">
@@ -147,7 +148,7 @@ export default function DocumentationPaiementsPage() {
             <p>
               Novakou prélève une commission sur chaque vente, selon votre plan d&apos;abonnement. Cette commission
               couvre l&apos;hébergement, le traitement des paiements et le support. Les frais du processeur de paiement
-              (Moneroo) peuvent s&apos;appliquer selon le moyen de paiement utilisé par le client.
+              du prestataire peuvent s&apos;appliquer selon le moyen de paiement utilisé par le client.
             </p>
             <p className="text-sm text-[#5c647a]">
               Le détail exact de votre commission figure sur la page <Link href="/tarifs" className="text-[#006e2f] font-semibold hover:underline">Tarifs</Link> et dans votre espace vendeur.

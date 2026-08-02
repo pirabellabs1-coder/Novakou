@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 const PILLARS = [
   { Icon: Wallet, title: "Paiement séquestré (escrow)", desc: "À chaque commande, les fonds sont sécurisés puis libérés au vendeur seulement une fois la vente confirmée. En cas de litige, ils sont gelés jusqu'au verdict." },
   { Icon: Fingerprint, title: "Vendeurs vérifiés (KYC)", desc: "Les vendeurs et mentors passent une vérification d'identité avant de publier des offres payantes et de retirer des fonds — un rempart contre la fraude." },
-  { Icon: Lock, title: "Paiements chiffrés", desc: "Les paiements sont traités par Moneroo et Stripe. Vos données bancaires ne transitent jamais en clair et Novakou n'a jamais accès à votre numéro de carte." },
+  { Icon: Lock, title: "Paiements chiffrés", desc: "Les paiements sont traités par nos prestataires agréés. Vos données bancaires ne transitent jamais en clair et Novakou n'a jamais accès à votre numéro de carte." },
   { Icon: RefreshCcw, title: "Protection de l'acheteur", desc: "Politique de remboursement claire, validation à la livraison et possibilité d'ouvrir un litige si la prestation n'est pas conforme." },
   { Icon: BadgeCheck, title: "Protection du vendeur", desc: "Vos gains sont sécurisés et versés sur votre solde, avec un délai de sécurité anti-fraude avant retrait vers Mobile Money ou virement." },
   { Icon: FileLock2, title: "Contenus protégés", desc: "Vidéos et documents sont hébergés de façon sécurisée et protégés contre le téléchargement et le partage non autorisé." },
@@ -45,7 +45,7 @@ const SECURITY_TECH = [
 
 const FAQ = [
   { q: "Que se passe-t-il si je paie et ne reçois pas mon produit ?", a: "Le paiement est séquestré. Si la prestation n'est pas livrée ou n'est pas conforme, vous pouvez ouvrir un litige : les fonds restent gelés jusqu'à la résolution par notre équipe, sur la base des éléments fournis par les deux parties." },
-  { q: "Mes informations bancaires sont-elles en sécurité ?", a: "Oui. Les paiements sont traités directement par nos prestataires certifiés (Moneroo, Stripe). Novakou ne stocke jamais vos numéros de carte." },
+  { q: "Mes informations bancaires sont-elles en sécurité ?", a: "Oui. Les paiements sont traités directement par nos prestataires certifiés. Novakou ne stocke jamais vos numéros de carte." },
   { q: "Comment savoir qu'un vendeur est fiable ?", a: "Les vendeurs qui vendent des contenus payants et retirent des fonds sont vérifiés (KYC). Vous pouvez aussi consulter les avis vérifiés laissés par de vrais acheteurs." },
   { q: "Mes contenus de formation peuvent-ils être piratés ?", a: "Nous appliquons des protections contre le téléchargement direct des vidéos et documents, et l'accès est réservé aux acheteurs authentifiés." },
 ];

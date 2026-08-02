@@ -23,7 +23,7 @@ const PAYMENT_PARTNERS = [
   { name: "Orange Money", desc: "Mobile Money disponible en Afrique francophone (CI, SN, CM, BF...)", icon: Smartphone, color: "#ff6b00" },
   { name: "Wave", desc: "Paiements et transferts instantanés au Sénégal et Côte d'Ivoire", icon: Waves, color: "#1dafff" },
   { name: "MTN MoMo", desc: "Mobile Money sur les marchés MTN d'Afrique de l'Ouest et centrale", icon: Smartphone, color: "#ffcb05" },
-  { name: "Moneroo", desc: "Agrégateur multi-paiements panafricain (cartes, Mobile Money, virements)", icon: CreditCard, color: "#7c3aed" },
+  { name: "Moov Money", desc: "Mobile Money sur les marchés Moov (Bénin, Togo, Côte d'Ivoire, Burkina)", icon: Smartphone, color: "#0066b3" },
   { name: "Stripe", desc: "Paiements internationaux par carte (Visa, Mastercard) pour la diaspora", icon: CreditCard, color: "#635bff" },
 ];
 
