@@ -122,6 +122,12 @@ const nextConfig: NextConfig = {
 // withSentryConfig wrap par-dessus next-intl. Tous les options Sentry sont
 // no-op si SENTRY_AUTH_TOKEN n'est pas défini en env → safe en dev local
 // sans casser le build, et actif dès que Vercel a l'env var en prod.
+// Sans SENTRY_AUTH_TOKEN, Sentry NE PEUT PAS envoyer les sourcemaps — les
+// générer quand même consomme beaucoup de RAM et de disque au build pour rien
+// (cause de l'échec « Out of Memory » sur Vercel). On ne les génère donc que si
+// le jeton est présent ; sinon on coupe complètement leur génération.
+const sentryHasAuthToken = Boolean(process.env.SENTRY_AUTH_TOKEN);
+
 export default withSentryConfig(withNextIntl(nextConfig), {
   // Identifiants org/project Sentry — à définir en env Vercel.
   // Si absents, Sentry skip silencieusement l'upload mais le build passe.
@@ -132,9 +138,12 @@ export default withSentryConfig(withNextIntl(nextConfig), {
   // Build silent sauf en CI (logs CI utiles pour diagnostic).
   silent: !process.env.CI,
 
+  // Pas de jeton = pas d'upload possible → on désactive la génération.
+  sourcemaps: { disable: !sentryHasAuthToken },
+
   // Upload aussi les sourcemaps des chunks client (sinon stack traces
-  // browser minifiées illisibles).
-  widenClientFileUpload: true,
+  // browser minifiées illisibles). Inutile sans jeton.
+  widenClientFileUpload: sentryHasAuthToken,
 
   // Cache les sourcemaps en prod après upload (sécurité — empêche un
   // visiteur web de récupérer le code source via DevTools).
