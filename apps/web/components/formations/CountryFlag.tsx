@@ -82,6 +82,27 @@ const FLAGS: Record<string, React.ReactNode> = {
       <Star cx={12} cy={8} r={3.4} fill="#FCD116" />
     </>
   ),
+  // Niger — trois bandes horizontales égales orange / blanc / vert, disque
+  // orange centré dans la bande blanche.
+  ne: (
+    <>
+      <rect x="0" y="0" width="24" height="5.333" fill="#E05206" />
+      <rect x="0" y="5.333" width="24" height="5.334" fill="#FFFFFF" />
+      <rect x="0" y="10.667" width="24" height="5.333" fill="#0DB02B" />
+      <circle cx="12" cy="8" r="2.4" fill="#E05206" />
+    </>
+  ),
+  // Congo-Brazzaville — partagé en diagonale du coin bas-hampe au coin
+  // haut-flottant : vert côté hampe, rouge côté flottant, bande jaune entre
+  // les deux. Les sommets sont calculés sur la droite x/24 + y/16 = 1 décalée
+  // de ±0,28 — dessiner « à peu près » donnait une bande de travers.
+  cg: (
+    <>
+      <rect width="24" height="16" fill="#FBDE4A" />
+      <polygon points="0,0 17.28,0 0,11.52" fill="#009543" />
+      <polygon points="24,4.48 24,16 6.72,16" fill="#DC241F" />
+    </>
+  ),
 };
 
 export function CountryFlag({ code, className = "" }: Props) {

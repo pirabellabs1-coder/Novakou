@@ -304,7 +304,12 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // ─────────────────────── Cartes bancaires ───────────────────────
   card_xof: {
     label: "Carte bancaire", country: "", currency: "XOF", family: "card",
-    collect: { kkiapay: { code: "card" } },
+    collect: {
+      // FedaPay encaisse la carte sur SA page sécurisée : aucune donnée
+      // bancaire ne touche nos serveurs (hors périmètre PCI-DSS).
+      fedapay: { code: "hosted", params: { hosted: "1" } },
+      kkiapay: { code: "card" },
+    },
     payout: {},
   },
   card_xaf: {

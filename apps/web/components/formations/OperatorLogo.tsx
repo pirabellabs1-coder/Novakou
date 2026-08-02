@@ -21,6 +21,9 @@ const BRANDS: Array<{ match: RegExp; bg: string; fg: string; text: string }> = [
   { match: /^wizall_/, bg: "#8DC63F", fg: "#0d2b00", text: "WZ" },   // Wizall
   { match: /^djamo_/, bg: "#111827", fg: "#ffffff", text: "DJ" },    // Djamo
   { match: /^togocel/, bg: "#0057B8", fg: "#ffffff", text: "TG" },   // Togocel
+  { match: /^celtiis_/, bg: "#0C2C84", fg: "#ffffff", text: "CT" },  // Celtiis Cash
+  { match: /^coris_/, bg: "#00A0DF", fg: "#ffffff", text: "CO" },    // Coris Money
+  { match: /^airtel_/, bg: "#E40000", fg: "#ffffff", text: "AM" },   // Airtel Money
 ];
 
 /** Marque « carte bancaire » : deux disques entrelacés, universellement lus. */

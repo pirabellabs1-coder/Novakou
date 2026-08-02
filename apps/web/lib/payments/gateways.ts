@@ -301,10 +301,27 @@ export async function availableCountries(): Promise<Array<{ code: string; operat
 export async function resolveCollectProvider(
   operator: string,
 ): Promise<{ provider: ProviderId; code: string } | null> {
-  if (!operator) return null;
+  return (await resolveCollectProviders(operator))[0] ?? null;
+}
+
+/**
+ * TOUTES les passerelles capables d'encaisser cet opérateur, par priorité.
+ *
+ * Renvoyer la liste et non la seule première permet à l'initialisation de
+ * BASCULER quand une passerelle échoue. Ce n'est pas théorique : le 2026-08-02,
+ * l'API d'encaissement de FeexPay a répondu 502 sur toutes ses routes pendant
+ * plusieurs heures. Sans bascule, toutes les ventes du Bénin, de Côte d'Ivoire,
+ * du Togo et du Sénégal tombaient — alors qu'une autre passerelle active savait
+ * les traiter.
+ */
+export async function resolveCollectProviders(
+  operator: string,
+): Promise<Array<{ provider: ProviderId; code: string }>> {
+  if (!operator) return [];
+  const out: Array<{ provider: ProviderId; code: string }> = [];
   for (const provider of await activeProviders("collect")) {
     const route = routeFor(operator, provider, "collect");
-    if (route) return { provider, code: route.code };
+    if (route) out.push({ provider, code: route.code });
   }
-  return null;
+  return out;
 }

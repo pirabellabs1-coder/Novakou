@@ -53,8 +53,11 @@ test("aucun mode FedaPay inventé", () => {
   const inconnus: string[] = [];
   for (const [op] of Object.entries(OPERATORS)) {
     for (const dir of ["collect", "payout"] as const) {
-      const code = routeFor(op, "fedapay", dir)?.code;
-      if (code && !FEDAPAY_MODES.has(code)) inconnus.push(`${op}.${dir} → « ${code} »`);
+      const route = routeFor(op, "fedapay", dir);
+      // Une route « hébergée » n'a pas de mode : elle redirige vers la page
+      // sécurisée du fournisseur au lieu de pousser un débit.
+      if (!route || route.params?.hosted) continue;
+      if (!FEDAPAY_MODES.has(route.code)) inconnus.push(`${op}.${dir} → « ${route.code} »`);
     }
   }
   expect(inconnus, "modes absents de la doc FedaPay").toEqual([]);

@@ -3,8 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
-import { resolveCollectProvider, activeProviders } from "@/lib/payments/gateways";
-import { resolveOperatorCode, getProvider, countryFromPhone, currencyForOperator } from "@/lib/payments/registry";
+import { resolveCollectProviders, activeProviders } from "@/lib/payments/gateways";
+import { resolveOperatorCode, getProvider, countryFromPhone, currencyForOperator, type ProviderId } from "@/lib/payments/registry";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
 import { computeCheckoutDiscount } from "@/lib/formations/checkout-discount";
 import { isAllowedBuyerEmail, ALLOWED_BUYER_EMAIL_MESSAGE } from "@/lib/email/allowed-buyer-email";
@@ -363,7 +363,10 @@ export async function POST(request: Request) {
         phone: phoneRaw ?? null,
       }) ?? "";
 
-    const resolved = await resolveCollectProvider(chosenOperator);
+    // Toutes les passerelles capables, par priorité — pas seulement la
+    // première : si elle tombe, on bascule sur la suivante.
+    const candidates = await resolveCollectProviders(chosenOperator);
+    const resolved = candidates[0] ?? null;
 
     async function failAttempt(reason: string, code: string) {
       await prisma.checkoutAttempt
@@ -433,74 +436,106 @@ export async function POST(request: Request) {
     }
 
     // ── Passerelle serveur : on débite, l'acheteur confirme sur son téléphone ──
-    let directRef: string;
-    try {
-      if (resolved.provider === "feexpay") {
-        if (!phoneRaw) {
-          await failAttempt("Numéro de téléphone manquant", "missing_phone");
-          return NextResponse.json(
-            { error: "Un numéro de téléphone est requis pour ce moyen de paiement." },
-            { status: 400 },
-          );
-        }
-        const { initCollect } = await import("@/lib/feexpay");
-        const r = await initCollect({
-          operator: chosenOperator,
-          amount: Math.round(totalAmount),
-          phoneNumber: phoneRaw,
-          // Devise de l'opérateur, pas une constante : l'Afrique centrale est
-          // en XAF. XOF et XAF ont la même parité, mais le fournisseur refuse
-          // une transaction dont la devise ne correspond pas à son réseau.
-          currency: currencyForOperator(chosenOperator) ?? "XOF",
-          description,
-          customId: internalRef,
-          firstName: first || "Client",
-          email: userEmail || undefined,
-        });
-        directRef = r.reference;
-      } else if (resolved.provider === "fedapay") {
-        const { initCollect } = await import("@/lib/fedapay");
-        const r = await initCollect({
-          operator: chosenOperator,
-          amount: Math.round(totalAmount),
-          currencyIso: currencyForOperator(chosenOperator) ?? "XOF",
-          description,
-          phoneNumber: phoneRaw ? `+${phoneRaw.replace(/\D/g, "")}` : undefined,
-          countryIso: countryFromPhone(phoneRaw) ?? undefined,
-          customer: {
-            firstname: first || "Client",
-            lastname: last,
-            email: userEmail || "client@novakou.com",
-          },
-          merchantReference: internalRef,
-          callbackUrl: returnUrl,
-        });
-        // FedaPay peut renvoyer une page hébergée (carte) plutôt qu'un push.
-        if (r.redirectUrl) {
-          await prisma.checkoutAttempt
-            .update({ where: { id: attempt.id }, data: { providerRef: r.reference } })
-            .catch(() => null);
-          return NextResponse.json({
-            data: { checkout_url: r.redirectUrl, provider: resolved.provider, internalRef, attemptId: attempt.id },
+    //
+    // BASCULE. Si la première passerelle échoue, on tente la suivante capable
+    // du même opérateur. C'est sûr : tant qu'aucune référence n'est revenue,
+    // aucune demande n'est partie sur le téléphone de l'acheteur — il n'y a
+    // donc aucun risque de double débit. Le 2026-08-02, l'API d'encaissement
+    // de FeexPay a répondu 502 pendant des heures ; sans bascule, toutes les
+    // ventes tombaient alors qu'une autre passerelle savait les traiter.
+    const serverCandidates = candidates.filter(
+      (c) => getProvider(c.provider)?.collectIntegration !== "widget",
+    );
+    let directRef: string | null = null;
+    let usedProvider: ProviderId = resolved.provider;
+    const failures: string[] = [];
+
+    for (const candidate of serverCandidates) {
+      try {
+        if (candidate.provider === "feexpay") {
+          if (!phoneRaw) {
+            await failAttempt("Numéro de téléphone manquant", "missing_phone");
+            return NextResponse.json(
+              { error: "Un numéro de téléphone est requis pour ce moyen de paiement." },
+              { status: 400 },
+            );
+          }
+          const { initCollect } = await import("@/lib/feexpay");
+          const r = await initCollect({
+            operator: chosenOperator,
+            amount: Math.round(totalAmount),
+            phoneNumber: phoneRaw,
+            // Devise de l'opérateur, pas une constante : l'Afrique centrale est
+            // en XAF. XOF et XAF ont la même parité, mais le fournisseur refuse
+            // une transaction dont la devise ne correspond pas à son réseau.
+            currency: currencyForOperator(chosenOperator) ?? "XOF",
+            description,
+            customId: internalRef,
+            firstName: first || "Client",
+            email: userEmail || undefined,
           });
+          directRef = r.reference;
+        } else if (candidate.provider === "fedapay") {
+          const { initCollect } = await import("@/lib/fedapay");
+          const r = await initCollect({
+            operator: chosenOperator,
+            amount: Math.round(totalAmount),
+            currencyIso: currencyForOperator(chosenOperator) ?? "XOF",
+            description,
+            phoneNumber: phoneRaw ? `+${phoneRaw.replace(/\D/g, "")}` : undefined,
+            countryIso: countryFromPhone(phoneRaw) ?? undefined,
+            customer: {
+              firstname: first || "Client",
+              lastname: last,
+              email: userEmail || "client@novakou.com",
+            },
+            merchantReference: internalRef,
+            callbackUrl: returnUrl,
+          });
+          // FedaPay peut renvoyer une page hébergée (carte) plutôt qu'un push.
+          if (r.redirectUrl) {
+            await prisma.checkoutAttempt
+              .update({
+                where: { id: attempt.id },
+                data: { providerRef: r.reference, metadata: { ...providerMetadata, paymentProvider: candidate.provider } as never },
+              })
+              .catch(() => null);
+            return NextResponse.json({
+              data: { checkout_url: r.redirectUrl, provider: candidate.provider, internalRef, attemptId: attempt.id },
+            });
+          }
+          directRef = r.reference;
+        } else {
+          failures.push(`${candidate.provider} : non implémentée`);
+          continue;
         }
-        directRef = r.reference;
-      } else {
-        await failAttempt(`Passerelle non implémentée : ${resolved.provider}`, "provider_unimplemented");
-        return NextResponse.json(
-          { error: "Ce moyen de paiement n'est pas disponible pour le moment.", code: "NO_GATEWAY" },
-          { status: 400 },
-        );
+        usedProvider = candidate.provider;
+        break;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Erreur inconnue";
+        failures.push(`${candidate.provider} : ${message}`);
+        console.error(`[payment/init:${candidate.provider}]`, err);
+        // On tente la passerelle suivante — rien n'a été débité.
       }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Erreur inconnue";
-      await failAttempt(message, `${resolved.provider}_init_failed`);
-      console.error(`[payment/init:${resolved.provider}]`, err);
+    }
+
+    if (!directRef) {
+      const detail = failures.join(" | ") || "Aucune passerelle serveur disponible";
+      await failAttempt(detail, "all_gateways_failed");
       return NextResponse.json(
-        { error: "Le paiement n'a pas pu être lancé. Réessayez dans un instant.", detail: message },
+        { error: "Le paiement n'a pas pu être lancé. Réessayez dans un instant.", detail },
         { status: 502 },
       );
     }
+
+    // La passerelle retenue peut différer de la première : le suivi de statut
+    // et la réconciliation doivent interroger CELLE qui a la transaction.
+    await prisma.checkoutAttempt
+      .update({
+        where: { id: attempt.id },
+        data: { metadata: { ...providerMetadata, paymentProvider: usedProvider } as never },
+      })
+      .catch(() => null);
 
     await prisma.checkoutAttempt
       .update({ where: { id: attempt.id }, data: { providerRef: directRef } })
@@ -512,10 +547,10 @@ export async function POST(request: Request) {
       data: {
         checkout_url:
           `/payment/attente?ref=${encodeURIComponent(internalRef)}` +
-          `&provider=${resolved.provider}` +
+          `&provider=${usedProvider}` +
           `&pid=${encodeURIComponent(directRef)}` +
           `&attempt=${attempt.id}`,
-        provider: resolved.provider,
+        provider: usedProvider,
         provider_ref: directRef,
         internalRef,
         amount: totalAmount,

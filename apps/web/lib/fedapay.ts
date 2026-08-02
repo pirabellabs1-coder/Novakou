@@ -229,7 +229,12 @@ export function normalizeFedapayStatus(s: FedapayPayoutStatus | string): "succes
  * deux listes pour la même chose, dont une qui finit par dériver.
  */
 export function fedapayModeFor(operator: string): string | null {
-  return routeFor(operator, "fedapay", "collect")?.code ?? null;
+  const route = routeFor(operator, "fedapay", "collect");
+  // Route « hébergée » (carte) : pas de mode de push, l'acheteur est redirigé
+  // vers la page sécurisée de FedaPay. Renvoyer un mode ici ferait appeler
+  // POST /transactions/hosted, qui n'existe pas.
+  if (!route || route.params?.hosted) return null;
+  return route.code;
 }
 
 export type FedapayCollectParams = {
