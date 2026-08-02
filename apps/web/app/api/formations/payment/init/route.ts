@@ -3,24 +3,13 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
-import { initPayment as initMoneroo, isMonerooConfigured } from "@/lib/moneroo";
-import { resolveMonerooMethods } from "@/lib/payments/moneroo-checkout-methods";
-import { resolveCollectProvider } from "@/lib/payments/gateways";
-import { resolveOperatorCode } from "@/lib/payments/registry";
-import { initPayment as initPayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
+import { resolveCollectProvider, activeProviders } from "@/lib/payments/gateways";
+import { resolveOperatorCode, getProvider, countryFromPhone } from "@/lib/payments/registry";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
 import { computeCheckoutDiscount } from "@/lib/formations/checkout-discount";
 import { isAllowedBuyerEmail, ALLOWED_BUYER_EMAIL_MESSAGE } from "@/lib/email/allowed-buyer-email";
 import { cookies } from "next/headers";
 import crypto from "crypto";
-
-type PaymentProvider = "moneroo" | "paygenius";
-
-function resolveProvider(_raw: unknown): PaymentProvider {
-  // Moneroo est la SEULE passerelle du site (décision fondateur, définitive).
-  // Aucune préférence env ni repli automatique vers un autre fournisseur.
-  return "moneroo";
-}
 
 /**
  * POST /api/formations/payment/init
@@ -32,8 +21,8 @@ function resolveProvider(_raw: unknown): PaymentProvider {
  *   guestName?: string,
  * }
  *
- * Initializes a Moneroo payment session, stores a pending order ref,
- * and returns the checkout_url to redirect the user.
+ * Encaisse via NOS passerelles (registre + passerelles activées).
+ * Aucun agrégateur tiers : si personne ne couvre l'opérateur, on refuse.
  */
 export async function POST(request: Request) {
   try {
@@ -254,13 +243,13 @@ export async function POST(request: Request) {
     // App URL for return redirects (used in both mock and real flows)
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-    // Choix du provider : "moneroo" (défaut) ou "paygenius"
-    const provider = resolveProvider(body.provider);
-    const providerConfigured = provider === "paygenius" ? isPayGeniusConfigured() : isMonerooConfigured();
-
-    // Si le provider demandé n'est pas configuré (dev / clés manquantes),
-    // on simule un paiement réussi via la page mock.
-    if (!providerConfigured) {
+    // En développement sans aucune passerelle branchée, on simule un paiement
+    // réussi via la page mock — sinon impossible de tester le parcours en local.
+    // En production, l'absence de passerelle est traitée plus bas par un refus
+    // explicite : on ne simule JAMAIS un encaissement réel.
+    const provider = "novakou";
+    const anyGatewayConfigured = (await activeProviders("collect")).length > 0;
+    if (!anyGatewayConfigured && IS_DEV) {
       const internalRef = `dev:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
       const mockUrl = new URL("/payment/return", appUrl);
       mockUrl.searchParams.set("mock", "1");
@@ -285,7 +274,7 @@ export async function POST(request: Request) {
     }
 
     // Init real payment via le provider sélectionné
-    const refPrefix = provider === "paygenius" ? "pg" : "mnr";
+    const refPrefix = "nk"; // référence interne Novakou
     const internalRef = `${refPrefix}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
     const fName = userName ?? userEmail?.split("@")[0] ?? "Apprenant";
     const [first, ...rest] = fName.split(" ");
@@ -359,29 +348,88 @@ export async function POST(request: Request) {
     const returnUrl = `${appUrl}/payment/return?ref=${encodeURIComponent(internalRef)}&attempt=${attempt.id}&provider=${provider}`;
     const description = `Achat Novakou — ${formations.length + products.length} produit(s)`;
 
-    let providerId: string;
-    let checkoutUrl: string;
-
-    // ── ROUTAGE PAR LE REGISTRE ────────────────────────────────────────────
-    // On demande au registre quelle passerelle activée sait encaisser
-    // l'opérateur choisi. Si c'en est une qui encaisse EN DIRECT (push sur le
-    // téléphone, sans page hébergée), on la prend : l'acheteur reste chez nous.
-    // Sinon on garde le chemin historique — jamais de vente perdue parce qu'une
-    // passerelle est mal configurée.
-    // Les écrans envoient un code GÉNÉRIQUE ("orange_money"), le registre est
-    // indexé par pays ("orange_ci"). Sans cette traduction, la résolution
-    // échouait toujours et tout retombait sur la passerelle historique.
+    // ── ENCAISSEMENT PAR NOS PROPRES PASSERELLES ───────────────────────────
+    //
+    // Le registre désigne la passerelle ACTIVÉE qui sait encaisser l'opérateur
+    // choisi. Il n'y a plus AUCUN repli vers un agrégateur tiers : si personne
+    // ne couvre l'opérateur, on refuse clairement plutôt que de renvoyer
+    // discrètement l'acheteur ailleurs (décision fondateur).
+    //
+    // Les écrans envoient un code GÉNÉRIQUE ("orange_money") ; le registre est
+    // indexé par pays ("orange_ci"). D'où la traduction préalable.
     const chosenOperator =
       resolveOperatorCode(typeof body.paymentMethod === "string" ? body.paymentMethod : "", {
         country: typeof body.country === "string" ? body.country : null,
         phone: phoneRaw ?? null,
       }) ?? "";
-    let directCollect: { provider: string; reference: string } | null = null;
+
+    const resolved = await resolveCollectProvider(chosenOperator);
+
+    async function failAttempt(reason: string, code: string) {
+      await prisma.checkoutAttempt
+        .update({
+          where: { id: attempt.id },
+          data: { status: "FAILED", failureReason: reason.slice(0, 500), failureCode: code },
+        })
+        .catch(() => null);
+    }
+
+    if (!resolved) {
+      await failAttempt(`Aucune passerelle n'encaisse « ${chosenOperator || body.paymentMethod} »`, "no_gateway");
+      return NextResponse.json(
+        {
+          error:
+            "Ce moyen de paiement n'est pas disponible pour le moment. Choisissez-en un autre.",
+          code: "NO_GATEWAY",
+        },
+        { status: 400 },
+      );
+    }
+
+    // ── Passerelle à widget (KkiaPay) : le paiement s'ouvre côté navigateur ──
+    // On renvoie de quoi ouvrir la fenêtre modale sur NOTRE page. Seule la clé
+    // PUBLIQUE part au navigateur. La transaction sera revérifiée côté serveur
+    // avant toute livraison.
+    const meta = getProvider(resolved.provider);
+    if (meta?.collectIntegration === "widget") {
+      const { getKkiapayPublicKey, isKkiapayConfigured } = await import("@/lib/kkiapay");
+      if (resolved.provider !== "kkiapay" || !isKkiapayConfigured()) {
+        await failAttempt(`Passerelle widget non configurée : ${resolved.provider}`, "widget_not_configured");
+        return NextResponse.json(
+          { error: "Ce moyen de paiement n'est pas disponible pour le moment.", code: "NO_GATEWAY" },
+          { status: 400 },
+        );
+      }
+      return NextResponse.json({
+        data: {
+          mode: "widget",
+          provider: resolved.provider,
+          publicKey: getKkiapayPublicKey(),
+          paymentMethod: resolved.code, // "momo" | "card"
+          amount: Math.round(totalAmount),
+          phone: phoneRaw ?? "",
+          email: userEmail ?? "",
+          name: `${first || "Client"} ${last}`.trim(),
+          internalRef,
+          attemptId: attempt.id,
+          amountLabel: "XOF",
+        },
+      });
+    }
+
+    // ── Passerelle serveur : on débite, l'acheteur confirme sur son téléphone ──
+    let directRef: string;
     try {
-      const resolved = await resolveCollectProvider(chosenOperator);
-      if (resolved?.provider === "feexpay" && phoneRaw) {
-        const { initCollect: feexpayCollect } = await import("@/lib/feexpay");
-        const r = await feexpayCollect({
+      if (resolved.provider === "feexpay") {
+        if (!phoneRaw) {
+          await failAttempt("Numéro de téléphone manquant", "missing_phone");
+          return NextResponse.json(
+            { error: "Un numéro de téléphone est requis pour ce moyen de paiement." },
+            { status: 400 },
+          );
+        }
+        const { initCollect } = await import("@/lib/feexpay");
+        const r = await initCollect({
           operator: chosenOperator,
           amount: Math.round(totalAmount),
           phoneNumber: phoneRaw,
@@ -391,111 +439,66 @@ export async function POST(request: Request) {
           firstName: first || "Client",
           email: userEmail || undefined,
         });
-        directCollect = { provider: "feexpay", reference: r.reference };
-      }
-    } catch (err) {
-      // Échec de l'encaissement direct : on NE bloque PAS la vente, on retombe
-      // sur le chemin historique. L'erreur est tracée pour diagnostic.
-      console.error("[payment/init] encaissement direct impossible, repli :", err);
-    }
-
-    if (directCollect) {
-      // Pas de page hébergée : l'acheteur confirme sur son téléphone. On
-      // l'envoie sur NOTRE page d'attente, qui interroge le statut.
-      await prisma.checkoutAttempt
-        .update({
-          where: { id: attempt.id },
-          data: { metadata: { ...(providerMetadata as object), paymentProvider: directCollect.provider } as never },
-        })
-        .catch(() => null);
-
-      return NextResponse.json({
-        data: {
-          checkout_url:
-            `/payment/attente?ref=${encodeURIComponent(internalRef)}` +
-            `&provider=${directCollect.provider}` +
-            `&pid=${encodeURIComponent(directCollect.reference)}` +
-            `&attempt=${attempt.id}`,
-          provider: directCollect.provider,
-          reference: directCollect.reference,
-          internalRef,
-        },
-      });
-    }
-
-    try {
-      if (provider === "paygenius") {
-        const pg = await initPayGenius({
+        directRef = r.reference;
+      } else if (resolved.provider === "fedapay") {
+        const { initCollect } = await import("@/lib/fedapay");
+        const r = await initCollect({
+          operator: chosenOperator,
           amount: Math.round(totalAmount),
-          currency: "XOF",
+          currencyIso: "XOF",
           description,
+          phoneNumber: phoneRaw ? `+${phoneRaw.replace(/\D/g, "")}` : undefined,
+          countryIso: countryFromPhone(phoneRaw) ?? undefined,
           customer: {
+            firstname: first || "Client",
+            lastname: last,
             email: userEmail || "client@novakou.com",
-            name: `${first || "Apprenant"} ${last}`.trim(),
-            phone: phoneRaw,
           },
-          return_url: returnUrl,
-          metadata: providerMetadata,
+          merchantReference: internalRef,
+          callbackUrl: returnUrl,
         });
-        providerId = pg.reference; // on stocke la `reference` (MTX-…) pour retrouver via /payments/{ref}
-        checkoutUrl = pg.checkout_url;
+        // FedaPay peut renvoyer une page hébergée (carte) plutôt qu'un push.
+        if (r.redirectUrl) {
+          await prisma.checkoutAttempt
+            .update({ where: { id: attempt.id }, data: { providerRef: r.reference } })
+            .catch(() => null);
+          return NextResponse.json({
+            data: { checkout_url: r.redirectUrl, provider: resolved.provider, internalRef, attemptId: attempt.id },
+          });
+        }
+        directRef = r.reference;
       } else {
-        // Respecter le moyen de paiement choisi par l'acheteur : sans `methods`,
-        // Moneroo ouvre sa page sur SA méthode par défaut (Mobile Money en XOF)
-        // — d'où le bug « je clique Carte bancaire et j'arrive sur le mobile ».
-        // Méthode inconnue/non supportée → tableau vide → on n'envoie rien et
-        // Moneroo affiche tout (dégradation sûre, jamais de checkout cassé).
-        const monerooMethods = resolveMonerooMethods(body.paymentMethod, "XOF");
-        const mnr = await initMoneroo({
-          amount: Math.round(totalAmount),
-          currency: "XOF",
-          description,
-          customer: {
-            email: userEmail || "client@novakou.com",
-            first_name: first || "Apprenant",
-            last_name: last,
-            phone: phoneRaw,
-          },
-          return_url: returnUrl,
-          metadata: providerMetadata,
-          ...(monerooMethods.length > 0 ? { methods: monerooMethods } : {}),
-        });
-        providerId = mnr.id;
-        checkoutUrl = mnr.checkout_url;
+        await failAttempt(`Passerelle non implémentée : ${resolved.provider}`, "provider_unimplemented");
+        return NextResponse.json(
+          { error: "Ce moyen de paiement n'est pas disponible pour le moment.", code: "NO_GATEWAY" },
+          { status: 400 },
+        );
       }
     } catch (err) {
-      // Marque l'attempt en FAILED si l'init du provider échoue
       const message = err instanceof Error ? err.message : "Erreur inconnue";
-      await prisma.checkoutAttempt
-        .update({
-          where: { id: attempt.id },
-          data: {
-            status: "FAILED",
-            failureReason: message.slice(0, 500),
-            failureCode: `${provider}_init_failed`,
-          },
-        })
-        .catch(() => null);
-      console.error(`[payment/init:${provider}]`, err);
+      await failAttempt(message, `${resolved.provider}_init_failed`);
+      console.error(`[payment/init:${resolved.provider}]`, err);
       return NextResponse.json(
-        { error: `Paiement : ${message}` },
-        { status: 500 },
+        { error: "Le paiement n'a pas pu être lancé. Réessayez dans un instant.", detail: message },
+        { status: 502 },
       );
     }
 
-    // Propager providerRef sur le CheckoutAttempt pour debug/correlation
-    await prisma.checkoutAttempt.update({
-      where: { id: attempt.id },
-      data: { providerRef: providerId },
-    });
+    await prisma.checkoutAttempt
+      .update({ where: { id: attempt.id }, data: { providerRef: directRef } })
+      .catch(() => null);
 
+    // Pas de page hébergée : l'acheteur confirme sur son téléphone, et notre
+    // page d'attente suit le statut jusqu'à la livraison.
     return NextResponse.json({
       data: {
-        checkout_url: checkoutUrl,
-        provider,
-        // Champ historique conservé pour rétro-compat des clients existants
-        moneroo_id: provider === "moneroo" ? providerId : undefined,
-        provider_ref: providerId,
+        checkout_url:
+          `/payment/attente?ref=${encodeURIComponent(internalRef)}` +
+          `&provider=${resolved.provider}` +
+          `&pid=${encodeURIComponent(directRef)}` +
+          `&attempt=${attempt.id}`,
+        provider: resolved.provider,
+        provider_ref: directRef,
         internalRef,
         amount: totalAmount,
         subTotal,

@@ -2,87 +2,102 @@
 // REGISTRE UNIQUE DES MOYENS DE PAIEMENT — encaissement ET versement.
 // ═══════════════════════════════════════════════════════════════════════════
 //
-// POURQUOI : jusqu'ici la connaissance était éclatée en trois endroits qui ne
-// se parlaient pas — l'encaissement câblé en dur sur une seule passerelle, les
-// codes de versement dans `payout/methods-map.ts`, le catalogue de retrait dans
-// `moneroo-payout-methods.ts`. Résultat : un opérateur pouvait être encaissable
-// sans être versable (ou l'inverse) sans que rien ne le signale.
+// Novakou agrège lui-même ses passerelles. Pour chaque opérateur : qui sait
+// encaisser, qui sait reverser, et avec quel code natif.
 //
-// Ce fichier est la SOURCE UNIQUE : pour chaque opérateur, qui sait encaisser,
-// qui sait reverser, et avec quel code natif.
+// ─── MONEROO EST RETIRÉ (décision fondateur, définitive) ───────────────────
+// Moneroo n'est PAS un moyen de paiement, c'est un intermédiaire posé au-dessus
+// de comptes marchands qui nous appartiennent déjà. Il ne doit apparaître nulle
+// part : ni comme passerelle, ni comme route, ni comme repli silencieux.
+// Conséquence assumée : un opérateur qu'aucune passerelle branchée ne couvre
+// n'est tout simplement PAS proposé — plutôt que d'être discrètement renvoyé
+// vers un tiers dont on veut sortir.
 //
 // ─── EXTENSIBLE PAR CONCEPTION ─────────────────────────────────────────────
-// Les fournisseurs ne sont PAS codés en dur dans les types : `collect` et
+// Les fournisseurs ne sont pas codés en dur dans les types : `collect` et
 // `payout` sont des dictionnaires ouverts `providerId -> route`. Intégrer une
-// nouvelle passerelle demande seulement :
-//   1. son module (init/verify), comme lib/moneroo.ts ou lib/feexpay.ts ;
-//   2. son entrée dans PROVIDERS ci-dessous ;
-//   3. ses codes dans la colonne correspondante des opérateurs qu'elle couvre.
-// Aucune signature, aucun type, aucun orchestrateur n'est à modifier.
+// passerelle demande son module, une entrée dans PROVIDERS, et ses codes dans
+// les opérateurs qu'elle couvre. Aucun type ni orchestrateur à modifier.
 //
 // ─── RÈGLE DE SÛRETÉ (argent réel) ─────────────────────────────────────────
 // On n'inscrit QUE des codes CONFIRMÉS par la documentation du fournisseur.
-// Absence de code = ce fournisseur est simplement SAUTÉ pour cet opérateur
-// dans cette direction. On ne devine JAMAIS un routage : un code inventé
-// envoie l'argent sur le mauvais réseau ou casse la transaction.
+// Absence de code = fournisseur SAUTÉ pour cet opérateur dans cette direction.
+// On ne devine JAMAIS un routage : un code inventé envoie l'argent sur le
+// mauvais réseau ou casse la transaction.
 
 export type PaymentDirection = "collect" | "payout";
 
-/** Identifiant de passerelle. Volontairement ouvert : toute nouvelle intégration
- *  s'ajoute sans modifier ce type. */
+/** Identifiant de passerelle. Ouvert : toute intégration s'ajoute sans toucher au type. */
 export type ProviderId = string;
 
 export type ProviderRoute = {
   /** Code natif du fournisseur pour cet opérateur, dans cette direction. */
   code: string;
-  /** Paramètres propres au fournisseur (endpoint, network, mode…). */
+  /** Paramètres propres au fournisseur (endpoint, réseau, mode, pays…). */
   params?: Record<string, string>;
 };
+
+/**
+ * Comment la passerelle encaisse concrètement :
+ *  - "server" : on débite depuis notre serveur (push sur le téléphone).
+ *               L'acheteur ne voit que NOTRE interface.
+ *  - "widget" : le paiement passe par le script du fournisseur, ouvert en
+ *               fenêtre modale SUR notre page. L'acheteur reste sur notre
+ *               domaine, mais l'étape de paiement affiche leur interface.
+ *               La transaction DOIT être revérifiée côté serveur : son
+ *               identifiant vient du navigateur, donc de l'acheteur.
+ */
+export type CollectIntegration = "server" | "widget";
 
 export type ProviderMeta = {
   id: ProviderId;
   label: string;
-  /** Directions réellement implémentées côté code aujourd'hui. */
+  /** Directions réellement implémentées côté code. */
   directions: PaymentDirection[];
-  /** Nom des variables d'env requises — sert au diagnostic admin. */
+  /** Mode d'encaissement — détermine comment payment/init doit s'y prendre. */
+  collectIntegration?: CollectIntegration;
+  /** Variables d'environnement requises — sert au diagnostic admin. */
   envVars: string[];
 };
 
-/** Passerelles connues du registre. Ajouter ici toute nouvelle intégration. */
+/** Passerelles connues. Ajouter ici toute nouvelle intégration. */
 export const PROVIDERS: ProviderMeta[] = [
-  {
-    id: "moneroo",
-    label: "Moneroo",
-    directions: ["collect", "payout"],
-    envVars: ["MONEROO_SECRET_KEY"],
-  },
   {
     id: "feexpay",
     label: "FeexPay",
-    // Encaissement implémenté (lib/feexpay.ts → initCollect). Endpoints relevés
-    // dans le SDK React officiel du fournisseur, leur doc REST n'étant pas
-    // publique.
+    // Encaissement : endpoints relevés dans le SDK React officiel du
+    // fournisseur (leur documentation REST n'est pas publique).
     directions: ["collect", "payout"],
+    collectIntegration: "server",
     envVars: ["FEEXPAY_API_KEY", "FEEXPAY_SHOP_ID"],
   },
   {
     id: "fedapay",
     label: "FedaPay",
-    // Encaissement implémenté (lib/fedapay.ts → initCollect), d'après la
-    // documentation officielle.
+    // Encaissement et versement d'après la documentation officielle.
     directions: ["collect", "payout"],
+    collectIntegration: "server",
     envVars: ["FEDAPAY_SECRET_KEY"],
+  },
+  {
+    id: "kkiapay",
+    label: "KkiaPay",
+    // Encaissement UNIQUEMENT par widget : KkiaPay n'expose aucune API serveur
+    // pour débiter un client (leur SDK serveur ne fait que verify/refund, et
+    // « KkiaPay Direct » n'est qu'un générateur de liens). Aucun versement
+    // documenté non plus. Apporte la carte bancaire, que les autres ne
+    // couvrent pas encore chez nous.
+    directions: ["collect"],
+    collectIntegration: "widget",
+    envVars: ["KKIAPAY_PUBLIC_KEY", "KKIAPAY_PRIVATE_KEY", "KKIAPAY_SECRET"],
   },
 ];
 
 export type OperatorEntry = {
-  /** Libellé affiché à l'utilisateur. */
   label: string;
-  /** Pays ISO-2 minuscule. */
+  /** Pays ISO-2 minuscule. Vide pour la carte (rattachée à une devise). */
   country: string;
-  /** Devise de l'opérateur. */
   currency: "XOF" | "XAF";
-  /** Famille, pour regrouper l'UI (mobile money, carte…). */
   family: "mobile_money" | "card";
   /** providerId → route d'ENCAISSEMENT. Vide = personne n'encaisse. */
   collect: Record<ProviderId, ProviderRoute>;
@@ -91,34 +106,43 @@ export type OperatorEntry = {
 };
 
 /**
- * Clé = code interne stable de l'opérateur (celui qu'on stocke en base).
+ * Clé = code interne stable de l'opérateur (celui stocké en base).
  *
  * Sources des codes :
- *  - moneroo.collect : liste officielle des méthodes de paiement Moneroo.
- *  - moneroo.payout  : catalogue de `moneroo-payout-methods.ts`.
- *  - feexpay/fedapay.payout : `payout/methods-map.ts` (codes confirmés doc).
- *  - feexpay.collect  : valeurs du champ `reseau` relevées dans le SDK React
- *    officiel de FeexPay (leur doc REST n'est pas publique).
- *  - fedapay.collect  : SEULS mtn_bj / moov_bj / togocel sont confirmés. Les
- *    autres attendent les codes `mode` exacts du tableau de bord FedaPay —
- *    laissés vides plutôt que devinés (voir la règle de sûreté ci-dessus).
+ *  - feexpay.collect : valeurs du champ `reseau` du SDK React officiel.
+ *  - feexpay.payout  : endpoints confirmés (payout/methods-map.ts).
+ *  - fedapay         : SEULS mtn_bj / moov_bj / togocel confirmés ; les autres
+ *                      attendent les codes `mode` du tableau de bord FedaPay.
+ *  - kkiapay.collect : KkiaPay ne documente que MTN Mobile Money, Moov Money
+ *                      et les cartes Visa/Mastercard — rien d'autre n'est
+ *                      inscrit ici.
+ *
+ * Les opérateurs sans aucune route sont CONSERVÉS volontairement : ils
+ * documentent ce qui existe mais n'est pas encore couvert, et alimentent
+ * coverageGaps(). Ils ne sont jamais proposés à l'acheteur.
  */
 export const OPERATORS: Record<string, OperatorEntry> = {
   // ───────────────────────── Bénin (XOF) ─────────────────────────
   mtn_bj: {
     label: "MTN Mobile Money (Bénin)", country: "bj", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "mtn_bj" }, feexpay: { code: "MTN" }, fedapay: { code: "mtn_open" } },
+    collect: {
+      feexpay: { code: "MTN" },
+      fedapay: { code: "mtn_open" },
+      kkiapay: { code: "momo", params: { country: "BJ" } },
+    },
     payout: {
-      moneroo: { code: "mtn_bj" },
       feexpay: { code: "transfer/global", params: { network: "MTN" } },
       fedapay: { code: "mtn_open" },
     },
   },
   moov_bj: {
     label: "Moov Money (Bénin)", country: "bj", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "moov_bj" }, feexpay: { code: "MOOV" }, fedapay: { code: "moov" } },
+    collect: {
+      feexpay: { code: "MOOV" },
+      fedapay: { code: "moov" },
+      kkiapay: { code: "momo", params: { country: "BJ" } },
+    },
     payout: {
-      moneroo: { code: "moov_bj" },
       feexpay: { code: "transfer/global", params: { network: "MOOV" } },
       fedapay: { code: "moov" },
     },
@@ -127,76 +151,76 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // ────────────────────── Côte d'Ivoire (XOF) ─────────────────────
   orange_ci: {
     label: "Orange Money (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "orange_ci" }, feexpay: { code: "ORANGE CI" } },
-    payout: { moneroo: { code: "orange_ci" }, feexpay: { code: "orange_ci" } },
+    collect: { feexpay: { code: "ORANGE CI" } },
+    payout: { feexpay: { code: "orange_ci" } },
   },
   wave_ci: {
     label: "Wave (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "wave_ci" }, feexpay: { code: "WAVE CI" } },
-    payout: { moneroo: { code: "wave_ci" }, feexpay: { code: "wave_ci" } },
+    collect: { feexpay: { code: "WAVE CI" } },
+    payout: { feexpay: { code: "wave_ci" } },
   },
   mtn_ci: {
     label: "MTN Mobile Money (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "mtn_ci" }, feexpay: { code: "MTN CI" } },
-    payout: { moneroo: { code: "mtn_ci" }, feexpay: { code: "mtn_ci" } },
+    collect: { feexpay: { code: "MTN CI" }, kkiapay: { code: "momo", params: { country: "CI" } } },
+    payout: { feexpay: { code: "mtn_ci" } },
   },
   moov_ci: {
     label: "Moov Money (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "moov_ci" }, feexpay: { code: "MOOV CI" } },
-    payout: { moneroo: { code: "moov_ci" }, feexpay: { code: "moov_ci" } },
+    collect: { feexpay: { code: "MOOV CI" }, kkiapay: { code: "momo", params: { country: "CI" } } },
+    payout: { feexpay: { code: "moov_ci" } },
   },
   djamo_ci: {
     label: "Djamo (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
-    collect: {}, // pas de shortcode d'encaissement Moneroo confirmé
-    payout: { moneroo: { code: "djamo_ci" } },
+    collect: {},
+    payout: {},
   },
 
   // ───────────────────────── Sénégal (XOF) ────────────────────────
   orange_sn: {
     label: "Orange Money (Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "orange_sn" }, feexpay: { code: "ORANGE SN" } },
-    payout: { moneroo: { code: "orange_sn" }, feexpay: { code: "orange_sn" } },
+    collect: { feexpay: { code: "ORANGE SN" } },
+    payout: { feexpay: { code: "orange_sn" } },
   },
   wave_sn: {
     label: "Wave (Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "wave_sn" } },
-    payout: { moneroo: { code: "wave_sn" }, feexpay: { code: "wave_sn" } },
+    // « WAVE SN » n'apparaît pas dans le SDK FeexPay : encaissement non couvert.
+    collect: {},
+    payout: { feexpay: { code: "wave_sn" } },
   },
   freemoney_sn: {
     label: "Free Money (Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "freemoney_sn" }, feexpay: { code: "FREE SN" } },
-    payout: { moneroo: { code: "freemoney_sn" }, feexpay: { code: "free_sn" } },
+    collect: { feexpay: { code: "FREE SN" } },
+    payout: { feexpay: { code: "free_sn" } },
   },
   e_money_sn: {
     label: "E-Money (Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "e_money_sn" } },
-    payout: { moneroo: { code: "e_money_sn" } },
+    collect: {},
+    payout: {},
   },
   wizall_sn: {
     label: "Wizall (Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "wizall_sn" } },
-    payout: {}, // encaissable mais PAS versable — asymétrie assumée et visible
+    collect: {},
+    payout: {},
   },
   djamo_sn: {
     label: "Djamo (Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
     collect: {},
-    payout: { moneroo: { code: "djamo_sn" } },
+    payout: {},
   },
 
   // ────────────────────────── Togo (XOF) ──────────────────────────
   moov_tg: {
     label: "Moov Money (Togo)", country: "tg", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "moov_tg" }, feexpay: { code: "MOOV TG" } },
-    payout: {
-      moneroo: { code: "moov_tg" },
-      feexpay: { code: "togo", params: { network: "MOOV TG" } },
+    collect: {
+      feexpay: { code: "MOOV TG" },
+      kkiapay: { code: "momo", params: { country: "TG" } },
     },
+    payout: { feexpay: { code: "togo", params: { network: "MOOV TG" } } },
   },
   togocel: {
     label: "Togocel Money (Togo)", country: "tg", currency: "XOF", family: "mobile_money",
     collect: { feexpay: { code: "TOGOCOM TG" }, fedapay: { code: "togocel" } },
     payout: {
-      moneroo: { code: "togocel" },
       feexpay: { code: "togo", params: { network: "TOGOCOM TG" } },
       fedapay: { code: "togocel" },
     },
@@ -205,51 +229,50 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // ────────────────────────── Mali (XOF) ──────────────────────────
   orange_ml: {
     label: "Orange Money (Mali)", country: "ml", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "orange_ml" } },
-    payout: { moneroo: { code: "orange_ml" }, feexpay: { code: "orange_ml" } },
+    // Aucune passerelle branchée n'encaisse au Mali aujourd'hui.
+    collect: {},
+    payout: { feexpay: { code: "orange_ml" } },
   },
   moov_ml: {
     label: "Moov Money (Mali)", country: "ml", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "moov_ml" } },
-    payout: {}, // pas de code de versement confirmé (ni Moneroo, ni FeexPay/FedaPay)
+    collect: {},
+    payout: {},
   },
 
   // ─────────────────────── Burkina Faso (XOF) ─────────────────────
   orange_bf: {
     label: "Orange Money (Burkina Faso)", country: "bf", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "orange_bf" }, feexpay: { code: "ORANGE BF" } },
-    payout: {}, // encaissable seulement
+    collect: { feexpay: { code: "ORANGE BF" } },
+    payout: {},
   },
   moov_bf: {
     label: "Moov Money (Burkina Faso)", country: "bf", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "moov_bf" }, feexpay: { code: "MOOV BF" } },
+    collect: { feexpay: { code: "MOOV BF" } },
     payout: {},
   },
 
   // ──────────────────────── Cameroun (XAF) ────────────────────────
-  // Couvert dans LES DEUX SENS par Moneroo. Le seul blocage à l'ouverture du
-  // Cameroun est notre propre `currency: "XOF"` codé en dur au checkout.
+  // Aucune passerelle branchée ne couvre encore l'Afrique centrale.
   orange_cm: {
     label: "Orange Money (Cameroun)", country: "cm", currency: "XAF", family: "mobile_money",
-    collect: { moneroo: { code: "orange_cm" } },
-    payout: { moneroo: { code: "orange_cm" } },
+    collect: {},
+    payout: {},
   },
   mtn_cm: {
     label: "MTN Mobile Money (Cameroun)", country: "cm", currency: "XAF", family: "mobile_money",
-    collect: { moneroo: { code: "mtn_cm" } },
-    payout: { moneroo: { code: "mtn_cm" } },
+    collect: {},
+    payout: {},
   },
 
   // ─────────────────────── Cartes bancaires ───────────────────────
-  // La carte encaisse par devise, et ne se reverse pas (pas de payout carte).
   card_xof: {
-    label: "Carte bancaire (XOF)", country: "", currency: "XOF", family: "card",
-    collect: { moneroo: { code: "card_xof" } },
+    label: "Carte bancaire", country: "", currency: "XOF", family: "card",
+    collect: { kkiapay: { code: "card" } },
     payout: {},
   },
   card_xaf: {
-    label: "Carte bancaire (XAF)", country: "", currency: "XAF", family: "card",
-    collect: { moneroo: { code: "card_xaf" } },
+    label: "Carte bancaire", country: "", currency: "XAF", family: "card",
+    collect: {},
     payout: {},
   },
 };
@@ -262,9 +285,14 @@ export function getOperator(code: string | null | undefined): OperatorEntry | nu
   return OPERATORS[String(code).trim().toLowerCase()] ?? null;
 }
 
+/** Métadonnées d'une passerelle. */
+export function getProvider(id: ProviderId): ProviderMeta | null {
+  return PROVIDERS.find((p) => p.id === id) ?? null;
+}
+
 /**
- * Passerelles capables de traiter cet opérateur dans cette direction,
- * accompagnées de leur route native. Ordre = ordre de PROVIDERS (priorité).
+ * Passerelles capables de traiter cet opérateur dans cette direction, avec leur
+ * route native. Ordre = ordre de PROVIDERS (priorité par défaut).
  */
 export function providersFor(
   operatorCode: string,
@@ -315,14 +343,10 @@ export function listOperators(opts: {
 }
 
 /**
- * Opérateurs encaissables mais NON versables (et l'inverse).
- * Sert au diagnostic : c'est exactement l'angle mort qui existait avant ce
- * registre — accepter l'argent d'un canal par lequel on ne peut pas le rendre.
+ * Opérateurs encaissables mais non versables (et l'inverse) — angle mort à
+ * surveiller : accepter l'argent par un canal qu'on ne sait pas rembourser.
  */
-export function coverageGaps(): {
-  collectOnly: string[];
-  payoutOnly: string[];
-} {
+export function coverageGaps(): { collectOnly: string[]; payoutOnly: string[] } {
   const collectOnly: string[] = [];
   const payoutOnly: string[] = [];
   for (const code of Object.keys(OPERATORS)) {
@@ -336,13 +360,10 @@ export function coverageGaps(): {
 
 // ─── Codes génériques des écrans de paiement ────────────────────────────────
 //
-// Les écrans de checkout historiques envoient un code d'OPÉRATEUR GÉNÉRIQUE
-// ("orange_money", "wave"…), alors que ce registre est indexé par opérateur
-// PAYS PAR PAYS ("orange_ci", "wave_sn"…) — parce que chaque pays a son propre
-// code chez les fournisseurs.
-//
-// Sans traduction, toute résolution échouait et le paiement retombait
-// systématiquement sur la passerelle historique : le routage ne servait à rien.
+// Les écrans de checkout envoient un code d'opérateur GÉNÉRIQUE
+// ("orange_money", "wave"…), alors que ce registre est indexé PAYS PAR PAYS
+// ("orange_ci", "wave_sn"…) — chaque pays ayant son propre code fournisseur.
+// Sans traduction, aucune résolution n'aboutit.
 
 /** Préfixe téléphonique international → pays ISO-2. */
 const DIAL_TO_COUNTRY: Record<string, string> = {
@@ -362,7 +383,7 @@ const GENERIC_FAMILY: Record<string, string> = {
   djamo: "djamo",
 };
 
-/** Déduit le pays depuis un numéro international (chiffres, avec indicatif). */
+/** Déduit le pays depuis un numéro international (chiffres, indicatif compris). */
 export function countryFromPhone(phone: string | null | undefined): string | null {
   const digits = (phone ?? "").replace(/\D/g, "");
   if (digits.length < 8) return null;
@@ -376,12 +397,11 @@ export function countryFromPhone(phone: string | null | undefined): string | nul
  * Traduit ce que le checkout envoie en une clé d'opérateur du registre.
  *
  * Accepte déjà un code précis ("orange_ci") et le renvoie tel quel. Sinon,
- * combine le code générique avec le pays — déduit du paramètre `country`, à
- * défaut du numéro de téléphone.
+ * combine le code générique avec le pays — paramètre explicite, à défaut
+ * l'indicatif du numéro.
  *
- * Renvoie null si on ne peut pas trancher : l'appelant retombe alors sur le
- * chemin historique. Mieux vaut un repli qu'un routage deviné vers le mauvais
- * réseau.
+ * Renvoie null si on ne peut pas trancher : mieux vaut refuser que router vers
+ * le mauvais réseau.
  */
 export function resolveOperatorCode(
   raw: string | null | undefined,
@@ -390,15 +410,14 @@ export function resolveOperatorCode(
   const code = (raw ?? "").trim().toLowerCase();
   if (!code) return null;
 
-  // Déjà un opérateur connu du registre.
   if (OPERATORS[code]) return code;
 
   const country = (opts.country ?? "").trim().toLowerCase() || countryFromPhone(opts.phone);
 
   // La carte dépend de la devise, pas du pays.
   if (code === "card" || code === "carte") {
-    const cur = opts.currency ?? (country === "cm" ? "XAF" : "XOF");
-    return OPERATORS[`card_${cur.toLowerCase()}`] ? `card_${cur.toLowerCase()}` : null;
+    const cur = (opts.currency ?? (country === "cm" ? "XAF" : "XOF")).toLowerCase();
+    return OPERATORS[`card_${cur}`] ? `card_${cur}` : null;
   }
 
   const family = GENERIC_FAMILY[code];

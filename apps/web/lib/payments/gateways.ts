@@ -21,12 +21,16 @@ import {
 
 /** Champs d'identifiants attendus par fournisseur (pour le formulaire admin). */
 export const CREDENTIAL_FIELDS: Record<ProviderId, Array<{ key: string; label: string; secret: boolean }>> = {
-  moneroo: [{ key: "secretKey", label: "Clé secrète", secret: true }],
   feexpay: [
     { key: "apiKey", label: "Clé API", secret: true },
     { key: "shopId", label: "Identifiant boutique", secret: false },
   ],
   fedapay: [{ key: "secretKey", label: "Clé secrète", secret: true }],
+  kkiapay: [
+    { key: "publicKey", label: "Clé publique", secret: false },
+    { key: "privateKey", label: "Clé privée", secret: true },
+    { key: "secret", label: "Secret", secret: true },
+  ],
 };
 
 export type GatewayRow = {
@@ -58,12 +62,16 @@ export type GatewayRow = {
 function envCredentials(provider: ProviderId): Record<string, string> {
   const pick = (v: string | undefined) => (v?.trim() ? v.trim() : undefined);
   const map: Record<string, Record<string, string | undefined>> = {
-    moneroo: { secretKey: pick(process.env.MONEROO_SECRET_KEY) },
     feexpay: {
       apiKey: pick(process.env.FEEXPAY_API_KEY),
       shopId: pick(process.env.FEEXPAY_SHOP_ID),
     },
     fedapay: { secretKey: pick(process.env.FEDAPAY_SECRET_KEY) },
+    kkiapay: {
+      publicKey: pick(process.env.KKIAPAY_PUBLIC_KEY),
+      privateKey: pick(process.env.KKIAPAY_PRIVATE_KEY),
+      secret: pick(process.env.KKIAPAY_SECRET),
+    },
   };
   const out: Record<string, string> = {};
   for (const [k, v] of Object.entries(map[provider] ?? {})) if (v) out[k] = v;
