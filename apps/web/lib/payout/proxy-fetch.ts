@@ -22,6 +22,23 @@ export function isPayoutProxyConfigured(): boolean {
 }
 
 /**
+ * Construit le ProxyAgent. Les proxys authentifiés (ex. Fixie :
+ * `http://fixie:MOTDEPASSE@host:port`) exigent un en-tête Proxy-Authorization.
+ * Selon les versions d'undici, les identifiants présents dans l'URI ne sont pas
+ * toujours convertis en header → on fournit le `token` Basic explicitement.
+ */
+function buildAgent(proxyUrl: string): ProxyAgent {
+  const u = new URL(proxyUrl);
+  const username = decodeURIComponent(u.username);
+  const password = decodeURIComponent(u.password);
+  if (username || password) {
+    const token = "Basic " + Buffer.from(`${username}:${password}`).toString("base64");
+    return new ProxyAgent({ uri: `${u.protocol}//${u.host}`, token });
+  }
+  return new ProxyAgent(proxyUrl);
+}
+
+/**
  * fetch qui sort par le proxy à IP fixe si PAYOUT_PROXY_URL est défini,
  * sinon fetch standard. À utiliser pour TOUS les appels FeexPay / FedaPay.
  */
@@ -30,7 +47,7 @@ export function payoutFetch(url: string, init?: RequestInit): Promise<Response> 
   if (!proxyUrl) return fetch(url, init);
 
   if (!cachedAgent || cachedUrl !== proxyUrl) {
-    cachedAgent = new ProxyAgent(proxyUrl);
+    cachedAgent = buildAgent(proxyUrl);
     cachedUrl = proxyUrl;
   }
   // La fetch globale (undici) lit `dispatcher` ; le type standard RequestInit ne
