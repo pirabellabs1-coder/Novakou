@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { confirmAction } from "@/store/confirm";
-import { ArrowLeft, Plus, ShoppingCart, ToggleRight, ToggleLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, ShoppingCart, ToggleRight, ToggleLeft, Trash2, Pencil } from "lucide-react";
 
 type OrderBump = {
   id: string;
@@ -38,6 +38,8 @@ function formatFCFA(n: number) {
 export default function OrderBumpsPage() {
   const qc = useQueryClient();
   const [showCreate, setShowCreate] = useState(false);
+  // null = création ; sinon on édite le bump portant cet id.
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   // Form state
@@ -81,36 +83,70 @@ export default function OrderBumpsPage() {
   const availableFormations = productsResp?.data?.formations ?? [];
   const availableProducts = productsResp?.data?.digitalProducts ?? [];
 
-  const createMut = useMutation({
+  function resetForm() {
+    setTitle(""); setDescription(""); setPrice(2900); setOriginalPrice("");
+    setBumpType("formation"); setBumpFormationId(""); setBumpProductId("");
+    setAppliesToAll(true); setTargetFormationIds([]); setTargetProductIds([]);
+  }
+
+  function openCreate() {
+    resetForm();
+    setEditingId(null);
+    setShowCreate(true);
+  }
+
+  /** Ouvre le formulaire pré-rempli pour modifier un bump existant. */
+  function openEdit(b: OrderBump) {
+    setTitle(b.title);
+    setDescription(b.description);
+    setPrice(b.price);
+    setOriginalPrice(b.originalPrice ?? "");
+    setBumpType(b.bumpFormationId ? "formation" : "product");
+    setBumpFormationId(b.bumpFormationId ?? "");
+    setBumpProductId(b.bumpProductId ?? "");
+    setAppliesToAll(b.appliesToAll);
+    setTargetFormationIds(b.targetFormationIds ?? []);
+    setTargetProductIds(b.targetProductIds ?? []);
+    setEditingId(b.id);
+    setShowCreate(true);
+  }
+
+  // Création (POST) ou modification (PATCH) selon `editingId`.
+  const saveMut = useMutation({
     mutationFn: async () => {
       const payload: Record<string, unknown> = {
         title, description, price: Number(price),
         appliesToAll,
+        // Toujours envoyer le ciblage : si appliesToAll repasse à false, les
+        // listes doivent être à jour côté serveur (sinon bump invisible).
+        targetFormationIds: appliesToAll ? [] : targetFormationIds,
+        targetProductIds: appliesToAll ? [] : targetProductIds,
       };
-      if (originalPrice !== "") payload.originalPrice = Number(originalPrice);
-      if (bumpType === "formation") payload.bumpFormationId = bumpFormationId;
-      else payload.bumpProductId = bumpProductId;
-      if (!appliesToAll) {
-        payload.targetFormationIds = targetFormationIds;
-        payload.targetProductIds = targetProductIds;
+      payload.originalPrice = originalPrice === "" ? null : Number(originalPrice);
+      // Le produit offert n'est modifiable qu'à la création (le PATCH ne le
+      // change pas) — on ne l'envoie donc que pour un nouveau bump.
+      if (!editingId) {
+        if (bumpType === "formation") payload.bumpFormationId = bumpFormationId;
+        else payload.bumpProductId = bumpProductId;
       }
-      const res = await fetch("/api/formations/vendeur/order-bumps", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch(
+        editingId ? `/api/formations/vendeur/order-bumps/${editingId}` : "/api/formations/vendeur/order-bumps",
+        {
+          method: editingId ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
       const j = await res.json();
       if (!res.ok) throw new Error(j.error || "Erreur");
       return j;
     },
     onSuccess: () => {
-      setToast("Order bump créé");
+      setToast(editingId ? "Order bump modifié" : "Order bump créé");
       qc.invalidateQueries({ queryKey: ["vendeur-order-bumps"] });
       setShowCreate(false);
-      // Reset form
-      setTitle(""); setDescription(""); setPrice(2900); setOriginalPrice("");
-      setBumpFormationId(""); setBumpProductId("");
-      setAppliesToAll(true); setTargetFormationIds([]); setTargetProductIds([]);
+      setEditingId(null);
+      resetForm();
       setTimeout(() => setToast(null), 3000);
     },
     onError: (e: Error) => setToast(`Erreur : ${e.message}`),
@@ -181,7 +217,7 @@ export default function OrderBumpsPage() {
           </p>
         </div>
         <button
-          onClick={() => setShowCreate(true)}
+          onClick={openCreate}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90"
           style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
         >
@@ -204,7 +240,7 @@ export default function OrderBumpsPage() {
             à 25 000 F + un bump « Pack ressources +2 900 F ».
           </p>
           <button
-            onClick={() => setShowCreate(true)}
+            onClick={openCreate}
             className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 rounded-xl text-white text-sm font-bold"
             style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
           >
@@ -266,6 +302,13 @@ export default function OrderBumpsPage() {
                   </div>
                   <div className="flex gap-1">
                     <button
+                      onClick={() => openEdit(b)}
+                      className="p-2 rounded-lg hover:bg-gray-100 text-[#5c647a] hover:text-[#006e2f]"
+                      title="Modifier"
+                    >
+                      <Pencil className="w-[18px] h-[18px]" />
+                    </button>
+                    <button
                       onClick={() => toggleMut.mutate({ id: b.id, isActive: !b.isActive })}
                       disabled={toggleMut.isPending}
                       className="p-2 rounded-lg hover:bg-gray-100 text-[#5c647a] hover:text-[#191c1e]"
@@ -293,13 +336,15 @@ export default function OrderBumpsPage() {
       {showCreate && (
         <div
           className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-          onClick={() => !createMut.isPending && setShowCreate(false)}
+          onClick={() => !saveMut.isPending && setShowCreate(false)}
         >
           <div
             className="bg-white rounded-3xl max-w-xl w-full p-7 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-xl font-extrabold text-[#191c1e] mb-2">Nouveau Order Bump</h2>
+            <h2 className="text-xl font-extrabold text-[#191c1e] mb-2">
+              {editingId ? "Modifier l'Order Bump" : "Nouveau Order Bump"}
+            </h2>
             <p className="text-sm text-[#5c647a] mb-5">
               Ce bump apparaîtra sur la page checkout des produits ciblés, avant le paiement.
             </p>
@@ -352,8 +397,11 @@ export default function OrderBumpsPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-[#191c1e] mb-1.5">Produit à ajouter au panier</label>
+              <div className={editingId ? "opacity-60 pointer-events-none" : ""}>
+                <label className="block text-xs font-bold text-[#191c1e] mb-1.5">
+                  Produit à ajouter au panier
+                  {editingId && <span className="ml-2 font-normal text-[#5c647a]">(non modifiable — supprimez et recréez pour changer)</span>}
+                </label>
                 <div className="flex gap-0 border border-gray-200 rounded-xl overflow-hidden mb-2">
                   <button
                     type="button"
@@ -408,34 +456,83 @@ export default function OrderBumpsPage() {
                   </span>
                 </label>
                 {!appliesToAll && (
-                  <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
-                    Avec ciblage précis (non coché), le bump n'apparaîtra que sur les produits que vous
-                    sélectionnerez. Pour le MVP, on active « tous les produits » par défaut — vous pourrez
-                    affiner plus tard via l'API.
-                  </p>
+                  <div className="mt-2">
+                    <p className="text-[11px] text-[#5c647a] mb-2">
+                      Cochez les produits sur lesquels ce bump doit apparaître au checkout.
+                    </p>
+                    {availableFormations.length === 0 && availableProducts.length === 0 ? (
+                      <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                        Vous n&apos;avez encore aucun produit publié à cibler.
+                      </p>
+                    ) : (
+                      <div className="max-h-44 overflow-y-auto border border-gray-200 rounded-xl p-3 space-y-1.5">
+                        {availableFormations.map((f) => (
+                          <label key={f.id} className="flex items-center gap-2 cursor-pointer text-sm">
+                            <input
+                              type="checkbox"
+                              className="w-4 h-4"
+                              checked={targetFormationIds.includes(f.id)}
+                              onChange={(e) =>
+                                setTargetFormationIds((prev) =>
+                                  e.target.checked ? [...prev, f.id] : prev.filter((x) => x !== f.id),
+                                )
+                              }
+                            />
+                            <span className="truncate text-[#191c1e]">{f.title}</span>
+                            <span className="text-[10px] text-[#5c647a] flex-shrink-0">Formation</span>
+                          </label>
+                        ))}
+                        {availableProducts.map((p) => (
+                          <label key={p.id} className="flex items-center gap-2 cursor-pointer text-sm">
+                            <input
+                              type="checkbox"
+                              className="w-4 h-4"
+                              checked={targetProductIds.includes(p.id)}
+                              onChange={(e) =>
+                                setTargetProductIds((prev) =>
+                                  e.target.checked ? [...prev, p.id] : prev.filter((x) => x !== p.id),
+                                )
+                              }
+                            />
+                            <span className="truncate text-[#191c1e]">{p.title}</span>
+                            <span className="text-[10px] text-[#5c647a] flex-shrink-0">Produit</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                    {targetFormationIds.length + targetProductIds.length === 0 && (
+                      <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2.5 mt-2">
+                        Aucun produit sélectionné : le bump ne s&apos;affichera nulle part. Cochez au moins
+                        un produit, ou activez « tous mes produits ».
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
 
               <div className="flex gap-2 pt-2">
                 <button
-                  onClick={() => setShowCreate(false)}
-                  disabled={createMut.isPending}
+                  onClick={() => { setShowCreate(false); setEditingId(null); }}
+                  disabled={saveMut.isPending}
                   className="flex-1 py-2.5 rounded-xl bg-gray-100 text-[#191c1e] text-sm font-bold"
                 >
                   Annuler
                 </button>
                 <button
-                  onClick={() => createMut.mutate()}
+                  onClick={() => saveMut.mutate()}
                   disabled={
-                    createMut.isPending ||
+                    saveMut.isPending ||
                     !title || !description || !price ||
-                    (bumpType === "formation" && !bumpFormationId) ||
-                    (bumpType === "product" && !bumpProductId)
+                    // Le produit offert n'est requis qu'à la création.
+                    (!editingId && bumpType === "formation" && !bumpFormationId) ||
+                    (!editingId && bumpType === "product" && !bumpProductId)
                   }
                   className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50"
                   style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
                 >
-                  {createMut.isPending ? "Création…" : "Créer"}
+                  {saveMut.isPending
+                    ? (editingId ? "Enregistrement…" : "Création…")
+                    : (editingId ? "Enregistrer" : "Créer")}
                 </button>
               </div>
             </div>

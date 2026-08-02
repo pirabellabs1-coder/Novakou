@@ -754,7 +754,13 @@ const PAY_METHOD_META: Record<string, { label: string; Icon: LucideIcon }> = {
   paypal: { label: "PayPal", Icon: Wallet },
   bank_transfer: { label: "Virement bancaire", Icon: Landmark },
 };
-const PAY_METHOD_ORDER = ["orange_money", "wave", "mtn_momo", "moov_money", "card", "paypal", "bank_transfer"];
+// Méthodes réellement proposables à l'acheteur.
+// PayPal et le virement bancaire en sont volontairement ABSENTS : la passerelle
+// (Moneroo) n'expose aucun moyen PayPal, et son seul virement (`bank_transfer_ng`)
+// est réservé au Nigeria/NGN — donc inutilisable pour nos paiements en XOF.
+// Les afficher promettait à l'acheteur un moyen qui ne pouvait pas aboutir : il
+// se retrouvait renvoyé vers le paiement mobile. On ne montre que ce qui marche.
+const PAY_METHOD_ORDER = ["orange_money", "wave", "mtn_momo", "moov_money", "card"];
 const DEFAULT_PAY_METHODS = ["orange_money", "wave", "mtn_momo", "card"];
 
 function ProductBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {

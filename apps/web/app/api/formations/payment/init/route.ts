@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { initPayment as initMoneroo, isMonerooConfigured } from "@/lib/moneroo";
+import { resolveMonerooMethods } from "@/lib/payments/moneroo-checkout-methods";
 import { initPayment as initPayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
 import { computeCheckoutDiscount } from "@/lib/formations/checkout-discount";
@@ -376,6 +377,12 @@ export async function POST(request: Request) {
         providerId = pg.reference; // on stocke la `reference` (MTX-…) pour retrouver via /payments/{ref}
         checkoutUrl = pg.checkout_url;
       } else {
+        // Respecter le moyen de paiement choisi par l'acheteur : sans `methods`,
+        // Moneroo ouvre sa page sur SA méthode par défaut (Mobile Money en XOF)
+        // — d'où le bug « je clique Carte bancaire et j'arrive sur le mobile ».
+        // Méthode inconnue/non supportée → tableau vide → on n'envoie rien et
+        // Moneroo affiche tout (dégradation sûre, jamais de checkout cassé).
+        const monerooMethods = resolveMonerooMethods(body.paymentMethod, "XOF");
         const mnr = await initMoneroo({
           amount: Math.round(totalAmount),
           currency: "XOF",
@@ -388,6 +395,7 @@ export async function POST(request: Request) {
           },
           return_url: returnUrl,
           metadata: providerMetadata,
+          ...(monerooMethods.length > 0 ? { methods: monerooMethods } : {}),
         });
         providerId = mnr.id;
         checkoutUrl = mnr.checkout_url;

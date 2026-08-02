@@ -48,14 +48,31 @@ export async function GET(request: NextRequest) {
     if (instructeurIds.length === 0) return NextResponse.json({ data: [] });
 
     // Bumps actifs de tous les vendeurs concernés
+    //
+    // ⚠️ NULL-safe obligatoire : un bump propose SOIT une formation SOIT un
+    // produit, donc l'autre colonne est toujours NULL. Or en SQL
+    // `NULL NOT IN (...)` vaut UNKNOWN (et non TRUE) → un simple `NOT { in }`
+    // écartait TOUS les bumps, quels qu'ils soient. C'était la cause du bug
+    // « l'order bump ne s'affiche jamais au checkout ». On teste donc
+    // explicitement `IS NULL OR notIn`.
     const bumps = await prisma.orderBump.findMany({
       where: {
         instructeurId: { in: instructeurIds },
         isActive: true,
         // Le bump ne doit pas viser un produit déjà dans le panier
-        NOT: [
-          { bumpFormationId: { in: formationIds.length > 0 ? formationIds : [""] } },
-          { bumpProductId: { in: productIds.length > 0 ? productIds : [""] } },
+        AND: [
+          {
+            OR: [
+              { bumpFormationId: null },
+              { bumpFormationId: { notIn: formationIds.length > 0 ? formationIds : [""] } },
+            ],
+          },
+          {
+            OR: [
+              { bumpProductId: null },
+              { bumpProductId: { notIn: productIds.length > 0 ? productIds : [""] } },
+            ],
+          },
         ],
       },
       include: {

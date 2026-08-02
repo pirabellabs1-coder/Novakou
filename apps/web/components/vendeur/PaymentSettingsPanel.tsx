@@ -28,14 +28,18 @@ interface Settings {
   payoutMethods: PayoutMethod[];
 }
 
+// Moyens d'ENCAISSEMENT proposables à l'acheteur.
+// PayPal et le virement bancaire ont été retirés : la passerelle n'expose aucun
+// moyen PayPal, et son unique virement est réservé au Nigeria/NGN. Les laisser
+// cochables faisait croire au vendeur qu'il les acceptait, alors que l'acheteur
+// était systématiquement renvoyé vers le paiement mobile.
+// (Ils restent disponibles plus bas comme moyens de RETRAIT, versés à la main.)
 const PAYMENT_METHODS: Array<{ id: string; label: string; icon: string; mobileMoney?: boolean }> = [
   { id: "orange_money", label: "Orange Money", icon: "phone_iphone", mobileMoney: true },
   { id: "wave", label: "Wave", icon: "phone_iphone", mobileMoney: true },
   { id: "mtn_momo", label: "MTN Mobile Money", icon: "phone_iphone", mobileMoney: true },
   { id: "moov_money", label: "Moov Money", icon: "phone_iphone", mobileMoney: true },
   { id: "card", label: "Carte bancaire (Visa/Mastercard)", icon: "credit_card" },
-  { id: "paypal", label: "PayPal", icon: "account_balance_wallet" },
-  { id: "bank_transfer", label: "Virement bancaire", icon: "account_balance" },
   { id: "free", label: "Gratuit / bons cadeaux", icon: "redeem" },
 ];
 
