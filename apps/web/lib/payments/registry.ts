@@ -333,3 +333,80 @@ export function coverageGaps(): {
   }
   return { collectOnly, payoutOnly };
 }
+
+// ─── Codes génériques des écrans de paiement ────────────────────────────────
+//
+// Les écrans de checkout historiques envoient un code d'OPÉRATEUR GÉNÉRIQUE
+// ("orange_money", "wave"…), alors que ce registre est indexé par opérateur
+// PAYS PAR PAYS ("orange_ci", "wave_sn"…) — parce que chaque pays a son propre
+// code chez les fournisseurs.
+//
+// Sans traduction, toute résolution échouait et le paiement retombait
+// systématiquement sur la passerelle historique : le routage ne servait à rien.
+
+/** Préfixe téléphonique international → pays ISO-2. */
+const DIAL_TO_COUNTRY: Record<string, string> = {
+  "229": "bj", "221": "sn", "225": "ci", "237": "cm",
+  "228": "tg", "223": "ml", "226": "bf",
+};
+
+/** Famille d'opérateur d'un code générique (préfixe des clés du registre). */
+const GENERIC_FAMILY: Record<string, string> = {
+  orange_money: "orange", orange: "orange",
+  wave: "wave",
+  mtn_momo: "mtn", mtn: "mtn",
+  moov_money: "moov", moov: "moov",
+  free_money: "freemoney", freemoney: "freemoney",
+  e_money: "e_money",
+  wizall: "wizall",
+  djamo: "djamo",
+};
+
+/** Déduit le pays depuis un numéro international (chiffres, avec indicatif). */
+export function countryFromPhone(phone: string | null | undefined): string | null {
+  const digits = (phone ?? "").replace(/\D/g, "");
+  if (digits.length < 8) return null;
+  for (const [dial, country] of Object.entries(DIAL_TO_COUNTRY)) {
+    if (digits.startsWith(dial)) return country;
+  }
+  return null;
+}
+
+/**
+ * Traduit ce que le checkout envoie en une clé d'opérateur du registre.
+ *
+ * Accepte déjà un code précis ("orange_ci") et le renvoie tel quel. Sinon,
+ * combine le code générique avec le pays — déduit du paramètre `country`, à
+ * défaut du numéro de téléphone.
+ *
+ * Renvoie null si on ne peut pas trancher : l'appelant retombe alors sur le
+ * chemin historique. Mieux vaut un repli qu'un routage deviné vers le mauvais
+ * réseau.
+ */
+export function resolveOperatorCode(
+  raw: string | null | undefined,
+  opts: { country?: string | null; phone?: string | null; currency?: "XOF" | "XAF" } = {},
+): string | null {
+  const code = (raw ?? "").trim().toLowerCase();
+  if (!code) return null;
+
+  // Déjà un opérateur connu du registre.
+  if (OPERATORS[code]) return code;
+
+  const country = (opts.country ?? "").trim().toLowerCase() || countryFromPhone(opts.phone);
+
+  // La carte dépend de la devise, pas du pays.
+  if (code === "card" || code === "carte") {
+    const cur = opts.currency ?? (country === "cm" ? "XAF" : "XOF");
+    return OPERATORS[`card_${cur.toLowerCase()}`] ? `card_${cur.toLowerCase()}` : null;
+  }
+
+  const family = GENERIC_FAMILY[code];
+  if (!family || !country) return null;
+
+  // Un seul opérateur doit correspondre à (famille, pays) — sinon on s'abstient.
+  const matches = Object.entries(OPERATORS).filter(
+    ([key, op]) => op.country === country && key.startsWith(family + "_"),
+  );
+  return matches.length === 1 ? matches[0][0] : null;
+}

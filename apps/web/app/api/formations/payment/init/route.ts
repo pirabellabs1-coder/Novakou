@@ -6,6 +6,7 @@ import { IS_DEV } from "@/lib/env";
 import { initPayment as initMoneroo, isMonerooConfigured } from "@/lib/moneroo";
 import { resolveMonerooMethods } from "@/lib/payments/moneroo-checkout-methods";
 import { resolveCollectProvider } from "@/lib/payments/gateways";
+import { resolveOperatorCode } from "@/lib/payments/registry";
 import { initPayment as initPayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
 import { computeCheckoutDiscount } from "@/lib/formations/checkout-discount";
@@ -367,7 +368,14 @@ export async function POST(request: Request) {
     // téléphone, sans page hébergée), on la prend : l'acheteur reste chez nous.
     // Sinon on garde le chemin historique — jamais de vente perdue parce qu'une
     // passerelle est mal configurée.
-    const chosenOperator = typeof body.paymentMethod === "string" ? body.paymentMethod : "";
+    // Les écrans envoient un code GÉNÉRIQUE ("orange_money"), le registre est
+    // indexé par pays ("orange_ci"). Sans cette traduction, la résolution
+    // échouait toujours et tout retombait sur la passerelle historique.
+    const chosenOperator =
+      resolveOperatorCode(typeof body.paymentMethod === "string" ? body.paymentMethod : "", {
+        country: typeof body.country === "string" ? body.country : null,
+        phone: phoneRaw ?? null,
+      }) ?? "";
     let directCollect: { provider: string; reference: string } | null = null;
     try {
       const resolved = await resolveCollectProvider(chosenOperator);
