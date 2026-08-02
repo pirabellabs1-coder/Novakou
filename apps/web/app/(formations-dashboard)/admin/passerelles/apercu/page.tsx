@@ -16,9 +16,26 @@ import { ArrowLeft, Eye } from "lucide-react";
  *
  * Le bouton « Payer » ne déclenche AUCUN paiement ici : c'est une simulation.
  */
+/**
+ * Jeu de démonstration : sert UNIQUEMENT à juger le rendu avant d'avoir branché
+ * une passerelle. Les codes sont de vrais codes du registre, pour que l'aperçu
+ * montre les mêmes pastilles que la production.
+ */
+const DEMO = {
+  countries: ["ci", "sn", "bj", "ml", "cm"],
+  options: [
+    { code: "orange_ci", label: "Orange Money (Côte d'Ivoire)", family: "mobile_money" as const, currency: "XOF" as const, hosted: false },
+    { code: "wave_ci", label: "Wave (Côte d'Ivoire)", family: "mobile_money" as const, currency: "XOF" as const, hosted: false },
+    { code: "mtn_ci", label: "MTN Mobile Money (Côte d'Ivoire)", family: "mobile_money" as const, currency: "XOF" as const, hosted: false },
+    { code: "moov_ci", label: "Moov Money (Côte d'Ivoire)", family: "mobile_money" as const, currency: "XOF" as const, hosted: false },
+    { code: "card_xof", label: "Carte bancaire (XOF)", family: "card" as const, currency: "XOF" as const, hosted: true },
+  ],
+};
+
 export default function ApercuPaiementPage() {
   const [amount, setAmount] = useState(8000);
   const [lastAction, setLastAction] = useState<string | null>(null);
+  const [demo, setDemo] = useState(true);
 
   return (
     <div className="p-5 md:p-8 max-w-5xl mx-auto">
@@ -50,7 +67,16 @@ export default function ApercuPaiementPage() {
               className="w-32 px-3 py-2 rounded-xl border-2 border-gray-200 text-sm font-semibold"
             />
           </label>
+          <label className="flex items-center gap-2 text-[13px] font-bold cursor-pointer" style={{ color: ST.text }}>
+            <input type="checkbox" className="w-4 h-4" checked={demo} onChange={(e) => setDemo(e.target.checked)} />
+            Données de démonstration
+          </label>
         </div>
+        <p className="text-[11px] font-semibold mt-2" style={{ color: ST.textSecondary }}>
+          {demo
+            ? "Moyens factices, pour juger le rendu. Décochez pour voir ce que verra réellement l'acheteur."
+            : "Données réelles : ces moyens proviennent des passerelles activées. Liste vide = aucune passerelle branchée."}
+        </p>
         {lastAction && (
           <p className="text-[12px] font-semibold mt-3" style={{ color: ST.green }}>
             {lastAction}
@@ -58,18 +84,19 @@ export default function ApercuPaiementPage() {
         )}
       </StCard>
 
-      <div className="max-w-lg mx-auto">
-        <UnifiedPaymentScreen
-          amount={amount}
-          onPay={({ operator, phone, hosted }) =>
-            setLastAction(
-              hosted
-                ? `Simulation : « ${operator} » → redirection vers la page bancaire sécurisée.`
-                : `Simulation : « ${operator} » → demande de confirmation envoyée au ${phone || "—"}.`,
-            )
-          }
-        />
-      </div>
+      <UnifiedPaymentScreen
+        amount={amount}
+        merchantName="Ma Boutique"
+        buyerName="Elias"
+        demoData={demo ? DEMO : undefined}
+        onPay={({ operator, phone, hosted }) =>
+          setLastAction(
+            hosted
+              ? `Simulation : « ${operator} » → redirection vers la page bancaire sécurisée.`
+              : `Simulation : « ${operator} » → demande de confirmation envoyée au ${phone || "—"}.`,
+          )
+        }
+      />
 
       <p className="text-[11px] font-semibold text-center mt-6" style={{ color: ST.textSecondary }}>
         Aucun nom de passerelle n&apos;apparaît sur cet écran : par quel prestataire transite
