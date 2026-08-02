@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { IS_DEV } from "@/lib/env";
-import { isMonerooConfigured } from "@/lib/moneroo";
 import { isFeexpayConfigured } from "@/lib/feexpay";
 import { isFedapayConfigured } from "@/lib/fedapay";
 import { getPayoutMethod, normalizeMsisdn } from "@/lib/moneroo-payout-methods";
@@ -42,21 +41,15 @@ export async function POST(request: NextRequest) {
     const lastName: string = body.lastName ?? "Novakou";
     const email: string = body.email ?? (token?.email as string | undefined) ?? "test@novakou.com";
 
-    const providerRaw = String(body.provider ?? "moneroo").toLowerCase();
-    const provider: PayoutProviderId =
-      providerRaw === "feexpay" ? "feexpay" :
-      providerRaw === "fedapay" ? "fedapay" : "moneroo";
+    const providerRaw = String(body.provider ?? "feexpay").toLowerCase();
+    const provider: PayoutProviderId = providerRaw === "fedapay" ? "fedapay" : "feexpay";
 
     debug.step = "env_check";
     debug.provider = provider;
-    debug.hasMonerooKey = isMonerooConfigured();
     debug.hasFeexpayKey = isFeexpayConfigured();
     debug.hasFedapayKey = isFedapayConfigured();
 
-    const configured =
-      provider === "moneroo" ? isMonerooConfigured() :
-      provider === "feexpay" ? isFeexpayConfigured() :
-      isFedapayConfigured();
+    const configured = provider === "feexpay" ? isFeexpayConfigured() : isFedapayConfigured();
     if (!configured) {
       return NextResponse.json(
         { error: `Le fournisseur "${provider}" n'est pas configuré (clés absentes dans Vercel).`, debug },

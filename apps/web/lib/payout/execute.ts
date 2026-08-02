@@ -1,6 +1,6 @@
 // Orchestrateur de PAYOUT avec bascule automatique de fournisseur.
 //
-// Ordre décidé par le fondateur : Moneroo → FeexPay → FedaPay.
+// Ordre de bascule : FeexPay → FedaPay.
 // On tente chaque fournisseur configuré ET capable de servir l'opérateur du
 // bénéficiaire. Si l'un REFUSE (solde insuffisant, IP non autorisée, validation),
 // on rejoue le même versement chez le suivant. Aucun argent ne circule entre
@@ -16,10 +16,9 @@
 // rejouer ailleurs risquerait un DOUBLE paiement.
 //
 // Idempotence : dans un seul appel, on s'arrête au 1er fournisseur qui accepte
-// (renvoie une référence). Moneroo reçoit en plus un Idempotency-Key basé sur
+// (renvoie une référence). L'identifiant de retrait interne sert de clé
 // l'id du retrait, ce qui protège les ré-essais du MÊME fournisseur.
 
-import { initPayout as monerooInit, isMonerooConfigured, classifyMonerooError } from "@/lib/moneroo";
 import {
   initPayout as feexpayInit, isFeexpayConfigured, classifyFeexpayError, normalizeFeexpayStatus,
 } from "@/lib/feexpay";
@@ -28,13 +27,13 @@ import {
 } from "@/lib/fedapay";
 import { getPayoutMapping, baseMethodCode } from "@/lib/payout/methods-map";
 
-export type PayoutProviderId = "moneroo" | "feexpay" | "fedapay";
+export type PayoutProviderId = "feexpay" | "fedapay";
 
-/** Ordre de tentative (fondateur : Moneroo d'abord, les nouveaux en secours). */
-const PROVIDER_ORDER: PayoutProviderId[] = ["moneroo", "feexpay", "fedapay"];
+/** Ordre de tentative : le premier configuré ET capable emporte le versement. */
+const PROVIDER_ORDER: PayoutProviderId[] = ["feexpay", "fedapay"];
 
 export type PayoutExecutionInput = {
-  /** Code opérateur interne (= code Moneroo ; le suffixe _mentor est toléré). */
+  /** Code opérateur interne (le suffixe _mentor est toléré). */
   method: string;
   amount: number;
   /** Numéro normalisé, chiffres + indicatif pays, SANS "+" (ex "2290166000000"). */
@@ -46,7 +45,7 @@ export type PayoutExecutionInput = {
   /**
    * Test / diagnostic admin : forcer UN fournisseur précis, SANS bascule.
    * Permet à l'admin de router délibérément un versement de test à travers
-   * FeexPay ou FedaPay (sinon Moneroo, premier dans l'ordre, capterait tout).
+   * FeexPay ou FedaPay sans laisser l'ordre de bascule décider.
    * En usage normal : laisser vide → ordre + bascule standard.
    */
   forceProvider?: PayoutProviderId;
@@ -104,22 +103,15 @@ export async function executePayout(input: PayoutExecutionInput): Promise<Payout
 
   for (const provider of order) {
     // 1) Configuré ?
-    const configured =
-      provider === "moneroo" ? isMonerooConfigured() :
-      provider === "feexpay" ? isFeexpayConfigured() :
-      isFedapayConfigured();
+    const configured = provider === "feexpay" ? isFeexpayConfigured() : isFedapayConfigured();
     if (!configured) {
       attempts.push({ provider, outcome: "skipped", detail: "non configuré" });
       continue;
     }
 
-    // 2) Capable de servir cet opérateur ?
-    //    Moneroo : le code interne EST un code Moneroo → toujours capable.
-    //    FeexPay / FedaPay : seulement si la table a une route confirmée.
-    const capable =
-      provider === "moneroo" ? true :
-      provider === "feexpay" ? Boolean(mapping?.feexpay) :
-      Boolean(mapping?.fedapay);
+    // 2) Capable de servir cet opérateur ? Uniquement si le registre déclare
+    //    une route confirmée : on n'invente jamais un endpoint de versement.
+    const capable = provider === "feexpay" ? Boolean(mapping?.feexpay) : Boolean(mapping?.fedapay);
     if (!capable) {
       attempts.push({ provider, outcome: "skipped", detail: "opérateur non supporté" });
       continue;
@@ -127,28 +119,6 @@ export async function executePayout(input: PayoutExecutionInput): Promise<Payout
 
     // 3) Tentative de versement.
     try {
-      if (provider === "moneroo") {
-        const data = await monerooInit({
-          amount: input.amount,
-          currency,
-          description: motif,
-          customer: { email: input.customer.email, first_name: input.customer.firstName, last_name: input.customer.lastName },
-          method,
-          recipient: { msisdn: input.msisdn },
-          metadata: { withdrawalId: input.withdrawalId },
-          idempotencyKey: `wd_${input.withdrawalId}`,
-        });
-        const norm = data.status === "success" ? "success" : (data.status === "failed" || data.status === "cancelled" ? "failed" : "pending");
-        if (norm === "failed") {
-          // Refus immédiat sans mouvement → on peut basculer.
-          attempts.push({ provider, outcome: "rejected", category: "provider_failed", detail: `statut ${data.status}` });
-          lastRejectionMsg = "Moneroo a refusé le versement.";
-          continue;
-        }
-        attempts.push({ provider, outcome: "accepted", detail: `ref ${data.id}` });
-        return { ok: true, provider, providerRef: data.id, status: norm as "pending" | "success", attempts };
-      }
-
       if (provider === "feexpay") {
         const route = mapping!.feexpay!;
         const r = await feexpayInit({
@@ -193,9 +163,7 @@ export async function executePayout(input: PayoutExecutionInput): Promise<Payout
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       const { category, userMessage } =
-        provider === "moneroo" ? classifyMonerooError(msg) :
-        provider === "feexpay" ? classifyFeexpayError(msg) :
-        classifyFedapayError(msg);
+        provider === "feexpay" ? classifyFeexpayError(msg) : classifyFedapayError(msg);
 
       if (isSafeToFallback(category)) {
         // Refus propre (rien n'a bougé) → on note et on tente le suivant.

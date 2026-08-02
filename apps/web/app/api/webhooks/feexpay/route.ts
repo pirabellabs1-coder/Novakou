@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { checkPayoutStatus, normalizeFeexpayStatus, isFeexpayConfigured } from "@/lib/feexpay";
 import { reconcilePayout } from "@/lib/payout/reconcile";
+import { reconcileCollectByRef } from "@/lib/payments/reconcile-collect";
 import { rateLimit } from "@/lib/api-rate-limit";
 
-// Webhook FeexPay — confirmation des payouts.
+// Webhook FeexPay — confirmation des encaissements ET des versements.
 //
 // SÛRETÉ : on ne se fie PAS au statut du corps du webhook. On extrait seulement
 // la référence, puis on RE-VÉRIFIE le statut réel via l'API FeexPay authentifiée
@@ -45,6 +46,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, ignored: true, reason: "no_reference" });
   }
 
+  // ── Encaissement ? ────────────────────────────────────────────────────────
+  // FeexPay notifie sur la même URL les versements ET les encaissements. On
+  // regarde d'abord si la référence correspond à un achat en attente : dans ce
+  // cas la livraison est le sujet, pas la réconciliation d'un payout.
+  // Même principe de sûreté : le statut est re-vérifié auprès de FeexPay.
+  const collect = await reconcileCollectByRef(reference);
+  if (collect.matched) {
+    console.log("[feexpay webhook] encaissement", { reference, ...collect });
+    return NextResponse.json({ ok: true, kind: "collect", ...collect });
+  }
+
+  // ── Sinon : versement ─────────────────────────────────────────────────────
   // Re-vérification authentifiée du statut réel (source de vérité).
   let status: "success" | "failed" | "pending";
   try {

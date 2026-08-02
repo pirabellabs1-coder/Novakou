@@ -22,7 +22,6 @@ import {
   shortMethodLabel,
 } from "@/lib/moneroo-payout-methods";
 import { computeVendorBalance, computeMentorBalance } from "@/lib/formations/wallet-balance";
-import { isMonerooConfigured } from "@/lib/moneroo";
 import { isFeexpayConfigured } from "@/lib/feexpay";
 import { isFedapayConfigured } from "@/lib/fedapay";
 
@@ -34,7 +33,7 @@ export type AutoPayoutResult =
   | { status: "REFUSED"; reason: string };                     // refusé → solde re-crédité
 
 function anyAutoProviderConfigured(): boolean {
-  return isMonerooConfigured() || isFeexpayConfigured() || isFedapayConfigured();
+  return isFeexpayConfigured() || isFedapayConfigured();
 }
 
 async function notify(userId: string, title: string, message: string, link: string) {

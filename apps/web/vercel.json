@@ -9,7 +9,7 @@
     { "path": "/api/cron/deadline-reminder",             "schedule": "0 7 * * *" },
     { "path": "/api/cron/mentor-escrow",                 "schedule": "0 14 * * *" },
     { "path": "/api/cron/mentor-reminders",              "schedule": "0 6 * * *" },
-    { "path": "/api/cron/auto-payout",                   "schedule": "0 4 * * *" },
+    { "path": "/api/cron/auto-payout",                   "schedule": "*/10 * * * *" },
     { "path": "/api/cron/abandoned-cart-check",          "schedule": "0 8 * * *" },
     { "path": "/api/cron/abandoned-cart-email",          "schedule": "0 11 * * *" },
     { "path": "/api/cron/abandon-stale-checkouts",       "schedule": "0 11 * * *" },
@@ -25,7 +25,8 @@
     { "path": "/api/cron/affiliate-payout",              "schedule": "0 5 5 * *" },
     { "path": "/api/cron/approve-affiliate-commissions", "schedule": "0 3 * * *" },
     { "path": "/api/cron/account-deletion-cooldown",     "schedule": "0 2 * * *" },
-    { "path": "/api/cron/payout-reconcile",              "schedule": "30 5 * * *" },
+    { "path": "/api/cron/payout-reconcile",              "schedule": "*/10 * * * *" },
+    { "path": "/api/cron/collect-reconcile",             "schedule": "*/5 * * * *" },
     { "path": "/api/marketing/sequences/process",        "schedule": "0 7 * * *" },
     { "path": "/api/cron/automation-scheduled",          "schedule": "*/15 * * * *" }
   ],

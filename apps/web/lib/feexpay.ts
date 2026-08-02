@@ -1,15 +1,16 @@
-// FeexPay — intégration PAYOUT (versement vers Mobile Money).
-// Docs : https://docs.feexpay.me/  (section « API > Payout »)
+// FeexPay — encaissement (push Mobile Money) et versement.
+// Docs : https://docs.feexpay.me/
 //
-// Contexte : Moneroo encaisse via FeexPay mais ne sait pas VERSER vers un
-// compte FeexPay. Ce module ajoute FeexPay comme fournisseur de payout, à côté
-// de Moneroo, pour la bascule automatique (voir lib/payout/execute.ts).
+// Les codes réseau viennent du registre (lib/payments/registry.ts), source
+// unique du routage. Les endpoints d'encaissement ont été relevés sur le SDK
+// officiel : la doc REST publique ne les décrit pas.
 //
 // Particularité V2 : un payout renvoie TOUJOURS le statut "PENDING" au
 // lancement. Il FAUT ensuite interroger l'endpoint de statut pour connaître le
 // résultat final (SUCCESSFUL / FAILED). Le webhook confirme aussi de son côté.
 
 import { payoutFetch } from "@/lib/payout/proxy-fetch";
+import { routeFor } from "@/lib/payments/registry";
 
 const FEEXPAY_API_BASE = "https://api-v2.feexpay.me";
 
@@ -206,25 +207,16 @@ const FEEXPAY_COLLECT_BASE = "https://api.feexpay.me";
  * Reprise telle quelle du SDK : ne PAS inventer de variante — un réseau
  * inconnu de FeexPay fait échouer la transaction.
  */
-const FEEXPAY_NETWORK: Record<string, string> = {
-  mtn_bj: "MTN",
-  moov_bj: "MOOV",
-  celtiis_bj: "CELTIIS BJ",
-  mtn_ci: "MTN CI",
-  moov_ci: "MOOV CI",
-  orange_ci: "ORANGE CI",
-  wave_ci: "WAVE CI",
-  orange_sn: "ORANGE SN",
-  freemoney_sn: "FREE SN",
-  moov_tg: "MOOV TG",
-  togocel: "TOGOCOM TG",
-  moov_bf: "MOOV BF",
-  orange_bf: "ORANGE BF",
-};
-
-/** Réseau FeexPay pour cet opérateur, ou null si FeexPay ne le sert pas. */
+/**
+ * Réseau FeexPay pour cet opérateur, ou null si FeexPay ne le sert pas.
+ *
+ * La valeur vient du REGISTRE, source unique de vérité du routage. Cette table
+ * était auparavant dupliquée ici : deux listes à maintenir pour la même chose,
+ * et un jour l'une des deux qui dérive. Or un mauvais réseau n'échoue pas
+ * toujours proprement — il peut viser le mauvais opérateur.
+ */
 export function feexpayNetworkFor(operator: string): string | null {
-  return FEEXPAY_NETWORK[operator] ?? null;
+  return routeFor(operator, "feexpay", "collect")?.code ?? null;
 }
 
 export type FeexpayCollectParams = {

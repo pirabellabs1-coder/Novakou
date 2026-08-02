@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { checkPayoutStatus, normalizeFedapayStatus, isFedapayConfigured } from "@/lib/fedapay";
 import { reconcilePayout } from "@/lib/payout/reconcile";
+import { reconcileCollectByRef } from "@/lib/payments/reconcile-collect";
 import { rateLimit } from "@/lib/api-rate-limit";
 
-// Webhook FedaPay — confirmation des payouts.
+// Webhook FedaPay — confirmation des encaissements ET des versements.
 //
 // SÛRETÉ (idem FeexPay) : on n'extrait du corps que l'id du payout, puis on
 // RE-VÉRIFIE le statut via l'API FedaPay authentifiée avant toute écriture.
@@ -54,6 +55,14 @@ export async function POST(request: Request) {
   const payoutId = extractPayoutId(body);
   if (!payoutId) {
     return NextResponse.json({ ok: true, ignored: true, reason: "no_payout_id" });
+  }
+
+  // Encaissement ? FedaPay notifie transactions et payouts sur la même URL. Si
+  // la référence correspond à un achat en attente, la livraison est le sujet.
+  const collect = await reconcileCollectByRef(payoutId);
+  if (collect.matched) {
+    console.log("[fedapay webhook] encaissement", { payoutId, ...collect });
+    return NextResponse.json({ ok: true, kind: "collect", ...collect });
   }
 
   let status: "success" | "failed" | "pending";

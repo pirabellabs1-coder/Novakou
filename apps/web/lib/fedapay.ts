@@ -10,6 +10,7 @@
 // puis GET /v1/payouts/{id} pour suivre le statut final (sent / failed).
 
 import { payoutFetch } from "@/lib/payout/proxy-fetch";
+import { routeFor } from "@/lib/payments/registry";
 
 function getBaseUrl(): string {
   // FEDAPAY_ENVIRONMENT = "live" | "sandbox" (défaut : live).
@@ -221,15 +222,14 @@ export function normalizeFedapayStatus(s: FedapayPayoutStatus | string): "succes
  * paiement vers le mauvais réseau. Compléter au fil des confirmations dans le
  * tableau de bord FedaPay (Décaissements → sélecteur opérateur).
  */
-const FEDAPAY_MODE: Record<string, string> = {
-  mtn_bj: "mtn_open",
-  moov_bj: "moov",
-  togocel: "togocel",
-};
-
-/** Mode FedaPay pour cet opérateur, ou null si non confirmé. */
+/**
+ * Mode FedaPay pour cet opérateur, ou null si non confirmé.
+ *
+ * Lu dans le REGISTRE, source unique du routage. Cette table y était dupliquée :
+ * deux listes pour la même chose, dont une qui finit par dériver.
+ */
 export function fedapayModeFor(operator: string): string | null {
-  return FEDAPAY_MODE[operator] ?? null;
+  return routeFor(operator, "fedapay", "collect")?.code ?? null;
 }
 
 export type FedapayCollectParams = {

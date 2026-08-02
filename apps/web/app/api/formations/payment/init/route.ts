@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveCollectProvider, activeProviders } from "@/lib/payments/gateways";
-import { resolveOperatorCode, getProvider, countryFromPhone } from "@/lib/payments/registry";
+import { resolveOperatorCode, getProvider, countryFromPhone, currencyForOperator } from "@/lib/payments/registry";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
 import { computeCheckoutDiscount } from "@/lib/formations/checkout-discount";
 import { isAllowedBuyerEmail, ALLOWED_BUYER_EMAIL_MESSAGE } from "@/lib/email/allowed-buyer-email";
@@ -448,7 +448,10 @@ export async function POST(request: Request) {
           operator: chosenOperator,
           amount: Math.round(totalAmount),
           phoneNumber: phoneRaw,
-          currency: "XOF",
+          // Devise de l'opérateur, pas une constante : l'Afrique centrale est
+          // en XAF. XOF et XAF ont la même parité, mais le fournisseur refuse
+          // une transaction dont la devise ne correspond pas à son réseau.
+          currency: currencyForOperator(chosenOperator) ?? "XOF",
           description,
           customId: internalRef,
           firstName: first || "Client",
@@ -460,7 +463,7 @@ export async function POST(request: Request) {
         const r = await initCollect({
           operator: chosenOperator,
           amount: Math.round(totalAmount),
-          currencyIso: "XOF",
+          currencyIso: currencyForOperator(chosenOperator) ?? "XOF",
           description,
           phoneNumber: phoneRaw ? `+${phoneRaw.replace(/\D/g, "")}` : undefined,
           countryIso: countryFromPhone(phoneRaw) ?? undefined,

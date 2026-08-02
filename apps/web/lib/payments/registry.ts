@@ -147,6 +147,21 @@ export const OPERATORS: Record<string, OperatorEntry> = {
       fedapay: { code: "moov" },
     },
   },
+  celtiis_bj: {
+    label: "Celtiis Cash (Bénin)", country: "bj", currency: "XOF", family: "mobile_money",
+    collect: {
+      feexpay: { code: "CELTIIS BJ" },
+      fedapay: { code: "sbin" },
+      kkiapay: { code: "momo", params: { country: "BJ" } },
+    },
+    payout: { fedapay: { code: "sbin" } },
+  },
+  coris_bj: {
+    label: "Coris Money (Bénin)", country: "bj", currency: "XOF", family: "mobile_money",
+    collect: { feexpay: { code: "CORIS" } },
+    // Versement Coris non listé côté FeexPay : on n'invente pas d'endpoint.
+    payout: {},
+  },
 
   // ────────────────────── Côte d'Ivoire (XOF) ─────────────────────
   orange_ci: {
@@ -161,8 +176,12 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   },
   mtn_ci: {
     label: "MTN Mobile Money (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
-    collect: { feexpay: { code: "MTN CI" }, kkiapay: { code: "momo", params: { country: "CI" } } },
-    payout: { feexpay: { code: "mtn_ci" } },
+    collect: {
+      feexpay: { code: "MTN CI" },
+      fedapay: { code: "mtn_ci" },
+      kkiapay: { code: "momo", params: { country: "CI" } },
+    },
+    payout: { feexpay: { code: "mtn_ci" }, fedapay: { code: "mtn_ci" } },
   },
   moov_ci: {
     label: "Moov Money (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
@@ -189,8 +208,8 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   },
   freemoney_sn: {
     label: "Free Money (Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
-    collect: { feexpay: { code: "FREE SN" } },
-    payout: { feexpay: { code: "free_sn" } },
+    collect: { feexpay: { code: "FREE SN" }, fedapay: { code: "free_sn" } },
+    payout: { feexpay: { code: "free_sn" }, fedapay: { code: "free_sn" } },
   },
   e_money_sn: {
     label: "E-Money (Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
@@ -213,9 +232,13 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     label: "Moov Money (Togo)", country: "tg", currency: "XOF", family: "mobile_money",
     collect: {
       feexpay: { code: "MOOV TG" },
+      fedapay: { code: "moov_tg" },
       kkiapay: { code: "momo", params: { country: "TG" } },
     },
-    payout: { feexpay: { code: "togo", params: { network: "MOOV TG" } } },
+    payout: {
+      feexpay: { code: "togo", params: { network: "MOOV TG" } },
+      fedapay: { code: "moov_tg" },
+    },
   },
   togocel: {
     label: "Togocel Money (Togo)", country: "tg", currency: "XOF", family: "mobile_money",
@@ -248,6 +271,20 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   moov_bf: {
     label: "Moov Money (Burkina Faso)", country: "bf", currency: "XOF", family: "mobile_money",
     collect: { feexpay: { code: "MOOV BF" } },
+    payout: {},
+  },
+
+  // ────────────────────────── Niger (XOF) ─────────────────────────
+  airtel_ne: {
+    label: "Airtel Money (Niger)", country: "ne", currency: "XOF", family: "mobile_money",
+    collect: { fedapay: { code: "airtel_ne" } },
+    payout: { fedapay: { code: "airtel_ne" } },
+  },
+
+  // ─────────────────── Congo Brazzaville (XAF) ────────────────────
+  mtn_cg: {
+    label: "MTN Mobile Money (Congo)", country: "cg", currency: "XAF", family: "mobile_money",
+    collect: { feexpay: { code: "MTN CG" } },
     payout: {},
   },
 
@@ -369,6 +406,7 @@ export function coverageGaps(): { collectOnly: string[]; payoutOnly: string[] } 
 const DIAL_TO_COUNTRY: Record<string, string> = {
   "229": "bj", "221": "sn", "225": "ci", "237": "cm",
   "228": "tg", "223": "ml", "226": "bf",
+  "227": "ne", "242": "cg",
 };
 
 /** Famille d'opérateur d'un code générique (préfixe des clés du registre). */
@@ -382,6 +420,24 @@ const GENERIC_FAMILY: Record<string, string> = {
   wizall: "wizall",
   djamo: "djamo",
 };
+
+/**
+ * Devise d'un pays, déduite de ses opérateurs déclarés. Null si le pays est
+ * inconnu du registre.
+ */
+export function currencyForCountry(country: string | null | undefined): "XOF" | "XAF" | null {
+  const c = (country ?? "").trim().toLowerCase();
+  if (!c) return null;
+  for (const op of Object.values(OPERATORS)) {
+    if (op.country === c) return op.currency;
+  }
+  return null;
+}
+
+/** Devise à facturer pour un opérateur donné (le Congo est en XAF, pas XOF). */
+export function currencyForOperator(code: string | null | undefined): "XOF" | "XAF" | null {
+  return getOperator(code)?.currency ?? null;
+}
 
 /** Déduit le pays depuis un numéro international (chiffres, indicatif compris). */
 export function countryFromPhone(phone: string | null | undefined): string | null {
@@ -416,7 +472,9 @@ export function resolveOperatorCode(
 
   // La carte dépend de la devise, pas du pays.
   if (code === "card" || code === "carte") {
-    const cur = (opts.currency ?? (country === "cm" ? "XAF" : "XOF")).toLowerCase();
+    // La zone se déduit du registre : lister les pays XAF ici en dur, c'était
+    // la garantie d'en oublier un au premier pays ajouté (le Congo l'a prouvé).
+    const cur = (opts.currency ?? currencyForCountry(country) ?? "XOF").toLowerCase();
     return OPERATORS[`card_${cur}`] ? `card_${cur}` : null;
   }
 
