@@ -59,17 +59,18 @@ export const PROVIDERS: ProviderMeta[] = [
   {
     id: "feexpay",
     label: "FeexPay",
-    // Encaissement NON encore implémenté chez nous : FeexPay le propose
-    // (SDK PHP/Flutter, plugin WooCommerce) mais les endpoints REST ne sont pas
-    // publics. À passer en ["collect","payout"] une fois les specs obtenues.
-    directions: ["payout"],
+    // Encaissement implémenté (lib/feexpay.ts → initCollect). Endpoints relevés
+    // dans le SDK React officiel du fournisseur, leur doc REST n'étant pas
+    // publique.
+    directions: ["collect", "payout"],
     envVars: ["FEEXPAY_API_KEY", "FEEXPAY_SHOP_ID"],
   },
   {
     id: "fedapay",
     label: "FedaPay",
-    // Idem : encaissement à confirmer avant activation.
-    directions: ["payout"],
+    // Encaissement implémenté (lib/fedapay.ts → initCollect), d'après la
+    // documentation officielle.
+    directions: ["collect", "payout"],
     envVars: ["FEDAPAY_SECRET_KEY"],
   },
 ];
@@ -96,14 +97,17 @@ export type OperatorEntry = {
  *  - moneroo.collect : liste officielle des méthodes de paiement Moneroo.
  *  - moneroo.payout  : catalogue de `moneroo-payout-methods.ts`.
  *  - feexpay/fedapay.payout : `payout/methods-map.ts` (codes confirmés doc).
- *  - feexpay/fedapay.collect : VIDES tant que les endpoints REST ne sont pas
- *    confirmés — voir la règle de sûreté en tête de fichier.
+ *  - feexpay.collect  : valeurs du champ `reseau` relevées dans le SDK React
+ *    officiel de FeexPay (leur doc REST n'est pas publique).
+ *  - fedapay.collect  : SEULS mtn_bj / moov_bj / togocel sont confirmés. Les
+ *    autres attendent les codes `mode` exacts du tableau de bord FedaPay —
+ *    laissés vides plutôt que devinés (voir la règle de sûreté ci-dessus).
  */
 export const OPERATORS: Record<string, OperatorEntry> = {
   // ───────────────────────── Bénin (XOF) ─────────────────────────
   mtn_bj: {
     label: "MTN Mobile Money (Bénin)", country: "bj", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "mtn_bj" } },
+    collect: { moneroo: { code: "mtn_bj" }, feexpay: { code: "MTN" }, fedapay: { code: "mtn_open" } },
     payout: {
       moneroo: { code: "mtn_bj" },
       feexpay: { code: "transfer/global", params: { network: "MTN" } },
@@ -112,7 +116,7 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   },
   moov_bj: {
     label: "Moov Money (Bénin)", country: "bj", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "moov_bj" } },
+    collect: { moneroo: { code: "moov_bj" }, feexpay: { code: "MOOV" }, fedapay: { code: "moov" } },
     payout: {
       moneroo: { code: "moov_bj" },
       feexpay: { code: "transfer/global", params: { network: "MOOV" } },
@@ -123,22 +127,22 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // ────────────────────── Côte d'Ivoire (XOF) ─────────────────────
   orange_ci: {
     label: "Orange Money (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "orange_ci" } },
+    collect: { moneroo: { code: "orange_ci" }, feexpay: { code: "ORANGE CI" } },
     payout: { moneroo: { code: "orange_ci" }, feexpay: { code: "orange_ci" } },
   },
   wave_ci: {
     label: "Wave (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "wave_ci" } },
+    collect: { moneroo: { code: "wave_ci" }, feexpay: { code: "WAVE CI" } },
     payout: { moneroo: { code: "wave_ci" }, feexpay: { code: "wave_ci" } },
   },
   mtn_ci: {
     label: "MTN Mobile Money (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "mtn_ci" } },
+    collect: { moneroo: { code: "mtn_ci" }, feexpay: { code: "MTN CI" } },
     payout: { moneroo: { code: "mtn_ci" }, feexpay: { code: "mtn_ci" } },
   },
   moov_ci: {
     label: "Moov Money (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "moov_ci" } },
+    collect: { moneroo: { code: "moov_ci" }, feexpay: { code: "MOOV CI" } },
     payout: { moneroo: { code: "moov_ci" }, feexpay: { code: "moov_ci" } },
   },
   djamo_ci: {
@@ -150,7 +154,7 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // ───────────────────────── Sénégal (XOF) ────────────────────────
   orange_sn: {
     label: "Orange Money (Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "orange_sn" } },
+    collect: { moneroo: { code: "orange_sn" }, feexpay: { code: "ORANGE SN" } },
     payout: { moneroo: { code: "orange_sn" }, feexpay: { code: "orange_sn" } },
   },
   wave_sn: {
@@ -160,7 +164,7 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   },
   freemoney_sn: {
     label: "Free Money (Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "freemoney_sn" } },
+    collect: { moneroo: { code: "freemoney_sn" }, feexpay: { code: "FREE SN" } },
     payout: { moneroo: { code: "freemoney_sn" }, feexpay: { code: "free_sn" } },
   },
   e_money_sn: {
@@ -182,7 +186,7 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // ────────────────────────── Togo (XOF) ──────────────────────────
   moov_tg: {
     label: "Moov Money (Togo)", country: "tg", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "moov_tg" } },
+    collect: { moneroo: { code: "moov_tg" }, feexpay: { code: "MOOV TG" } },
     payout: {
       moneroo: { code: "moov_tg" },
       feexpay: { code: "togo", params: { network: "MOOV TG" } },
@@ -190,7 +194,7 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   },
   togocel: {
     label: "Togocel Money (Togo)", country: "tg", currency: "XOF", family: "mobile_money",
-    collect: {},
+    collect: { feexpay: { code: "TOGOCOM TG" }, fedapay: { code: "togocel" } },
     payout: {
       moneroo: { code: "togocel" },
       feexpay: { code: "togo", params: { network: "TOGOCOM TG" } },
@@ -213,12 +217,12 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // ─────────────────────── Burkina Faso (XOF) ─────────────────────
   orange_bf: {
     label: "Orange Money (Burkina Faso)", country: "bf", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "orange_bf" } },
+    collect: { moneroo: { code: "orange_bf" }, feexpay: { code: "ORANGE BF" } },
     payout: {}, // encaissable seulement
   },
   moov_bf: {
     label: "Moov Money (Burkina Faso)", country: "bf", currency: "XOF", family: "mobile_money",
-    collect: { moneroo: { code: "moov_bf" } },
+    collect: { moneroo: { code: "moov_bf" }, feexpay: { code: "MOOV BF" } },
     payout: {},
   },
 

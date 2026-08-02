@@ -66,6 +66,35 @@ export default function PasserellesPage() {
     },
   });
 
+  // Test de connexion : appel en LECTURE seule chez le fournisseur, pour
+  // vérifier clés + autorisation d'IP sans déclencher de paiement réel.
+  const [testing, setTesting] = useState<string | null>(null);
+  const [testResult, setTestResult] = useState<Record<string, { ok: boolean; diagnosis: string; detail: string }>>({});
+
+  async function testConnection(provider: string) {
+    setTesting(provider);
+    try {
+      const res = await fetch("/api/formations/admin/test-gateway", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider }),
+      });
+      const j = await res.json();
+      if (!res.ok) {
+        setTestResult((r) => ({ ...r, [provider]: { ok: false, diagnosis: j.error ?? "Erreur", detail: "" } }));
+      } else {
+        setTestResult((r) => ({ ...r, [provider]: { ok: j.data.ok, diagnosis: j.data.diagnosis, detail: j.data.detail } }));
+      }
+    } catch (e) {
+      setTestResult((r) => ({
+        ...r,
+        [provider]: { ok: false, diagnosis: e instanceof Error ? e.message : "Erreur réseau", detail: "" },
+      }));
+    } finally {
+      setTesting(null);
+    }
+  }
+
   function setDraft(provider: string, key: string, value: string) {
     setDrafts((d) => ({ ...d, [provider]: { ...(d[provider] ?? {}), [key]: value } }));
   }
@@ -247,6 +276,39 @@ export default function PasserellesPage() {
                     >
                       {saveMut.isPending ? "Enregistrement…" : "Enregistrer les identifiants"}
                     </StButton>
+
+                    {(g.provider === "feexpay" || g.provider === "fedapay") && (
+                      <>
+                        <StButton
+                          variant="secondary"
+                          className="w-full"
+                          disabled={testing === g.provider || !g.configured}
+                          onClick={() => testConnection(g.provider)}
+                        >
+                          {testing === g.provider ? "Test en cours…" : "Tester la connexion"}
+                        </StButton>
+                        <p className="text-[10px] font-semibold" style={{ color: ST.textSecondary }}>
+                          Lecture seule — aucun paiement déclenché.
+                        </p>
+                        {testResult[g.provider] && (
+                          <div
+                            className="rounded-xl p-3 text-[11px] font-semibold"
+                            style={
+                              testResult[g.provider].ok
+                                ? { background: "#f0faf3", border: "1px solid #b9e6c9", color: "#0b5c2b" }
+                                : { background: "#fdf1f1", border: "1px solid #f5c6c6", color: "#8a1c1c" }
+                            }
+                          >
+                            <p>{testResult[g.provider].diagnosis}</p>
+                            {testResult[g.provider].detail && (
+                              <p className="mt-1.5 font-mono text-[10px] opacity-75 break-all">
+                                {testResult[g.provider].detail}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               </StCard>
