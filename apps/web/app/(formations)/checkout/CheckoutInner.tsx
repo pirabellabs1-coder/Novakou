@@ -7,6 +7,7 @@ import { isAllowedBuyerEmail, ALLOWED_BUYER_EMAIL_MESSAGE } from "@/lib/email/al
 import Link from "next/link";
 import {
   ChevronRight,
+  ChevronLeft,
   ChevronDown,
   Lock,
   CheckCircle2,
@@ -15,8 +16,6 @@ import {
   Loader2,
   XCircle,
   AlertCircle,
-  ArrowRightLeft,
-  RefreshCw,
   GraduationCap,
   FolderArchive,
   ShoppingCart,
@@ -32,6 +31,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { PixelInjector } from "@/components/formations/PixelInjector";
+import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
 import { COUNTRIES as ALL_COUNTRIES } from "@/lib/countries";
 import { useDraftField, clearDrafts } from "@/lib/hooks/use-draft-storage";
 import { trackEvents } from "@/lib/tracking/events";
@@ -78,8 +78,8 @@ const METHOD_DISPLAY: Record<PaymentMethod, { label: string; Icon: LucideIcon }>
 // Repli quand aucun vendeur ne précise ses méthodes (liste historique).
 const DEFAULT_METHODS: PaymentMethod[] = ["orange_money", "wave", "mtn_momo", "card"];
 
-type PaymentProvider = "moneroo" | "paygenius";
-type ProviderInfo = { id: PaymentProvider; label: string; available: boolean; description: string };
+// Plus de « choix de passerelle » côté acheteur : il choisit un PAYS et un
+// MOYEN, le serveur décide seul par quelle passerelle l'argent transite.
 type CartItem = {
   id: string;
   kind: "formation" | "product";
@@ -123,11 +123,11 @@ export default function CheckoutInner() {
   const [phone, setPhone] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:phone`, "");
   const [countryCode, setCountryCode] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:countryCode`, "+221");
   const [countryOpen, setCountryOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("orange_money");
+  // Deux temps : le formulaire (coordonnées, bump, promo, CGV) puis l'écran
+  // unique de paiement. Le pays et le moyen ne sont plus demandés ici.
+  const [step, setStep] = useState<"form" | "pay">("form");
   // Méthodes acceptées par le(s) vendeur(s) du panier (intersection côté API).
   const [acceptedMethods, setAcceptedMethods] = useState<PaymentMethod[]>([]);
-  const [provider, setProvider] = useState<PaymentProvider>("moneroo");
-  const [availableProviders, setAvailableProviders] = useState<ProviderInfo[]>([]);
   const [countrySearch, setCountrySearch] = useState("");
   const filteredCountries = useMemo(() => {
     const q = countrySearch.trim().toLowerCase();
@@ -166,24 +166,6 @@ export default function CheckoutInner() {
 
   // ── Pixels marketing vendeurs (FB, Google, TikTok) ──────────────────────
   const [checkoutPixels, setCheckoutPixels] = useState<Array<{ type: "FACEBOOK" | "GOOGLE" | "TIKTOK" | "SNAPCHAT" | "PINTEREST"; pixelId: string }>>([]);
-
-  // ── Charger la liste des providers de paiement disponibles ─────────────
-  // Source unique de vérité = /api/formations/payment/providers (vérifie les
-  // env vars côté serveur). Si Moneroo n'est pas configuré, il ne s'affiche pas.
-  useEffect(() => {
-    fetch("/api/formations/payment/providers")
-      .then((r) => r.json())
-      .then((j) => {
-        const list = (j.data ?? []) as ProviderInfo[];
-        setAvailableProviders(list);
-        // Si le default "moneroo" n'est pas disponible, basculer sur le premier dispo
-        if (list.length > 0 && !list.find((p) => p.id === "moneroo" && p.available)) {
-          const firstAvail = list.find((p) => p.available) ?? list[0];
-          if (firstAvail) setProvider(firstAvail.id);
-        }
-      })
-      .catch(() => setAvailableProviders([]));
-  }, []);
 
   // ── Pre-fill from session ───────────────────────────────────────────────────
   useEffect(() => {
@@ -442,21 +424,30 @@ export default function CheckoutInner() {
   const formationIds = cartItems.filter((i) => i.kind === "formation").map((i) => i.id);
   const productIds = cartItems.filter((i) => i.kind === "product").map((i) => i.id);
 
-  const isMobileMoney = paymentMethod === "orange_money" || paymentMethod === "wave" || paymentMethod === "mtn_momo" || paymentMethod === "moov_money";
-
-  async function handlePay() {
+  /** Étape 1 → 2 : on valide le formulaire, puis on montre l'écran de paiement. */
+  function goToPayment() {
     if (!termsAccepted) { setError("Veuillez accepter les conditions générales."); return; }
     if (!email) { setError("Adresse email requise."); return; }
     // Invité : l'e-mail d'achat doit être une vraie adresse Gmail (anti faux comptes).
     if (!session && !isAllowedBuyerEmail(email)) { setError(ALLOWED_BUYER_EMAIL_MESSAGE); return; }
-    // Téléphone non obligatoire ici — Moneroo le demandera si Mobile Money
     if (cartItems.length === 0) { setError("Votre panier est vide."); return; }
+    setError(null);
+    setStep("pay");
+    window.scrollTo({ top: 0 });
+  }
 
+  /**
+   * Étape 2 : l'écran unique nous rend un opérateur déjà résolu au pays
+   * (« orange_sn », « card_xof »…). Le serveur choisit la passerelle.
+   */
+  async function startPayment({ operator, phone: payPhone }: { operator: string; phone?: string; hosted: boolean }) {
     setLoading(true);
     setError(null);
 
     try {
-      const fullPhone = phone ? `${countryCode}${phone.replace(/^0/, "")}` : undefined;
+      // Le numéro saisi sur l'écran de paiement prime ; sinon celui du
+      // formulaire de contact, préfixé de son indicatif.
+      const fullPhone = payPhone || (phone ? `${countryCode}${phone.replace(/^0/, "")}` : undefined);
       // Resoudre les bumps acceptes en formationIds / productIds additionnels
       const acceptedBumps = availableBumps.filter((b) => acceptedBumpIds.includes(b.id));
       const bumpFormationIds = acceptedBumps.map((b) => b.bumpFormation?.id).filter(Boolean) as string[];
@@ -472,8 +463,8 @@ export default function CheckoutInner() {
           guestEmail: session ? undefined : email,
           guestName: session ? undefined : `${firstName} ${lastName}`.trim(),
           phone: fullPhone,
-          paymentMethod,
-          provider,
+          // Opérateur déjà spécifique au pays, choisi sur l'écran unique.
+          paymentMethod: operator,
         }),
       });
       const json = await res.json();
@@ -484,20 +475,34 @@ export default function CheckoutInner() {
         return;
       }
 
-      const checkoutUrl: string = json.data.checkout_url;
-
-      // Payment provider has the order — clear the saved draft so a buyer
-      // doesn't see their previous contact details on a fresh checkout for
-      // a different product.
+      // La commande est partie chez la passerelle — on efface le brouillon pour
+      // qu'un prochain achat ne réaffiche pas les coordonnées précédentes.
       clearDrafts(CHECKOUT_DRAFT_PREFIX);
 
-      // Mock/dev mode — go to return page
+      // Moyen à widget (fenêtre du fournisseur ouverte dans le navigateur).
+      if (json.data.mode === "widget") {
+        setError(
+          "Ce moyen de paiement n'est pas encore actif chez nous. Choisissez le Mobile Money.",
+        );
+        setLoading(false);
+        return;
+      }
+
+      const checkoutUrl: string = json.data.checkout_url;
+      if (!checkoutUrl) {
+        setError("Réponse de paiement invalide. Réessayez dans un instant.");
+        setLoading(false);
+        return;
+      }
+
+      // Mock/dev : page de retour interne.
       if (json.data.mock || json.data.free) {
         router.push(checkoutUrl);
         return;
       }
 
-      // Real Moneroo — redirect to their hosted page
+      // Mobile Money : page d'attente interne (le push part sur le téléphone).
+      // Carte hébergée : page sécurisée du fournisseur.
       window.location.href = checkoutUrl;
     } catch {
       setError("Erreur réseau. Vérifiez votre connexion et réessayez.");
@@ -505,14 +510,35 @@ export default function CheckoutInner() {
     }
   }
 
-  const paymentMethods: { id: PaymentMethod; label: string; Icon: LucideIcon }[] = [
-    { id: "orange_money", label: "Orange Money", Icon: Smartphone },
-    { id: "wave", label: "Wave", Icon: Waves },
-    { id: "mtn_momo", label: "MTN MoMo", Icon: Phone },
-    { id: "card", label: "Carte bancaire", Icon: CreditCard },
-  ];
-
   const selectedCountry = COUNTRIES.find((c) => c.code === countryCode) ?? COUNTRIES[0];
+
+  // ── Étape 2 : l'écran unique de paiement ────────────────────────────────
+  // Un seul endroit dans toute la plateforme où l'acheteur choisit son pays
+  // et son moyen. Il ne voit jamais le nom d'une passerelle.
+  if (step === "pay") {
+    return (
+      <div className="min-h-screen bg-[#f7f9fb] py-8 px-4" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
+        <div className="max-w-5xl mx-auto mb-4">
+          <button
+            type="button"
+            onClick={() => { setStep("form"); setError(null); }}
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#5c647a] hover:text-[#006e2f] transition-colors"
+          >
+            <ChevronLeft size={16} />
+            Revenir à ma commande
+          </button>
+        </div>
+        <UnifiedPaymentScreen
+          amount={totalAmount}
+          buyerName={firstName || null}
+          defaultCountry={selectedCountry?.iso ?? null}
+          onPay={(args) => { void startPayment(args); }}
+          submitting={loading}
+          error={error}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f7f9fb] py-8 px-4 md:px-8" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
@@ -677,163 +703,10 @@ export default function CheckoutInner() {
             </div>
           </div>
 
-          {/* Payment method — MASQUÉ : Moneroo gère la sélection de méthode sur sa page */}
-          {false && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <h2 className="font-bold text-[#191c1e] mb-4 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-[#006e2f] text-white text-xs flex items-center justify-center font-bold">2</span>
-              Moyen de paiement
-            </h2>
-
-            <div className="grid grid-cols-2 gap-3 mb-5">
-              {paymentMethods.map((method) => (
-                <button
-                  key={method.id}
-                  onClick={() => setPaymentMethod(method.id)}
-                  className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all duration-200 text-left ${
-                    paymentMethod === method.id ? "border-[#006e2f] bg-green-50" : "border-gray-200 bg-white hover:border-gray-300"
-                  }`}
-                >
-                  <method.Icon size={22} className={paymentMethod === method.id ? "text-[#006e2f]" : "text-[#5c647a]"} />
-                  <span className={`text-sm font-semibold ${paymentMethod === method.id ? "text-[#006e2f]" : "text-[#191c1e]"}`}>
-                    {method.label}
-                  </span>
-                  {paymentMethod === method.id && (
-                    <CheckCircle2 size={16} className="text-[#006e2f] ml-auto" />
-                  )}
-                </button>
-              ))}
-            </div>
-
-            {/* Mobile Money phone field */}
-            {isMobileMoney && (
-              <div>
-                <label className="block text-xs font-semibold text-[#5c647a] mb-1.5">
-                  Numéro de téléphone Mobile Money <span className="text-red-500">*</span>
-                </label>
-                <div className="flex gap-2">
-                  {/* Country code dropdown */}
-                  <div className="relative flex-shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => setCountryOpen((v) => !v)}
-                      className="h-full px-3 py-3 rounded-xl border border-gray-200 bg-[#f7f9fb] text-sm text-[#191c1e] flex items-center gap-1.5 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] min-w-[90px]"
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={`https://flagcdn.com/24x18/${selectedCountry.iso.toLowerCase()}.png`}
-                        srcSet={`https://flagcdn.com/48x36/${selectedCountry.iso.toLowerCase()}.png 2x`}
-                        alt={selectedCountry.label}
-                        width={24}
-                        height={18}
-                        className="rounded-sm"
-                      />
-                      <span className="font-semibold">{selectedCountry.code}</span>
-                      <ChevronDown size={14} className="text-[#5c647a]" />
-                    </button>
-                    {countryOpen && (
-                      <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-60 max-h-64 overflow-y-auto">
-                        {COUNTRIES.map((c) => (
-                          <button
-                            key={c.iso}
-                            type="button"
-                            onClick={() => { setCountryCode(c.code); setCountryOpen(false); }}
-                            className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-green-50 text-left ${countryCode === c.code ? "bg-green-50 text-[#006e2f] font-semibold" : "text-[#191c1e]"}`}
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={`https://flagcdn.com/24x18/${c.iso.toLowerCase()}.png`}
-                              alt=""
-                              width={24}
-                              height={18}
-                              className="flex-shrink-0 rounded-sm"
-                            />
-                            <span className="flex-1">{c.label}</span>
-                            <span className="text-[#5c647a] tabular-nums text-xs">{c.code}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value.replace(/[^\d\s]/g, ""))}
-                    placeholder="07 XX XX XX XX"
-                    className="flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-[#f7f9fb] text-sm text-[#191c1e] placeholder:text-[#5c647a] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
-                  />
-                </div>
-                <p className="text-[10px] text-[#5c647a] mt-1.5">
-                  Vous recevrez une notification de confirmation sur ce numéro.
-                </p>
-              </div>
-            )}
-
-            {/* Card — Moneroo hosted form handles this */}
-            {paymentMethod === "card" && (
-              <div className="rounded-xl bg-blue-50 border border-blue-100 p-4 flex items-center gap-3">
-                <Info size={22} className="text-blue-500" />
-                <p className="text-sm text-blue-800 font-medium leading-snug">
-                  Vous serez redirigé vers la page de paiement sécurisée pour entrer les détails de votre carte.
-                </p>
-              </div>
-            )}
-          </div>
-          )}
-
-          {/* Provider selector — visible si plusieurs providers configurés */}
-          {availableProviders.filter((p) => p.available).length > 1 && (
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-              <h2 className="font-bold text-[#191c1e] mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-[#006e2f] text-white text-xs flex items-center justify-center font-bold">2</span>
-                Passerelle de paiement
-              </h2>
-              <p className="text-xs text-[#5c647a] mb-4">
-                Choisissez la passerelle qui traitera votre paiement. Les méthodes acceptées sont
-                identiques (Mobile Money, carte bancaire) — seul le prestataire change.
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {availableProviders
-                  .filter((p) => p.available)
-                  .map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => setProvider(p.id)}
-                      className={`flex items-start gap-3 p-4 rounded-xl border-2 transition-all duration-200 text-left ${
-                        provider === p.id
-                          ? "border-[#006e2f] bg-green-50"
-                          : "border-gray-200 bg-white hover:border-gray-300"
-                      }`}
-                    >
-                      <Wallet size={22} className={`mt-0.5 ${provider === p.id ? "text-[#006e2f]" : "text-[#5c647a]"}`} />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`text-sm font-bold ${
-                              provider === p.id ? "text-[#006e2f]" : "text-[#191c1e]"
-                            }`}
-                          >
-                            {p.label}
-                          </span>
-                          {provider === p.id && (
-                            <CheckCircle2 size={16} className="text-[#006e2f] ml-auto" />
-                          )}
-                        </div>
-                        <p className="text-[11px] text-[#5c647a] mt-1 leading-snug">{p.description}</p>
-                      </div>
-                    </button>
-                  ))}
-              </div>
-            </div>
-          )}
-
           {/* Discount code */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <h2 className="font-bold text-[#191c1e] mb-4 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-[#006e2f] text-white text-xs flex items-center justify-center font-bold">
-                {availableProviders.filter((p) => p.available).length > 1 ? 3 : 2}
-              </span>
+              <span className="w-6 h-6 rounded-full bg-[#006e2f] text-white text-xs flex items-center justify-center font-bold">2</span>
               Code promo (optionnel)
             </h2>
             <div className="relative">
@@ -900,38 +773,6 @@ export default function CheckoutInner() {
                 <AlertCircle size={20} className="text-red-500 mt-0.5" />
                 <div className="flex-1">
                   <p className="text-sm text-red-700 font-medium">{error}</p>
-                  {/* Si le message évoque une indisponibilité provider, propose
-                      de basculer sur l'autre provider configuré */}
-                  {/indisponible|Server Error|HTTP 5\d\d|Timeout/i.test(error) && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {availableProviders
-                        .filter((p) => p.id !== provider && p.available)
-                        .map((p) => (
-                          <button
-                            key={p.id}
-                            type="button"
-                            onClick={() => {
-                              setProvider(p.id);
-                              setError(null);
-                              // Re-tente automatiquement avec le nouveau provider
-                              setTimeout(() => { void handlePay(); }, 50);
-                            }}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-red-300 text-red-700 text-xs font-bold hover:bg-red-100 transition-colors"
-                          >
-                            <ArrowRightLeft size={14} />
-                            Essayer avec {p.label}
-                          </button>
-                        ))}
-                      <button
-                        type="button"
-                        onClick={() => { setError(null); void handlePay(); }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-red-300 text-red-700 text-xs font-bold hover:bg-red-100 transition-colors"
-                      >
-                        <RefreshCw size={14} />
-                        Réessayer
-                      </button>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -1096,7 +937,7 @@ export default function CheckoutInner() {
 
             {/* Pay button — desktop / large screens */}
             <button
-              onClick={handlePay}
+              onClick={goToPayment}
               disabled={loading || cartLoading || cartItems.length === 0}
               className="hidden lg:flex items-center justify-center gap-2 w-full py-4 rounded-xl text-white font-bold text-base shadow-lg transition-all duration-200 hover:opacity-90 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
@@ -1104,7 +945,7 @@ export default function CheckoutInner() {
               {loading ? (
                 <>
                   <Loader2 size={20} className="animate-spin" />
-                  Redirection…
+                  Un instant…
                 </>
               ) : (
                 <>
@@ -1125,7 +966,7 @@ export default function CheckoutInner() {
                 <span className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatFCFA(totalAmount)}</span>
               </div>
               <button
-                onClick={handlePay}
+                onClick={goToPayment}
                 disabled={loading || cartLoading || cartItems.length === 0}
                 className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl text-white font-bold text-base shadow-lg transition-all duration-200 hover:opacity-90 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
@@ -1133,7 +974,7 @@ export default function CheckoutInner() {
                 {loading ? (
                   <>
                     <Loader2 size={20} className="animate-spin" />
-                    Redirection…
+                    Un instant…
                   </>
                 ) : (
                   <>

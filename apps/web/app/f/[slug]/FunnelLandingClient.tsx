@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
+import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
 import {
   Activity,
   ArrowRight,
@@ -13,6 +14,7 @@ import {
   Boxes,
   Brain,
   Calendar,
+  ChevronLeft,
   CalendarCheck,
   Camera,
   CheckCheck,
@@ -914,6 +916,7 @@ function CheckoutBlock({ data, theme }: { data: Record<string, unknown>; theme: 
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [payMethod, setPayMethod] = useState<string | null>(null);
+  const [payStep, setPayStep] = useState(false);
   const [promo, setPromo] = useState("");
   const [promoState, setPromoState] = useState<{ status: "idle" | "checking" | "ok" | "bad"; amount?: number; msg?: string }>({ status: "idle" });
   const [paying, setPaying] = useState(false);
@@ -970,10 +973,18 @@ function CheckoutBlock({ data, theme }: { data: Record<string, unknown>; theme: 
   const visibleMethods = payMethods.length > 0 ? payMethods : DEFAULT_PAY_METHODS;
   const selectedMethod = payMethod && visibleMethods.includes(payMethod) ? payMethod : visibleMethods[0];
 
-  async function pay(e: React.FormEvent) {
+  /** Étape 1 → 2 : coordonnées validées, on affiche l'écran unique. */
+  function pay(e: React.FormEvent) {
     e.preventDefault();
     if (paying || !info) return;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { setError("Entrez une adresse email valide."); return; }
+    setError(null);
+    setPayStep(true);
+  }
+
+  /** Étape 2 : l'écran unique a résolu pays + moyen ; le serveur route. */
+  async function startPayment({ operator, phone: payPhone }: { operator: string; phone?: string; hosted: boolean }) {
+    if (!info) return;
     setError(null); setPaying(true);
     try {
       const formationIds: string[] = [];
@@ -986,12 +997,15 @@ function CheckoutBlock({ data, theme }: { data: Record<string, unknown>; theme: 
           formationIds, productIds, bumpIds,
           discountCode: promoState.status === "ok" ? promo.trim() : undefined,
           guestEmail: email.trim(), guestName: name.trim() || undefined,
-          phone: phone.trim() || undefined,
-          paymentMethod: selectedMethod,
+          phone: payPhone || phone.trim() || undefined,
+          paymentMethod: operator,
         }),
       });
       const j = await res.json();
       if (!res.ok) throw new Error(j.error || "Le paiement n'a pas pu démarrer.");
+      if (j.data?.mode === "widget") {
+        throw new Error("Ce moyen de paiement n'est pas encore actif. Choisissez le Mobile Money.");
+      }
       const url = j.data?.checkout_url;
       if (url) window.location.href = url;
       else throw new Error("Aucune page de paiement retournée.");
@@ -1014,6 +1028,29 @@ function CheckoutBlock({ data, theme }: { data: Record<string, unknown>; theme: 
 
   const inputCls = "w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-shadow";
   const ring = { "--tw-ring-color": `${accent}40` } as CSSProperties;
+
+  // Étape 2 : le même écran de paiement que partout ailleurs sur Novakou.
+  if (payStep) {
+    return (
+      <div className="max-w-4xl w-full mx-auto my-4">
+        <button
+          type="button"
+          onClick={() => { setPayStep(false); setError(null); }}
+          className="inline-flex items-center gap-1.5 mb-3 text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors"
+        >
+          <ChevronLeft size={16} />
+          Revenir à ma commande
+        </button>
+        <UnifiedPaymentScreen
+          amount={total}
+          buyerName={name.trim() || null}
+          onPay={(args) => { void startPayment(args); }}
+          submitting={paying}
+          error={error}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-lg w-full mx-auto my-4">

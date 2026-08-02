@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { ShieldCheck, Loader2, Lock } from "lucide-react";
+import { ShieldCheck, Loader2, Lock, ChevronLeft } from "lucide-react";
 import AdaptiveImage from "@/components/formations/AdaptiveImage";
 import { PixelInjector, type Pixel } from "@/components/formations/PixelInjector";
+import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
 import { useToastStore } from "@/store/toast";
 
 interface Link {
@@ -27,26 +28,40 @@ export default function PayerClient({ link, pixels = [] }: { link: Link; pixels?
   const [name, setName] = useState(session?.user?.name ?? "");
   const [amount, setAmount] = useState(link.price > 0 ? String(link.price) : "");
   const [loading, setLoading] = useState(false);
+  // Coordonnées d'abord, puis l'écran unique (pays → moyen de paiement).
+  const [step, setStep] = useState<"form" | "pay">("form");
+  const [payError, setPayError] = useState<string | null>(null);
 
   const themeColor = "#006e2f";
 
-  async function handlePay(e: React.FormEvent) {
+  /** Montant validé, ou null si l'acheteur doit corriger sa saisie. */
+  function resolveAmount(): number | null {
+    if (!link.allowCustomAmount) return link.price;
+    const amt = Math.round(Number(amount));
+    if (!Number.isFinite(amt) || amt < 100) return null;
+    return amt;
+  }
+
+  function goToPayment(e: React.FormEvent) {
     e.preventDefault();
     const isLoggedIn = !!session?.user?.id;
     if (!isLoggedIn && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) {
       toast("error", "Entrez une adresse e-mail valide.");
       return;
     }
-    let customAmount: number | undefined;
-    if (link.allowCustomAmount) {
-      const amt = Math.round(Number(amount));
-      if (!Number.isFinite(amt) || amt < 100) {
-        toast("error", "Le montant doit être d'au moins 100 FCFA.");
-        return;
-      }
-      customAmount = amt;
+    if (resolveAmount() === null) {
+      toast("error", "Le montant doit être d'au moins 100 FCFA.");
+      return;
     }
+    setPayError(null);
+    setStep("pay");
+  }
+
+  async function startPayment({ operator, phone }: { operator: string; phone?: string; hosted: boolean }) {
+    const isLoggedIn = !!session?.user?.id;
+    const customAmount = link.allowCustomAmount ? resolveAmount() ?? undefined : undefined;
     setLoading(true);
+    setPayError(null);
     try {
       const res = await fetch("/api/formations/payment/init", {
         method: "POST",
@@ -55,25 +70,32 @@ export default function PayerClient({ link, pixels = [] }: { link: Link; pixels?
           productIds: [link.id],
           ...(isLoggedIn ? {} : { guestEmail: email.trim(), guestName: name.trim() || undefined }),
           ...(customAmount !== undefined ? { customAmount } : {}),
+          paymentMethod: operator,
+          phone,
         }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
-        toast("error", json.error ?? "Le paiement n'a pas pu démarrer.");
+        setPayError(json.error ?? "Le paiement n'a pas pu démarrer.");
+        setLoading(false);
+        return;
+      }
+      if (json.data?.mode === "widget") {
+        setPayError("Ce moyen de paiement n'est pas encore actif. Choisissez le Mobile Money.");
         setLoading(false);
         return;
       }
       const url = json.data?.checkout_url ?? json.checkout_url;
       if (!url) {
-        toast("error", "Réponse de paiement invalide.");
+        setPayError("Réponse de paiement invalide.");
         setLoading(false);
         return;
       }
-      // Redirection DIRECTE vers la page de paiement Moneroo (ou retour interne
-      // si commande gratuite).
+      // Mobile Money → page d'attente interne. Carte → page sécurisée du
+      // fournisseur. Commande gratuite → page de retour interne.
       window.location.href = url;
     } catch {
-      toast("error", "Connexion impossible. Réessayez.");
+      setPayError("Connexion impossible. Réessayez.");
       setLoading(false);
     }
   }
@@ -86,6 +108,28 @@ export default function PayerClient({ link, pixels = [] }: { link: Link; pixels?
         </div>
         <h1 className="text-xl font-extrabold text-[#111827]">Lien indisponible</h1>
         <p className="text-sm text-[#5c647a] mt-2">Ce lien de paiement a été mis en pause par son propriétaire.</p>
+      </div>
+    );
+  }
+
+  if (step === "pay") {
+    return (
+      <div className="max-w-5xl mx-auto px-5 py-8 md:py-12">
+        <button
+          type="button"
+          onClick={() => { setStep("form"); setPayError(null); }}
+          className="inline-flex items-center gap-1.5 mb-4 text-sm font-semibold text-[#5c647a] hover:text-[#006e2f] transition-colors"
+        >
+          <ChevronLeft size={16} />
+          Revenir
+        </button>
+        <UnifiedPaymentScreen
+          amount={resolveAmount() ?? link.price}
+          buyerName={name.trim() || null}
+          onPay={(args) => { void startPayment(args); }}
+          submitting={loading}
+          error={payError}
+        />
       </div>
     );
   }
@@ -110,7 +154,7 @@ export default function PayerClient({ link, pixels = [] }: { link: Link; pixels?
             <p className="text-sm text-[#5c647a] mt-2 leading-relaxed whitespace-pre-line">{link.description}</p>
           )}
 
-          <form onSubmit={handlePay} className="mt-6 space-y-4">
+          <form onSubmit={goToPayment} className="mt-6 space-y-4">
             {/* Montant */}
             {link.allowCustomAmount ? (
               <div>

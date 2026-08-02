@@ -375,11 +375,26 @@ export async function POST(request: Request) {
     }
 
     if (!resolved) {
-      await failAttempt(`Aucune passerelle n'encaisse « ${chosenOperator || body.paymentMethod} »`, "no_gateway");
+      // Distinguer les deux causes : sans numéro ni pays on ne PEUT pas savoir
+      // quel opérateur viser — ce n'est pas la même chose qu'un opérateur connu
+      // mais non couvert. Un message générique envoyait l'acheteur changer de
+      // moyen alors qu'il lui manquait juste son numéro.
+      if (!chosenOperator) {
+        await failAttempt("Pays/opérateur indéterminé (numéro manquant)", "operator_unresolved");
+        return NextResponse.json(
+          {
+            error:
+              "Renseignez votre numéro de téléphone (avec le bon pays) pour continuer le paiement.",
+            code: "OPERATOR_UNRESOLVED",
+          },
+          { status: 400 },
+        );
+      }
+      await failAttempt(`Aucune passerelle n'encaisse « ${chosenOperator} »`, "no_gateway");
       return NextResponse.json(
         {
           error:
-            "Ce moyen de paiement n'est pas disponible pour le moment. Choisissez-en un autre.",
+            "Ce moyen de paiement n'est pas disponible pour votre pays pour le moment. Choisissez-en un autre.",
           code: "NO_GATEWAY",
         },
         { status: 400 },
