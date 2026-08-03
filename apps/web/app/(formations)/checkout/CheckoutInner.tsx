@@ -144,9 +144,6 @@ export default function CheckoutInner() {
   const [discountStatus, setDiscountStatus] = useState<"idle" | "validating" | "valid" | "invalid">("idle");
   const [discountAmount, setDiscountAmount] = useState(0);
   const [discountMessage, setDiscountMessage] = useState<string | null>(null);
-  // CGV opt-in (default false). La renonciation au droit de rétractation
-  // est implicite via les CGV (clause art. L221-28 13°) — pas de 2e checkbox.
-  const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -430,7 +427,6 @@ export default function CheckoutInner() {
 
   /** Étape 1 → 2 : on valide le formulaire, puis on montre l'écran de paiement. */
   function goToPayment() {
-    if (!termsAccepted) { setError("Veuillez accepter les conditions générales."); return; }
     if (!email) { setError("Adresse email requise."); return; }
     // Invité : l'e-mail d'achat doit être une vraie adresse Gmail (anti faux comptes).
     if (!session && !isAllowedBuyerEmail(email)) { setError(ALLOWED_BUYER_EMAIL_MESSAGE); return; }
@@ -557,17 +553,6 @@ export default function CheckoutInner() {
           event={{ name: "InitiateCheckout", value: subTotal, currency: "XOF" }}
         />
       )}
-      {/* Breadcrumb */}
-      <div className="max-w-5xl mx-auto mb-6">
-        <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-          <Link href="/" className="hover:text-[#006e2f] transition-colors">Accueil</Link>
-          <ChevronRight size={12} />
-          <Link href="/explorer" className="hover:text-[#006e2f] transition-colors">Explorer</Link>
-          <ChevronRight size={12} />
-          <span className="text-[#191c1e] font-medium">Commande</span>
-        </div>
-      </div>
-
       {/* Header */}
       <div className="max-w-5xl mx-auto mb-8">
         <div className="flex items-center gap-3">
@@ -750,27 +735,18 @@ export default function CheckoutInner() {
             )}
           </div>
 
-          {/* Terms — checkbox CGV unique. La renonciation au droit de
-              rétractation reste juridiquement valable via les CGV (qui
-              contiennent désormais cette clause), pas besoin d'une 2e
-              checkbox qui effraie l'utilisateur non-juriste. */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={termsAccepted}
-                onChange={(e) => setTermsAccepted(e.target.checked)}
-                className="mt-1 w-4 h-4 rounded accent-[#006e2f]"
-              />
-              <span className="text-sm text-[#5c647a] leading-relaxed">
-                J&apos;accepte les{" "}
-                <a href="/cgu" className="text-[#006e2f] hover:underline font-semibold">Conditions Générales de Vente</a>{" "}
-                et la{" "}
-                <a href="/confidentialite" className="text-[#006e2f] hover:underline font-semibold">Politique de confidentialité</a>{" "}
-                de Novakou.
-              </span>
-            </label>
-          </div>
+          {/* Conditions — mention, plus de case à cocher.
+              L'acceptation se fait par l'acte de payer : la mention est
+              affichée juste au-dessus du bouton, avec les liens accessibles.
+              La case coûtait un clic et un motif d'abandon supplémentaires
+              sur un tunnel déjà jugé trop long par les acheteurs. */}
+          <p className="text-[13px] text-[#5c647a] leading-relaxed px-1">
+            En payant, vous acceptez les{" "}
+            <a href="/cgu" target="_blank" rel="noopener noreferrer" className="text-[#006e2f] hover:underline font-semibold">Conditions Générales de Vente</a>{" "}
+            et la{" "}
+            <a href="/confidentialite" target="_blank" rel="noopener noreferrer" className="text-[#006e2f] hover:underline font-semibold">Politique de confidentialité</a>{" "}
+            de Novakou.
+          </p>
 
           {/* Error — avec fallback automatique vers l'autre provider si
               le provider courant est indisponible. Décidé en post-mortem

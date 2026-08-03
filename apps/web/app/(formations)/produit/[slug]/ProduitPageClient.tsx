@@ -298,12 +298,12 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
             <ArrowLeft size={14} />
             Retour
           </button>
+          {/* Plus de « Accueil > Explorer » : l'acheteur arrive depuis la
+              boutique d'un vendeur, et ces liens le renvoyaient vers la
+              place de marché — donc chez les concurrents du vendeur. Seul le
+              bouton Retour subsiste, il ramène d'où l'on vient. */}
           <span className="text-gray-300">·</span>
-          <Link href="/" className="hover:text-[#006e2f] transition-colors">Accueil</Link>
-          <ChevronRight size={12} />
-          <Link href="/explorer" className="hover:text-[#006e2f] transition-colors">Explorer</Link>
-          <ChevronRight size={12} />
-          <span className="text-[#191c1e] font-medium truncate max-w-[200px]">{product.title}</span>
+          <span className="text-[#191c1e] font-medium truncate max-w-[220px]">{product.title}</span>
         </div>
       </div>
 
