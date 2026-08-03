@@ -1,8 +1,17 @@
-"use client";
-
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import CheckoutInner from "./CheckoutInner";
+
+// `Suspense` fonctionne aussi dans un composant serveur : seule la partie
+// interactive a besoin d'être cliente. La page peut donc porter ses propres
+// métadonnées, ce qu'un composant client ne sait pas faire.
+export const metadata: Metadata = {
+  title: "Finaliser votre commande · Novakou",
+  description: "Paiement sécurisé de votre commande sur Novakou.",
+  // Une page de commande est propre à un panier : ni indexée, ni partagée.
+  robots: { index: false, follow: false },
+};
 
 export default function CheckoutPage() {
   return (

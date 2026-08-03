@@ -2,45 +2,22 @@
 
 import { usePathname } from "next/navigation";
 import { FormationsNavbar } from "@/components/formations/FormationsNavbar";
+import { hidesPlatformChrome } from "@/lib/chrome-scope";
 
 /**
- * Menu plateforme (Novakou), MASQUÉ sur les fiches produit/formation.
+ * Menu plateforme (Novakou), masqué dans l'univers d'un vendeur et pendant le
+ * paiement.
  *
- * POURQUOI : un acheteur arrivé depuis la boutique d'un vendeur doit rester
- * dans l'univers de cette boutique. Lui afficher le menu général (Explorer,
- * Marketplace, Tarifs…) l'invitait à repartir vers d'autres vendeurs depuis la
- * page même où il était sur le point d'acheter.
+ * Un acheteur arrivé depuis la boutique d'un vendeur doit y rester : lui
+ * afficher le menu général (Explorer, Marketplace, Tarifs…) l'invite à repartir
+ * vers d'autres vendeurs depuis la page même où il allait acheter. Ces pages
+ * rendent l'en-tête de la BOUTIQUE à la place.
  *
- * Ces pages rendent l'en-tête de la BOUTIQUE à la place (ShopHeader dans
- * ProduitPageClient / FormationPageClient) ; si le produit n'appartient à
- * aucune boutique, elles retombent sur le menu plateforme. Même logique que
- * ConditionalPlatformFooter, qui fait déjà ça pour le pied de page.
+ * Les règles vivent dans `lib/chrome-scope.ts` : tant qu'elles étaient dans ce
+ * fichier, aucun test ne pouvait les importer — il porte du JSX. Elles sont
+ * réexportées ici pour ne pas casser les appelants existants.
  */
-export function isShopScopedPath(pathname: string): boolean {
-  return pathname.startsWith("/produit/") || pathname.startsWith("/formation/");
-}
-
-/**
- * Parcours de paiement : ni menu plateforme, ni pied de page.
- *
- * Une page où l'acheteur sort sa carte ou son téléphone ne doit rien proposer
- * d'autre. Le menu affichait « Créer ma boutique », un panier et un burger —
- * autant de sorties au moment précis où l'on demande de payer — et le pied de
- * page ajoutait des dizaines de liens sous le bouton.
- */
-export function isCheckoutPath(pathname: string): boolean {
-  return (
-    pathname === "/checkout" ||
-    pathname.startsWith("/checkout/") ||
-    pathname.startsWith("/payment/") ||
-    pathname.startsWith("/payer/")
-  );
-}
-
-/** Vrai si le décor de la plateforme doit disparaître complètement. */
-export function hidesPlatformChrome(pathname: string): boolean {
-  return isShopScopedPath(pathname) || isCheckoutPath(pathname);
-}
+export { isShopScopedPath, isCheckoutPath, hidesPlatformChrome } from "@/lib/chrome-scope";
 
 export function ConditionalPlatformNavbar() {
   const pathname = usePathname() || "";

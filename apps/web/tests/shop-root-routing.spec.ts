@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { isReservedSlug, RESERVED_ROOT_SLUGS } from "../lib/reserved-slugs";
+import { isShopScopedPath, isCheckoutPath } from "../lib/chrome-scope";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
@@ -72,5 +73,34 @@ test("la liste réservée ne contient ni doublon ni entrée vide", () => {
   for (const s of RESERVED_ROOT_SLUGS) {
     expect(s.trim(), "entrée vide dans la liste").not.toBe("");
     expect(s, `« ${s} » doit être en minuscules`).toBe(s.toLowerCase());
+  }
+});
+
+test("le décor plateforme disparaît sur les adresses courtes", () => {
+  // Le menu se masquait d'après un préfixe d'URL (« /produit/ », « /formation/ »).
+  // Ces préfixes ayant disparu au profit des adresses courtes, la règle ne
+  // reconnaissait plus rien : le menu général est réapparu sur toutes les
+  // pages vendeur — juste au-dessus de l'en-tête de leur boutique.
+
+
+  // Univers d'un vendeur : le décor plateforme doit disparaître.
+  for (const p of [
+    "/fidel-yao",
+    "/50-cv-et-lettres-de-motivations-pret-a-l-emploi",
+    "/ma-boutique/a-propos",
+    "/produit/ancien-chemin",
+    "/boutique/ancien-chemin",
+  ]) {
+    expect(isShopScopedPath(p), `${p} devrait masquer le menu`).toBe(true);
+  }
+
+  // Pages de la plateforme : le menu reste.
+  for (const p of ["/", "/explorer", "/tarifs", "/academie", "/guides", "/connexion", "/wallet"]) {
+    expect(isShopScopedPath(p), `${p} devrait garder le menu`).toBe(false);
+  }
+
+  // Parcours de paiement : ni menu, ni pied de page.
+  for (const p of ["/checkout", "/payment/attente", "/payer/mon-lien"]) {
+    expect(isCheckoutPath(p), `${p} devrait masquer le décor`).toBe(true);
   }
 });
