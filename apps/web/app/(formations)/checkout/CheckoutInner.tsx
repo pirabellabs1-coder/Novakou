@@ -4,14 +4,9 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { isAllowedBuyerEmail, ALLOWED_BUYER_EMAIL_MESSAGE } from "@/lib/email/allowed-buyer-email";
-import Link from "next/link";
 import {
-  ChevronRight,
-  ChevronLeft,
-  ChevronDown,
   Lock,
   CheckCircle2,
-  Info,
   Wallet,
   Loader2,
   XCircle,
@@ -21,7 +16,6 @@ import {
   ShoppingCart,
   Tag,
   ShieldCheck,
-  RotateCcw,
   Download,
   Smartphone,
   Waves,
@@ -123,7 +117,6 @@ export default function CheckoutInner() {
   const [email, setEmail] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:email`, "");
   const [phone, setPhone] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:phone`, "");
   const [countryCode, setCountryCode] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:countryCode`, "+221");
-  const [countryOpen, setCountryOpen] = useState(false);
   // Sélection courante de l'écran de paiement, intégré plus bas dans CETTE
   // page. Le tunnel tenait sur deux écrans successifs ; un acheteur a écrit à
   // son vendeur que c'était trop long, au point qu'il a coupé ses publicités.
@@ -133,15 +126,8 @@ export default function CheckoutInner() {
 
   // Méthodes acceptées par le(s) vendeur(s) du panier (intersection côté API).
   const [acceptedMethods, setAcceptedMethods] = useState<PaymentMethod[]>([]);
-  const [countrySearch, setCountrySearch] = useState("");
-  const filteredCountries = useMemo(() => {
-    const q = countrySearch.trim().toLowerCase();
-    if (!q) return COUNTRIES;
-    return COUNTRIES.filter(
-      (c) => c.label.toLowerCase().includes(q) || c.iso.toLowerCase().includes(q) || c.code.includes(q),
-    );
-  }, [countrySearch]);
   const [discountCode, setDiscountCode] = useState("");
+  const [promoOuvert, setPromoOuvert] = useState(false);
   const [discountStatus, setDiscountStatus] = useState<"idle" | "validating" | "valid" | "invalid">("idle");
   const [discountAmount, setDiscountAmount] = useState(0);
   const [discountMessage, setDiscountMessage] = useState<string | null>(null);
@@ -550,28 +536,22 @@ export default function CheckoutInner() {
               <span className="w-6 h-6 rounded-full bg-[#006e2f] text-white text-xs flex items-center justify-center font-bold">1</span>
               Informations de contact
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
+              {/* Un seul champ de nom : « Prénom » puis « Nom » faisaient deux
+                  saisies pour une information qui n'est même pas obligatoire. */}
               <div>
-                <label className="block text-xs font-semibold text-[#5c647a] mb-1.5">Prénom</label>
+                <label className="block text-xs font-semibold text-[#5c647a] mb-1.5">
+                  Votre nom <span className="font-normal">(optionnel)</span>
+                </label>
                 <input
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="Votre prénom"
+                  placeholder="Comment vous appeler ?"
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f7f9fb] text-sm text-[#191c1e] placeholder:text-[#5c647a] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#5c647a] mb-1.5">Nom</label>
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Votre nom"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f7f9fb] text-sm text-[#191c1e] placeholder:text-[#5c647a] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
-                />
-              </div>
-              <div className="md:col-span-2">
                 <label className="block text-xs font-semibold text-[#5c647a] mb-1.5">Adresse Gmail</label>
                 <input
                   type="email"
@@ -584,98 +564,23 @@ export default function CheckoutInner() {
                 <p className="text-[10px] text-[#5c647a] mt-1">Votre reçu et accès seront envoyés à cette adresse.</p>
               </div>
 
-              {/* Téléphone avec drapeau pays (utilisé par Moneroo pour Mobile Money) */}
-              <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-[#5c647a] mb-1.5">
-                  Numéro de téléphone <span className="text-[#5c647a] font-normal">(WhatsApp de préférence)</span>
-                </label>
-                <div className="flex gap-2">
-                  <div className="relative flex-shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => setCountryOpen((v) => !v)}
-                      className="h-full px-3 py-3 rounded-xl border border-gray-200 bg-[#f7f9fb] text-sm text-[#191c1e] flex items-center gap-1.5 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] min-w-[100px]"
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={`https://flagcdn.com/24x18/${selectedCountry.iso.toLowerCase()}.png`}
-                        srcSet={`https://flagcdn.com/48x36/${selectedCountry.iso.toLowerCase()}.png 2x`}
-                        alt={selectedCountry.label}
-                        width={24}
-                        height={18}
-                        className="rounded-sm"
-                      />
-                      <span className="font-semibold">{selectedCountry.code}</span>
-                      <ChevronDown size={14} className="text-[#5c647a]" />
-                    </button>
-                    {countryOpen && (
-                      <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-72 max-h-80 overflow-hidden flex flex-col">
-                        <div className="p-2 border-b border-gray-100 sticky top-0 bg-white">
-                          <input
-                            type="text"
-                            value={countrySearch}
-                            onChange={(e) => setCountrySearch(e.target.value)}
-                            placeholder="Rechercher un pays…"
-                            autoFocus
-                            className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-[#f7f9fb] text-xs placeholder:text-[#5c647a] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
-                          />
-                        </div>
-                        <div className="overflow-y-auto flex-1">
-                          {filteredCountries.length === 0 ? (
-                            <div className="px-4 py-6 text-center text-xs text-[#5c647a]">
-                              Aucun pays trouvé
-                            </div>
-                          ) : (
-                            filteredCountries.map((c) => (
-                              <button
-                                key={c.iso}
-                                type="button"
-                                onClick={() => {
-                                  setCountryCode(c.code);
-                                  setCountryOpen(false);
-                                  setCountrySearch("");
-                                }}
-                                className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-green-50 text-left ${countryCode === c.code ? "bg-green-50 text-[#006e2f] font-semibold" : "text-[#191c1e]"}`}
-                              >
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={`https://flagcdn.com/24x18/${c.iso.toLowerCase()}.png`}
-                                  srcSet={`https://flagcdn.com/48x36/${c.iso.toLowerCase()}.png 2x`}
-                                  alt=""
-                                  width={24}
-                                  height={18}
-                                  className="rounded-sm flex-shrink-0"
-                                />
-                                <span className="flex-1 truncate">{c.label}</span>
-                                <span className="text-[#5c647a] tabular-nums text-xs">{c.code}</span>
-                              </button>
-                            ))
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value.replace(/[^\d\s]/g, ""))}
-                    placeholder="01 57 33 57 26"
-                    className="flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-[#f7f9fb] text-sm text-[#191c1e] placeholder:text-[#5c647a] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
-                  />
-                </div>
-                <p className="text-[10px] text-[#5c647a] mt-1">
-                  Requis si vous payez par Mobile Money (Orange, MTN, Moov, Wave).
-                </p>
-              </div>
             </div>
           </div>
 
-          {/* Discount code */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <h2 className="font-bold text-[#191c1e] mb-4 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-[#006e2f] text-white text-xs flex items-center justify-center font-bold">2</span>
-              Code promo (optionnel)
-            </h2>
+          {/* Code promo — replié. Il occupait une section entière alors que la
+              plupart des acheteurs n'en ont pas : autant de hauteur à faire
+              défiler avant d'atteindre le paiement. */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            {!promoOuvert && !discountCode ? (
+              <button
+                type="button"
+                onClick={() => setPromoOuvert(true)}
+                className="text-sm font-semibold text-[#006e2f] hover:underline"
+              >
+                J&apos;ai un code promo
+              </button>
+            ) : (
+            <>
             <div className="relative">
               <input
                 type="text"
@@ -707,6 +612,8 @@ export default function CheckoutInner() {
                 {discountMessage}
               </p>
             )}
+            </>
+            )}
           </div>
 
           {/* ── Moyen de paiement, dans la page ──────────────────────────
@@ -717,7 +624,7 @@ export default function CheckoutInner() {
           {totalAmount > 0 && (
           <div id="moyen-de-paiement" className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <h2 className="font-bold text-[#191c1e] mb-4 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-[#006e2f] text-white text-xs flex items-center justify-center font-bold">3</span>
+              <span className="w-6 h-6 rounded-full bg-[#006e2f] text-white text-xs flex items-center justify-center font-bold">2</span>
               Moyen de paiement
             </h2>
             {kkiapay && (

@@ -405,32 +405,30 @@ export async function POST(request: Request) {
       );
     }
 
-    // ── Passerelle à widget (KkiaPay) : le paiement s'ouvre côté navigateur ──
-    // On renvoie de quoi ouvrir la fenêtre modale sur NOTRE page. Seule la clé
-    // PUBLIQUE part au navigateur. La transaction sera revérifiée côté serveur
+    // ── Passerelle à fenêtre (KkiaPay) ───────────────────────────────────
+    // Le paiement s'ouvre dans une fenêtre posée sur NOTRE page. Seule la clé
+    // PUBLIQUE part au navigateur ; la transaction est revérifiée côté serveur
     // avant toute livraison.
-    const meta = getProvider(resolved.provider);
-    if (meta?.collectIntegration === "widget") {
+    //
+    // C'est une FONCTION et non un bloc en ligne : une passerelle à fenêtre
+    // doit pouvoir prendre le relais quand une passerelle serveur échoue.
+    // Tant que c'était un aiguillage figé sur la première candidate, la panne
+    // de FeexPay faisait échouer la vente alors que KkiaPay savait l'encaisser.
+    async function reponseWidget(candidate: { provider: ProviderId; code: string }) {
       const { getKkiapayPublicKey, isKkiapayConfigured, isKkiapaySandbox } = await import("@/lib/kkiapay");
-      if (resolved.provider !== "kkiapay" || !(await isKkiapayConfigured())) {
-        await failAttempt(`Passerelle widget non configurée : ${resolved.provider}`, "widget_not_configured");
-        return NextResponse.json(
-          { error: "Ce moyen de paiement n'est pas disponible pour le moment.", code: "NO_GATEWAY" },
-          { status: 400 },
-        );
-      }
+      if (candidate.provider !== "kkiapay" || !(await isKkiapayConfigured())) return null;
       return NextResponse.json({
         data: {
           mode: "widget",
-          provider: resolved.provider,
+          provider: candidate.provider,
           publicKey: await getKkiapayPublicKey(),
-          // Bac à sable : le widget et la vérification doivent viser le MÊME
+          // Bac à sable : la fenêtre et la vérification doivent viser le MÊME
           // environnement, sinon la transaction est introuvable à la vérif.
           sandbox: await isKkiapaySandbox(),
-          paymentMethod: resolved.code, // "momo" | "card"
-          // Pays de l'opérateur : la fenêtre KkiaPay s'y limite, sinon elle
-          // propose tous ses marchés et l'acheteur peut choisir un opérateur
-          // qui n'est pas le sien.
+          paymentMethod: candidate.code, // "momo" | "card"
+          // Pays de l'opérateur : la fenêtre s'y limite, sinon elle propose
+          // tous ses marchés et l'acheteur peut choisir un opérateur qui n'est
+          // pas le sien.
           country: (getOperator(chosenOperator)?.country ?? "").toUpperCase(),
           amount: Math.round(totalAmount),
           phone: phoneRaw ?? "",
@@ -451,14 +449,18 @@ export async function POST(request: Request) {
     // donc aucun risque de double débit. Le 2026-08-02, l'API d'encaissement
     // de FeexPay a répondu 502 pendant des heures ; sans bascule, toutes les
     // ventes tombaient alors qu'une autre passerelle savait les traiter.
-    const serverCandidates = candidates.filter(
-      (c) => getProvider(c.provider)?.collectIntegration !== "widget",
-    );
     let directRef: string | null = null;
     let usedProvider: ProviderId = resolved.provider;
     const failures: string[] = [];
 
-    for (const candidate of serverCandidates) {
+    for (const candidate of candidates) {
+      // Passerelle à fenêtre : on rend de quoi l'ouvrir et on s'arrête là.
+      if (getProvider(candidate.provider)?.collectIntegration === "widget") {
+        const r = await reponseWidget(candidate);
+        if (r) return r;
+        failures.push(`${candidate.provider} : fenêtre non configurée`);
+        continue;
+      }
       try {
         if (candidate.provider === "feexpay") {
           if (!phoneRaw) {

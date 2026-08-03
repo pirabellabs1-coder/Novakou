@@ -345,10 +345,23 @@ export async function resolveCollectProviders(
   operator: string,
 ): Promise<Array<{ provider: ProviderId; code: string }>> {
   if (!operator) return [];
-  const out: Array<{ provider: ProviderId; code: string }> = [];
+  const out: Array<{ provider: ProviderId; code: string; hosted: boolean }> = [];
   for (const provider of await activeProviders("collect")) {
     const route = routeFor(operator, provider, "collect");
-    if (route) out.push({ provider, code: route.code });
+    if (route) out.push({ provider, code: route.code, hosted: Boolean(route.params?.hosted) });
   }
-  return out;
+
+  // ON GARDE L'ACHETEUR CHEZ NOUS, par ordre de préférence :
+  //   0. débit depuis notre serveur — l'acheteur ne quitte jamais la page,
+  //      il confirme sur son téléphone ;
+  //   1. fenêtre du fournisseur posée SUR notre page — il reste sur le site ;
+  //   2. page hébergée du fournisseur — il change de site, de design, et une
+  //      part n'en revient jamais. Dernier recours uniquement.
+  const rang = (r: { provider: ProviderId; hosted: boolean }) => {
+    if (r.hosted) return 2;
+    return PROVIDERS.find((p) => p.id === r.provider)?.collectIntegration === "widget" ? 1 : 0;
+  };
+  return out
+    .sort((a, b) => rang(a) - rang(b))
+    .map(({ provider, code }) => ({ provider, code }));
 }
