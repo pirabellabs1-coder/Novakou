@@ -348,9 +348,45 @@ export async function initCollect(params: FedapayCollectParams): Promise<Fedapay
 }
 
 /** Statut d'un encaissement — même endpoint que pour un versement. */
+/**
+ * Statuts d'une TRANSACTION FedaPay (encaissement).
+ *
+ * À ne pas confondre avec ceux d'un payout : un versement est « sent », un
+ * encaissement réussi est « approved ». On interrogeait l'endpoint des
+ * versements pour vérifier un encaissement, et on y cherchait « sent » — deux
+ * erreurs empilées. Résultat : un paiement bel et bien encaissé restait
+ * éternellement « en attente » chez nous, et le produit n'était jamais livré.
+ */
+export function normalizeFedapayTransactionStatus(s: string | undefined | null): "success" | "failed" | "pending" {
+  const v = String(s ?? "").toLowerCase();
+  if (v === "approved" || v === "transferred") return "success";
+  // « refunded » : l'argent est reparti, il ne faut surtout pas livrer.
+  if (v === "declined" || v === "canceled" || v === "cancelled" || v === "refunded") return "failed";
+  return "pending";
+}
+
+/** Statut d'un ENCAISSEMENT. GET /v1/transactions/{id}. */
 export async function checkCollectStatus(
   transactionId: string,
-): Promise<{ status: "success" | "failed" | "pending"; raw: unknown }> {
-  const r = await checkPayoutStatus(transactionId);
-  return { status: normalizeFedapayStatus(r.status), raw: r.raw };
+): Promise<{ status: "success" | "failed" | "pending"; amount: number | null; raw: unknown }> {
+  const base = getBaseUrl();
+  const res = await payoutFetch(`${base}/transactions/${encodeURIComponent(transactionId)}`, {
+    method: "GET",
+    headers: await authHeaders(),
+  });
+  const json = (await res.json().catch(() => ({}))) as {
+    "v1/transaction"?: { status?: string; amount?: number | string };
+    transaction?: { status?: string; amount?: number | string };
+    message?: string;
+  };
+  if (!res.ok) {
+    throw new Error(json.message || `FedaPay : statut de transaction indisponible (HTTP ${res.status})`);
+  }
+  const tx = json["v1/transaction"] || json.transaction || {};
+  const amount = Number(tx.amount);
+  return {
+    status: normalizeFedapayTransactionStatus(tx.status),
+    amount: Number.isFinite(amount) ? amount : null,
+    raw: json,
+  };
 }
