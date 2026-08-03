@@ -14,12 +14,12 @@
  */
 const ADRESSE_SONDE = "diagnostic.novakou@gmail.com";
 
-export function estSondeDiagnostic(t: {
-  visitorEmail?: string | null;
-  visitorPhone?: string | null;
-}): boolean {
-  if ((t.visitorEmail ?? "").trim().toLowerCase() === ADRESSE_SONDE) return true;
-  // Filet de sécurité : numéro visiblement fabriqué (six zéros de suite).
-  // Aucun opérateur n'attribue de tels numéros.
-  return /0{6}$/.test((t.visitorPhone ?? "").replace(/\D/g, ""));
+export function estSondeDiagnostic(t: { visitorEmail?: string | null }): boolean {
+  // UNIQUEMENT l'adresse dédiée. On s'est retenu d'ajouter une heuristique sur
+  // le numéro (« finit par six zéros ») : elle aurait pu écarter un vrai
+  // acheteur, donc recréer précisément le silence qu'on cherche à supprimer.
+  // Face au doute, on préfère une fausse alerte à une vente manquée — si
+  // quelqu'un sonde depuis une autre adresse, sa tentative apparaîtra, et
+  // c'est le bon comportement.
+  return (t.visitorEmail ?? "").trim().toLowerCase() === ADRESSE_SONDE;
 }
