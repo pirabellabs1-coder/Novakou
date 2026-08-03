@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { ShieldCheck, Loader2, Lock, ChevronLeft } from "lucide-react";
+import { ShieldCheck, Loader2, Lock } from "lucide-react";
 import AdaptiveImage from "@/components/formations/AdaptiveImage";
 import { PixelInjector, type Pixel } from "@/components/formations/PixelInjector";
 import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
@@ -29,8 +29,8 @@ export default function PayerClient({ link, pixels = [] }: { link: Link; pixels?
   const [name, setName] = useState(session?.user?.name ?? "");
   const [amount, setAmount] = useState(link.price > 0 ? String(link.price) : "");
   const [loading, setLoading] = useState(false);
-  // Coordonnées d'abord, puis l'écran unique (pays → moyen de paiement).
-  const [step, setStep] = useState<"form" | "pay">("form");
+  // Tout sur une seule page : le second écran allongeait le tunnel pour rien.
+  const [paySel, setPaySel] = useState<{ operator: string; phone?: string; hosted: boolean } | null>(null);
   const [payError, setPayError] = useState<string | null>(null);
   // Fenêtre KkiaPay : la seule passerelle qui débite depuis le navigateur.
   const [kkiapay, setKkiapay] = useState<KkiapayInit | null>(null);
@@ -57,8 +57,12 @@ export default function PayerClient({ link, pixels = [] }: { link: Link; pixels?
       toast("error", "Le montant doit être d'au moins 100 FCFA.");
       return;
     }
+    if (!paySel) {
+      setPayError("Choisissez votre pays et votre moyen de paiement.");
+      return;
+    }
     setPayError(null);
-    setStep("pay");
+    void startPayment(paySel);
   }
 
   async function startPayment({ operator, phone }: { operator: string; phone?: string; hosted: boolean }) {
@@ -111,35 +115,6 @@ export default function PayerClient({ link, pixels = [] }: { link: Link; pixels?
         </div>
         <h1 className="text-xl font-extrabold text-[#111827]">Lien indisponible</h1>
         <p className="text-sm text-[#5c647a] mt-2">Ce lien de paiement a été mis en pause par son propriétaire.</p>
-      </div>
-    );
-  }
-
-  if (step === "pay") {
-    return (
-      <div className="max-w-5xl mx-auto px-5 py-8 md:py-12">
-        <button
-          type="button"
-          onClick={() => { setStep("form"); setPayError(null); }}
-          className="inline-flex items-center gap-1.5 mb-4 text-sm font-semibold text-[#5c647a] hover:text-[#006e2f] transition-colors"
-        >
-          <ChevronLeft size={16} />
-          Revenir
-        </button>
-        {kkiapay && (
-          <KkiapayWidget
-            init={kkiapay}
-            onDelivered={() => { window.location.href = `/payment/return?ref=${encodeURIComponent(kkiapay.internalRef)}`; }}
-            onFailed={(m) => { setKkiapay(null); setPayError(m); setLoading(false); }}
-          />
-        )}
-        <UnifiedPaymentScreen
-          amount={resolveAmount() ?? link.price}
-          buyerName={name.trim() || null}
-          onPay={(args) => { void startPayment(args); }}
-          submitting={loading}
-          error={payError}
-        />
       </div>
     );
   }
@@ -205,16 +180,36 @@ export default function PayerClient({ link, pixels = [] }: { link: Link; pixels?
               </>
             )}
 
+            {/* Pays + moyen, dans la page : c'était un second écran, il
+                allongeait le tunnel sans rien apporter. */}
+            {kkiapay && (
+              <KkiapayWidget
+                init={kkiapay}
+                onDelivered={() => { window.location.href = `/payment/return?ref=${encodeURIComponent(kkiapay.internalRef)}`; }}
+                onFailed={(m) => { setKkiapay(null); setPayError(m); setLoading(false); }}
+              />
+            )}
+            <UnifiedPaymentScreen
+              embedded
+              hideSubmit
+              amount={resolveAmount() ?? link.price}
+              buyerName={name.trim() || null}
+              onPay={(args) => { void startPayment(args); }}
+              onSelectionChange={setPaySel}
+              submitting={loading}
+              error={payError}
+            />
+
             <button
               type="submit" disabled={loading}
               className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-white text-sm font-bold shadow-lg hover:opacity-90 transition-opacity disabled:opacity-60"
               style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
             >
               {loading ? <Loader2 size={18} className="animate-spin" /> : <Lock size={16} />}
-              {loading ? "Redirection…" : link.allowCustomAmount ? "Payer maintenant" : `Payer ${fmt(link.price)} FCFA`}
+              {loading ? "Traitement…" : link.allowCustomAmount ? "Payer maintenant" : `Payer ${fmt(link.price)} FCFA`}
             </button>
             <p className="text-[11px] text-center text-slate-400">
-              Paiement par carte, Mobile Money (Orange, MTN, Moov, Wave) via Moneroo.
+              Paiement sécurisé · Des frais opérateur peuvent s&apos;appliquer.
             </p>
           </form>
         </div>

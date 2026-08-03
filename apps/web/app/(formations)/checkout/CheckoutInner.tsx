@@ -124,9 +124,10 @@ export default function CheckoutInner() {
   const [phone, setPhone] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:phone`, "");
   const [countryCode, setCountryCode] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:countryCode`, "+221");
   const [countryOpen, setCountryOpen] = useState(false);
-  // Deux temps : le formulaire (coordonnées, bump, promo, CGV) puis l'écran
-  // unique de paiement. Le pays et le moyen ne sont plus demandés ici.
-  const [step, setStep] = useState<"form" | "pay">("form");
+  // Sélection courante de l'écran de paiement, intégré plus bas dans CETTE
+  // page. Le tunnel tenait sur deux écrans successifs ; un acheteur a écrit à
+  // son vendeur que c'était trop long, au point qu'il a coupé ses publicités.
+  const [paySel, setPaySel] = useState<{ operator: string; phone?: string; hosted: boolean } | null>(null);
   // Fenêtre KkiaPay : la seule passerelle qui débite depuis le navigateur.
   const [kkiapay, setKkiapay] = useState<KkiapayInit | null>(null);
 
@@ -425,19 +426,27 @@ export default function CheckoutInner() {
   const formationIds = cartItems.filter((i) => i.kind === "formation").map((i) => i.id);
   const productIds = cartItems.filter((i) => i.kind === "product").map((i) => i.id);
 
-  /** Étape 1 → 2 : on valide le formulaire, puis on montre l'écran de paiement. */
+  /**
+   * Lance le paiement depuis la page unique. Si un champ manque, on le dit et
+   * on amène l'acheteur au bon endroit plutôt que de le laisser deviner.
+   */
   function goToPayment() {
     if (!email) { setError("Adresse email requise."); return; }
     // Invité : l'e-mail d'achat doit être une vraie adresse Gmail (anti faux comptes).
     if (!session && !isAllowedBuyerEmail(email)) { setError(ALLOWED_BUYER_EMAIL_MESSAGE); return; }
     if (cartItems.length === 0) { setError("Votre panier est vide."); return; }
+    // Commande gratuite (produit offert ou remise de 100 %) : rien à encaisser.
+    if (totalAmount > 0 && !paySel) {
+      setError("Choisissez votre pays et votre moyen de paiement.");
+      document.getElementById("moyen-de-paiement")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     setError(null);
-    setStep("pay");
-    window.scrollTo({ top: 0 });
+    void startPayment(paySel ?? { operator: "", hosted: false });
   }
 
   /**
-   * Étape 2 : l'écran unique nous rend un opérateur déjà résolu au pays
+   * L'écran de paiement nous rend un opérateur déjà résolu au pays
    * (« orange_sn », « card_xof »…). Le serveur choisit la passerelle.
    */
   async function startPayment({ operator, phone: payPhone }: { operator: string; phone?: string; hosted: boolean }) {
@@ -508,41 +517,6 @@ export default function CheckoutInner() {
   }
 
   const selectedCountry = COUNTRIES.find((c) => c.code === countryCode) ?? COUNTRIES[0];
-
-  // ── Étape 2 : l'écran unique de paiement ────────────────────────────────
-  // Un seul endroit dans toute la plateforme où l'acheteur choisit son pays
-  // et son moyen. Il ne voit jamais le nom d'une passerelle.
-  if (step === "pay") {
-    return (
-      <div className="min-h-screen bg-[#f7f9fb] py-8 px-4" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
-        <div className="max-w-5xl mx-auto mb-4">
-          <button
-            type="button"
-            onClick={() => { setStep("form"); setError(null); }}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#5c647a] hover:text-[#006e2f] transition-colors"
-          >
-            <ChevronLeft size={16} />
-            Revenir à ma commande
-          </button>
-        </div>
-        {kkiapay && (
-          <KkiapayWidget
-            init={kkiapay}
-            onDelivered={() => router.push(`/payment/return?ref=${encodeURIComponent(kkiapay.internalRef)}`)}
-            onFailed={(m) => { setKkiapay(null); setError(m); setLoading(false); }}
-          />
-        )}
-        <UnifiedPaymentScreen
-          amount={totalAmount}
-          buyerName={firstName || null}
-          defaultCountry={selectedCountry?.iso ?? null}
-          onPay={(args) => { void startPayment(args); }}
-          submitting={loading}
-          error={error}
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#f7f9fb] py-8 px-4 md:px-8" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
@@ -734,6 +708,38 @@ export default function CheckoutInner() {
               </p>
             )}
           </div>
+
+          {/* ── Moyen de paiement, dans la page ──────────────────────────
+              Autrefois un second écran plein page. Le tunnel faisait alors
+              deux pages, et un acheteur a écrit à son vendeur que c'était trop
+              long. Tout tient désormais ici : pays, moyen, numéro, puis le
+              bouton « Payer » du récapitulatif. */}
+          {totalAmount > 0 && (
+          <div id="moyen-de-paiement" className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <h2 className="font-bold text-[#191c1e] mb-4 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-[#006e2f] text-white text-xs flex items-center justify-center font-bold">3</span>
+              Moyen de paiement
+            </h2>
+            {kkiapay && (
+              <KkiapayWidget
+                init={kkiapay}
+                onDelivered={() => router.push(`/payment/return?ref=${encodeURIComponent(kkiapay.internalRef)}`)}
+                onFailed={(m) => { setKkiapay(null); setError(m); setLoading(false); }}
+              />
+            )}
+            <UnifiedPaymentScreen
+              embedded
+              hideSubmit
+              amount={totalAmount}
+              buyerName={firstName || null}
+              defaultCountry={selectedCountry?.iso ?? null}
+              onPay={(args) => { void startPayment(args); }}
+              onSelectionChange={setPaySel}
+              submitting={loading}
+              error={null}
+            />
+          </div>
+          )}
 
           {/* Conditions — mention, plus de case à cocher.
               L'acceptation se fait par l'acte de payer : la mention est

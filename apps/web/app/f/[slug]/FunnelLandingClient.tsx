@@ -917,7 +917,8 @@ function CheckoutBlock({ data, theme }: { data: Record<string, unknown>; theme: 
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [payMethod, setPayMethod] = useState<string | null>(null);
-  const [payStep, setPayStep] = useState(false);
+  // Tout sur une seule page : le second écran allongeait le tunnel.
+  const [paySel, setPaySel] = useState<{ operator: string; phone?: string; hosted: boolean } | null>(null);
   // Fenêtre KkiaPay : la seule passerelle qui débite depuis le navigateur.
   const [kkiapay, setKkiapay] = useState<KkiapayInit | null>(null);
 
@@ -977,16 +978,18 @@ function CheckoutBlock({ data, theme }: { data: Record<string, unknown>; theme: 
   const visibleMethods = payMethods.length > 0 ? payMethods : DEFAULT_PAY_METHODS;
   const selectedMethod = payMethod && visibleMethods.includes(payMethod) ? payMethod : visibleMethods[0];
 
-  /** Étape 1 → 2 : coordonnées validées, on affiche l'écran unique. */
+  /** Lance le paiement depuis la page unique. */
   function pay(e: React.FormEvent) {
     e.preventDefault();
     if (paying || !info) return;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { setError("Entrez une adresse email valide."); return; }
+    // Commande gratuite : rien à encaisser, donc rien à choisir.
+    if (total > 0 && !paySel) { setError("Choisissez votre pays et votre moyen de paiement."); return; }
     setError(null);
-    setPayStep(true);
+    void startPayment(paySel ?? { operator: "", hosted: false });
   }
 
-  /** Étape 2 : l'écran unique a résolu pays + moyen ; le serveur route. */
+  /** L'écran de paiement a résolu pays + moyen ; le serveur route. */
   async function startPayment({ operator, phone: payPhone }: { operator: string; phone?: string; hosted: boolean }) {
     if (!info) return;
     setError(null); setPaying(true);
@@ -1033,36 +1036,6 @@ function CheckoutBlock({ data, theme }: { data: Record<string, unknown>; theme: 
 
   const inputCls = "w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-shadow";
   const ring = { "--tw-ring-color": `${accent}40` } as CSSProperties;
-
-  // Étape 2 : le même écran de paiement que partout ailleurs sur Novakou.
-  if (payStep) {
-    return (
-      <div className="max-w-4xl w-full mx-auto my-4">
-        <button
-          type="button"
-          onClick={() => { setPayStep(false); setError(null); }}
-          className="inline-flex items-center gap-1.5 mb-3 text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors"
-        >
-          <ChevronLeft size={16} />
-          Revenir à ma commande
-        </button>
-        {kkiapay && (
-          <KkiapayWidget
-            init={kkiapay}
-            onDelivered={() => { window.location.href = `/payment/return?ref=${encodeURIComponent(kkiapay.internalRef)}`; }}
-            onFailed={(m) => { setKkiapay(null); setError(m); setPaying(false); }}
-          />
-        )}
-        <UnifiedPaymentScreen
-          amount={total}
-          buyerName={name.trim() || null}
-          onPay={(args) => { void startPayment(args); }}
-          submitting={paying}
-          error={error}
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-lg w-full mx-auto my-4">
@@ -1153,9 +1126,33 @@ function CheckoutBlock({ data, theme }: { data: Record<string, unknown>; theme: 
 
           {error && <div className="bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-xs font-semibold text-red-700">{error}</div>}
 
+          {/* Pays + moyen, dans la page. C'était un second écran : le tunnel
+              faisait deux pages, jugé trop long par les acheteurs. */}
+          {total > 0 && (
+            <>
+              {kkiapay && (
+                <KkiapayWidget
+                  init={kkiapay}
+                  onDelivered={() => { window.location.href = `/payment/return?ref=${encodeURIComponent(kkiapay.internalRef)}`; }}
+                  onFailed={(m) => { setKkiapay(null); setError(m); setPaying(false); }}
+                />
+              )}
+              <UnifiedPaymentScreen
+                embedded
+                hideSubmit
+                amount={total}
+                buyerName={name.trim() || null}
+                onPay={(args) => { void startPayment(args); }}
+                onSelectionChange={setPaySel}
+                submitting={paying}
+                error={null}
+              />
+            </>
+          )}
+
           <button type="submit" disabled={paying} className="w-full flex items-center justify-center gap-2 px-5 py-4 rounded-2xl text-white font-extrabold shadow-lg active:scale-[0.98] transition-transform disabled:opacity-70" style={{ background: `linear-gradient(135deg, ${accent}, ${theme.accentColor})` }}>
             {paying ? <Loader2 size={18} className="animate-spin" /> : <Lock size={18} />}
-            {paying ? "Redirection sécurisée…" : (ctaText || (total === 0 ? "Obtenir gratuitement" : "Procéder au paiement sécurisé"))}
+            {paying ? "Traitement…" : (ctaText || (total === 0 ? "Obtenir gratuitement" : "Procéder au paiement sécurisé"))}
           </button>
 
           {/* Confiance */}

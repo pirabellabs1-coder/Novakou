@@ -44,6 +44,9 @@ export function UnifiedPaymentScreen({
   submitting = false,
   error,
   demoData,
+  embedded = false,
+  hideSubmit = false,
+  onSelectionChange,
 }: {
   amount: number;
   currencyLabel?: string;
@@ -62,6 +65,20 @@ export function UnifiedPaymentScreen({
    * on n'affiche que des moyens réellement encaissables.
    */
   demoData?: { countries: string[]; options: Option[] };
+  /**
+   * Mode INTÉGRÉ : rend uniquement le bloc de sélection (pays, moyen, numéro),
+   * sans la colonne marchand ni l'encadré. À utiliser quand la page affiche
+   * déjà le récapitulatif et son propre bouton de paiement — le tunnel tient
+   * alors sur UNE seule page au lieu de deux écrans successifs.
+   */
+  embedded?: boolean;
+  /** Masque le bouton du composant : la page hôte fournit le sien. */
+  hideSubmit?: boolean;
+  /**
+   * Remonte la sélection courante à chaque changement, pour que le bouton de
+   * la page hôte sache quoi envoyer et s'il peut être activé.
+   */
+  onSelectionChange?: (sel: { operator: string; phone?: string; hosted: boolean } | null) => void;
 }) {
   const [country, setCountry] = useState<string>((defaultCountry ?? "").toLowerCase());
   const [countries, setCountries] = useState<Array<{ code: string; operators: number }>>([]);
@@ -143,60 +160,24 @@ export function UnifiedPaymentScreen({
   const dial = countryMeta?.dial ?? "";
   const canPay = Boolean(current) && (!needsPhone || phone.replace(/\D/g, "").length >= 8) && !submitting;
 
-  return (
-    <div className="bg-white rounded-[28px] border border-gray-100 shadow-[0_2px_24px_rgba(16,52,32,.06)] overflow-hidden">
-      {/*
-        `min-w-0` sur les colonnes n'est PAS cosmétique. Un élément de grille a
-        `min-width: auto` par défaut : la piste s'élargit jusqu'à la largeur
-        minimale de son contenu, même si la grille, elle, est plus étroite. Sur
-        téléphone la colonne réclamait 403 px dans un écran de 375 — et comme le
-        conteneur parent masque le débordement, l'écran de paiement était
-        simplement COUPÉ à droite : montant et bouton « Payer » hors champ.
-      */}
-      <div className="grid md:grid-cols-2 [&>*]:min-w-0">
-        {/* ── Colonne gauche : marchand + montant ─────────────────────── */}
-        <div className="p-6 sm:p-8 md:p-10 md:border-r border-gray-100">
-          <div className="flex items-center gap-3">
-            {merchantLogoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={merchantLogoUrl} alt="" className="w-14 h-14 rounded-full object-cover" />
-            ) : (
-              <span className="w-14 h-14 rounded-full bg-[#f0faf3] flex items-center justify-center text-[#006e2f] text-lg font-extrabold">
-                {(merchantName ?? "N").slice(0, 1).toUpperCase()}
-              </span>
-            )}
-            <span className="text-[20px] font-extrabold text-[#191c1e] truncate min-w-0">
-              {merchantName ?? "Novakou"}
-            </span>
-          </div>
+  // Sélection complète, telle qu'elle serait envoyée. Null tant qu'il manque
+  // quelque chose — c'est ce qui permet à la page hôte de désactiver son bouton.
+  const selection = current && (!needsPhone || phone.replace(/\D/g, "").length >= 8)
+    ? { operator: current.code, phone: needsPhone ? dial.replace(/\D/g, "") + phone.replace(/\D/g, "") : undefined, hosted: current.hosted }
+    : null;
+  const selRef = useRef<string>("");
+  useEffect(() => {
+    const key = JSON.stringify(selection);
+    if (key === selRef.current) return;
+    selRef.current = key;
+    onSelectionChange?.(selection);
+  }, [selection, onSelectionChange]);
 
-          <p className="text-[19px] font-extrabold text-[#191c1e] mt-9">
-            {buyerName ? `Bonjour ${buyerName} !` : "Bonjour !"}
-          </p>
-          <p className="text-[16px] text-[#5c647a] leading-relaxed mt-2 max-w-sm">
-            Vous êtes sur le point d&apos;effectuer un paiement
-            {merchantName ? <> chez : <span className="font-semibold text-[#191c1e]">{merchantName}</span></> : null}
-          </p>
-
-          <p className="text-[16px] text-[#98a1b3] mt-10">Montant à payer</p>
-          <p className="text-[40px] leading-[1.1] font-extrabold text-[#006e2f] tabular-nums mt-1">
-            {fmt(amount)}
-            <span className="text-[22px] ml-2">{currencyLabel}</span>
-          </p>
-
-          {/* Marque de la plateforme : rassure l'acheteur sur qui sécurise la
-              transaction, sans voler la vedette à la boutique en haut. */}
-          <div className="flex items-center gap-2 mt-10 pt-6 border-t border-gray-100">
-            <NovakouLogo size={22} />
-            <span className="text-[12px] font-semibold text-[#98a1b3]">
-              Paiement sécurisé par <span className="text-[#5c647a] font-bold">Novakou</span>
-            </span>
-          </div>
-        </div>
-
+  const colonneSelection = (
+    <>
         {/* ── Colonne droite : moyen + numéro + payer ──────────────────── */}
-        <div className="p-6 sm:p-8 md:p-10">
-          <h2 className="text-[24px] font-extrabold text-[#191c1e]">Vos informations</h2>
+        <div className={embedded ? "" : "p-6 sm:p-8 md:p-10"}>
+          {!embedded && <h2 className="text-[24px] font-extrabold text-[#191c1e]">Vos informations</h2>}
 
           {/* Pays */}
           <label className="block text-[15px] font-extrabold text-[#191c1e] mt-7 mb-2.5">
@@ -365,9 +346,14 @@ export function UnifiedPaymentScreen({
             </div>
           )}
 
+          {!hideSubmit && (
           <button
-            onClick={() => current && onPay({ operator: current.code, phone: needsPhone ? phone : undefined, hosted: current.hosted })}
-            disabled={!canPay}
+            // `selection` porte le numéro COMPLET (indicatif + local). Envoyer
+            // le numéro local, comme avant, faisait partir « 0157335726 » au
+            // lieu de « 2290157335726 » : la passerelle ne pouvait pas joindre
+            // le bon abonné.
+            onClick={() => selection && onPay(selection)}
+            disabled={!canPay || !selection}
             className="w-full mt-7 py-4 rounded-2xl text-white text-[16px] font-extrabold disabled:opacity-40 flex items-center justify-center gap-2 transition-opacity"
             style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
           >
@@ -379,11 +365,75 @@ export function UnifiedPaymentScreen({
               <>Payer {fmt(amount)} {currencyLabel}</>
             )}
           </button>
+          )}
 
-          <p className="text-[11px] text-center text-[#98a1b3] mt-3">
-            Paiement sécurisé · Des frais opérateur peuvent s&apos;appliquer
-          </p>
+          {!hideSubmit && (
+            <p className="text-[11px] text-center text-[#98a1b3] mt-3">
+              Paiement sécurisé · Des frais opérateur peuvent s&apos;appliquer
+            </p>
+          )}
         </div>
+    </>
+  );
+
+  if (embedded) {
+    // Page hôte : elle affiche déjà le récapitulatif et son propre bouton.
+    // On ne rend que la sélection, sans encadré ni colonne marchand.
+    return <div className="min-w-0">{colonneSelection}</div>;
+  }
+
+  return (
+    <div className="bg-white rounded-[28px] border border-gray-100 shadow-[0_2px_24px_rgba(16,52,32,.06)] overflow-hidden">
+      {/*
+        `min-w-0` sur les colonnes n'est PAS cosmétique. Un élément de grille a
+        `min-width: auto` par défaut : la piste s'élargit jusqu'à la largeur
+        minimale de son contenu, même si la grille, elle, est plus étroite. Sur
+        téléphone la colonne réclamait 403 px dans un écran de 375 — et comme le
+        conteneur parent masque le débordement, l'écran de paiement était
+        simplement COUPÉ à droite : montant et bouton « Payer » hors champ.
+      */}
+      <div className="grid md:grid-cols-2 [&>*]:min-w-0">
+        {/* ── Colonne gauche : marchand + montant ─────────────────────── */}
+        <div className="p-6 sm:p-8 md:p-10 md:border-r border-gray-100">
+          <div className="flex items-center gap-3">
+            {merchantLogoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={merchantLogoUrl} alt="" className="w-14 h-14 rounded-full object-cover" />
+            ) : (
+              <span className="w-14 h-14 rounded-full bg-[#f0faf3] flex items-center justify-center text-[#006e2f] text-lg font-extrabold">
+                {(merchantName ?? "N").slice(0, 1).toUpperCase()}
+              </span>
+            )}
+            <span className="text-[20px] font-extrabold text-[#191c1e] truncate min-w-0">
+              {merchantName ?? "Novakou"}
+            </span>
+          </div>
+
+          <p className="text-[19px] font-extrabold text-[#191c1e] mt-9">
+            {buyerName ? `Bonjour ${buyerName} !` : "Bonjour !"}
+          </p>
+          <p className="text-[16px] text-[#5c647a] leading-relaxed mt-2 max-w-sm">
+            Vous êtes sur le point d&apos;effectuer un paiement
+            {merchantName ? <> chez : <span className="font-semibold text-[#191c1e]">{merchantName}</span></> : null}
+          </p>
+
+          <p className="text-[16px] text-[#98a1b3] mt-10">Montant à payer</p>
+          <p className="text-[40px] leading-[1.1] font-extrabold text-[#006e2f] tabular-nums mt-1">
+            {fmt(amount)}
+            <span className="text-[22px] ml-2">{currencyLabel}</span>
+          </p>
+
+          {/* Marque de la plateforme : rassure l'acheteur sur qui sécurise la
+              transaction, sans voler la vedette à la boutique en haut. */}
+          <div className="flex items-center gap-2 mt-10 pt-6 border-t border-gray-100">
+            <NovakouLogo size={22} />
+            <span className="text-[12px] font-semibold text-[#98a1b3]">
+              Paiement sécurisé par <span className="text-[#5c647a] font-bold">Novakou</span>
+            </span>
+          </div>
+        </div>
+
+        {colonneSelection}
       </div>
     </div>
   );
