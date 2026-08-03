@@ -11,6 +11,7 @@ import { useState } from "react";
 import { promptAction } from "@/store/prompt";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { confirmAction } from "@/store/confirm";
+import { getAvailablePayoutMethods } from "@/lib/moneroo-payout-methods";
 import {
   StCard,
   StPageHeader,
@@ -69,6 +70,22 @@ function fmtFCFA(n: number) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(n));
 }
 
+/**
+ * Opérateurs proposés au test, groupés par pays. Générés depuis le catalogue
+ * filtré par le registre : tester un opérateur qu'aucune passerelle ne sert
+ * ne prouve rien et fait croire à une panne.
+ */
+const NOMS_PAYS: Record<string, string> = {
+  BJ: "Bénin", CI: "Côte d'Ivoire", SN: "Sénégal", TG: "Togo", ML: "Mali", NE: "Niger",
+};
+const OPERATEURS_TESTABLES = Object.entries(
+  getAvailablePayoutMethods(null).reduce<Record<string, Array<{ id: string; label: string }>>>((acc, m) => {
+    const code = m.countries[0] ?? "??";
+    (acc[code] ??= []).push({ id: m.id, label: m.label });
+    return acc;
+  }, {}),
+).map(([code, moyens]) => ({ pays: NOMS_PAYS[code] ?? code, moyens }));
+
 function methodLabel(m: string) {
   const map: Record<string, string> = {
     virement: "Virement bancaire",
@@ -105,10 +122,10 @@ export default function AdminRetraitsVendeursPage() {
   const [roleFilter, setRoleFilter] = useState<"all" | "vendor" | "mentor">("all");
   const [toast, setToast] = useState<string | null>(null);
 
-  // ── Test Moneroo direct (outil de diagnostic) ────────────────────────────
+  // ── Test de versement direct (outil de diagnostic) ───────────────────────
   const [showTest, setShowTest] = useState(false);
   const [testMethod, setTestMethod] = useState("mtn_bj");
-  const [testProvider, setTestProvider] = useState<"moneroo" | "feexpay" | "fedapay">("moneroo");
+  const [testProvider, setTestProvider] = useState<"feexpay" | "fedapay">("feexpay");
   const [testMsisdn, setTestMsisdn] = useState("");
   const [testAmount, setTestAmount] = useState(500);
   const [testResult, setTestResult] = useState<unknown>(null);
@@ -205,10 +222,10 @@ export default function AdminRetraitsVendeursPage() {
   const pendingIds = withdrawals.filter((w) => w.status === "EN_ATTENTE").map((w) => w.id);
   const selectedPendingCount = [...bulkIds].filter((id) => pendingIds.includes(id)).length;
 
-  async function bulkApprove(mode: "moneroo" | "manual") {
+  async function bulkApprove(mode: "auto" | "manual") {
     const ids = [...bulkIds].filter((id) => pendingIds.includes(id));
     if (ids.length === 0) return;
-    if (!confirm(`Approuver ${ids.length} retrait(s) via ${mode === "manual" ? "transfert manuel" : "Moneroo"} ?\n\nLe paiement sera déclenché immédiatement pour chacun.`)) return;
+    if (!confirm(`Approuver ${ids.length} retrait(s) via ${mode === "manual" ? "transfert manuel" : "versement automatique"} ?\n\nLe paiement sera déclenché immédiatement pour chacun.`)) return;
     setBulkRunning(true);
     try {
       const results = await Promise.allSettled(
@@ -269,7 +286,7 @@ export default function AdminRetraitsVendeursPage() {
   }
 
   const approveMut = useMutation({
-    mutationFn: async (args: { id: string; mode: "moneroo" | "manual" }) => {
+    mutationFn: async (args: { id: string; mode: "auto" | "manual" }) => {
       const res = await fetch(`/api/formations/admin/withdrawals/${args.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -281,7 +298,7 @@ export default function AdminRetraitsVendeursPage() {
     },
     onSuccess: (data) => {
       // Bureau session 4 (post-mortem payouts) : avant on lisait
-      // `data.data.monerooStatus` qui n'était JAMAIS retourné par le backend
+      // `data.data.monerooStatus` (ancien nom) qui n'était JAMAIS retourné par le backend
       // → toast trompeur "traitement en cours" même si l'init avait
       // réussi. Maintenant on remonte explicitement `status` + `payoutId`.
       const mode = data?.data?.mode;
@@ -290,10 +307,10 @@ export default function AdminRetraitsVendeursPage() {
       if (mode === "manual") {
         setToast("Retrait marqué comme traité manuellement ✅");
       } else if (status === "completed" || status === "success") {
-        setToast("Retrait versé via Moneroo ✅");
-      } else if (mode === "moneroo") {
+        setToast("Retrait versé ✅");
+      } else if (mode === "auto") {
         setToast(
-          `Payout envoyé à Moneroo (ref ${ref ?? "—"}) — Le statut passera à TRAITE dès réception du webhook confirmation provider. Si après 15 min toujours EN_ATTENTE, cliquer "Réconcilier".`
+          `Versement envoyé (réf. ${ref ?? "—"}) — le statut passera à TRAITÉ dès la confirmation de la passerelle. Si après 15 min il est toujours EN_ATTENTE, cliquez « Réconcilier ».`
         );
       } else {
         setToast("Retrait traité — vérifiez le statut dans la liste");
@@ -335,7 +352,7 @@ export default function AdminRetraitsVendeursPage() {
       return j;
     },
     onSuccess: () => {
-      setToast("Payout relancé via Moneroo");
+      setToast("Versement relancé");
       qc.invalidateQueries({ queryKey: ["admin-vendor-withdrawals"] });
       setTimeout(() => setToast(null), 4000);
     },
@@ -396,21 +413,21 @@ export default function AdminRetraitsVendeursPage() {
     reconcileMut.mutate({ id: w.id });
   }
 
-  async function handleApproveMoneroo(w: Withdrawal) {
+  async function handleApproveAuto(w: Withdrawal) {
     const ok = await confirmAction({
-      title: `Payer ${fmtFCFA(w.amount)} FCFA via Moneroo ?`,
-      message: `Bénéficiaire : ${w.user.name ?? w.user.email} · Méthode : ${methodLabel(w.method)}. Moneroo envoie l'argent directement au bénéficiaire.`,
+      title: `Payer ${fmtFCFA(w.amount)} FCFA ?`,
+      message: `Bénéficiaire : ${w.user.name ?? w.user.email} · Méthode : ${methodLabel(w.method)}. L'argent part directement chez le bénéficiaire.`,
       confirmLabel: "Lancer le paiement",
       confirmVariant: "default",
       icon: "payments",
     });
-    if (ok) approveMut.mutate({ id: w.id, mode: "moneroo" });
+    if (ok) approveMut.mutate({ id: w.id, mode: "auto" });
   }
 
   async function handleApproveManual(w: Withdrawal) {
     const ok = await confirmAction({
       title: `Marquer comme traité manuellement ?`,
-      message: `Vous confirmez avoir viré ${fmtFCFA(w.amount)} FCFA à ${w.user.name ?? w.user.email} hors plateforme. Aucun paiement Moneroo ne sera déclenché.`,
+      message: `Vous confirmez avoir viré ${fmtFCFA(w.amount)} FCFA à ${w.user.name ?? w.user.email} hors plateforme. Aucun versement automatique ne sera déclenché.`,
       confirmLabel: "Marquer traité",
       confirmVariant: "warning",
       icon: "done_all",
@@ -433,7 +450,7 @@ export default function AdminRetraitsVendeursPage() {
   async function handleRetry(w: Withdrawal) {
     const ok = await confirmAction({
       title: `Relancer le payout de ${fmtFCFA(w.amount)} FCFA ?`,
-      message: `Le payout précédent a échoué. Moneroo sera rappelé pour ${w.user.name ?? w.user.email}.`,
+      message: `Le versement précédent a échoué. La passerelle sera rappelée pour ${w.user.name ?? w.user.email}.`,
       confirmLabel: "Relancer",
       confirmVariant: "default",
       icon: "refresh",
@@ -500,19 +517,19 @@ export default function AdminRetraitsVendeursPage() {
 
         <StPageHeader
           title="Demandes de retrait vendeurs & mentors"
-          subtitle="Approuvez ou refusez les retraits. Payez automatiquement via Moneroo."
+          subtitle="Approuvez ou refusez les retraits. Le versement part automatiquement."
           actions={
             <StButton
               variant="secondary"
               icon={FlaskConical}
               onClick={() => setShowTest(!showTest)}
             >
-              Tester Moneroo
+              Tester un versement
             </StButton>
           }
         />
 
-        {/* ── Panneau de test Moneroo direct ──────────────────────────────── */}
+        {/* ── Panneau de test de versement direct ─────────────────────────── */}
         {showTest && (
           <StCard className="!p-[18px_20px]">
             <h3 className="text-[15px] font-extrabold" style={{ color: ST.text }}>Test de versement</h3>
@@ -525,11 +542,10 @@ export default function AdminRetraitsVendeursPage() {
                 <label className="block text-[10px] font-extrabold uppercase tracking-widest mb-1.5" style={{ color: ST.textMuted }}>Fournisseur</label>
                 <select
                   value={testProvider}
-                  onChange={(e) => setTestProvider(e.target.value as "moneroo" | "feexpay" | "fedapay")}
+                  onChange={(e) => setTestProvider(e.target.value as "feexpay" | "fedapay")}
                   className="w-full px-3 py-2 rounded-xl text-[13px] font-semibold focus:outline-none"
                   style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
                 >
-                  <option value="moneroo">Moneroo</option>
                   <option value="feexpay">FeexPay</option>
                   <option value="fedapay">FedaPay</option>
                 </select>
@@ -542,31 +558,13 @@ export default function AdminRetraitsVendeursPage() {
                   className="w-full px-3 py-2 rounded-xl text-[13px] font-semibold focus:outline-none"
                   style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
                 >
-                  <optgroup label="Sénégal">
-                    <option value="wave_sn">Wave (SN)</option>
-                    <option value="orange_sn">Orange Money (SN)</option>
-                    <option value="freemoney_sn">Free Money (SN)</option>
-                    <option value="e_money_sn">E-Money (SN)</option>
-                  </optgroup>
-                  <optgroup label="Côte d'Ivoire">
-                    <option value="wave_ci">Wave (CI)</option>
-                    <option value="orange_ci">Orange Money (CI)</option>
-                    <option value="mtn_ci">MTN (CI)</option>
-                    <option value="moov_ci">Moov (CI)</option>
-                  </optgroup>
-                  <optgroup label="Bénin">
-                    <option value="mtn_bj">MTN (BJ)</option>
-                    <option value="moov_bj">Moov (BJ)</option>
-                  </optgroup>
-                  <optgroup label="Togo">
-                    <option value="moov_tg">Moov (TG)</option>
-                    <option value="togocel">Togocel (TG)</option>
-                  </optgroup>
-                  <optgroup label="Mali / Cameroun">
-                    <option value="orange_ml">Orange Money (ML)</option>
-                    <option value="orange_cm">Orange Money (CM)</option>
-                    <option value="mtn_cm">MTN (CM)</option>
-                  </optgroup>
+                  {OPERATEURS_TESTABLES.map((g) => (
+                    <optgroup key={g.pays} label={g.pays}>
+                      {g.moyens.map((m) => (
+                        <option key={m.id} value={m.id}>{m.label}</option>
+                      ))}
+                    </optgroup>
+                  ))}
                 </select>
               </div>
               <div>
@@ -603,7 +601,7 @@ export default function AdminRetraitsVendeursPage() {
               onClick={runTestPayout}
               disabled={testing || !testMsisdn}
             >
-              {testing ? "Envoi en cours…" : "Envoyer à Moneroo"}
+              {testing ? "Envoi en cours…" : "Envoyer le test"}
             </StButton>
 
             {testResult !== null && (
@@ -615,7 +613,7 @@ export default function AdminRetraitsVendeursPage() {
                   className="text-[10px] font-extrabold uppercase tracking-widest mb-2"
                   style={{ color: (testResult as { ok?: boolean }).ok ? ST.green : ST.roseText }}
                 >
-                  {(testResult as { ok?: boolean }).ok ? "Succès" : "Erreur Moneroo"}
+                  {(testResult as { ok?: boolean }).ok ? "Succès" : "Erreur passerelle"}
                 </p>
                 <pre className="whitespace-pre-wrap break-all" style={{ color: "#33453b" }}>
                   {JSON.stringify(testResult, null, 2)}
@@ -712,7 +710,7 @@ export default function AdminRetraitsVendeursPage() {
         ) : (
           <div className="space-y-3">
             {/* Barre bulk — visible quand >= 1 EN_ATTENTE sélectionné.
-                Permet d'approuver via Moneroo/manuel ou refuser en masse. */}
+                Permet d'approuver automatiquement ou manuellement, ou refuser en masse. */}
             {selectedPendingCount > 0 && (
               <div
                 className="sticky top-2 z-20 text-white px-4 py-3 flex flex-wrap items-center justify-between gap-3 shadow-2xl rounded-xl"
@@ -737,13 +735,13 @@ export default function AdminRetraitsVendeursPage() {
                 </div>
                 <div className="flex gap-1.5 flex-wrap">
                   <button
-                    onClick={() => bulkApprove("moneroo")}
+                    onClick={() => bulkApprove("auto")}
                     disabled={bulkRunning}
                     className="px-3 py-2 rounded-[9px] text-white text-[10px] font-extrabold uppercase tracking-widest disabled:opacity-50"
                     style={{ background: ST.green }}
-                    title="Payer la sélection via Moneroo"
+                    title="Payer la sélection automatiquement"
                   >
-                    {bulkRunning ? "…" : "Payer Moneroo"}
+                    {bulkRunning ? "…" : "Payer"}
                   </button>
                   <button
                     onClick={() => bulkApprove("manual")}
@@ -837,14 +835,14 @@ export default function AdminRetraitsVendeursPage() {
                       {w.status === "EN_ATTENTE" && (
                         <div className="flex gap-1.5 flex-wrap">
                           <button
-                            onClick={() => handleApproveMoneroo(w)}
+                            onClick={() => handleApproveAuto(w)}
                             disabled={approveMut.isPending || refuseMut.isPending}
                             className="px-4 py-2 rounded-[10px] text-[10px] font-extrabold uppercase tracking-widest transition-colors disabled:opacity-50 inline-flex items-center gap-1"
                             style={{ background: ST.greenBright, color: ST.greenDark }}
-                            title="Déclencher un vrai paiement Moneroo"
+                            title="Déclencher un vrai versement"
                           >
                             <CreditCard size={14} />
-                            Payer Moneroo
+                            Payer
                           </button>
                           <button
                             onClick={() => handleApproveManual(w)}
@@ -878,14 +876,14 @@ export default function AdminRetraitsVendeursPage() {
                         style={{ borderColor: "#f3cdd9", background: ST.roseSoft }}
                       >
                         <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: ST.roseText }}>
-                          {errCat === "insufficient_funds" ? "Solde Moneroo insuffisant" : errCat === "validation" ? "Erreur de validation" : "Motif de refus"}
+                          {errCat === "insufficient_funds" ? "Solde passerelle insuffisant" : errCat === "validation" ? "Erreur de validation" : "Motif de refus"}
                         </p>
                         {w.refusedReason && <p className="text-[13px]" style={{ color: ST.roseText }}>{w.refusedReason}</p>}
                         {w.errorMessage && (
-                          <p className="text-[10px] mt-1 font-mono" style={{ color: ST.roseText }}>Erreur Moneroo : {w.errorMessage}</p>
+                          <p className="text-[10px] mt-1 font-mono" style={{ color: ST.roseText }}>Erreur passerelle : {w.errorMessage}</p>
                         )}
                         {errCat === "insufficient_funds" && (
-                          <p className="text-[12px] mt-2 font-semibold" style={{ color: ST.roseText }}>Rechargez votre compte Moneroo puis relancez le payout.</p>
+                          <p className="text-[12px] mt-2 font-semibold" style={{ color: ST.roseText }}>Rechargez le compte de la passerelle puis relancez le versement.</p>
                         )}
                         {errCat === "validation" && (
                           <p className="text-[12px] mt-2 font-semibold" style={{ color: ST.amberText }}>Vérifiez le numéro du bénéficiaire avant de relancer.</p>
@@ -903,7 +901,7 @@ export default function AdminRetraitsVendeursPage() {
                             </button>
                           ) : retries >= 3 ? (
                             <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: ST.textMuted }}>
-                              3/3 tentatives épuisées — contactez le support Moneroo
+                              3/3 tentatives épuisées — contactez le support de la passerelle
                             </span>
                           ) : null}
                         </div>
@@ -954,9 +952,9 @@ export default function AdminRetraitsVendeursPage() {
                         <CheckCircle2 size={14} />
                         Traité le {new Date(w.processedAt).toLocaleString("fr-FR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                       </span>
-                      {w.paymentProvider === "moneroo" && w.paymentRef && (
+                      {w.paymentProvider && w.paymentProvider !== "manual" && w.paymentRef && (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[10px]" style={{ background: ST.blueSoft, color: ST.blueText }}>
-                          Moneroo · {w.paymentRef.slice(0, 16)}…
+                          {w.paymentProvider} · {w.paymentRef.slice(0, 16)}…
                         </span>
                       )}
                       {w.paymentProvider === "manual" && (

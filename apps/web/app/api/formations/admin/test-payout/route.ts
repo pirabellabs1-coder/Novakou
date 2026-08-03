@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
  * exactement le même chemin qu'en production, sans bascule qui masquerait un
  * échec. Ne crée pas de InstructorWithdrawal.
  *
- * Body : { method, msisdn, amount, provider?: "moneroo"|"feexpay"|"fedapay", firstName?, lastName?, email? }
+ * Body : { method, msisdn, amount, provider?: "feexpay"|"feexpay"|"fedapay", firstName?, lastName?, email? }
  * Admin only.
  */
 export async function POST(request: NextRequest) {
