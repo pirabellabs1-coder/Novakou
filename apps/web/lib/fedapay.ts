@@ -374,15 +374,18 @@ export async function checkCollectStatus(
     method: "GET",
     headers: await authHeaders(),
   });
-  const json = (await res.json().catch(() => ({}))) as {
-    "v1/transaction"?: { status?: string; amount?: number | string };
-    transaction?: { status?: string; amount?: number | string };
-    message?: string;
-  };
+  const json = (await res.json().catch(() => ({}))) as Record<string, unknown> & { message?: string };
   if (!res.ok) {
     throw new Error(json.message || `FedaPay : statut de transaction indisponible (HTTP ${res.status})`);
   }
-  const tx = json["v1/transaction"] || json.transaction || {};
+  // FedaPay enveloppe l'objet sous « v1/transaction ». La forme exacte n'est
+  // pas documentée : on accepte aussi « transaction » et la racine nue, plutôt
+  // que de rendre « en attente » sur une clé qui aurait changé — c'est ce
+  // genre de silence qui laisse une vente encaissée sans livraison.
+  const tx = (json["v1/transaction"] ?? json.transaction ?? json) as {
+    status?: string;
+    amount?: number | string;
+  };
   const amount = Number(tx.amount);
   return {
     status: normalizeFedapayTransactionStatus(tx.status),
