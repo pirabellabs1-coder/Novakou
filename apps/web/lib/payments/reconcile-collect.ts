@@ -51,6 +51,15 @@ const STATUS_CHECKERS: Record<string, (ref: string) => Promise<{ status: "succes
     const { checkCollectStatus } = await import("@/lib/fedapay");
     return checkCollectStatus(ref);
   },
+  ipaymoney: async (ref) => {
+    const { checkCollectStatus } = await import("@/lib/ipaymoney");
+    return checkCollectStatus(ref);
+  },
+  kkiapay: async (ref) => {
+    // La référence est l'identifiant de transaction rendu par la fenêtre.
+    const { verifyTransaction } = await import("@/lib/kkiapay");
+    return verifyTransaction(ref);
+  },
 };
 
 /**
@@ -176,11 +185,31 @@ export async function reconcileCollectAttempt(attempt: AttemptRow): Promise<Coll
   return { matched: true, status: "success", delivered: true, attemptId: attempt.id };
 }
 
-/** Variante par référence, pour les webhooks qui n'ont que ça. */
-export async function reconcileCollectByRef(reference: string): Promise<CollectReconcileOutcome> {
-  const attempt = await findAttemptByAnyRef(reference);
+/**
+ * Variante par référence, pour les webhooks qui n'ont que ça.
+ *
+ * `providerRefHint` sert aux fournisseurs dont la référence n'existe qu'APRÈS
+ * le paiement — cas de KkiaPay, où l'identifiant de transaction naît dans la
+ * fenêtre du navigateur. Si le webhook arrive avant que la page ait eu le
+ * temps de nous le transmettre, la tentative est retrouvée par notre propre
+ * référence et on enregistre celle du fournisseur au passage. Sans ça, un
+ * acheteur qui ferme sa fenêtre juste après avoir payé n'était jamais livré :
+ * ni le navigateur ni le cron n'avaient de quoi interroger le fournisseur.
+ */
+export async function reconcileCollectByRef(
+  reference: string,
+  providerRefHint?: string,
+): Promise<CollectReconcileOutcome> {
+  let attempt = await findAttemptByAnyRef(reference);
+  if (!attempt && providerRefHint) attempt = await findAttemptByAnyRef(providerRefHint);
   if (!attempt) return { matched: false, status: "unknown", delivered: false };
-  return reconcileCollectAttempt(attempt);
+
+  if (!attempt.providerRef && providerRefHint) {
+    attempt = await prisma.checkoutAttempt
+      .update({ where: { id: attempt.id }, data: { providerRef: providerRefHint } })
+      .catch(() => attempt);
+  }
+  return reconcileCollectAttempt(attempt!);
 }
 
 /**

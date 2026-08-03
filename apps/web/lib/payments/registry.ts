@@ -91,6 +91,18 @@ export const PROVIDERS: ProviderMeta[] = [
     collectIntegration: "widget",
     envVars: ["KKIAPAY_PUBLIC_KEY", "KKIAPAY_PRIVATE_KEY", "KKIAPAY_SECRET"],
   },
+  {
+    id: "ipaymoney",
+    label: "iPay Money",
+    // Niger. Encaissement mobile money et carte (VISA / Mastercard /
+    // GIM-UEMOA). Endpoints confirmés par sonde : POST /api/v1/payments et
+    // GET /api/v1/payments/{ref}. Aucun versement documenté à ce jour.
+    // Particularité : le fournisseur route lui-même vers le bon opérateur à
+    // partir du NUMÉRO — d'où un seul code « mobile », sans table par réseau.
+    directions: ["collect"],
+    collectIntegration: "server",
+    envVars: ["IPAYMONEY_SECRET_KEY"],
+  },
 ];
 
 export type OperatorEntry = {
@@ -288,8 +300,21 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     collect: {
       fedapay: { code: "airtel_ne" },
       kkiapay: { code: "momo", params: { country: "NE" } },
+      ipaymoney: { code: "mobile", params: { country: "NE" } },
     },
     payout: { fedapay: { code: "airtel_ne" } },
+  },
+  zamani_ne: {
+    label: "Zamani Money (Niger)", country: "ne", currency: "XOF", family: "mobile_money",
+    // iPay Money identifie l'opérateur d'après le numéro : un seul code
+    // « mobile » suffit, aucun réseau à deviner.
+    collect: { ipaymoney: { code: "mobile", params: { country: "NE" } } },
+    payout: {},
+  },
+  moov_ne: {
+    label: "Moov Money (Niger)", country: "ne", currency: "XOF", family: "mobile_money",
+    collect: { ipaymoney: { code: "mobile", params: { country: "NE" } } },
+    payout: {},
   },
 
   // ─────────────────── Congo Brazzaville (XAF) ────────────────────
@@ -320,6 +345,7 @@ export const OPERATORS: Record<string, OperatorEntry> = {
       // bancaire ne touche nos serveurs (hors périmètre PCI-DSS).
       fedapay: { code: "hosted", params: { hosted: "1" } },
       kkiapay: { code: "card" },
+      ipaymoney: { code: "card" },
     },
     payout: {},
   },

@@ -24,6 +24,10 @@ const ENV_KEYS: Record<ProviderId, Record<string, string>> = {
     privateKey: "KKIAPAY_PRIVATE_KEY",
     secret: "KKIAPAY_SECRET",
   },
+  ipaymoney: {
+    secretKey: "IPAYMONEY_SECRET_KEY",
+    webhookSecret: "IPAYMONEY_WEBHOOK_SECRET",
+  },
 };
 
 type Entry = { creds: Record<string, string>; sandbox: boolean; at: number };

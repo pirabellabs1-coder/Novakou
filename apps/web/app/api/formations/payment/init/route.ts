@@ -513,6 +513,29 @@ export async function POST(request: Request) {
             });
           }
           directRef = r.reference;
+        } else if (candidate.provider === "ipaymoney") {
+          const { initCollect } = await import("@/lib/ipaymoney");
+          const r = await initCollect({
+            paymentType: candidate.code, // "mobile" | "card"
+            amount: Math.round(totalAmount),
+            msisdn: phoneRaw ?? undefined,
+            transactionId: internalRef,
+            customerName: `${first || "Client"} ${last}`.trim(),
+            country: getOperator(chosenOperator)?.country?.toUpperCase(),
+          });
+          // Carte : page sécurisée du fournisseur plutôt qu'un push téléphone.
+          if (r.redirectUrl) {
+            await prisma.checkoutAttempt
+              .update({
+                where: { id: attempt.id },
+                data: { providerRef: r.reference, metadata: { ...providerMetadata, paymentProvider: candidate.provider } as never },
+              })
+              .catch(() => null);
+            return NextResponse.json({
+              data: { checkout_url: r.redirectUrl, provider: candidate.provider, internalRef, attemptId: attempt.id },
+            });
+          }
+          directRef = r.reference;
         } else {
           failures.push(`${candidate.provider} : non implémentée`);
           continue;

@@ -164,3 +164,29 @@ test("un pays payable uniquement par carte reste proposable", () => {
   // money encaissable ne serait vendable.
   expect(providersFor("card_xof", "collect").length).toBeGreaterThan(0);
 });
+
+test("iPay Money ne declare que des types de paiement connus", () => {
+  // Leur API route vers le bon operateur d'apres le NUMERO : deux valeurs
+  // suffisent, et en inventer une troisieme ferait echouer la transaction.
+  const attendus = new Set(["mobile", "card"]);
+  const inconnus: string[] = [];
+  for (const [op] of Object.entries(OPERATORS)) {
+    const code = routeFor(op, "ipaymoney", "collect")?.code;
+    if (code && !attendus.has(code)) inconnus.push(`${op} → « ${code} »`);
+  }
+  expect(inconnus).toEqual([]);
+});
+
+test("chaque operateur du Niger a bien une passerelle", () => {
+  const niger = Object.entries(OPERATORS).filter(([, o]) => o.country === "ne");
+  expect(niger.length, "aucun operateur nigerien").toBeGreaterThan(0);
+  for (const [code] of niger) {
+    expect(providersFor(code, "collect").length, `${code} sans passerelle`).toBeGreaterThan(0);
+  }
+});
+
+test("la carte reste servie par plusieurs passerelles", () => {
+  // La carte est le seul moyen de certains pays (Mali) : une passerelle unique
+  // y couperait toutes les ventes en cas de panne.
+  expect(providersFor("card_xof", "collect").length).toBeGreaterThan(1);
+});

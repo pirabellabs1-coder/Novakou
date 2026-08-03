@@ -31,6 +31,12 @@ export const CREDENTIAL_FIELDS: Record<ProviderId, Array<{ key: string; label: s
     { key: "privateKey", label: "Clé privée", secret: true },
     { key: "secret", label: "Secret", secret: true },
   ],
+  ipaymoney: [
+    { key: "secretKey", label: "Clé secrète", secret: true },
+    // Chaîne partagée que le fournisseur renvoie dans l'en-tête `secret-hash`
+    // de chaque webhook : c'est elle qui prouve que l'appel vient bien de lui.
+    { key: "webhookSecret", label: "Secret du webhook", secret: true },
+  ],
 };
 
 export type GatewayRow = {
@@ -71,6 +77,10 @@ function envCredentials(provider: ProviderId): Record<string, string> {
       publicKey: pick(process.env.KKIAPAY_PUBLIC_KEY),
       privateKey: pick(process.env.KKIAPAY_PRIVATE_KEY),
       secret: pick(process.env.KKIAPAY_SECRET),
+    },
+    ipaymoney: {
+      secretKey: pick(process.env.IPAYMONEY_SECRET_KEY),
+      webhookSecret: pick(process.env.IPAYMONEY_WEBHOOK_SECRET),
     },
   };
   const out: Record<string, string> = {};
