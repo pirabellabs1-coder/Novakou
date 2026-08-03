@@ -120,7 +120,7 @@ type BlockType =
   | "video" | "image-gallery"
   // Product picker (pulls from vendor catalog)
   | "product"
-  // Checkout — vraie page de paiement (order bump, promo, Moneroo)
+  // Checkout — vraie page de paiement (order bump, promo, paiement)
   | "checkout"
   // Ready-made sections
   | "hero" | "features" | "countdown" | "testimonials" | "faq" | "cta" | "stats" | "pricing"
@@ -2793,7 +2793,7 @@ function CheckoutEditor({ block, update }: { block: Block; update: (data: Record
     <div className="space-y-2.5">
       <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-[10px] text-green-800 flex items-start gap-1.5">
         <Info size={12} className="mt-0.5 flex-shrink-0" />
-        Vraie page de paiement : le client paie directement (carte ou Mobile Money via Moneroo). L&apos;order bump, le code promo et l&apos;affiliation s&apos;appliquent automatiquement.
+        Vraie page de paiement : le client paie directement (carte ou Mobile Money). L&apos;order bump, le code promo et l&apos;affiliation s&apos;appliquent automatiquement.
       </div>
       <div>
         <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">Produit à vendre *</label>
