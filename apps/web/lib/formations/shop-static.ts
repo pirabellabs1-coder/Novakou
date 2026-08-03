@@ -87,7 +87,7 @@ export type ContentBlock =
 /**
  * Contenu d'une page, généré à partir des infos de la boutique.
  * `base` = préfixe des liens internes de la boutique ("" sur domaine perso,
- * "/boutique/{slug}" sur la plateforme).
+ * "/{slug}" sur la plateforme).
  */
 export function buildShopStaticContent(slug: ShopStaticSlug, info: ShopLegalInfo, base: string): { intro?: string; blocks: ContentBlock[] } {
   const contactRows: Array<{ label: string; value: string }> = [

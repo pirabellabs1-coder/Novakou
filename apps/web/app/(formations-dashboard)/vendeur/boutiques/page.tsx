@@ -186,13 +186,13 @@ export default function VendorShopsPage() {
                     </div>
                     <div className="flex items-center gap-3 text-[12px] font-semibold mt-1 flex-wrap" style={{ color: ST.textSecondary }}>
                       <a
-                        href={`https://novakou.com/boutique/${s.slug}`}
+                        href={`https://novakou.com/${s.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 hover:underline"
                       >
                         <LinkIcon className="w-3 h-3" />
-                        novakou.com/boutique/{s.slug}
+                        novakou.com/{s.slug}
                       </a>
                       {s.customDomain && (
                         <a

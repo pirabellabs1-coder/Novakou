@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { isAllowedBuyerEmail, ALLOWED_BUYER_EMAIL_MESSAGE } from "@/lib/email/allowed-buyer-email";
 import {
   Lock,
   CheckCircle2,
-  Wallet,
   Loader2,
   XCircle,
   AlertCircle,
@@ -17,12 +16,6 @@ import {
   Tag,
   ShieldCheck,
   Download,
-  Smartphone,
-  Waves,
-  Phone,
-  CreditCard,
-  Landmark,
-  type LucideIcon,
 } from "lucide-react";
 import { PixelInjector } from "@/components/formations/PixelInjector";
 import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
@@ -51,27 +44,6 @@ type PaymentMethod =
   | "paypal"
   | "bank_transfer";
 
-// Ordre canonique + libellé/icône d'affichage des méthodes proposées au client.
-const METHOD_ORDER: PaymentMethod[] = [
-  "orange_money",
-  "wave",
-  "mtn_momo",
-  "moov_money",
-  "card",
-  "paypal",
-  "bank_transfer",
-];
-const METHOD_DISPLAY: Record<PaymentMethod, { label: string; Icon: LucideIcon }> = {
-  orange_money: { label: "Orange Money", Icon: Smartphone },
-  wave: { label: "Wave", Icon: Waves },
-  mtn_momo: { label: "MTN MoMo", Icon: Phone },
-  moov_money: { label: "Moov Money", Icon: Smartphone },
-  card: { label: "Carte bancaire", Icon: CreditCard },
-  paypal: { label: "PayPal", Icon: Wallet },
-  bank_transfer: { label: "Virement bancaire", Icon: Landmark },
-};
-// Repli quand aucun vendeur ne précise ses méthodes (liste historique).
-const DEFAULT_METHODS: PaymentMethod[] = ["orange_money", "wave", "mtn_momo", "card"];
 
 // Plus de « choix de passerelle » côté acheteur : il choisit un PAYS et un
 // MOYEN, le serveur décide seul par quelle passerelle l'argent transite.
@@ -124,8 +96,6 @@ export default function CheckoutInner() {
   // Fenêtre KkiaPay : la seule passerelle qui débite depuis le navigateur.
   const [kkiapay, setKkiapay] = useState<KkiapayInit | null>(null);
 
-  // Méthodes acceptées par le(s) vendeur(s) du panier (intersection côté API).
-  const [acceptedMethods, setAcceptedMethods] = useState<PaymentMethod[]>([]);
   const [discountCode, setDiscountCode] = useState("");
   const [promoOuvert, setPromoOuvert] = useState(false);
   const [discountStatus, setDiscountStatus] = useState<"idle" | "validating" | "valid" | "invalid">("idle");
@@ -315,26 +285,6 @@ export default function CheckoutInner() {
       .then((r) => r.json())
       .then((j) => setCheckoutPixels(j.data ?? []))
       .catch(() => setCheckoutPixels([]));
-  }, [cartItems]);
-
-  // ── Méthodes de paiement acceptées par le(s) vendeur(s) du panier ──────
-  // Intersection calculée côté API ; on n'affiche au client que ces méthodes.
-  useEffect(() => {
-    if (cartItems.length === 0) { setAcceptedMethods([]); return; }
-    const fIds = cartItems.filter((i) => i.kind === "formation").map((i) => i.id);
-    const pIds = cartItems.filter((i) => i.kind === "product").map((i) => i.id);
-    const qs = new URLSearchParams();
-    if (fIds.length) qs.set("formationIds", fIds.join(","));
-    if (pIds.length) qs.set("productIds", pIds.join(","));
-    fetch(`/api/formations/public/accepted-methods?${qs.toString()}`)
-      .then((r) => r.json())
-      .then((j) => {
-        const list = (Array.isArray(j.methods) ? (j.methods as string[]) : []).filter(
-          (m): m is PaymentMethod => (METHOD_ORDER as string[]).includes(m),
-        );
-        setAcceptedMethods(list);
-      })
-      .catch(() => setAcceptedMethods([]));
   }, [cartItems]);
 
   // ── Préremplissage : téléphone du moyen Mobile Money par défaut ────────
@@ -811,26 +761,12 @@ export default function CheckoutInner() {
               </div>
             </div>
 
-            {/* Moyens de paiement acceptés (réassurance — la sélection réelle se
-                fait sur la page sécurisée du prestataire). */}
-            {(acceptedMethods.length > 0 ? acceptedMethods : DEFAULT_METHODS).length > 0 && (
-              <div className="mb-5">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Paiements acceptés</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {(acceptedMethods.length > 0 ? acceptedMethods : DEFAULT_METHODS).map((m) => {
-                    const meta = METHOD_DISPLAY[m];
-                    if (!meta) return null;
-                    const MIcon = meta.Icon;
-                    return (
-                      <span key={m} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-[11px] font-semibold text-slate-600">
-                        <MIcon size={14} className="text-[#006e2f]" />
-                        {meta.label}
-                      </span>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+            {/* La liste « Paiements acceptés » a été retirée : elle était FIGÉE
+                (Orange, Wave, MTN, Carte) quel que soit le pays, et s'affichait
+                juste à côté du bloc de paiement qui montre, lui, les moyens
+                réellement disponibles pour l'acheteur. Annoncer Wave à un
+                acheteur béninois pour lui proposer autre chose deux lignes plus
+                bas décrédibilise la page au lieu de rassurer. */}
 
             {/* Pay button — desktop / large screens */}
             <button

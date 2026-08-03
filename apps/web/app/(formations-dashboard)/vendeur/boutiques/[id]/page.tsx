@@ -177,7 +177,7 @@ export default function VendorShopDetailPage() {
             Mes boutiques
           </Link>
           <a
-            href={shop.customDomain && shop.customDomainVerified ? `https://${shop.customDomain}` : `https://novakou.com/boutique/${shop.slug}`}
+            href={shop.customDomain && shop.customDomainVerified ? `https://${shop.customDomain}` : `https://novakou.com/${shop.slug}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm font-semibold text-[#006e2f] hover:underline inline-flex items-center gap-1.5"
@@ -257,7 +257,7 @@ export default function VendorShopDetailPage() {
             </label>
             <div className="flex items-stretch rounded-xl border border-gray-200 bg-white focus-within:border-[#006e2f] focus-within:ring-2 focus-within:ring-[#006e2f]/10 overflow-hidden">
               <span className="inline-flex items-center px-3 text-sm text-[#5c647a] font-mono bg-gray-50 border-r border-gray-200 whitespace-nowrap">
-                novakou.com/boutique/
+                novakou.com/
               </span>
               <input
                 type="text"

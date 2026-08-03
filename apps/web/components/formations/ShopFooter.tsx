@@ -13,7 +13,7 @@ export default function ShopFooter({
   shopName: string;
   legalName?: string | null;
 }) {
-  const base = `/boutique/${shopSlug}`;
+  const base = `/${shopSlug}`;
   const boutiqueLinks = (Object.keys(SHOP_STATIC_PAGES) as ShopStaticSlug[]).filter((s) => SHOP_STATIC_PAGES[s].footerGroup === "boutique");
   const legalLinks = (Object.keys(SHOP_STATIC_PAGES) as ShopStaticSlug[]).filter((s) => SHOP_STATIC_PAGES[s].footerGroup === "legales");
   return (

@@ -161,7 +161,7 @@ export default function ApprenantBundlesPage() {
                       {p.bundle.shop ? (
                         <>
                           par{" "}
-                          <Link href={`/boutique/${p.bundle.shop.slug}`} className="font-extrabold hover:underline" style={{ color: ST.text }}>
+                          <Link href={`/${p.bundle.shop.slug}`} className="font-extrabold hover:underline" style={{ color: ST.text }}>
                             {p.bundle.shop.name}
                           </Link>
                         </>

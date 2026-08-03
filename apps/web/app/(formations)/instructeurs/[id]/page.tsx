@@ -30,5 +30,5 @@ export default async function InstructeurRedirect({ params }: Props) {
     /* redirection de secours ci-dessous */
   }
   // redirect() DOIT être hors du try/catch (il lève une exception interne).
-  redirect(slug ? `/boutique/${slug}` : "/explorer");
+  redirect(slug ? `/${slug}` : "/explorer");
 }

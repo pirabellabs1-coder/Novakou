@@ -335,7 +335,7 @@ export default function FormationPageClient({ slug }: { slug: string }) {
           shopName={formation.shop.name}
           logoUrl={formation.shop.logoUrl ?? null}
           themeColor={formation.shop.themeColor}
-          staticBase={`/boutique/${formation.shop.slug}`}
+          staticBase={`/${formation.shop.slug}`}
         />
       ) : (
         <FormationsNavbar />
@@ -705,7 +705,7 @@ export default function FormationPageClient({ slug }: { slug: string }) {
                 </div>
                 {formation.shop && (
                   <Link
-                    href={`/boutique/${formation.shop.slug}`}
+                    href={`/${formation.shop.slug}`}
                     className="mt-4 flex items-center justify-between gap-2 rounded-xl border border-gray-200 px-4 py-3 hover:border-[#006e2f]/40 hover:bg-[#006e2f]/[0.03] transition-colors group"
                   >
                     <span className="flex items-center gap-2 min-w-0">

@@ -18,7 +18,7 @@ export function ShopHeader({
   shopName,
   logoUrl,
   themeColor = "#006e2f",
-  /** Préfixe des liens de la boutique : "" sur domaine perso, "/boutique/slug" sinon. */
+  /** Préfixe des liens de la boutique : "" sur domaine perso, "/slug" sinon. */
   staticBase = "",
 }: {
   shopName: string;

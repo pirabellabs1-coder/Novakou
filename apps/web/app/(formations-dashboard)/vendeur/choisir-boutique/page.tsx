@@ -159,7 +159,7 @@ export default function ChoisirBoutiquePage() {
                         <p className="text-xs text-[#5c647a] truncate mt-0.5">
                           {s.customDomain && s.customDomainVerified
                             ? s.customDomain
-                            : `novakou.com/boutique/${s.slug}`}
+                            : `novakou.com/${s.slug}`}
                         </p>
                       </div>
                       {busy ? (

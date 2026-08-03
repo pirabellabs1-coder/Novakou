@@ -95,7 +95,7 @@ export default function ShopSwitcher() {
                       )}
                     </div>
                     <p className="text-[11px] text-[#5c647a] truncate">
-                      {s.customDomain && s.customDomainVerified ? s.customDomain : `/boutique/${s.slug}`}
+                      {s.customDomain && s.customDomainVerified ? s.customDomain : `/${s.slug}`}
                     </p>
                   </div>
                   {isActive && (

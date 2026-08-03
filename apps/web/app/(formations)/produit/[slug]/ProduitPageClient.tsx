@@ -266,7 +266,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
           shopName={product.shop.name}
           logoUrl={product.shop.logoUrl ?? null}
           themeColor={product.shop.themeColor}
-          staticBase={`/boutique/${product.shop.slug}`}
+          staticBase={`/${product.shop.slug}`}
         />
       ) : (
         <FormationsNavbar />
@@ -511,7 +511,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                 {/* Lien vers la boutique du vendeur (où se trouve le produit). */}
                 {product.shop && (
                   <Link
-                    href={`/boutique/${product.shop.slug}`}
+                    href={`/${product.shop.slug}`}
                     className="mt-4 flex items-center justify-between gap-2 rounded-xl border border-gray-200 px-4 py-3 hover:border-[#006e2f]/40 hover:bg-[#006e2f]/[0.03] transition-colors group"
                   >
                     <span className="flex items-center gap-2 min-w-0">

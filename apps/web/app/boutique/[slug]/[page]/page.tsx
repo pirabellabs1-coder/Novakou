@@ -34,7 +34,7 @@ export default async function ShopStaticRoute({ params }: Props) {
       <ShopStaticPage
         slug={page}
         info={data.info}
-        base={`/boutique/${data.slug}`}
+        base={`/${data.slug}`}
         themeColor={data.themeColor}
         logoUrl={data.logoUrl}
         font={data.font}

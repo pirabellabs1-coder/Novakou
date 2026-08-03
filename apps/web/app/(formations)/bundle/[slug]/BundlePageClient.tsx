@@ -127,7 +127,7 @@ export default function BundlePageClient({ bundle }: { bundle: Bundle }) {
           <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
             <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e] leading-tight">{bundle.title}</h1>
             {bundle.shop && (
-              <Link href={`/boutique/${bundle.shop.slug}`} className="inline-flex items-center gap-2 mt-3 text-sm text-[#5c647a] hover:text-[#191c1e]">
+              <Link href={`/${bundle.shop.slug}`} className="inline-flex items-center gap-2 mt-3 text-sm text-[#5c647a] hover:text-[#191c1e]">
                 {bundle.shop.logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={bundle.shop.logoUrl} alt="" className="w-7 h-7 rounded-full object-cover" />

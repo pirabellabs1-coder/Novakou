@@ -5,7 +5,7 @@ import { shopFontStack } from "@/lib/formations/shop-fonts";
 /**
  * Rendu d'une page statique de boutique (à propos, contact, mentions légales…).
  * Style aligné sur la boutique (couleur de thème), en-tête + pied avec liens.
- * `base` = préfixe des liens boutique ("" domaine perso, "/boutique/{slug}" sinon).
+ * `base` = préfixe des liens boutique ("" domaine perso, "/{slug}" sinon).
  */
 export default function ShopStaticPage({
   slug,

@@ -68,8 +68,8 @@ export default function BoutiqueView({
   );
 
   // Préfixe des pages boutique auto-générées : "" sur domaine perso (la vue
-  // by-domain n'envoie pas shopSlug), "/boutique/{slug}" sur la plateforme.
-  const staticBase = shopSlug ? `/boutique/${shopSlug}` : "";
+  // by-domain n'envoie pas shopSlug), "/{slug}" sur la plateforme.
+  const staticBase = shopSlug ? `/${shopSlug}` : "";
 
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "formation" | "product" | "bundle" | "subscription" | "free">("all");
@@ -642,7 +642,7 @@ export default function BoutiqueView({
         <div className="max-w-6xl mx-auto px-5 md:px-8 py-10">
           {/* Liens des pages boutique auto-générées.
               base = "" sur domaine perso (by-domain n'envoie pas shopSlug),
-              sinon "/boutique/{slug}". */}
+              sinon "/{slug}". */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 mb-8 text-sm">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-2.5">Boutique</p>

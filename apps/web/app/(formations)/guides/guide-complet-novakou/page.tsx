@@ -803,7 +803,7 @@ export default function GuideCompletNovakou() {
 
         <Step n={5}>
           <strong>Domaine personnalise (optionnel) :</strong> Par defaut, votre boutique est accessible
-          via <code style={{ backgroundColor: "#f3f4f6", padding: "2px 6px", borderRadius: 4, fontSize: 13 }}>novakou.com/boutique/votre-nom</code>.
+          via <code style={{ backgroundColor: "#f3f4f6", padding: "2px 6px", borderRadius: 4, fontSize: 13 }}>novakou.com/votre-nom</code>.
           Vous pouvez connecter votre propre nom de domaine pour un aspect plus professionnel.
         </Step>
 

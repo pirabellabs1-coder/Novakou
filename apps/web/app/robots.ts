@@ -16,7 +16,7 @@ export default function robots(): MetadataRoute.Robots {
           "/mentors/*",
           "/instructeurs",
           "/instructeurs/*",
-          "/boutique/*",
+          "/*",
           "/tarifs",
           "/affiliation",
           "/academie",

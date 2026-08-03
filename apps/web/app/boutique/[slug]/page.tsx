@@ -45,10 +45,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description,
     alternates: {
-      canonical: `/boutique/${slug}`,
+      canonical: `/${slug}`,
       languages: {
-        "fr-FR": `/boutique/${slug}`,
-        "x-default": `/boutique/${slug}`,
+        "fr-FR": `/${slug}`,
+        "x-default": `/${slug}`,
       },
     },
     openGraph: {
@@ -151,7 +151,7 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
     // vers son slug actuel plutôt que de renvoyer un 404 qui perdrait le
     // référencement acquis par l'ancienne URL.
     const current = await resolveOldSlug("shop", slug);
-    if (current) permanentRedirect(`/boutique/${current}`);
+    if (current) permanentRedirect(`/${current}`);
     notFound();
   }
 

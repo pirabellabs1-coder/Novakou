@@ -125,7 +125,7 @@ export default function MembershipPageClient({ plan }: { plan: Plan }) {
           <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
             <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e] leading-tight">{plan.name}</h1>
             {plan.shop && (
-              <Link href={`/boutique/${plan.shop.slug}`} className="inline-flex items-center gap-2 mt-3 text-sm text-[#5c647a] hover:text-[#191c1e]">
+              <Link href={`/${plan.shop.slug}`} className="inline-flex items-center gap-2 mt-3 text-sm text-[#5c647a] hover:text-[#191c1e]">
                 {plan.shop.logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={plan.shop.logoUrl} alt="" className="w-7 h-7 rounded-full object-cover" />

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isReservedSlug } from "@/lib/reserved-slugs";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
@@ -226,6 +227,41 @@ export async function middleware(req: NextRequest) {
     if (!pathname.startsWith("/boutique/by-domain/")) {
       const url = req.nextUrl.clone();
       url.pathname = `/boutique/by-domain/${h}${pathname === "/" ? "" : pathname}`;
+      return NextResponse.rewrite(url);
+    }
+  }
+
+  // ── Boutique servie à la RACINE : novakou.com/ma-boutique ──────────────
+  //
+  // L'adresse d'un vendeur ne doit pas porter le nom de notre plateforme :
+  // « /boutique/ » devant chaque nom rallongeait l'URL et rappelait à son
+  // acheteur qu'il est sur une place de marché.
+  //
+  // Deux règles, dans cet ordre :
+  //   1. les anciennes adresses `/boutique/<slug>` redirigent définitivement
+  //      vers la courte — les liens déjà partagés continuent de marcher, et
+  //      les moteurs de recherche n'indexent pas deux fois le même contenu ;
+  //   2. un segment unique inconnu de la plateforme est RÉÉCRIT vers la page
+  //      boutique. Réécriture et non redirection : l'acheteur garde l'adresse
+  //      courte dans sa barre.
+  //
+  // La liste des segments réservés est la garde : sans elle, cette règle
+  // rendrait publiques des pages qui exigent une connexion.
+  if (isAppHost(host)) {
+    const ancien = pathname.match(/^\/boutique\/(?!by-domain\/)([^/]+)(\/.*)?$/);
+    if (ancien) {
+      const url = req.nextUrl.clone();
+      url.pathname = `/${ancien[1]}${ancien[2] ?? ""}`;
+      return NextResponse.redirect(url, 308);
+    }
+
+    // Le sous-chemin est capturé lui aussi : une boutique a des pages
+    // internes (« /ma-boutique/a-propos »). Ne traiter que le segment unique
+    // aurait redirigé ces pages vers une adresse que rien ne servait.
+    const racine = pathname.match(/^\/([^/.]+)(\/.*)?$/);
+    if (racine && !isReservedSlug(racine[1])) {
+      const url = req.nextUrl.clone();
+      url.pathname = `/boutique/${racine[1]}${racine[2] ?? ""}`;
       return NextResponse.rewrite(url);
     }
   }
