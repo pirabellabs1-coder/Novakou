@@ -3,6 +3,8 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Loader2, CheckCircle2, XCircle, Smartphone } from "lucide-react";
+import { PixelInjector, type Pixel } from "@/components/formations/PixelInjector";
+import { trackEvents } from "@/lib/tracking/events";
 
 /**
  * Page d'attente d'un encaissement DIRECT (push Mobile Money).
@@ -28,6 +30,14 @@ function AttenteInner() {
   const [delivered, setDelivered] = useState(true);
   const startedAt = useRef(Date.now());
 
+  // ÉVÉNEMENT D'ACHAT. Cette page redirigeait directement vers l'espace
+  // apprenant, sans passer par la page de retour qui déclenche les pixels :
+  // aucune vente Mobile Money — donc la majorité — n'était remontée à
+  // Facebook, TikTok ou Google. Un vendeur payait sa publicité sans jamais
+  // pouvoir mesurer ce qu'elle rapportait.
+  const [achatPixels, setAchatPixels] = useState<Pixel[]>([]);
+  const [achatMontant, setAchatMontant] = useState(0);
+
   useEffect(() => {
     if (!ref || !provider || !pid) { setState("failed"); return; }
     let stopped = false;
@@ -45,8 +55,42 @@ function AttenteInner() {
         if (s === "success") {
           setDelivered(j?.data?.delivered !== false);
           setState("success");
-          // Laisse le temps de lire la confirmation avant de basculer.
-          setTimeout(() => router.push("/apprenant/mes-produits"), 2500);
+
+          const montant = Number(j?.data?.amount ?? 0);
+          const formationIds: string[] = j?.data?.formationIds ?? [];
+          const productIds: string[] = j?.data?.productIds ?? [];
+
+          // Source de vérité Novakou d'abord, pixels tiers ensuite.
+          if (montant > 0) {
+            trackEvents.purchase({
+              orderId: ref,
+              total: montant,
+              itemCount: formationIds.length + productIds.length,
+              currency: "XOF",
+              paymentMethod: provider,
+              items: [
+                ...formationIds.map((id) => ({ id, kind: "formation" as const })),
+                ...productIds.map((id) => ({ id, kind: "product" as const })),
+              ],
+            });
+            setAchatMontant(montant);
+          }
+
+          // Pixels des vendeurs concernés.
+          if (formationIds.length > 0 || productIds.length > 0) {
+            const qs = new URLSearchParams();
+            if (formationIds.length) qs.set("formationIds", formationIds.join(","));
+            if (productIds.length) qs.set("productIds", productIds.join(","));
+            try {
+              const px = await fetch(`/api/formations/public/pixels?${qs.toString()}`).then((r) => r.json());
+              setAchatPixels(px.data ?? []);
+            } catch { /* les pixels ne doivent jamais bloquer une livraison */ }
+          }
+
+          // Assez de temps pour que les pixels partent avant la navigation.
+          // 2,5 s suffisaient à lire la confirmation, pas forcément à laisser
+          // aboutir des requêtes vers trois régies sur un réseau lent.
+          setTimeout(() => router.push("/apprenant/mes-produits"), 4000);
           return;
         }
         if (s === "failed") { setState("failed"); return; }
@@ -62,6 +106,14 @@ function AttenteInner() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f7f9fb] px-4">
+      {/* `eventId` = notre référence interne : Meta et TikTok dédupliquent
+          ainsi si l'acheteur repasse par la page de retour. */}
+      {state === "success" && achatPixels.length > 0 && (
+        <PixelInjector
+          pixels={achatPixels}
+          event={{ name: "Purchase", value: achatMontant, currency: "XOF", eventId: ref || undefined }}
+        />
+      )}
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm max-w-md w-full p-9 text-center">
         {state === "pending" && (
           <>

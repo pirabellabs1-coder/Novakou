@@ -39,6 +39,16 @@ export type CollectReconcileOutcome = {
   delivered: boolean;
   attemptId?: string;
   reason?: string;
+  /**
+   * Ce qui a été livré, quand ça vient d'être fait. Sert à déclencher
+   * l'événement d'achat des pixels vendeurs : sans montant ni liste de
+   * produits, aucune régie publicitaire ne peut mesurer la vente.
+   */
+  fulfilled?: {
+    totalAmount: number;
+    formationIds: string[];
+    productIds: string[];
+  };
 };
 
 /** Fournisseurs qui savent encaisser en direct et répondre sur un statut. */
@@ -157,8 +167,9 @@ export async function reconcileCollectAttempt(attempt: AttemptRow): Promise<Coll
   const formationIds = toIdList(meta.formationIds);
   const productIds = toIdList(meta.productIds);
 
+  let livraison: Awaited<ReturnType<typeof fulfillCheckout>>;
   try {
-    await fulfillCheckout({
+    livraison = await fulfillCheckout({
       userId: attempt.userId,
       formationIds,
       productIds,
@@ -182,7 +193,20 @@ export async function reconcileCollectAttempt(attempt: AttemptRow): Promise<Coll
     .update({ where: { id: attempt.id }, data: { status: "COMPLETED", recoveredAt: new Date() } })
     .catch(() => null);
 
-  return { matched: true, status: "success", delivered: true, attemptId: attempt.id };
+  return {
+    matched: true,
+    status: "success",
+    delivered: true,
+    attemptId: attempt.id,
+    fulfilled: {
+      totalAmount: livraison.totalAmount,
+      // Les identifiants livrés, pas ceux demandés : un produit déjà possédé
+      // est ignoré par la livraison et ne doit pas gonfler la vente déclarée
+      // aux régies.
+      formationIds: livraison.enrollments.map((e) => e.id),
+      productIds: livraison.purchases.map((p) => p.id),
+    },
+  };
 }
 
 /**

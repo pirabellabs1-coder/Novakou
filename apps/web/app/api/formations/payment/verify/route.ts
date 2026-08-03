@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { retrievePayment as retrieveMoneroo, isMonerooConfigured } from "@/lib/moneroo";
 import { retrievePayment as retrievePayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
+import { reconcileCollectByRef } from "@/lib/payments/reconcile-collect";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -26,6 +27,9 @@ import { prisma } from "@/lib/prisma";
 
 type Provider = "moneroo" | "paygenius";
 
+/** Passerelles en service : elles passent par la réconciliation partagée. */
+const NOUVELLES_PASSERELLES = new Set(["feexpay", "fedapay", "kkiapay", "ipaymoney"]);
+
 function resolveProvider(raw: string | null): Provider {
   return raw === "paygenius" ? "paygenius" : "moneroo";
 }
@@ -48,6 +52,7 @@ export async function GET(request: Request) {
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ error: "id requis" }, { status: 400 });
 
+    const rawProvider = (searchParams.get("provider") ?? "").trim().toLowerCase();
     const provider = resolveProvider(searchParams.get("provider"));
 
     if (provider === "paygenius" && !isPayGeniusConfigured()) {
@@ -55,6 +60,43 @@ export async function GET(request: Request) {
     }
     if (provider === "moneroo" && !isMonerooConfigured()) {
       return NextResponse.json({ error: "Moneroo non configuré" }, { status: 503 });
+    }
+
+    // ── Passerelles actuelles ────────────────────────────────────────────
+    // Cette route ne connaissait que deux fournisseurs, tous deux retirés. Un
+    // acheteur revenant d'une page bancaire voyait donc « Vérification
+    // échouée » APRÈS avoir payé, et l'événement d'achat ne partait jamais.
+    //
+    // Pour ceux-là, la vérification et la livraison sont exactement ce que
+    // fait la réconciliation : on la réutilise plutôt que d'en réécrire une
+    // seconde qui divergera.
+    if (NOUVELLES_PASSERELLES.has(rawProvider)) {
+      const r = await reconcileCollectByRef(id);
+      if (!r.matched) {
+        return NextResponse.json({ error: "Commande introuvable" }, { status: 404 });
+      }
+      if (r.status !== "success") {
+        return NextResponse.json({
+          data: { id, status: r.status, provider: rawProvider, fulfilled: false },
+        });
+      }
+      return NextResponse.json({
+        data: {
+          id,
+          status: "success",
+          provider: rawProvider,
+          fulfilled: r.delivered,
+          amount: r.fulfilled?.totalAmount ?? 0,
+          currency: "XOF",
+          metadata: { type: "formations_checkout" },
+          result: {
+            totalAmount: r.fulfilled?.totalAmount ?? 0,
+            enrollments: (r.fulfilled?.formationIds ?? []).map((eid) => ({ id: eid })),
+            purchases: (r.fulfilled?.productIds ?? []).map((pid) => ({ id: pid })),
+            skipped: [],
+          },
+        },
+      });
     }
 
     // 1. Récupère le paiement depuis le provider (source de vérité)
