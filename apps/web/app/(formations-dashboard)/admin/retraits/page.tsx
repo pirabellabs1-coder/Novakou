@@ -254,9 +254,80 @@ export default function AdminRetraitsPage() {
         <StCard className="!p-[18px_20px]">
           <h3 className="text-[15px] font-extrabold" style={{ color: ST.text }}>Nouvelle demande de retrait</h3>
           <p className="text-[12px] font-semibold mt-0.5 mb-4" style={{ color: ST.textSecondary }}>
-            Renseignez le montant et la méthode de versement
+            Choisissez la destination, puis le montant
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+          {/* Ordre repris de l'écran de paiement : d'abord OÙ va l'argent,
+              ensuite COMBIEN. Demander le montant avant la destination inverse
+              le geste que tout le monde connaît déjà du tunnel d'achat. */}
+          <div className="space-y-5">
+            {method === "mobile_money" ? (
+              <div className="rounded-xl border p-4" style={{ borderColor: "#dde6e0", background: "#fff" }}>
+                {/* Le même écran que le vendeur, l'affilié et le mentor : pays,
+                    moyen réellement versable, numéro. Un formulaire admin
+                    distinct finirait par proposer des opérateurs que le reste
+                    de la plateforme a cessé de servir. */}
+                <UnifiedPaymentScreen
+                  direction="payout"
+                  embedded
+                  hideSubmit
+                  amount={amount}
+                  onPay={() => {}}
+                  onSelectionChange={(sel) => {
+                    setOperateur(sel?.operator ?? "");
+                    setAccountInput(sel?.phone ?? "");
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => { setMethod("virement"); setAccountInput(""); setOperateur(""); }}
+                  className="text-[12px] font-extrabold hover:underline mt-4"
+                  style={{ color: ST.textSecondary }}
+                >
+                  Verser plutôt sur un compte bancaire, PayPal ou Wise
+                </button>
+              </div>
+            ) : (
+              <div className="rounded-xl border p-4 space-y-4" style={{ borderColor: "#dde6e0", background: "#fff" }}>
+                <div>
+                  <label className="block text-[12px] font-extrabold mb-2" style={{ color: ST.textLabel }}>
+                    Destination
+                  </label>
+                  <select
+                    value={method}
+                    onChange={(e) => { setMethod(e.target.value); setAccountInput(""); }}
+                    className="w-full px-4 py-3 rounded-xl text-[13.5px] font-semibold focus:outline-none transition-all"
+                    style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
+                  >
+                    {METHODS.filter((m) => m.value !== "mobile_money").map((m) => (
+                      <option key={m.value} value={m.value}>{m.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[12px] font-extrabold mb-2" style={{ color: ST.textLabel }}>
+                    {accountLabel[method]}
+                  </label>
+                  <input
+                    type="text"
+                    value={accountInput}
+                    onChange={(e) => setAccountInput(e.target.value)}
+                    placeholder={accountPlaceholder[method]}
+                    className="w-full px-4 py-3 rounded-xl text-[13.5px] font-mono focus:outline-none transition-all"
+                    style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setMethod("mobile_money"); setAccountInput(""); }}
+                  className="text-[12px] font-extrabold hover:underline"
+                  style={{ color: ST.green }}
+                >
+                  Revenir au Mobile Money (versement automatique)
+                </button>
+              </div>
+            )}
+
             <div>
               <label className="block text-[12px] font-extrabold mb-2" style={{ color: ST.textLabel }}>
                 Montant (FCFA)
@@ -282,61 +353,6 @@ export default function AdminRetraitsPage() {
             </div>
 
             <div>
-              <label className="block text-[12px] font-extrabold mb-2" style={{ color: ST.textLabel }}>
-                Méthode
-              </label>
-              <select
-                value={method}
-                onChange={(e) => {
-                  setMethod(e.target.value);
-                  setAccountInput("");
-                }}
-                className="w-full px-4 py-3 rounded-xl text-[13.5px] font-semibold focus:outline-none transition-all"
-                style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
-              >
-                {METHODS.map((m) => (
-                  <option key={m.value} value={m.value}>
-                    {m.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {method === "mobile_money" ? (
-              <div className="md:col-span-2 rounded-xl border p-4" style={{ borderColor: "#dde6e0", background: "#fff" }}>
-                {/* Le même écran que le vendeur, l'affilié et le mentor : pays,
-                    moyen réellement versable, numéro. Un formulaire admin
-                    distinct finirait par proposer des opérateurs que le reste
-                    de la plateforme a cessé de servir. */}
-                <UnifiedPaymentScreen
-                  direction="payout"
-                  embedded
-                  hideSubmit
-                  amount={amount}
-                  onPay={() => {}}
-                  onSelectionChange={(sel) => {
-                    setOperateur(sel?.operator ?? "");
-                    setAccountInput(sel?.phone ?? "");
-                  }}
-                />
-              </div>
-            ) : (
-              <div className="md:col-span-2">
-                <label className="block text-[12px] font-extrabold mb-2" style={{ color: ST.textLabel }}>
-                  {accountLabel[method]}
-                </label>
-                <input
-                  type="text"
-                  value={accountInput}
-                  onChange={(e) => setAccountInput(e.target.value)}
-                  placeholder={accountPlaceholder[method]}
-                  className="w-full px-4 py-3 rounded-xl text-[13.5px] font-mono focus:outline-none transition-all"
-                  style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
-                />
-              </div>
-            )}
-
-            <div className="md:col-span-2">
               <label className="block text-[12px] font-extrabold mb-2" style={{ color: ST.textLabel }}>
                 Note (optionnel)
               </label>

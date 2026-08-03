@@ -211,6 +211,27 @@ export default function RetraitsPage() {
               </div>
             ) : step === "form" ? (
               <>
+                {/* EXACTEMENT l'écran de paiement, en sens « versement ».
+                    Posé sur un panneau clair : le composant est celui du
+                    tunnel d'achat, on ne le duplique pas pour le thème sombre —
+                    deux copies finiraient par se contredire. */}
+                <div className="bg-white rounded-2xl border border-[#1e3a2f] p-5">
+                  <UnifiedPaymentScreen
+                    direction="payout"
+                    embedded
+                    hideSubmit
+                    amount={amountNum}
+                    defaultCountry={selectedCountry || null}
+                    onPay={() => {}}
+                    onSelectionChange={(sel) => {
+                      setSelectedMethod(sel?.operator ?? "");
+                      setMsisdn(sel?.phone ?? "");
+                      const pays = sel ? getOperator(sel.operator)?.country : null;
+                      if (pays) setSelectedCountry(pays.toUpperCase());
+                    }}
+                  />
+                </div>
+
                 {/* Amount */}
                 <div className="bg-[#0d1f17] rounded-2xl border border-[#1e3a2f] p-5">
                   <label className="text-xs font-bold text-white mb-3 block">Montant à retirer</label>
@@ -232,26 +253,6 @@ export default function RetraitsPage() {
                   {amountNum > available && <p className="text-xs text-red-400 mt-2">Montant supérieur au solde disponible.</p>}
                 </div>
 
-                {/* EXACTEMENT l'écran de paiement, en sens « versement ».
-                    Posé sur un panneau clair : le composant est celui du
-                    tunnel d'achat, on ne le duplique pas pour le thème sombre —
-                    deux copies finiraient par se contredire. */}
-                <div className="bg-white rounded-2xl border border-[#1e3a2f] p-5">
-                  <UnifiedPaymentScreen
-                    direction="payout"
-                    embedded
-                    hideSubmit
-                    amount={amountNum}
-                    defaultCountry={selectedCountry || null}
-                    onPay={() => {}}
-                    onSelectionChange={(sel) => {
-                      setSelectedMethod(sel?.operator ?? "");
-                      setMsisdn(sel?.phone ?? "");
-                      const pays = sel ? getOperator(sel.operator)?.country : null;
-                      if (pays) setSelectedCountry(pays.toUpperCase());
-                    }}
-                  />
-                </div>
 
                 <button
                   onClick={handleWithdraw} disabled={!isValid}

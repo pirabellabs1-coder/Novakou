@@ -432,6 +432,14 @@ export default function WalletPage() {
                 >
                   Retirer mes fonds
                 </StButton>
+                {heroSource && heroAvailable < 1000 && (
+                  // Un bouton grisé sans explication laisse le vendeur croire
+                  // que le retrait est cassé. On dit ce qui manque.
+                  <p className="w-full text-[12px] font-bold opacity-90 mt-1">
+                    Retrait possible à partir de 1 000 FCFA — il vous manque{" "}
+                    {fmt(1000 - heroAvailable)} FCFA.
+                  </p>
+                )}
                 <Link
                   href="/vendeur/transactions"
                   className="inline-flex items-center justify-center font-extrabold text-[13.5px] rounded-[12px] px-4 py-2.5 text-white transition-colors hover:bg-white/10"
@@ -699,21 +707,6 @@ export default function WalletPage() {
             )}
 
             <div className="space-y-4">
-              <StInput
-                label="Montant (FCFA)"
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(Number(e.target.value))}
-                min={1000}
-                max={
-                  showWithdraw === "vendor"
-                    ? data.vendor?.available ?? 0
-                    : data.mentor?.available ?? 0
-                }
-                step={500}
-                hint="Minimum : 1 000 FCFA"
-              />
-
               {/* Choix du pays, du moyen et du numéro : EXACTEMENT le composant
                   de l'écran de paiement, en sens « versement ». Un second écran
                   aurait divergé du premier au premier correctif — ici les deux
@@ -734,6 +727,21 @@ export default function WalletPage() {
                   const pays = getOperator(sel.operator)?.country;
                   if (pays) setSelectedCountry(pays.toUpperCase());
                 }}
+              />
+
+              <StInput
+                label="Montant (FCFA)"
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(Number(e.target.value))}
+                min={1000}
+                max={
+                  showWithdraw === "vendor"
+                    ? data.vendor?.available ?? 0
+                    : data.mentor?.available ?? 0
+                }
+                step={500}
+                hint="Minimum : 1 000 FCFA"
               />
 
               {selectedMethod && (
