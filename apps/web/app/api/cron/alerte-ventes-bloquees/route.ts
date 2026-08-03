@@ -149,6 +149,14 @@ export async function GET(request: NextRequest) {
   // Un e-mail en plus de la notification : le fondateur ne consulte pas son
   // panneau admin en continu, et c'est justement quand il ne regarde pas qu'il
   // faut le prévenir.
+  //
+  // ⚠️ `sendEmail` renvoie un FAUX SUCCÈS quand RESEND_API_KEY est absente : il
+  // écrit dans les logs et fait comme si c'était parti. Une alerte qui croit
+  // avoir prévenu sans avoir prévenu est pire que pas d'alerte du tout — on
+  // vérifie donc explicitement, et on le dit.
+  const posteConfigure = Boolean(process.env.RESEND_API_KEY);
+  let emailsEnvoyes = 0;
+  let destinataires = 0;
   try {
     const admins = await prisma.user.findMany({ where: { role: "ADMIN" }, select: { email: true } });
     const lignes = anomalies
@@ -182,8 +190,18 @@ export async function GET(request: NextRequest) {
       </p>
     `);
 
+    destinataires = admins.filter((a) => a.email).length;
     for (const a of admins) {
-      if (a.email) await sendEmail({ to: a.email, subject: titre, html });
+      if (!a.email) continue;
+      const r = await sendEmail({ to: a.email, subject: titre, html });
+      if (posteConfigure && !r.error) emailsEnvoyes++;
+    }
+    if (!posteConfigure) {
+      console.error(
+        "[alerte-ventes-bloquees] RESEND_API_KEY ABSENTE — l'alerte n'a été envoyée à PERSONNE par e-mail",
+      );
+    } else if (emailsEnvoyes === 0 && destinataires > 0) {
+      console.error("[alerte-ventes-bloquees] aucun e-mail n'a pu partir malgré", destinataires, "destinataire(s)");
     }
   } catch (err) {
     // L'e-mail ne doit jamais faire échouer la détection.
@@ -191,5 +209,12 @@ export async function GET(request: NextRequest) {
   }
 
   console.error("[alerte-ventes-bloquees]", { anomalies: anomalies.length, total });
-  return NextResponse.json({ examinees: candidates.length, anomalies: anomalies.length, total, detail: anomalies });
+  return NextResponse.json({
+    examinees: candidates.length,
+    anomalies: anomalies.length,
+    total,
+    // De quoi vérifier que l'alerte a RÉELLEMENT prévenu quelqu'un.
+    email: { configure: posteConfigure, destinataires, envoyes: emailsEnvoyes },
+    detail: anomalies,
+  });
 }
