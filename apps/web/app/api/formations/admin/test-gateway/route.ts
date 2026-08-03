@@ -7,7 +7,7 @@ import { getGatewayCredentials } from "@/lib/payments/gateways";
 
 /**
  * POST /api/formations/admin/test-gateway   (admin uniquement)
- * Body : { provider: "feexpay" | "fedapay" | "kkiapay" }
+ * Body : { provider: "feexpay" | "fedapay" | "kkiapay" | "ipaymoney" }
  *
  * TEST DE CONNEXION — NE DÉPLACE AUCUN ARGENT.
  *
@@ -65,6 +65,41 @@ async function probeFeexpay(creds: Record<string, string>): Promise<Probe> {
   }
 
   return { ok: collectOk && payoutOk, httpStatus: lastStatus, detail: results.join(" ") };
+}
+
+async function probeIpaymoney(creds: Record<string, string>): Promise<Probe> {
+  const key = creds.secretKey;
+  if (!key) return { ok: false, httpStatus: null, detail: "Clé secrète manquante." };
+  const { isSandbox } = await import("@/lib/payments/credentials");
+  const sb = await isSandbox("ipaymoney");
+  const env = sb
+    ? process.env.IPAYMONEY_ENV_SANDBOX?.trim() || "sandbox"
+    : process.env.IPAYMONEY_ENV_LIVE?.trim() || "live";
+  try {
+    // Lecture d'une référence volontairement inexistante : aucune écriture,
+    // et la réponse suffit à savoir si la clé est acceptée.
+    const res = await payoutFetch("https://i-pay.money/api/v1/payments/diagnostic-novakou", {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${key}`,
+        "Ipay-Target-Environment": env,
+      },
+    });
+    const text = (await res.text().catch(() => "")).slice(0, 300);
+    if (res.status === 401 || res.status === 403) {
+      return { ok: false, httpStatus: res.status, detail: `Clé refusée. ${text}` };
+    }
+    // 400/404 sur une référence bidon = la clé est passée, seule la
+    // transaction est introuvable : c'est exactement le résultat attendu.
+    return {
+      ok: true,
+      httpStatus: res.status,
+      detail: `Clé acceptée (${sb ? "bac à sable" : "production"}). ${text}`,
+    };
+  } catch (e) {
+    return { ok: false, httpStatus: null, detail: e instanceof Error ? e.message : String(e) };
+  }
 }
 
 async function probeKkiapay(creds: Record<string, string>): Promise<Probe> {
@@ -159,7 +194,7 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => ({}));
   const provider = String(body.provider ?? "").trim().toLowerCase();
-  if (!["feexpay", "fedapay", "kkiapay"].includes(provider)) {
+  if (!["feexpay", "fedapay", "kkiapay", "ipaymoney"].includes(provider)) {
     return NextResponse.json({ error: "Fournisseur non testable : " + provider }, { status: 400 });
   }
 
@@ -174,6 +209,7 @@ export async function POST(req: NextRequest) {
   const probe =
     provider === "feexpay" ? await probeFeexpay(creds)
     : provider === "kkiapay" ? await probeKkiapay(creds)
+    : provider === "ipaymoney" ? await probeIpaymoney(creds)
     : await probeFedapay(creds);
 
   return NextResponse.json({
