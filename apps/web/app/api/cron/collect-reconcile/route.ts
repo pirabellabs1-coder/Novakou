@@ -59,6 +59,41 @@ export async function GET(request: NextRequest) {
     take: MAX_PER_RUN,
   });
 
+  /**
+   * Tentatives récentes que ce cron NE reprend PAS, et pourquoi.
+   *
+   * Un rattrapage qui n'explique pas ce qu'il écarte est aussi aveugle que
+   * pas de rattrapage du tout : une vente absente de la liste passait pour
+   * inexistante, alors qu'elle était simplement hors critères.
+   */
+  const recentes = await prisma.checkoutAttempt.findMany({
+    where: { createdAt: { gte: since } },
+    orderBy: { createdAt: "desc" },
+    take: 40,
+    select: { id: true, createdAt: true, status: true, amount: true, paymentMethod: true, providerRef: true, metadata: true },
+  });
+  const reprisIds = new Set(attempts.map((a) => a.id));
+  const nonReprises = recentes
+    .filter((r) => !reprisIds.has(r.id))
+    .map((r) => {
+      const meta = (r.metadata ?? {}) as Record<string, unknown>;
+      const raison = !r.providerRef
+        ? "aucune référence fournisseur — la demande n'a jamais atteint la passerelle"
+        : r.status === "COMPLETED"
+          ? "déjà livrée"
+          : r.status === "FAILED"
+            ? "refusée par le fournisseur"
+            : `statut « ${r.status} » hors critères`;
+      return {
+        quand: r.createdAt.toISOString(),
+        montant: Math.round(r.amount),
+        moyen: r.paymentMethod,
+        passerelle: typeof meta.paymentProvider === "string" ? meta.paymentProvider : null,
+        statut: r.status,
+        raison,
+      };
+    });
+
   const results: Array<Record<string, unknown>> = [];
   let delivered = 0;
   let failed = 0;
@@ -107,5 +142,6 @@ export async function GET(request: NextRequest) {
     failed,
     stillPending,
     results,
+    nonReprises,
   });
 }
