@@ -231,38 +231,34 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // ── Boutique servie à la RACINE : novakou.com/ma-boutique ──────────────
+  // ── Adresses courtes : novakou.com/<slug> ───────────────────────────────
   //
-  // L'adresse d'un vendeur ne doit pas porter le nom de notre plateforme :
-  // « /boutique/ » devant chaque nom rallongeait l'URL et rappelait à son
-  // acheteur qu'il est sur une place de marché.
+  // Boutiques, produits et formations vivent à la racine. Le segment
+  // « /boutique/ » ou « /produit/ » devant chaque nom rallongeait l'adresse et
+  // rappelait à l'acheteur qu'il est sur une place de marché.
   //
-  // Deux règles, dans cet ordre :
-  //   1. les anciennes adresses `/boutique/<slug>` redirigent définitivement
-  //      vers la courte — les liens déjà partagés continuent de marcher, et
-  //      les moteurs de recherche n'indexent pas deux fois le même contenu ;
-  //   2. un segment unique inconnu de la plateforme est RÉÉCRIT vers la page
-  //      boutique. Réécriture et non redirection : l'acheteur garde l'adresse
-  //      courte dans sa barre.
+  //   1. les anciennes adresses redirigent en 308 permanent — les liens déjà
+  //      partagés continuent de marcher, et les moteurs n'indexent pas deux
+  //      fois le même contenu ;
+  //   2. un segment racine inconnu de la plateforme est laissé passer : la
+  //      route `[rootSlug]` identifie ce qu'il désigne et délègue.
   //
-  // La liste des segments réservés est la garde : sans elle, cette règle
-  // rendrait publiques des pages qui exigent une connexion.
+  // On ne RÉÉCRIT plus : c'est la route qui résout, car seul un accès à la
+  // base permet de distinguer une boutique d'un produit — impossible ici.
   if (isAppHost(host)) {
-    const ancien = pathname.match(/^\/boutique\/(?!by-domain\/)([^/]+)(\/.*)?$/);
+    const ancien = pathname.match(/^\/(?:boutique|produit)\/(?!by-domain\/)([^/]+)(\/.*)?$/);
     if (ancien) {
       const url = req.nextUrl.clone();
       url.pathname = `/${ancien[1]}${ancien[2] ?? ""}`;
       return NextResponse.redirect(url, 308);
     }
 
-    // Le sous-chemin est capturé lui aussi : une boutique a des pages
-    // internes (« /ma-boutique/a-propos »). Ne traiter que le segment unique
-    // aurait redirigé ces pages vers une adresse que rien ne servait.
-    const racine = pathname.match(/^\/([^/.]+)(\/.*)?$/);
+    // Segment racine hors plateforme → public. La liste des réservés est la
+    // garde : sans elle, une page exigeant une connexion cesserait de la
+    // demander.
+    const racine = pathname.match(/^\/([^/.]+)(\/[^/.]+)?$/);
     if (racine && !isReservedSlug(racine[1])) {
-      const url = req.nextUrl.clone();
-      url.pathname = `/boutique/${racine[1]}${racine[2] ?? ""}`;
-      return NextResponse.rewrite(url);
+      return NextResponse.next();
     }
   }
 
