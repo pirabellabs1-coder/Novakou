@@ -52,7 +52,10 @@ export type CollectReconcileOutcome = {
 };
 
 /** Fournisseurs qui savent encaisser en direct et répondre sur un statut. */
-const STATUS_CHECKERS: Record<string, (ref: string) => Promise<{ status: "success" | "failed" | "pending" }>> = {
+const STATUS_CHECKERS: Record<
+  string,
+  (ref: string, code?: string) => Promise<{ status: "success" | "failed" | "pending"; amount?: number | null }>
+> = {
   feexpay: async (ref) => {
     const { checkCollectStatus } = await import("@/lib/feexpay");
     return checkCollectStatus(ref);
@@ -61,9 +64,10 @@ const STATUS_CHECKERS: Record<string, (ref: string) => Promise<{ status: "succes
     const { checkCollectStatus } = await import("@/lib/fedapay");
     return checkCollectStatus(ref);
   },
-  ipaymoney: async (ref) => {
+  ipaymoney: async (ref, code) => {
     const { checkCollectStatus } = await import("@/lib/ipaymoney");
-    return checkCollectStatus(ref);
+    // Le type ("mobile" / "card") est aussi obligatoire à la consultation.
+    return checkCollectStatus(ref, code);
   },
   kkiapay: async (ref) => {
     // La référence est l'identifiant de transaction rendu par la fenêtre.
@@ -118,14 +122,22 @@ export async function reconcileCollectAttempt(attempt: AttemptRow): Promise<Coll
   }
 
   // La référence à interroger est celle que le fournisseur nous a rendue.
+  // Code natif du fournisseur pour cet opérateur (« mobile », « card »…) :
+  // certains le réclament aussi à la consultation de statut.
+  const { routeFor } = await import("@/lib/payments/registry");
+  const codeRoute = routeFor(String(attempt.paymentMethod ?? ""), provider as never, "collect")?.code;
+
   const providerRef = attempt.providerRef;
   if (!providerRef) {
     return { matched: true, status: "unknown", delivered: false, attemptId: attempt.id, reason: "Aucune référence fournisseur enregistrée" };
   }
 
   let status: "success" | "failed" | "pending";
+  let montantFournisseur: number | null = null;
   try {
-    status = (await checker(providerRef)).status;
+    const rep = await checker(providerRef, codeRoute);
+    status = rep.status;
+    montantFournisseur = typeof rep.amount === "number" && rep.amount > 0 ? rep.amount : null;
   } catch (err) {
     // Fournisseur injoignable : on ne conclut rien. Le paiement est peut-être
     // en cours ; annoncer un échec ici priverait l'acheteur de son produit.
@@ -175,6 +187,21 @@ export async function reconcileCollectAttempt(attempt: AttemptRow): Promise<Coll
       productIds,
       discountCodeStr: typeof meta.discountCode === "string" && meta.discountCode ? meta.discountCode : null,
       sessionRef: internalRef,
+      /**
+       * MONTANT RÉELLEMENT ENCAISSÉ. Il ne s'agit pas d'un détail : sans lui,
+       * la livraison retombe sur le prix du CATALOGUE. Un lien de paiement à
+       * prix libre est alors comptabilisé à son prix « suggéré » — souvent
+       * zéro — donc produit livré, vendeur crédité de rien, et un tableau de
+       * bord à zéro sans la moindre erreur pour l'expliquer.
+       *
+       * Il rétablit aussi le garde-fou : la livraison refuse si le montant
+       * reçu est inférieur au total recalculé côté serveur.
+       *
+       * Priorité au montant annoncé par le fournisseur ; à défaut celui de la
+       * tentative, calculé par nous à l'initialisation. Jamais une valeur
+       * venue du navigateur.
+       */
+      expectedAmountReceived: montantFournisseur ?? Math.round(attempt.amount),
     });
   } catch (err) {
     // L'argent EST encaissé. On laisse la tentative ouverte pour que le cron

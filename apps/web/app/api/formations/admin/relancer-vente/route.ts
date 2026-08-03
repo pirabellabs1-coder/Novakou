@@ -27,15 +27,32 @@ export const maxDuration = 60;
 /** Au-delà, une tentative n'est plus interrogeable utilement chez le fournisseur. */
 const FENETRE_HEURES = 72;
 
+/**
+ * Accessible aussi en GET : ouvrir un lien depuis le navigateur est la seule
+ * façon pratique d'agir quand on est devant un incident. L'action reste sans
+ * risque — la livraison est idempotente, la relancer ne livre pas deux fois.
+ */
+export async function GET(req: NextRequest) {
+  return traiter(req);
+}
+
 export async function POST(req: NextRequest) {
+  return traiter(req);
+}
+
+async function traiter(req: NextRequest) {
   const session = await getServerSession(authOptions);
   const role = session?.user?.role?.toString().toUpperCase();
   if (!session?.user || (role !== "ADMIN" && !IS_DEV)) {
     return NextResponse.json({ error: "Accès refusé — admin requis." }, { status: 403 });
   }
 
-  const body = await req.json().catch(() => ({}));
-  const refs: string[] = Array.isArray(body?.refs) ? body.refs.filter((r: unknown) => typeof r === "string") : [];
+  const body = req.method === "POST" ? await req.json().catch(() => ({})) : {};
+  const depuisUrl = (req.nextUrl.searchParams.get("refs") ?? "")
+    .split(",").map((r) => r.trim()).filter(Boolean);
+  const refs: string[] = Array.isArray(body?.refs)
+    ? body.refs.filter((r: unknown) => typeof r === "string")
+    : depuisUrl;
 
   const tentatives = await prisma.checkoutAttempt.findMany({
     where: {

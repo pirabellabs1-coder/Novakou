@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
     take: MAX_PER_RUN,
   });
 
-  const results: Array<{ attemptId: string; status: string; delivered: boolean; reason?: string }> = [];
+  const results: Array<Record<string, unknown>> = [];
   let delivered = 0;
   let failed = 0;
   let stillPending = 0;
@@ -65,11 +65,21 @@ export async function GET(request: NextRequest) {
       else if (r.status === "failed") failed++;
       else stillPending++;
 
-      // On ne journalise que ce qui bouge ou ce qui coince : une tentative
-      // simplement « en attente » est le cas normal et noierait le reste.
-      if (r.delivered || r.status === "failed" || r.reason) {
-        results.push({ attemptId: attempt.id, status: r.status, delivered: r.delivered, reason: r.reason });
-      }
+      // On rend TOUJOURS le détail, y compris « en attente ». Filtrer ces
+      // lignes rendait invisible la différence entre « l'acheteur n'a pas
+      // encore confirmé » et « on n'arrive pas à interroger le fournisseur » —
+      // or c'est exactement cette différence qu'on cherche quand une vente
+      // encaissée n'arrive pas.
+      const meta = (attempt.metadata ?? {}) as Record<string, unknown>;
+      results.push({
+        attemptId: attempt.id,
+        passerelle: typeof meta.paymentProvider === "string" ? meta.paymentProvider : null,
+        moyen: attempt.paymentMethod,
+        montant: Math.round(attempt.amount),
+        status: r.status,
+        delivered: r.delivered,
+        reason: r.reason,
+      });
     } catch (err) {
       console.error("[collect-reconcile] tentative", attempt.id, err);
       results.push({

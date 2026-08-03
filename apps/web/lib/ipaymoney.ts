@@ -129,6 +129,7 @@ export async function initCollect(params: IpaymoneyCollectParams): Promise<Ipaym
 /** Statut réel d'un encaissement — seule source de vérité avant livraison. */
 export async function checkCollectStatus(
   reference: string,
+  paymentType?: string,
 ): Promise<{ status: IpaymoneyStatus; amount: number | null; raw: unknown }> {
   const [key, sandbox] = await Promise.all([getSecretKey(), isSandbox("ipaymoney")]);
   const res = await payoutFetch(`${IPAY_API_BASE}/api/v1/payments/${encodeURIComponent(reference)}`, {
@@ -136,6 +137,11 @@ export async function checkCollectStatus(
     headers: {
       Accept: "application/json",
       Authorization: `Bearer ${key}`,
+      // `Ipay-Payment-Type` est obligatoire sur TOUS les appels, pas seulement
+      // à la création : leur SDK l'ajoute systématiquement. Sans lui, la
+      // consultation de statut répond « Bad Request: Missing params », la
+      // réconciliation ne conclut jamais, et la vente reste bloquée.
+      "Ipay-Payment-Type": paymentType || "mobile",
       "Ipay-Target-Environment": envHeaderValue(sandbox),
     },
   });
