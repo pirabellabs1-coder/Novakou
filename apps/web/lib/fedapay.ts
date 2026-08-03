@@ -324,13 +324,14 @@ export async function initCollect(params: FedapayCollectParams): Promise<Fedapay
     return { reference: txId, status: "pending", redirectUrl: tokenJson.url, raw: { createJson, tokenJson } };
   }
 
-  const sendRes = await payoutFetch(`${base}/transactions/${encodeURIComponent(mode)}`, {
+  // Endpoint : POST /v1/<mode> — au niveau de la racine, PAS sous
+  // /transactions. La forme précédente renvoyait 404 sur chaque encaissement
+  // Mobile Money FedaPay. Le corps ne porte QUE le jeton : le numéro vient du
+  // client déjà attaché à la transaction créée à l'étape 1.
+  const sendRes = await payoutFetch(`${base}/${encodeURIComponent(mode)}`, {
     method: "POST",
     headers,
-    body: JSON.stringify({
-      token: tokenJson.token,
-      phone_number: { number: params.phoneNumber, country: params.countryIso },
-    }),
+    body: JSON.stringify({ token: tokenJson.token }),
   });
   const sendJson = (await sendRes.json().catch(() => ({}))) as { message?: string; status?: string };
   if (!sendRes.ok) {

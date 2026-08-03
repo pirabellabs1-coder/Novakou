@@ -9,11 +9,12 @@
 // Authentification : `Authorization: Bearer <clé secrète>`.
 // En-têtes propres au fournisseur : `Ipay-Payment-Type`, `Ipay-Target-Environment`.
 //
-// ⚠️ Les VALEURS exactes de ces deux en-têtes ne sont pas publiées : la doc
-// complète est derrière le tableau de bord marchand. On applique celles que le
-// SDK utilise (`mobile` / `card`, `live` / `sandbox`) et on les rend
-// surchargeables par variable d'environnement, pour corriger sans redéployer
-// si le fournisseur en annonce d'autres.
+// Valeurs confirmées dans les énumérations du SDK officiel :
+//   Ipay-Target-Environment : "sandbox" | "live"
+//   Ipay-Payment-Type       : "mobile" | "card" | "myNita" | "amanata"
+//   statuts                 : "succeeded" | "failed" | "pending"
+// Elles restent surchargeables par variable d'environnement, au cas où le
+// fournisseur les ferait évoluer sans prévenir.
 
 import { payoutFetch } from "@/lib/payout/proxy-fetch";
 import { credential, hasCredentials, isSandbox } from "@/lib/payments/credentials";
@@ -55,8 +56,10 @@ export type IpaymoneyCollectParams = {
   /** Notre référence interne : elle revient dans le webhook. */
   transactionId: string;
   customerName?: string;
-  /** ISO-2 majuscules (« NE »). */
+  /** ISO-2 majuscules (« NE »). Défaut : NE. */
   country?: string;
+  /** Devise ISO (« XOF »). Obligatoire côté fournisseur. */
+  currency?: string;
 };
 
 export type IpaymoneyCollectResult = {
@@ -76,14 +79,18 @@ export type IpaymoneyCollectResult = {
 export async function initCollect(params: IpaymoneyCollectParams): Promise<IpaymoneyCollectResult> {
   const [key, sandbox] = await Promise.all([getSecretKey(), isSandbox("ipaymoney")]);
 
+  // Corps exact attendu, relevé sur `PaymentRequest::toPayload()` du SDK :
+  // customer_name, currency, country, amount (CHAÎNE), transaction_id, msisdn.
+  // `payment_type` ne va PAS dans le corps — c'est un en-tête. Et `currency`
+  // est obligatoire : son absence faisait répondre « Missing Body Params ».
   const body: Record<string, unknown> = {
-    amount: Math.round(params.amount),
+    amount: String(Math.round(params.amount)),
     transaction_id: params.transactionId,
-    payment_type: params.paymentType,
+    currency: params.currency || "XOF",
+    country: (params.country || "NE").toUpperCase(),
   };
   if (params.msisdn) body.msisdn = params.msisdn.replace(/\D/g, "");
   if (params.customerName) body.customer_name = params.customerName;
-  if (params.country) body.country = params.country.toUpperCase();
 
   const res = await payoutFetch(`${IPAY_API_BASE}/api/v1/payments`, {
     method: "POST",

@@ -524,6 +524,7 @@ export async function POST(request: Request) {
             transactionId: internalRef,
             customerName: `${first || "Client"} ${last}`.trim(),
             country: getOperator(chosenOperator)?.country?.toUpperCase(),
+            currency: currencyForOperator(chosenOperator) ?? "XOF",
           });
           // Carte : page sécurisée du fournisseur plutôt qu'un push téléphone.
           if (r.redirectUrl) {
