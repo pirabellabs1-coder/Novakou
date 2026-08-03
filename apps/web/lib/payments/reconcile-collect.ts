@@ -228,11 +228,29 @@ export async function reconcileCollectAttempt(attempt: AttemptRow): Promise<Coll
     .update({ where: { id: attempt.id }, data: { status: "COMPLETED", recoveredAt: new Date() } })
     .catch(() => null);
 
+  // ENCAISSÉ SANS RIEN LIVRER. Arrive quand tout le panier était déjà possédé :
+  // la livraison n'a alors rien créé — ni achat, ni revenu, ni crédit vendeur —
+  // alors que l'argent est bien parti. L'init refuse désormais ce cas en amont,
+  // mais si une commande passe quand même par là, elle ne doit surtout pas
+  // ressembler à un succès ordinaire : c'est de l'argent sans contrepartie, à
+  // rembourser ou à régulariser à la main.
+  const rienDeLivre = livraison.enrollments.length === 0 && livraison.purchases.length === 0;
+  if (rienDeLivre) {
+    console.error("[reconcile-collect] ENCAISSÉ SANS LIVRAISON", {
+      internalRef,
+      montant: Math.round(attempt.amount),
+      deja: livraison.skipped,
+    });
+  }
+
   return {
     matched: true,
     status: "success",
     delivered: true,
     attemptId: attempt.id,
+    ...(rienDeLivre
+      ? { reason: `Encaissé mais rien de nouveau à livrer (déjà possédé : ${livraison.skipped.join(", ") || "?"}) — à régulariser` }
+      : {}),
     fulfilled: {
       totalAmount: livraison.totalAmount,
       // Les identifiants livrés, pas ceux demandés : un produit déjà possédé

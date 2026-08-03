@@ -11,9 +11,9 @@ import { NextRequest, NextResponse } from "next/server";
  * Authorization rules:
  *  - Production with CRON_SECRET unset → 503 (server misconfigured, fail-closed).
  *  - Development with CRON_SECRET unset → allow (returns null) for local triggers.
- *  - With CRON_SECRET set → allow if either:
- *      * `Authorization: Bearer <CRON_SECRET>` header matches, OR
- *      * Vercel injected the `x-vercel-cron` header (managed cron run).
+ *  - With CRON_SECRET set → allow ONLY if `Authorization: Bearer <CRON_SECRET>`
+ *    matches. L'en-tête `x-vercel-cron` seul ne suffit pas : il est trivial à
+ *    ajouter depuis l'extérieur, et laissait déclencher les versements.
  *  - Otherwise → 401 Unauthorized.
  *
  * Returns NextResponse to short-circuit the route, or null if the request
@@ -29,7 +29,11 @@ export function requireCronAuth(req: NextRequest): NextResponse | null {
     return null; // dev: allow without secret
   }
   const auth = req.headers.get("authorization");
-  const vercelCron = req.headers.get("x-vercel-cron");
-  if (auth === `Bearer ${secret}` || vercelCron) return null;
+  if (auth === `Bearer ${secret}`) return null;
+
+  // L'en-tête `x-vercel-cron` NE SUFFIT PLUS. N'importe qui pouvait l'ajouter à
+  // une requête ordinaire et déclencher les tâches planifiées — dont celles qui
+  // envoient de l'argent. Vercel joint `Authorization: Bearer $CRON_SECRET` à
+  // ses appels dès que la variable existe : c'est cette preuve-là qu'on exige.
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }

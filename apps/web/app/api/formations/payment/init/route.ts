@@ -127,6 +127,51 @@ export async function POST(request: Request) {
         blocked.push(`${p.title} — stock épuisé`);
       }
     }
+    // ── Déjà possédé : refuser AVANT d'encaisser ─────────────────────────
+    //
+    // Sans cette garde, un acheteur pouvait payer une deuxième fois un produit
+    // qu'il possède déjà : l'argent partait, la livraison ne créait rien (il
+    // l'avait déjà), donc aucun revenu enregistré, aucun crédit vendeur — et
+    // la tentative était tout de même marquée livrée. L'argent disparaissait
+    // sans laisser la moindre trace.
+    if (formationIds.length > 0 || productIds.length > 0) {
+      const [dejaInscrit, dejaAchete] = await Promise.all([
+        formationIds.length
+          ? prisma.enrollment.findMany({
+              where: { userId, formationId: { in: formationIds } },
+              select: { formationId: true },
+            })
+          : Promise.resolve([]),
+        productIds.length
+          ? prisma.digitalProductPurchase.findMany({
+              where: { userId, productId: { in: productIds } },
+              select: { productId: true },
+            })
+          : Promise.resolve([]),
+      ]);
+      const possedes = new Set<string>([
+        ...dejaInscrit.map((e) => e.formationId),
+        ...dejaAchete.map((a) => a.productId),
+      ]);
+      if (possedes.size > 0) {
+        const titres = [
+          ...formations.filter((f) => possedes.has(f.id)).map((f) => f.title),
+          ...products.filter((pr) => possedes.has(pr.id)).map((pr) => pr.title),
+        ];
+        // Tout le panier est déjà possédé : rien à vendre.
+        if (possedes.size >= formationIds.length + productIds.length) {
+          return NextResponse.json(
+            {
+              error: `Vous possédez déjà ${titres.join(", ")}. Retrouvez ${titres.length > 1 ? "vos achats" : "votre achat"} dans votre espace.`,
+              code: "ALREADY_OWNED",
+            },
+            { status: 400 },
+          );
+        }
+        blocked.push(`${titres.join(", ")} — déjà dans vos achats`);
+      }
+    }
+
     if (blocked.length > 0) {
       return NextResponse.json(
         { error: `Achat impossible : ${blocked.join(", ")}` },
