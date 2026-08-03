@@ -113,6 +113,14 @@ export async function reconcileCollectAttempt(attempt: AttemptRow): Promise<Coll
   if (attempt.status === "FAILED") {
     return { matched: true, status: "failed", delivered: false, attemptId: attempt.id };
   }
+  // Une tentative « abandonnée » qu'on reprend redevient une tentative en
+  // cours : sinon le cron d'abandon et celui de réconciliation se la
+  // renverraient indéfiniment.
+  if (attempt.status === "ABANDONED") {
+    await prisma.checkoutAttempt
+      .update({ where: { id: attempt.id }, data: { status: "STARTED" } })
+      .catch(() => null);
+  }
 
   const meta = (attempt.metadata ?? {}) as Record<string, unknown>;
   const provider = String(meta.paymentProvider ?? "").toLowerCase();

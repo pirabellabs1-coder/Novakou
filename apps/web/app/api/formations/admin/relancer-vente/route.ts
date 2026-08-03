@@ -56,7 +56,9 @@ async function traiter(req: NextRequest) {
 
   const tentatives = await prisma.checkoutAttempt.findMany({
     where: {
-      status: "STARTED",
+      // « Abandonnée » est notre supposition, pas un fait : le fournisseur
+      // reste seul juge. On reprend donc les deux états.
+      status: { in: ["STARTED", "ABANDONED"] },
       providerRef: { not: null },
       createdAt: { gte: new Date(Date.now() - FENETRE_HEURES * 3600_000) },
       // Un filtre JSON n'accepte pas de liste : on combine des égalités.

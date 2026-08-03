@@ -77,7 +77,7 @@ export async function GET() {
    * téléphone, il a payé sans rien recevoir.
    */
   const aVerifier = tentatives
-    .filter((t) => t.status === "STARTED" && t.providerRef && t.createdAt < seuil)
+    .filter((t) => ["STARTED", "ABANDONED"].includes(t.status) && t.providerRef && t.createdAt < seuil)
     .map((t) => {
       const meta = (t.metadata ?? {}) as Record<string, unknown>;
       return {

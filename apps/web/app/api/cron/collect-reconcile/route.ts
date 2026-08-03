@@ -43,7 +43,13 @@ export async function GET(request: NextRequest) {
 
   const attempts = await prisma.checkoutAttempt.findMany({
     where: {
-      status: "STARTED",
+      // ABANDONED compte AUSSI. Un autre cron déclare une tentative abandonnée
+      // au bout d'une heure d'inactivité — mais « abandonnée » n'est que NOTRE
+      // supposition : seul le fournisseur sait si l'acheteur a fini par
+      // confirmer sur son téléphone. Ne regarder que STARTED faisait que toute
+      // vente confirmée après 60 minutes était perdue définitivement, sans que
+      // rien ne la reprenne jamais.
+      status: { in: ["STARTED", "ABANDONED"] },
       // Sans référence fournisseur il n'y a rien à interroger : l'init a échoué
       // avant même d'atteindre la passerelle.
       providerRef: { not: null },
