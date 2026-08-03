@@ -94,6 +94,42 @@ export async function GET() {
       };
     });
 
+  /**
+   * Trace comptable des dernières ventes.
+   *
+   * « Le produit est livré mais rien n'est comptabilisé » : la livraison écrit
+   * l'achat, le revenu plateforme et le crédit vendeur DANS LA MÊME
+   * transaction. Voir laquelle des trois manque dit immédiatement si le
+   * problème est à l'écriture ou à l'affichage.
+   */
+  const [achatsRecents, revenusRecents] = await Promise.all([
+    prisma.digitalProductPurchase.findMany({
+      where: { createdAt: { gte: depuis } },
+      orderBy: { createdAt: "desc" },
+      take: 15,
+      select: {
+        createdAt: true,
+        paidAmount: true,
+        stripeSessionId: true,
+        user: { select: { email: true } },
+        product: { select: { title: true, price: true, instructeurId: true } },
+      },
+    }),
+    prisma.platformRevenue.findMany({
+      where: { createdAt: { gte: depuis } },
+      orderBy: { createdAt: "desc" },
+      take: 15,
+      select: {
+        createdAt: true,
+        orderType: true,
+        grossAmount: true,
+        commissionAmount: true,
+        vendorAmount: true,
+        paymentRef: true,
+      },
+    }),
+  ]);
+
   const parStatut = tentatives.reduce<Record<string, number>>((acc, t) => {
     acc[t.status] = (acc[t.status] ?? 0) + 1;
     return acc;
@@ -105,6 +141,23 @@ export async function GET() {
       total: tentatives.length,
       parStatut,
       aVerifier,
+      // Ce que la livraison a REELLEMENT ecrit.
+      achatsRecents: achatsRecents.map((a) => ({
+        quand: a.createdAt.toISOString(),
+        acheteur: a.user?.email ?? null,
+        produit: a.product?.title ?? null,
+        prixCatalogue: a.product?.price ?? null,
+        montantEnregistre: a.paidAmount,
+        referenceInterne: a.stripeSessionId,
+      })),
+      revenusRecents: revenusRecents.map((r) => ({
+        quand: r.createdAt.toISOString(),
+        type: r.orderType,
+        brut: r.grossAmount,
+        commission: r.commissionAmount,
+        partVendeur: r.vendorAmount,
+        referenceInterne: r.paymentRef,
+      })),
       lignes,
       note:
         "STARTED = demande partie, pas encore constatée. COMPLETED = livrée. " +
