@@ -20,14 +20,21 @@ const securityHeaders = isDev
         key: "Content-Security-Policy",
         value: [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://js.puter.com https://*.puter.com",
+          "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://analytics.tiktok.com https://sc-static.net https://s.pinimg.com https://js.puter.com https://*.puter.com",
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.fontshare.com",
           "font-src 'self' https://fonts.gstatic.com https://cdn.fontshare.com",
           // img-src ouvert à tout HTTPS : les tunnels importés référencent des
           // images depuis n'importe quel CDN externe (cloudfront Systeme.io, etc.).
           // Ressource à faible risque ; script-src/connect-src restent verrouillés.
           "img-src 'self' data: blob: https:",
-          "connect-src 'self' ws: wss: https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://region1.google-analytics.com https://api.puter.com https://*.puter.com",
+          "connect-src 'self' ws: wss: https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://region1.google-analytics.com https://www.facebook.com https://analytics.tiktok.com https://tr.snapchat.com https://ct.pinterest.com https://api.puter.com https://*.puter.com",
+          // Les quatre domaines de régies publicitaires ci-dessus ne sont pas
+          // décoratifs : sans eux, le navigateur BLOQUE le script du pixel et
+          // aucune vente n'est remontée à Facebook, TikTok, Snapchat ou
+          // Pinterest — un vendeur paie sa publicité sans jamais pouvoir
+          // mesurer ce qu'elle rapporte. Ils correspondent exactement à ce que
+          // charge components/formations/PixelInjector.tsx ; ajouter une régie
+          // là-bas OBLIGE à l'ajouter ici (un test le vérifie).
           // frame-src : lecteurs vidéo (tunnels importés) + la fenêtre de
           // paiement KkiaPay, qui s'ouvre en iframe sur son propre domaine.
           "frame-src 'self' https://widget-v3.kkiapay.me https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://www.loom.com https://fast.wistia.net https://fast.wistia.com https://puter.com https://*.puter.com",
