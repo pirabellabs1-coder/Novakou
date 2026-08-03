@@ -253,8 +253,15 @@ export type PaymentOption = {
  * Un même opérateur peut être servi par plusieurs passerelles : on retient la
  * plus prioritaire, et les autres restent disponibles en repli côté serveur.
  */
-export async function paymentOptionsForCountry(countryIso2: string): Promise<PaymentOption[]> {
-  return optionsFor((countryIso2 || "").trim().toLowerCase(), await activeProviders("collect"));
+export async function paymentOptionsForCountry(
+  countryIso2: string,
+  direction: PaymentDirection = "collect",
+): Promise<PaymentOption[]> {
+  return optionsFor(
+    (countryIso2 || "").trim().toLowerCase(),
+    await activeProviders(direction),
+    direction,
+  );
 }
 
 /**
@@ -264,7 +271,11 @@ export async function paymentOptionsForCountry(countryIso2: string): Promise<Pay
  * n'apparaissait jamais dans la liste — le Mali était invendable en silence
  * alors que la carte y fonctionnait.
  */
-function optionsFor(country: string, providers: ProviderId[]): PaymentOption[] {
+function optionsFor(
+  country: string,
+  providers: ProviderId[],
+  direction: PaymentDirection = "collect",
+): PaymentOption[] {
   if (providers.length === 0) return [];
 
   // Devises réellement pertinentes pour ce pays (d'après le registre).
@@ -275,12 +286,15 @@ function optionsFor(country: string, providers: ProviderId[]): PaymentOption[] {
 
   const options: PaymentOption[] = [];
   for (const currency of currencies) {
-    const candidates = listOperators({ direction: "collect", currency });
+    const candidates = listOperators({ direction, currency });
     for (const op of candidates) {
       // Mobile money : réservé au pays ; carte : proposée dans la devise du pays.
       if (op.family === "mobile_money" && op.country !== country) continue;
+      // On ne VERSE jamais sur une carte : un retrait part sur un compte
+      // Mobile Money, jamais vers un numéro de carte bancaire.
+      if (direction === "payout" && op.family === "card") continue;
 
-      const provider = providers.find((p) => routeFor(op.code, p, "collect"));
+      const provider = providers.find((p) => routeFor(op.code, p, direction));
       if (!provider) continue; // aucune passerelle branchée ne sait le traiter
 
       options.push({
@@ -299,8 +313,10 @@ function optionsFor(country: string, providers: ProviderId[]): PaymentOption[] {
 }
 
 /** Pays proposables à l'acheteur : ceux qui ont au moins un moyen encaissable. */
-export async function availableCountries(): Promise<Array<{ code: string; operators: number }>> {
-  const providers = await activeProviders("collect");
+export async function availableCountries(
+  direction: PaymentDirection = "collect",
+): Promise<Array<{ code: string; operators: number }>> {
+  const providers = await activeProviders(direction);
   if (providers.length === 0) return [];
 
   // Un pays est proposable dès qu'il a AU MOINS un moyen encaissable — la
@@ -311,7 +327,7 @@ export async function availableCountries(): Promise<Array<{ code: string; operat
   );
 
   return [...countries]
-    .map((code) => ({ code, operators: optionsFor(code, providers).length }))
+    .map((code) => ({ code, operators: optionsFor(code, providers, direction).length }))
     .filter((c) => c.operators > 0)
     .sort((a, b) => a.code.localeCompare(b.code));
 }

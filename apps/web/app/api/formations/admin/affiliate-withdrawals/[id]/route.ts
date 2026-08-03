@@ -14,13 +14,15 @@ import { isFeexpayConfigured } from "@/lib/feexpay";
 import { isFedapayConfigured } from "@/lib/fedapay";
 
 type Params = { params: Promise<{ id: string }> };
-type PayoutMode = "moneroo" | "feexpay" | "fedapay" | "manual";
+type PayoutMode = "auto" | "feexpay" | "fedapay" | "manual";
 function resolveAffiliateMode(raw: unknown): PayoutMode {
   const v = String(raw ?? "").toLowerCase();
   if (v === "manual") return "manual";
   if (v === "feexpay") return "feexpay";
   if (v === "fedapay") return "fedapay";
-  return "moneroo";
+  // Toute autre valeur — y compris les noms de passerelles retirées envoyés
+  // par un ancien onglet resté ouvert — retombe sur le versement automatique.
+  return "auto";
 }
 
 function isAdmin(session: { user?: { role?: string | null } } | null): boolean {
@@ -38,7 +40,7 @@ async function releaseCommissions(withdrawalId: string) {
 
 /**
  * PATCH /api/formations/admin/affiliate-withdrawals/[id]
- *   { action: "approve", mode?: "moneroo" | "manual" }  (défaut: moneroo)
+ *   { action: "approve", mode?: "auto" | "manual" }  (défaut: auto)
  *   { action: "reject", refusedReason: string }
  */
 export async function PATCH(request: Request, { params }: Params) {

@@ -12,12 +12,14 @@ import { getActiveShopId } from "@/lib/formations/active-shop";
 import { VENDOR_NET_RATE } from "@/lib/formations/constants";
 import {
   getPayoutMethod,
+  isPayoutMethodServable,
   normalizeMsisdn,
   resolveLegacyMethod,
   isPayoutMethodDisabled,
   PAYOUT_DISABLED_MESSAGE,
 } from "@/lib/moneroo-payout-methods";
 import { processInstructorWithdrawalAuto } from "@/lib/payout/process-withdrawal";
+import { notifyAdmins } from "@/lib/agents/notify";
 
 // Le POST déclenche un vrai versement fournisseur (appel API externe) → laisser
 // le temps à l'orchestrateur (Moneroo → FeexPay → FedaPay) de répondre.
@@ -392,6 +394,25 @@ export async function POST(request: Request) {
       );
     }
 
+
+    // ── MOYEN QU'AUCUNE PASSERELLE NE SAIT PAYER ──────────────────────────────
+    // Le refuser tout de suite vaut mieux que d'accepter une demande qui
+    // resterait « en attente » pendant des jours faute de route de versement.
+    // Les moyens hors Mobile Money (virement, PayPal) restent traités à la main
+    // et ne passent pas par ce garde-fou.
+    {
+      const def = getPayoutMethod(method);
+      if (def && def.category === "mobile_money" && !isPayoutMethodServable(method)) {
+        return NextResponse.json(
+          {
+            error: `${def.label} n'est pas disponible au retrait pour le moment. Choisissez un autre moyen.`,
+            code: "PAYOUT_METHOD_UNAVAILABLE",
+          },
+          { status: 400 },
+        );
+      }
+    }
+
     // ── KYC CHECK : obligatoire pour tout retrait (vendeur ou mentor) ──
     // Niveau 2 minimum requis (pièce d'identité vérifiée par admin)
     const kycUser = await prisma.user.findUnique({
@@ -513,6 +534,18 @@ export async function POST(request: Request) {
         );
       }
 
+
+      // Versement auto non abouti → l'admin doit le savoir TOUT DE SUITE.
+      // Sans cette alerte, un retrait bloqué attend qu'on le découvre par
+      // hasard : c'est exactement ce qui laisse quelqu'un sans son argent.
+      if (payout.status === "PENDING_MANUAL" || payout.status === "PENDING_REVIEW") {
+        await notifyAdmins({
+          subject: `Retrait vendeur à verser — ${Math.round(amount)} FCFA`,
+          body: `${otpUser.name ?? "Un utilisateur"} (${otpUser.email}) demande un retrait de ${Math.round(amount)} FCFA via ${method}. Versement auto non abouti (${payout.reason}) — à traiter depuis l'espace admin.`,
+          url: `${process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com"}/admin/withdrawals`,
+        }).catch(() => null);
+      }
+
       await sendWithdrawalRequestedEmail(otpUser.email, otpUser.name, amount, method, "/wallet");
 
       return NextResponse.json({ data: { ...withdrawal, payout } });
@@ -579,6 +612,15 @@ export async function POST(request: Request) {
           { error: `Le versement a échoué : ${payout.reason}. Votre solde reste disponible, réessayez.`, code: "PAYOUT_FAILED" },
           { status: 400 },
         );
+      }
+
+      // Versement auto non abouti → alerte admin immédiate (cf. volet vendeur).
+      if (payout.status === "PENDING_MANUAL" || payout.status === "PENDING_REVIEW") {
+        await notifyAdmins({
+          subject: `Retrait mentor à verser — ${Math.round(amount)} FCFA`,
+          body: `${otpUser.name ?? "Un mentor"} (${otpUser.email}) demande un retrait de ${Math.round(amount)} FCFA via ${method}. Versement auto non abouti (${payout.reason}) — à traiter depuis l'espace admin.`,
+          url: `${process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com"}/admin/withdrawals`,
+        }).catch(() => null);
       }
 
       await sendWithdrawalRequestedEmail(otpUser.email, otpUser.name, amount, method, "/mentor/finances");

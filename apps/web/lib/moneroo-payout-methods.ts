@@ -14,6 +14,7 @@
  */
 
 import { COUNTRIES } from "@/lib/countries";
+import { isSupported } from "@/lib/payments/registry";
 
 export type PayoutField = "msisdn" | "account_number";
 
@@ -196,6 +197,31 @@ export const PAYOUT_METHODS: PayoutMethodDef[] = [
     category: "mobile_money",
   },
 
+  {
+    id: "celtiis_bj",
+    label: "Celtiis Cash (Bénin)",
+    icon: "phone_iphone",
+    currency: "XOF",
+    countries: ["BJ"],
+    requiredFields: ["msisdn"],
+    placeholder: { msisdn: "22941234567", account_number: "" },
+    minAmount: 100,
+    processingTime: "Instantané — quelques minutes",
+    category: "mobile_money",
+  },
+  // ─── Niger (XOF) ───────────────────────────────────────
+  {
+    id: "airtel_ne",
+    label: "Airtel Money (Niger)",
+    icon: "phone_iphone",
+    currency: "XOF",
+    countries: ["NE"],
+    requiredFields: ["msisdn"],
+    placeholder: { msisdn: "22790123456", account_number: "" },
+    minAmount: 100,
+    processingTime: "Instantané — quelques minutes",
+    category: "mobile_money",
+  },
   // ─── Togo (XOF) ──────────────────────────────────────────
   {
     id: "moov_tg",
@@ -345,13 +371,38 @@ export const PAYOUT_METHODS: PayoutMethodDef[] = [
  * Retourne les méthodes de payout disponibles pour un pays donné.
  * Si le pays est inconnu, retourne toutes les méthodes (l'utilisateur choisit).
  */
+/**
+ * Vrai si au moins une passerelle ACTIVE sait réellement verser sur ce moyen.
+ *
+ * Le catalogue ci-dessus est historique : il décrit des moyens qui existent
+ * dans le monde, pas ceux par lesquels NOUS pouvons envoyer de l'argent
+ * aujourd'hui. Le registre des passerelles, lui, dit la vérité — c'est lui qui
+ * fait foi.
+ *
+ * Sans ce filtre, un vendeur camerounais ou kényan choisissait un moyen que
+ * personne ne pouvait payer : sa demande partait, puis restait indéfiniment
+ * « en attente » d'une intervention admin. Proposer un moyen qu'on ne sait pas
+ * honorer, c'est promettre un versement qu'on ne fera pas.
+ */
+export function isPayoutMethodServable(methodId: string): boolean {
+  return isSupported(methodId, "payout");
+}
+
+/**
+ * Moyens de retrait réellement disponibles pour un pays.
+ *
+ * Deux filtres se cumulent, et les deux sont nécessaires :
+ *   • le pays du moyen ;
+ *   • l'existence d'une route de versement chez une passerelle.
+ */
 export function getAvailablePayoutMethods(country: string | null | undefined): PayoutMethodDef[] {
-  if (!country) return PAYOUT_METHODS;
+  const servables = PAYOUT_METHODS.filter((m) => isPayoutMethodServable(m.id));
+  if (!country) return servables;
   const code = resolveCountryCode(country);
-  // Pays non reconnu (libellé inconnu) → on montre tout, l'utilisateur choisit.
-  if (!code) return PAYOUT_METHODS;
+  // Pays non reconnu (libellé inconnu) → on montre tout ce qu'on sait verser.
+  if (!code) return servables;
   // Pays reconnu → uniquement ses méthodes (peut être vide = pays non couvert).
-  return PAYOUT_METHODS.filter((m) => m.countries.includes(code));
+  return servables.filter((m) => m.countries.includes(code));
 }
 
 /**
@@ -447,15 +498,24 @@ export function normalizeMsisdn(phone: string, methodId?: string): string {
     if (methodDef && methodDef.countries.length > 0) {
       const countryCode = methodDef.countries[0];
       const dialCode = COUNTRY_DIAL_CODES[countryCode];
-      if (dialCode && !digits.startsWith(dialCode)) {
-        // Strip leading 0 (local format) before adding international prefix
+      if (dialCode) {
+        // On retire l'indicatif s'il est déjà là, on normalise la partie locale,
+        // puis on le remet. Sans cette étape, un numéro DÉJÀ préfixé sortait
+        // intact : « 2290157335726 » partait tel quel (13 chiffres) au lieu de
+        // « 22957335726 ». L'écran de retrait produit exactement cette forme
+        // (indicatif + numéro saisi avec son 0), donc le cas est la règle, pas
+        // l'exception.
+        if (digits.startsWith(dialCode)) {
+          digits = digits.slice(dialCode.length);
+        }
+        // Format local → international : le 0 de tête ne se transporte pas.
         if (digits.startsWith("0")) {
           digits = digits.slice(1);
         }
-        // Bénin : nouveau plan à 10 chiffres « 01XXXXXXXX ». Après avoir retiré le
-        // « 0 », il reste « 1XXXXXXXX » (9 chiffres) ; Moneroo attend 8 chiffres
-        // (format 229XXXXXXXX, vérifié par un payout live réussi) → on retire aussi
-        // le « 1 » résiduel du préfixe national « 01 ».
+        // Bénin : plan à 10 chiffres « 01XXXXXXXX ». Après avoir retiré le
+        // « 0 », il reste « 1XXXXXXXX » (9 chiffres) ; les passerelles
+        // attendent 8 chiffres (229XXXXXXXX, vérifié par un versement live
+        // réussi) → on retire aussi le « 1 » résiduel du préfixe national.
         if (countryCode === "BJ" && digits.length === 9 && digits.startsWith("1")) {
           digits = digits.slice(1);
         }

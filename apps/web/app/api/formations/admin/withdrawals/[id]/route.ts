@@ -34,26 +34,26 @@ type AccountDetails = {
  * PATCH /api/formations/admin/withdrawals/[id]
  *
  * Body :
- *   { action: "approve", mode?: "moneroo" | "manual" }
- *     → "moneroo" (défaut) : payout via l'orchestrateur Moneroo → FeexPay → FedaPay
+ *   { action: "approve", mode?: "auto" | "manual" }
+ *     → "auto" (défaut) : versement via l'orchestrateur FeexPay → FedaPay
  *     → "manual"           : virement hors plateforme, marque TRAITE direct
  *
  *   { action: "refuse", refusedReason: string } → REFUSE + motif
  *
  * Admin-only (role=ADMIN). En dev, bypass de la verif role.
  */
-type PayoutMode = "moneroo" | "feexpay" | "fedapay" | "manual";
+type PayoutMode = "auto" | "feexpay" | "fedapay" | "manual";
 
 function resolvePayoutMode(raw: unknown): PayoutMode {
   const v = String(raw ?? "").toLowerCase();
   if (v === "manual") return "manual";
   // "feexpay"/"fedapay" : forcent un fournisseur précis (test/diagnostic admin),
-  // sans bascule. "moneroo" (défaut) = orchestrateur avec bascule normale.
-  // Tout autre valeur (y compris l'ancienne passerelle retirée du site) retombe
-  // sur l'orchestrateur.
+  // sans bascule. "auto" (défaut) = orchestrateur avec bascule normale.
   if (v === "feexpay") return "feexpay";
   if (v === "fedapay") return "fedapay";
-  return "moneroo";
+  // Toute autre valeur — y compris les noms de passerelles retirées envoyés
+  // par un ancien onglet resté ouvert — retombe sur le versement automatique.
+  return "auto";
 }
 
 export async function PATCH(request: Request, { params }: Params) {
@@ -153,7 +153,7 @@ export async function PATCH(request: Request, { params }: Params) {
     // ─── APPROVE : déclencher paiement réel via provider OU manuel ──────────
     if (action === "approve") {
       // Si aucun fournisseur automatique n'est configuré, on retombe en manuel.
-      // Le mode "moneroo" (défaut) passe désormais par l'orchestrateur, qui
+      // Le mode "auto" (défaut) passe par l'orchestrateur, qui
       // essaie Moneroo → FeexPay → FedaPay : il suffit qu'UN seul soit configuré.
       const anyAutoProvider = (await isFeexpayConfigured()) || (await isFedapayConfigured());
       const providerConfigured =

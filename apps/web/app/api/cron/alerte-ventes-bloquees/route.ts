@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { estSondeDiagnostic } from "@/lib/payments/diagnostic-probe";
 import { requireCronAuth } from "@/lib/cron/auth";
 import { notifyAdmins } from "@/lib/admin/notify";
 import { sendEmail, emailLayout, button, getAppUrl } from "@/lib/email";
@@ -69,6 +70,9 @@ export async function GET(request: NextRequest) {
   const anomalies: Anomalie[] = [];
 
   for (const t of candidates) {
+    // Une sonde de diagnostic n'est pas une vente : l'alerter reviendrait à
+    // crier au loup à chaque contrôle de routine.
+    if (estSondeDiagnostic(t)) continue;
     const meta = (t.metadata ?? {}) as Record<string, unknown>;
     const base = {
       quand: t.createdAt.toISOString(),

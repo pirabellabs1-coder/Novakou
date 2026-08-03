@@ -16,7 +16,6 @@ import {
   Plus,
   Send,
   Share2,
-  Smartphone,
   AlertCircle,
 } from "lucide-react";
 import {
@@ -27,8 +26,10 @@ import {
   StInput,
   ST,
 } from "@/components/stitch";
-import { shortMethodLabel, getAvailablePayoutMethods, PAYOUT_METHODS, isPayoutCountryDisabled, PAYOUT_DISABLED_MESSAGE } from "@/lib/moneroo-payout-methods";
+import { shortMethodLabel, getAvailablePayoutMethods, isPayoutCountryDisabled, PAYOUT_DISABLED_MESSAGE } from "@/lib/moneroo-payout-methods";
 import { COUNTRIES } from "@/lib/countries";
+import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
+import { getOperator } from "@/lib/payments/registry";
 
 interface VendorWallet {
   instructeurId: string;
@@ -108,7 +109,7 @@ const FIELD_LABELS: Record<string, string> = {
   account_number: "Numéro de compte",
 };
 
-// Normalise un numéro en format Moneroo msisdn : digits only, sans +
+// Normalise un numéro au format msisdn international : chiffres seuls, sans +
 function normalizeMsisdn(phone: string): string {
   return phone.replace(/\D/g, "");
 }
@@ -144,10 +145,6 @@ function withdrawalMethodLabel(method: string): string {
 }
 
 // Pays couverts par au moins une méthode de retrait (sélecteur pays, comme au checkout).
-const PAYOUT_COUNTRY_OPTIONS = Array.from(new Set(PAYOUT_METHODS.flatMap((m) => m.countries)))
-  .map((code) => COUNTRIES.find((c) => c.code === code))
-  .filter((c): c is (typeof COUNTRIES)[number] => !!c)
-  .sort((a, b) => a.name.localeCompare(b.name));
 
 // Résout un pays (nom OU code) → code ISO-2 (le profil stocke souvent le nom).
 function toCountryCode(v: string | null | undefined): string {
@@ -167,7 +164,6 @@ export default function WalletPage() {
 
   // Payout methods fetched dynamically from /api/formations/wallet/payout-methods
   const [methods, setMethods] = useState<PayoutMethodDef[]>([]);
-  const [userCountry, setUserCountry] = useState<string | null>(null);
   // Pays choisi pour le retrait (par défaut le pays du profil) → filtre les méthodes.
   const [selectedCountry, setSelectedCountry] = useState<string>("");
 
@@ -207,15 +203,13 @@ export default function WalletPage() {
       setData(walletJson.data ?? null);
 
       const methodsJson = await methodsRes.json();
-      const uc = methodsJson.data?.userCountry ?? null;
-      setUserCountry(uc);
-      // Pays par défaut = celui du profil (résolu en code ISO-2). Les méthodes
-      // sont calculées côté client depuis le catalogue selon le pays choisi.
-      const initialCode = toCountryCode(uc);
-      setSelectedCountry(initialCode);
-      const list = getAvailablePayoutMethods(initialCode || null) as PayoutMethodDef[];
-      setMethods(list);
-      if (list.length > 0 && !method) setMethod(list[0].id);
+      // Pays par défaut = celui du profil, simple pré-sélection dans l'écran.
+      setSelectedCountry(toCountryCode(methodsJson.data?.userCountry ?? null));
+      // On garde TOUS les moyens versables, pas seulement ceux du pays du
+      // profil : le vendeur peut retirer vers un autre pays, et la résolution
+      // du moyen choisi doit alors aboutir. Filtrée par pays, cette liste
+      // renvoyait « introuvable » et le bouton de retrait ne faisait rien.
+      setMethods(getAvailablePayoutMethods(null) as PayoutMethodDef[]);
     } finally {
       setLoading(false);
     }
@@ -231,13 +225,6 @@ export default function WalletPage() {
   const countryDisabled = isPayoutCountryDisabled(selectedCountry);
 
   // Changement de pays → recalcule les méthodes disponibles (comme au checkout).
-  function onCountryChange(code: string) {
-    setSelectedCountry(code);
-    const list = getAvailablePayoutMethods(code || null) as PayoutMethodDef[];
-    setMethods(list);
-    setMethod(list[0]?.id ?? "");
-    setFields({});
-  }
 
   function openWithdrawDialog(source: "vendor" | "mentor") {
     if (!data) return;
@@ -727,93 +714,27 @@ export default function WalletPage() {
                 hint="Minimum : 1 000 FCFA"
               />
 
-              {/* Pays du retrait — pilote la liste des méthodes (comme au paiement). */}
-              <div>
-                <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>
-                  Pays
-                </label>
-                <select
-                  value={selectedCountry}
-                  onChange={(e) => onCountryChange(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-[12px] text-[13px] font-semibold outline-none"
-                  style={{ border: `2px solid ${ST.cardBorder}`, background: "#fff", color: ST.text }}
-                >
-                  <option value="">Choisir mon pays…</option>
-                  {PAYOUT_COUNTRY_OPTIONS.map((c) => (
-                    <option key={c.code} value={c.code}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>
-                  Méthode de retrait
-                </label>
-                {!selectedCountry ? (
-                  <div
-                    className="rounded-[13px] p-3 text-[12px] font-bold"
-                    style={{ background: "#f1f8fe", border: "1px solid #cfe3f5", color: "#0c447c" }}
-                  >
-                    Sélectionnez d&apos;abord votre pays pour voir les méthodes disponibles.
-                  </div>
-                ) : countryDisabled ? (
-                  <div
-                    className="rounded-[13px] p-3 text-[12px] font-bold flex items-start gap-2"
-                    style={{ background: "#fdf8ec", border: "1px solid #f3e2bd", color: ST.amberText }}
-                  >
-                    <Clock size={15} className="mt-0.5 flex-shrink-0" />
-                    <span>{PAYOUT_DISABLED_MESSAGE}</span>
-                  </div>
-                ) : methods.length === 0 ? (
-                  <div
-                    className="rounded-[13px] p-3 text-[12px] font-bold"
-                    style={{ background: "#fdf8ec", border: "1px solid #f3e2bd", color: ST.amberText }}
-                  >
-                    Aucune méthode de retrait disponible pour ce pays pour le moment.
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
-                    {methods.map((m) => {
-                      const on = method === m.id;
-                      return (
-                        <button
-                          key={m.id}
-                          type="button"
-                          onClick={() => { setMethod(m.id); setFields({}); }}
-                          className="flex items-center gap-2 px-3 py-2 rounded-[12px] text-left transition-colors"
-                          style={{
-                            border: on ? `2px solid ${ST.green}` : `2px solid ${ST.cardBorder}`,
-                            background: on ? "#f0faf3" : "#fff",
-                          }}
-                        >
-                          <Smartphone size={16} style={{ color: ST.green }} className="flex-shrink-0" />
-                          <div className="min-w-0">
-                            <p className="text-[12px] font-extrabold truncate" style={{ color: ST.text }}>{m.label}</p>
-                            <p className="text-[10px] font-semibold truncate" style={{ color: ST.textMuted }}>{m.processingTime}</p>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Champs dynamiques selon la méthode sélectionnée */}
-              {selectedMethod && selectedMethod.requiredFields.map((f) => (
-                <StInput
-                  key={f}
-                  label={FIELD_LABELS[f] || f}
-                  type={f === "msisdn" ? "tel" : "text"}
-                  value={fields[f] ?? ""}
-                  onChange={(e) => setFields((prev) => ({ ...prev, [f]: e.target.value }))}
-                  placeholder={selectedMethod.placeholder[f] ?? ""}
-                  hint={
-                    f === "msisdn"
-                      ? "Format international sans le + (ex : 221771234567). Les espaces sont retirés automatiquement."
-                      : undefined
-                  }
-                />
-              ))}
+              {/* Choix du pays, du moyen et du numéro : EXACTEMENT le composant
+                  de l'écran de paiement, en sens « versement ». Un second écran
+                  aurait divergé du premier au premier correctif — ici les deux
+                  ne peuvent pas se contredire, c'est le même code. */}
+              <UnifiedPaymentScreen
+                direction="payout"
+                embedded
+                hideSubmit
+                amount={amount}
+                defaultCountry={selectedCountry || null}
+                onPay={() => {}}
+                onSelectionChange={(sel) => {
+                  if (!sel) { setMethod(""); setFields({}); return; }
+                  setMethod(sel.operator);
+                  setFields(sel.phone ? { msisdn: sel.phone } : {});
+                  // Le pays vient du moyen retenu : c'est la seule source qui ne
+                  // peut pas se désynchroniser de ce que le vendeur a cliqué.
+                  const pays = getOperator(sel.operator)?.country;
+                  if (pays) setSelectedCountry(pays.toUpperCase());
+                }}
+              />
 
               {selectedMethod && (
                 <div
@@ -824,7 +745,7 @@ export default function WalletPage() {
                   <div className="flex-1 text-[12px]" style={{ color: "#0c447c" }}>
                     <p className="font-extrabold">Délai : {selectedMethod.processingTime}</p>
                     <p className="font-semibold mt-0.5">
-                      Montant min {fmt(selectedMethod.minAmount)} FCFA · Paiement via Moneroo après validation admin
+                      Montant min {fmt(selectedMethod.minAmount)} FCFA · Versement automatique, sans validation admin
                     </p>
                   </div>
                 </div>

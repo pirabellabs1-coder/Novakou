@@ -51,8 +51,8 @@ export default function AdminAffiliateWithdrawalsPage() {
     onSettled: () => { qc.invalidateQueries({ queryKey: ["admin-affiliate-withdrawals"] }); setBusy(null); },
   });
 
-  async function approve(r: Row, mode: "moneroo" | "manual") {
-    const label = mode === "manual" ? "Marquer payé manuellement" : "Verser via Moneroo";
+  async function approve(r: Row, mode: "auto" | "manual") {
+    const label = mode === "manual" ? "Marquer payé manuellement" : "Verser automatiquement";
     const ok = await confirmAction({
       title: `${label} — ${fcfa(r.amount)}`,
       message: `${r.name ?? r.email} · ${r.methodLabel}\nDestination : ${(r.accountDetails?.msisdn as string) || (r.accountDetails?.iban as string) || "—"}`,
@@ -125,9 +125,9 @@ export default function AdminAffiliateWithdrawalsPage() {
                     </div>
                     {r.status === "EN_ATTENTE" && (
                       <div className="flex flex-col gap-1.5 flex-shrink-0">
-                        <button onClick={() => approve(r, "moneroo")} disabled={busy === r.id}
+                        <button onClick={() => approve(r, "auto")} disabled={busy === r.id}
                           className="inline-flex items-center gap-1 text-[11.5px] font-extrabold px-3 py-1.5 rounded-lg text-white disabled:opacity-40" style={{ background: ST.green }}>
-                          {busy === r.id ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />} Verser (Moneroo)
+                          {busy === r.id ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />} Verser
                         </button>
                         <button onClick={() => approve(r, "manual")} disabled={busy === r.id}
                           className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg border disabled:opacity-40" style={{ borderColor: ST.cardBorder, color: ST.text }}>

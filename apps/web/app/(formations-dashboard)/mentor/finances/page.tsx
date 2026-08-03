@@ -3,6 +3,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
+import { getOperator } from "@/lib/payments/registry";
+import { shortMethodLabel } from "@/lib/moneroo-payout-methods";
 import {
   StCard,
   StPageHeader,
@@ -21,11 +24,6 @@ import {
   X,
   Info,
   Receipt,
-  Smartphone,
-  Phone,
-  Landmark,
-  Mail,
-  Waves,
   TrendingUp,
   HandCoins,
   CheckCircle2,
@@ -60,13 +58,16 @@ interface Withdrawal {
   createdAt: string;
 }
 
+// Libellés des retraits DÉJÀ effectués (historique). Le choix d'un nouveau
+// moyen ne passe plus par ici : il vient du registre des passerelles, via
+// l'écran unique — seule source qui sache ce qu'on peut réellement verser.
 const METHODS = [
-  { code: "orange_money", label: "Orange Money", needs: "phone", icon: Smartphone },
-  { code: "wave", label: "Wave", needs: "phone", icon: Waves },
-  { code: "mtn", label: "MTN Mobile", needs: "phone", icon: Phone },
-  { code: "moov", label: "Moov Money", needs: "phone", icon: Smartphone },
-  { code: "bank", label: "Virement bancaire", needs: "bank", icon: Landmark },
-  { code: "paypal", label: "PayPal", needs: "email", icon: Mail },
+  { code: "orange_money", label: "Orange Money" },
+  { code: "wave", label: "Wave" },
+  { code: "mtn", label: "MTN Mobile" },
+  { code: "moov", label: "Moov Money" },
+  { code: "bank", label: "Virement bancaire" },
+  { code: "paypal", label: "PayPal" },
 ];
 
 const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n));
@@ -75,7 +76,7 @@ const fmtDate = (iso: string) =>
 
 function cleanMethodLabel(method: string): string {
   const cleaned = method.replace(/_mentor$/, "");
-  return METHODS.find((m) => m.code === cleaned)?.label ?? cleaned;
+  return METHODS.find((m) => m.code === cleaned)?.label ?? shortMethodLabel(cleaned);
 }
 
 type KycStatus = { level: number; verified: boolean; pending: boolean; requiredLevel: number };
@@ -88,12 +89,9 @@ export default function MentorFinancesPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [wMethod, setWMethod] = useState<string>("orange_money");
+  const [wMethod, setWMethod] = useState<string>("");
   const [wAmount, setWAmount] = useState<number>(10000);
   const [wPhone, setWPhone] = useState<string>("");
-  const [wEmail, setWEmail] = useState<string>("");
-  const [wIban, setWIban] = useState<string>("");
-  const [wHolder, setWHolder] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   // Confirmation OTP par e-mail (sécurité retrait)
   const [otp, setOtp] = useState("");
@@ -140,37 +138,24 @@ export default function MentorFinancesPage() {
     setError(null);
     setSubmitting(true);
 
-    const methodDef = METHODS.find((m) => m.code === wMethod);
-    if (!methodDef) {
-      setError("Méthode inconnue.");
+    if (!wMethod) {
+      setError("Choisissez votre pays et votre moyen de retrait.");
       setSubmitting(false);
       return;
     }
-
-    const accountDetails: Record<string, string> = {};
-    if (methodDef.needs === "phone") {
-      if (!wPhone.trim()) {
-        setError("Téléphone requis.");
-        setSubmitting(false);
-        return;
-      }
-      accountDetails.phone = wPhone.trim();
-    } else if (methodDef.needs === "email") {
-      if (!wEmail.trim()) {
-        setError("Email PayPal requis.");
-        setSubmitting(false);
-        return;
-      }
-      accountDetails.email = wEmail.trim();
-    } else if (methodDef.needs === "bank") {
-      if (!wIban.trim() || !wHolder.trim()) {
-        setError("IBAN et titulaire requis.");
-        setSubmitting(false);
-        return;
-      }
-      accountDetails.iban = wIban.trim();
-      accountDetails.holder = wHolder.trim();
+    if (!wPhone.trim()) {
+      setError("Numéro requis : c'est lui qui recevra les fonds.");
+      setSubmitting(false);
+      return;
     }
+    // Le pays vient du moyen choisi : l'admin voit ainsi la destination exacte,
+    // et le versement automatique sait sur quel réseau envoyer.
+    const accountDetails: Record<string, string> = {
+      phone: wPhone.trim(),
+      msisdn: wPhone.trim(),
+    };
+    const paysMoyen = getOperator(wMethod)?.country;
+    if (paysMoyen) accountDetails.country = paysMoyen.toUpperCase();
 
     try {
       const res = await fetch("/api/formations/wallet", {
@@ -213,7 +198,6 @@ export default function MentorFinancesPage() {
     );
   }
 
-  const selectedMethod = METHODS.find((m) => m.code === wMethod);
   const available = wallet?.available ?? 0;
 
   return (
@@ -452,30 +436,21 @@ export default function MentorFinancesPage() {
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4 mt-5">
-              <div>
-                <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>Méthode</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {METHODS.map((m) => {
-                    const Icon = m.icon;
-                    const isSelected = wMethod === m.code;
-                    return (
-                      <button
-                        key={m.code}
-                        type="button"
-                        onClick={() => setWMethod(m.code)}
-                        className="flex flex-col items-center gap-1 p-2 rounded-[12px] transition-all"
-                        style={{
-                          border: isSelected ? `2px solid ${ST.green}` : `2px solid ${ST.cardBorder}`,
-                          background: isSelected ? "#f0faf3" : "#fff",
-                        }}
-                      >
-                        <Icon size={16} style={{ color: ST.green }} />
-                        <span className="text-[10px] font-extrabold" style={{ color: ST.text }}>{m.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+              {/* Même composant que l'écran de paiement, en sens « versement » :
+                  le mentor choisit son pays, ne voit que les moyens par
+                  lesquels on sait réellement lui envoyer l'argent, et saisit
+                  son numéro une seule fois. */}
+              <UnifiedPaymentScreen
+                direction="payout"
+                embedded
+                hideSubmit
+                amount={wAmount}
+                onPay={() => {}}
+                onSelectionChange={(sel) => {
+                  setWMethod(sel?.operator ?? "");
+                  setWPhone(sel?.phone ?? "");
+                }}
+              />
 
               <StInput
                 label="Montant (FCFA)"
@@ -488,46 +463,6 @@ export default function MentorFinancesPage() {
                 required
                 hint={`Min 5 000 · Max ${fmt(available)}`}
               />
-
-              {selectedMethod?.needs === "phone" && (
-                <StInput
-                  label="Numéro de téléphone"
-                  type="tel"
-                  value={wPhone}
-                  onChange={(e) => setWPhone(e.target.value)}
-                  placeholder="+221 77 123 45 67"
-                  required
-                />
-              )}
-              {selectedMethod?.needs === "email" && (
-                <StInput
-                  label="Email PayPal"
-                  type="email"
-                  value={wEmail}
-                  onChange={(e) => setWEmail(e.target.value)}
-                  placeholder="vous@exemple.com"
-                  required
-                />
-              )}
-              {selectedMethod?.needs === "bank" && (
-                <>
-                  <StInput
-                    label="Titulaire du compte"
-                    type="text"
-                    value={wHolder}
-                    onChange={(e) => setWHolder(e.target.value)}
-                    required
-                  />
-                  <StInput
-                    label="IBAN"
-                    type="text"
-                    value={wIban}
-                    onChange={(e) => setWIban(e.target.value)}
-                    placeholder="SN08 SN00 …"
-                    required
-                  />
-                </>
-              )}
 
               {/* Confirmation par e-mail (sécurité) */}
               <div className="rounded-xl border p-3" style={{ borderColor: ST.cardBorder, background: ST.bg }}>

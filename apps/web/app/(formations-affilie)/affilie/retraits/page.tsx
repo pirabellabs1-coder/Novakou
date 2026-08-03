@@ -2,19 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
+import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
+import { getOperator } from "@/lib/payments/registry";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDraftField, clearDrafts } from "@/lib/hooks/use-draft-storage";
-import { getAvailablePayoutMethods, PAYOUT_METHODS, isPayoutCountryDisabled, PAYOUT_DISABLED_MESSAGE } from "@/lib/moneroo-payout-methods";
+import { getAvailablePayoutMethods, isPayoutCountryDisabled } from "@/lib/moneroo-payout-methods";
 import { COUNTRIES } from "@/lib/countries";
 
 const DRAFT_PREFIX = "affilie:retrait";
 const MIN = 5000;
 
 // Pays couverts par au moins une méthode (sélecteur pays, comme au checkout).
-const PAYOUT_COUNTRY_OPTIONS = Array.from(new Set(PAYOUT_METHODS.flatMap((m) => m.countries)))
-  .map((code) => COUNTRIES.find((c) => c.code === code))
-  .filter((c): c is (typeof COUNTRIES)[number] => !!c)
-  .sort((a, b) => a.name.localeCompare(b.name));
 
 // Résout un pays (nom OU code) → code ISO-2 (le profil stocke souvent le nom).
 function toCountryCode(v: string | null | undefined): string {
@@ -68,7 +66,7 @@ export default function RetraitsPage() {
   const [selectedMethod, setSelectedMethod] = useDraftField(`${DRAFT_PREFIX}:method`, "");
   const [amount, setAmount] = useDraftField(`${DRAFT_PREFIX}:amount`, "");
   const [msisdn, setMsisdn] = useDraftField(`${DRAFT_PREFIX}:msisdn`, "");
-  const [iban, setIban] = useDraftField(`${DRAFT_PREFIX}:iban`, "");
+  const [iban] = useDraftField(`${DRAFT_PREFIX}:iban`, "");
   const [step, setStep] = useState<"form" | "confirm" | "success">("form");
   const [error, setError] = useState<string | null>(null);
 
@@ -89,10 +87,11 @@ export default function RetraitsPage() {
   useEffect(() => {
     if (!selectedCountry && userCountry) setSelectedCountry(toCountryCode(userCountry));
   }, [userCountry, selectedCountry]);
-  const methods = useMemo(
-    () => getAvailablePayoutMethods(selectedCountry || null) as unknown as PayoutMethod[],
-    [selectedCountry],
-  );
+  // TOUS les moyens versables, pas seulement ceux du pays du profil : c'est
+  // l'écran qui filtre par pays, et l'affilié peut retirer vers un autre pays
+  // que celui de son profil. Filtrée ici, la liste pouvait être vide et masquer
+  // tout le formulaire de retrait.
+  const methods = useMemo(() => getAvailablePayoutMethods(null) as unknown as PayoutMethod[], []);
   const available = data?.balance ?? 0;
   const reserved = data?.reserved ?? 0;
   const pendingValidation = data?.pending ?? 0;
@@ -233,80 +232,26 @@ export default function RetraitsPage() {
                   {amountNum > available && <p className="text-xs text-red-400 mt-2">Montant supérieur au solde disponible.</p>}
                 </div>
 
-                {/* Country — pilote la liste des méthodes (comme au paiement) */}
-                <div className="bg-[#0d1f17] rounded-2xl border border-[#1e3a2f] p-5">
-                  <label className="text-xs font-bold text-white mb-3 block">Pays</label>
-                  <select
-                    value={selectedCountry}
-                    onChange={(e) => { setSelectedCountry(e.target.value); setSelectedMethod(""); }}
-                    className="w-full bg-[#1e3a2f] text-white text-sm rounded-xl px-4 py-3 outline-none border border-[#1e3a2f] focus:border-[#22c55e] transition-colors"
-                  >
-                    <option value="">Choisir mon pays…</option>
-                    {PAYOUT_COUNTRY_OPTIONS.map((c) => (
-                      <option key={c.code} value={c.code}>{c.name}</option>
-                    ))}
-                  </select>
+                {/* EXACTEMENT l'écran de paiement, en sens « versement ».
+                    Posé sur un panneau clair : le composant est celui du
+                    tunnel d'achat, on ne le duplique pas pour le thème sombre —
+                    deux copies finiraient par se contredire. */}
+                <div className="bg-white rounded-2xl border border-[#1e3a2f] p-5">
+                  <UnifiedPaymentScreen
+                    direction="payout"
+                    embedded
+                    hideSubmit
+                    amount={amountNum}
+                    defaultCountry={selectedCountry || null}
+                    onPay={() => {}}
+                    onSelectionChange={(sel) => {
+                      setSelectedMethod(sel?.operator ?? "");
+                      setMsisdn(sel?.phone ?? "");
+                      const pays = sel ? getOperator(sel.operator)?.country : null;
+                      if (pays) setSelectedCountry(pays.toUpperCase());
+                    }}
+                  />
                 </div>
-
-                {/* Pays de retrait pas encore ouvert → message d'indisponibilité */}
-                {countryDisabled && (
-                  <div className="bg-[#1f1a0d] rounded-2xl border border-[#3a331e] p-5 flex items-start gap-3">
-                    <span className="material-symbols-outlined text-[20px] text-amber-400">schedule</span>
-                    <p className="text-xs text-amber-200 font-semibold leading-relaxed">{PAYOUT_DISABLED_MESSAGE}</p>
-                  </div>
-                )}
-
-                {/* Method */}
-                {!countryDisabled && (
-                <div className="bg-[#0d1f17] rounded-2xl border border-[#1e3a2f] p-5">
-                  <label className="text-xs font-bold text-white mb-3 block">Méthode de retrait</label>
-                  <div className="space-y-2">
-                    {methods.map((m) => (
-                      <button
-                        key={m.id} onClick={() => setSelectedMethod(m.id)}
-                        className={`w-full flex items-center gap-3 p-3 rounded-xl text-left border transition-all ${
-                          (method?.id === m.id) ? "border-[#22c55e]/50 bg-[#22c55e]/10" : "border-[#1e3a2f] hover:border-[#1e3a2f]/80"
-                        }`}
-                      >
-                        <span className="material-symbols-outlined text-[20px] text-[#22c55e]">{m.icon}</span>
-                        <div className="flex-1 min-w-0">
-                          <span className="text-sm font-semibold text-white">{m.label}</span>
-                          <p className="text-[10px] text-[#5c9e7a]">{m.processingTime} · Frais : 0 FCFA</p>
-                        </div>
-                        {method?.id === m.id && <CheckCircle2 size={18} className="text-[#22c55e] flex-shrink-0" />}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Destination details */}
-                  {method && (
-                    <div className="mt-4">
-                      {needsMsisdn && (
-                        <>
-                          <label className="text-xs font-bold text-white mb-2 block">Numéro Mobile Money</label>
-                          <input
-                            type="tel" value={msisdn} onChange={(e) => setMsisdn(e.target.value)}
-                            placeholder={method.placeholder.msisdn || "+225 07 09 87 65 43"}
-                            className="w-full bg-[#1e3a2f] text-white text-sm rounded-xl px-4 py-3 outline-none border border-[#1e3a2f] focus:border-[#22c55e] transition-colors"
-                          />
-                          <p className="text-[10px] text-[#5c9e7a] mt-1.5">Le numéro qui recevra les fonds. Vérifiez-le bien.</p>
-                        </>
-                      )}
-                      {needsIban && (
-                        <>
-                          <label className="text-xs font-bold text-white mb-2 block">IBAN</label>
-                          <input
-                            type="text" value={iban} onChange={(e) => setIban(e.target.value)}
-                            placeholder={method.placeholder.iban || "FR76 …"}
-                            className="w-full bg-[#1e3a2f] text-white text-sm rounded-xl px-4 py-3 outline-none border border-[#1e3a2f] focus:border-[#22c55e] transition-colors font-mono"
-                          />
-                          <p className="text-[10px] text-[#5c9e7a] mt-1.5">Compte bancaire du bénéficiaire.</p>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-                )}
 
                 <button
                   onClick={handleWithdraw} disabled={!isValid}

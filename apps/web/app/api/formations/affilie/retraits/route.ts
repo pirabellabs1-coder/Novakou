@@ -6,6 +6,7 @@ import { IS_DEV } from "@/lib/env";
 import { z } from "zod";
 import {
   getPayoutMethod,
+  isPayoutMethodServable,
   normalizeMsisdn,
   shortMethodLabel,
   isPayoutMethodDisabled,
@@ -126,7 +127,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Coordonnées requises (méthodes Moneroo affiliés = Mobile Money → msisdn).
+    // Moyen qu'aucune passerelle ne sait payer → refus immédiat plutôt qu'une
+    // demande qui resterait bloquée en attente d'une action admin.
+    {
+      const def = getPayoutMethod(method);
+      if (def && def.category === "mobile_money" && !isPayoutMethodServable(method)) {
+        return NextResponse.json(
+          {
+            error: `${def.label} n'est pas disponible au retrait pour le moment. Choisissez un autre moyen.`,
+            code: "PAYOUT_METHOD_UNAVAILABLE",
+          },
+          { status: 400 },
+        );
+      }
+    }
+
+    // Coordonnées requises (Mobile Money → msisdn).
     const accountDetails: Record<string, string> = {};
     if (methodDef.requiredFields.includes("msisdn")) {
       if (!msisdn || !msisdn.trim())

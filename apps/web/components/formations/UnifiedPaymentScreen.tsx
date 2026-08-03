@@ -47,6 +47,7 @@ export function UnifiedPaymentScreen({
   embedded = false,
   hideSubmit = false,
   onSelectionChange,
+  direction = "collect",
 }: {
   amount: number;
   currencyLabel?: string;
@@ -79,6 +80,13 @@ export function UnifiedPaymentScreen({
    * la page hôte sache quoi envoyer et s'il peut être activé.
    */
   onSelectionChange?: (sel: { operator: string; phone?: string; hosted: boolean } | null) => void;
+  /**
+   * Sens de l'opération. « payout » sert les écrans de RETRAIT (vendeur,
+   * affilié, mentor) : mêmes gestes pour le vendeur que pour l'acheteur —
+   * choisir son pays, voir les moyens réellement disponibles, saisir son
+   * numéro. Un second écran aurait divergé du premier au premier correctif.
+   */
+  direction?: "collect" | "payout";
 }) {
   const [country, setCountry] = useState<string>((defaultCountry ?? "").toLowerCase());
   const [countries, setCountries] = useState<Array<{ code: string; operators: number }>>([]);
@@ -128,11 +136,11 @@ export function UnifiedPaymentScreen({
       setCountry((prev) => prev || demoData.countries[0] || "");
       return;
     }
-    fetch("/api/formations/public/payment-options")
+    fetch(direction === "payout" ? "/api/formations/payout-options" : "/api/formations/public/payment-options")
       .then((r) => r.json())
       .then((j) => setCountries(j.data?.countries ?? []))
       .catch(() => setCountries([]));
-  }, [demoData]);
+  }, [demoData, direction]);
 
   // Moyens du pays choisi.
   useEffect(() => {
@@ -143,7 +151,11 @@ export function UnifiedPaymentScreen({
     }
     if (!country) { setOptions([]); setSelected(null); return; }
     setLoading(true);
-    fetch(`/api/formations/public/payment-options?country=${encodeURIComponent(country)}`)
+    fetch(
+      direction === "payout"
+        ? `/api/formations/payout-options?country=${encodeURIComponent(country)}`
+        : `/api/formations/public/payment-options?country=${encodeURIComponent(country)}`,
+    )
       .then((r) => r.json())
       .then((j) => {
         const opts: Option[] = j.data?.options ?? [];
@@ -152,7 +164,7 @@ export function UnifiedPaymentScreen({
       })
       .catch(() => setOptions([]))
       .finally(() => setLoading(false));
-  }, [country, demoData]);
+  }, [country, demoData, direction]);
 
   const current = options.find((o) => o.code === selected) ?? null;
   const needsPhone = current?.family === "mobile_money";
@@ -177,7 +189,11 @@ export function UnifiedPaymentScreen({
     <>
         {/* ── Colonne droite : moyen + numéro + payer ──────────────────── */}
         <div className={embedded ? "" : "p-6 sm:p-8 md:p-10"}>
-          {!embedded && <h2 className="text-[24px] font-extrabold text-[#191c1e]">Vos informations</h2>}
+          {!embedded && (
+            <h2 className="text-[24px] font-extrabold text-[#191c1e]">
+              {direction === "payout" ? "Votre retrait" : "Vos informations"}
+            </h2>
+          )}
 
           {/* Pays */}
           <label className="block text-[15px] font-extrabold text-[#191c1e] mt-7 mb-2.5">
@@ -237,7 +253,7 @@ export function UnifiedPaymentScreen({
 
           {/* Moyens */}
           <p className="text-[15px] font-extrabold text-[#191c1e] mt-7 mb-2.5">
-            Choisissez votre moyen de paiement
+            {direction === "payout" ? "Choisissez votre moyen de retrait" : "Choisissez votre moyen de paiement"}
           </p>
 
           {!country ? (
@@ -324,7 +340,9 @@ export function UnifiedPaymentScreen({
                 />
               </div>
               <p className="text-[12px] font-medium text-[#98a1b3] mt-2">
-                Vous recevrez une demande de confirmation sur ce numéro.
+                {direction === "payout"
+                  ? "L'argent sera envoyé sur ce numéro. Vérifiez-le : un versement parti ne se rattrape pas."
+                  : "Vous recevrez une demande de confirmation sur ce numéro."}
               </p>
             </div>
           )}
@@ -362,7 +380,7 @@ export function UnifiedPaymentScreen({
             ) : current?.hosted ? (
               <>Payer {fmt(amount)} {currencyLabel} <ExternalLink size={16} /></>
             ) : (
-              <>Payer {fmt(amount)} {currencyLabel}</>
+              <>{direction === "payout" ? "Retirer" : "Payer"} {fmt(amount)} {currencyLabel}</>
             )}
           </button>
           )}

@@ -11,7 +11,7 @@
 
 import { useEffect, useState } from "react";
 import { useToastStore } from "@/store/toast";
-import { PAYOUT_METHODS } from "@/lib/moneroo-payout-methods";
+import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
 import {
   StCard,
   StPageHeader,
@@ -48,14 +48,12 @@ interface Payout {
 }
 
 const METHODS = [
-  { value: "mobile_money", label: "Mobile Money (versement auto Moneroo)" },
+  { value: "mobile_money", label: "Mobile Money (versement automatique)" },
   { value: "virement", label: "Virement bancaire (IBAN) — manuel" },
   { value: "paypal", label: "PayPal — manuel" },
   { value: "wise", label: "Wise — manuel" },
 ];
 
-// Opérateurs Mobile Money Moneroo (codes exacts du catalogue) pour le versement auto.
-const MM_OPERATORS = PAYOUT_METHODS.filter((m) => m.category === "mobile_money").map((m) => ({ value: m.id, label: m.label }));
 
 function fmtFCFA(n: number) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(n)) + " FCFA";
@@ -68,7 +66,7 @@ export default function AdminRetraitsPage() {
   const [withdrawals, setWithdrawals] = useState<Payout[]>([]);
   const [amount, setAmount] = useState<number>(0);
   const [method, setMethod] = useState("mobile_money");
-  const [monerooMethod, setMonerooMethod] = useState(MM_OPERATORS[0]?.value ?? "");
+  const [operateur, setOperateur] = useState("");
   const [accountInput, setAccountInput] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -130,7 +128,7 @@ export default function AdminRetraitsPage() {
       toast("warning", `${accountLabel[method]} requis`);
       return;
     }
-    if (method === "mobile_money" && !monerooMethod) {
+    if (method === "mobile_money" && !operateur) {
       toast("warning", "Choisissez votre opérateur Mobile Money");
       return;
     }
@@ -141,7 +139,7 @@ export default function AdminRetraitsPage() {
 
     const details: Record<string, string> = {};
     if (method === "virement") details.iban = accountInput.trim();
-    else if (method === "mobile_money") { details.phone = accountInput.trim(); details.monerooMethod = monerooMethod; }
+    else if (method === "mobile_money") { details.phone = accountInput.trim(); details.monerooMethod = operateur; }
     else details.email = accountInput.trim();
 
     setSubmitting(true);
@@ -304,40 +302,39 @@ export default function AdminRetraitsPage() {
               </select>
             </div>
 
-            {method === "mobile_money" && (
+            {method === "mobile_money" ? (
+              <div className="md:col-span-2 rounded-xl border p-4" style={{ borderColor: "#dde6e0", background: "#fff" }}>
+                {/* Le même écran que le vendeur, l'affilié et le mentor : pays,
+                    moyen réellement versable, numéro. Un formulaire admin
+                    distinct finirait par proposer des opérateurs que le reste
+                    de la plateforme a cessé de servir. */}
+                <UnifiedPaymentScreen
+                  direction="payout"
+                  embedded
+                  hideSubmit
+                  amount={amount}
+                  onPay={() => {}}
+                  onSelectionChange={(sel) => {
+                    setOperateur(sel?.operator ?? "");
+                    setAccountInput(sel?.phone ?? "");
+                  }}
+                />
+              </div>
+            ) : (
               <div className="md:col-span-2">
                 <label className="block text-[12px] font-extrabold mb-2" style={{ color: ST.textLabel }}>
-                  Opérateur Mobile Money
+                  {accountLabel[method]}
                 </label>
-                <select
-                  value={monerooMethod}
-                  onChange={(e) => setMonerooMethod(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl text-[13.5px] font-semibold focus:outline-none transition-all"
+                <input
+                  type="text"
+                  value={accountInput}
+                  onChange={(e) => setAccountInput(e.target.value)}
+                  placeholder={accountPlaceholder[method]}
+                  className="w-full px-4 py-3 rounded-xl text-[13.5px] font-mono focus:outline-none transition-all"
                   style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
-                >
-                  {MM_OPERATORS.map((m) => (
-                    <option key={m.value} value={m.value}>{m.label}</option>
-                  ))}
-                </select>
-                <p className="text-[11.5px] mt-1.5" style={{ color: ST.textMuted }}>
-                  Versement automatique via Moneroo — tracé et confirmé par webhook.
-                </p>
+                />
               </div>
             )}
-
-            <div className="md:col-span-2">
-              <label className="block text-[12px] font-extrabold mb-2" style={{ color: ST.textLabel }}>
-                {accountLabel[method]}
-              </label>
-              <input
-                type="text"
-                value={accountInput}
-                onChange={(e) => setAccountInput(e.target.value)}
-                placeholder={accountPlaceholder[method]}
-                className="w-full px-4 py-3 rounded-xl text-[13.5px] font-mono focus:outline-none transition-all"
-                style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
-              />
-            </div>
 
             <div className="md:col-span-2">
               <label className="block text-[12px] font-extrabold mb-2" style={{ color: ST.textLabel }}>

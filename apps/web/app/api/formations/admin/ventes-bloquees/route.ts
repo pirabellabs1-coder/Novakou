@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { IS_DEV } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
+import { estSondeDiagnostic } from "@/lib/payments/diagnostic-probe";
 
 /**
  * GET /api/formations/admin/ventes-bloquees   (admin uniquement)
@@ -78,6 +79,9 @@ export async function GET() {
    */
   const aVerifier = tentatives
     .filter((t) => ["STARTED", "ABANDONED"].includes(t.status) && t.providerRef && t.createdAt < seuil)
+    // Les sondes de diagnostic ne sont pas des ventes : elles resteront
+    // éternellement en attente et masqueraient les vraies.
+    .filter((t) => !estSondeDiagnostic(t))
     .map((t) => {
       const meta = (t.metadata ?? {}) as Record<string, unknown>;
       return {
