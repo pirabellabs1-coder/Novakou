@@ -1,11 +1,11 @@
 // PayGenius (GeniusPay) payment integration — https://pay.genius.ci/docs/api
 //
-// Architecture parallèle à lib/moneroo.ts :
+// Architecture parallèle à lib/passerelle.ts :
 //   - initPayment / retrievePayment : checkout client
 //   - initPayout / retrievePayout   : retrait vendeur (cashout)
 //   - verifyPayGeniusSignature      : HMAC-SHA256 utilisé par le webhook
 //
-// Différences vs Moneroo :
+// Différences vs la passerelle :
 //   1. Auth = headers X-API-Key + X-API-Secret (PAS Bearer)
 //   2. Devise par défaut = XOF (PayGenius est XOF-natif)
 //   3. Téléphone bénéficiaire = format E.164 AVEC le `+` en tête
@@ -47,7 +47,7 @@ export function isPayGeniusConfigured(): boolean {
 
 // ─── METADATA SANITIZE ───────────────────────────────────────────────────────
 // PayGenius accepte un objet metadata libre, mais on garde la même politique
-// que Moneroo (string/number/boolean uniquement) pour rester portable.
+// que la passerelle (string/number/boolean uniquement) pour rester portable.
 function sanitizeMetadata(meta?: Record<string, unknown>): Record<string, string | number | boolean> | undefined {
   if (!meta) return undefined;
   const out: Record<string, string | number | boolean> = {};
@@ -99,7 +99,7 @@ export type PayGeniusRawStatus =
 
 /**
  * Statut normalisé pour rester compatible avec le pipeline webhook hérité de
- * Moneroo. On mappe `completed` → `success`, le reste passe tel quel.
+ * la passerelle. On mappe `completed` → `success`, le reste passe tel quel.
  */
 export type PayGeniusStatus =
   | "pending"

@@ -14,9 +14,9 @@
  *     amount, currency, ...
  *   }
  *
- * IMPORTANT — différences avec Moneroo :
+ * IMPORTANT — différences avec la passerelle :
  *   1. PayGenius veut le téléphone bénéficiaire AVEC le `+` en tête (E.164).
- *      Moneroo le voulait SANS le `+` (digits only). On normalise différemment.
+ *      la passerelle le voulait SANS le `+` (digits only). On normalise différemment.
  *   2. PayGenius est XOF-natif. Pour les payouts on force XOF.
  *   3. Les codes provider sont génériques (`orange_money`, `mtn`) sans suffixe pays —
  *      PayGenius infère le pays à partir du préfixe téléphone.
@@ -29,7 +29,7 @@ export type PayGeniusPayoutProviderCode = "wave" | "orange_money" | "mtn" | "moo
 
 export interface PayGeniusPayoutMethodDef {
   /** Code interne stocké côté Novakou (ex: "wave_ci_pg"). On suffixe `_pg` pour
-   *  ne pas collisionner avec les codes Moneroo en DB. */
+   *  ne pas collisionner avec les codes la passerelle en DB. */
   id: string;
   /** Libellé affiché à l'utilisateur. */
   label: string;

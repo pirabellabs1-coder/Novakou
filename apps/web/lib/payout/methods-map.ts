@@ -1,7 +1,7 @@
 // Table de correspondance des opérateurs de payout.
 //
 // Novakou stocke l'opérateur choisi par le bénéficiaire dans le champ `method`
-// (codes Moneroo : "mtn_bj", "orange_ci"…) et le numéro dans
+// (codes la passerelle : "mtn_bj", "orange_ci"…) et le numéro dans
 // `accountDetails.msisdn`. Pour verser via un AUTRE fournisseur (FeexPay,
 // FedaPay), il faut traduire ce code interne vers le code natif du fournisseur.
 //
@@ -34,7 +34,7 @@ export type PayoutMethodMapping = {
 };
 
 /**
- * Clé = code interne (= code méthode Moneroo, cf. moneroo-payout-methods.ts).
+ * Clé = code interne du moyen (cf. lib/payments/payout-catalog.ts).
  *
  * feexpay : codes relevés dans la doc FeexPay 2026-07 (section API > Payout).
  * fedapay : SEULS mtn_bj/moov_bj/togocel sont confirmés par la doc (exemple
@@ -59,14 +59,14 @@ export const PAYOUT_METHOD_MAP: Record<string, PayoutMethodMapping> = {
   orange_ci:{ country: "ci", currency: "XOF", feexpay: { endpoint: "orange_ci" } },
   moov_ci:  { country: "ci", currency: "XOF", feexpay: { endpoint: "moov_ci" } },
   wave_ci:  { country: "ci", currency: "XOF", feexpay: { endpoint: "wave_ci" } },
-  // djamo_ci : ni FeexPay ni FedaPay → seulement Moneroo.
+  // djamo_ci : ni FeexPay ni FedaPay → seulement la passerelle.
   djamo_ci: { country: "ci", currency: "XOF" },
 
   // ── Sénégal (XOF) ── (FedaPay : à confirmer)
   orange_sn:   { country: "sn", currency: "XOF", feexpay: { endpoint: "orange_sn" } },
   wave_sn:     { country: "sn", currency: "XOF", feexpay: { endpoint: "wave_sn" } },
   freemoney_sn:{ country: "sn", currency: "XOF", feexpay: { endpoint: "free_sn" } },
-  // e_money_sn / djamo_sn : pas d'endpoint FeexPay dédié → Moneroo seul.
+  // e_money_sn / djamo_sn : pas d'endpoint FeexPay dédié → la passerelle seul.
   e_money_sn:  { country: "sn", currency: "XOF" },
   djamo_sn:    { country: "sn", currency: "XOF" },
 
@@ -84,7 +84,7 @@ export const PAYOUT_METHOD_MAP: Record<string, PayoutMethodMapping> = {
   // ── Mali (XOF) ── (FedaPay : à confirmer)
   orange_ml: { country: "ml", currency: "XOF", feexpay: { endpoint: "orange_ml" } },
 
-  // ── Cameroun (XAF) ── ni FeexPay ni FedaPay confirmés → Moneroo seul.
+  // ── Cameroun (XAF) ── ni FeexPay ni FedaPay confirmés → la passerelle seul.
   orange_cm: { country: "cm", currency: "XAF" },
   mtn_cm:    { country: "cm", currency: "XAF" },
 };

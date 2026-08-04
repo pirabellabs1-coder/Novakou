@@ -1,7 +1,7 @@
 /**
  * Checkout fulfillment — logique partagée entre :
  *   - /api/formations/checkout (chemin "free" / mock)
- *   - /api/webhooks/moneroo (après confirmation réelle de paiement)
+ *   - /api/webhooks/passerelle (après confirmation réelle de paiement)
  *
  * Prend une commande validée (user + items + discount + affilié) et :
  *   1. Crée Enrollment / DigitalProductPurchase
@@ -13,7 +13,7 @@
  *   7. Crée les notifications in-app
  *
  * Idempotent : si l'enrollment existe déjà pour (userId, formationId), on skip
- * (le webhook peut être appelé deux fois par Moneroo en cas de retry).
+ * (le webhook peut être appelé deux fois par la passerelle en cas de retry).
  */
 
 import { prisma } from "@/lib/prisma";
@@ -65,6 +65,16 @@ export interface FulfillParams {
    * entre l'init et le webhook. Absent (chemin gratuit/mock) → décision fraîche.
    */
   chargedDiscountAmount?: number | null;
+  /**
+   * Achat d'un PACK. Le pack se paie MOINS CHER que la somme de ses éléments —
+   * c'est sa raison d'être. Sans cette information, le garde-fou anti-fraude
+   * ci-dessous compare le montant reçu à la somme des prix unitaires et REFUSE
+   * la livraison : l'acheteur aurait payé sans rien recevoir.
+   *
+   * Le prix ET le contenu sont relus en base : passer un identifiant de pack
+   * bon marché avec des formations chères en plus ne donne rien de plus.
+   */
+  bundleId?: string | null;
 }
 
 /** Levée quand le montant reçu ne correspond pas au prix recalculé serveur. */
@@ -91,8 +101,26 @@ export interface FulfillResult {
 }
 
 export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> {
-  const { userId, formationIds, productIds, discountCodeStr, sessionRef } = p;
+  const { userId, discountCodeStr, sessionRef } = p;
   const affiliate = p.affiliate ?? null;
+
+  // ── PACK ──────────────────────────────────────────────────────────────────
+  // Contenu et prix relus en base. Quand un pack est en jeu, on ne livre QUE
+  // ses éléments : tout identifiant supplémentaire arrivé par ailleurs est
+  // ignoré, sinon un pack à 5 000 F servirait à obtenir une formation à 50 000.
+  const pack = p.bundleId
+    ? await prisma.productBundle.findFirst({
+        where: { id: p.bundleId, isActive: true },
+        select: { id: true, priceXof: true, items: { select: { formationId: true, productId: true } } },
+      })
+    : null;
+
+  const formationIds = pack
+    ? pack.items.map((i) => i.formationId).filter((x): x is string => !!x)
+    : p.formationIds;
+  const productIds = pack
+    ? pack.items.map((i) => i.productId).filter((x): x is string => !!x)
+    : p.productIds;
 
   const [formations, products, user] = await Promise.all([
     formationIds.length > 0
@@ -131,16 +159,18 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
 
   // Lien de paiement à PRIX LIBRE (commande d'un seul produit) : le montant
   // « attendu » N'EST PAS le prix suggéré mais le montant réellement payé par
-  // l'acheteur (vérifié par Moneroo). On aligne subTotal dessus pour que le
+  // l'acheteur (vérifié par la passerelle). On aligne subTotal dessus pour que le
   // garde-fou anti-fraude ci-dessous et la ventilation restent cohérents.
   const singleCustomLink =
     formations.length === 0 && products.length === 1 &&
     products[0].isPaymentLink && products[0].allowCustomAmount &&
     typeof p.expectedAmountReceived === "number" && p.expectedAmountReceived > 0;
 
-  const subTotal = singleCustomLink
-    ? Math.round(p.expectedAmountReceived as number)
-    : formations.reduce((s, f) => s + f.price, 0) + products.reduce((s, p) => s + p.price, 0);
+  const subTotal = pack
+    ? pack.priceXof
+    : singleCustomLink
+      ? Math.round(p.expectedAmountReceived as number)
+      : formations.reduce((s, f) => s + f.price, 0) + products.reduce((s, p) => s + p.price, 0);
 
   // Code promo — MÊME source de vérité qu'au checkout (computeCheckoutDiscount) :
   // le montant recalculé ici == le montant débité à l'init (déterministe), donc
@@ -743,6 +773,32 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
     } catch (e) {
       console.error("[fulfillment capi]", e);
     }
+  }
+
+  // ── Trace de l'achat du PACK ──────────────────────────────────────────────
+  // Les formations et produits sont déjà livrés au-dessus. Ceci enregistre
+  // l'achat du pack en tant que tel : statistiques vendeur, droit de laisser un
+  // avis, historique d'achat. `paymentRef` est unique en base, donc une
+  // deuxième livraison du même paiement ne crée pas de doublon.
+  if (pack) {
+    await prisma.productBundlePurchase
+      .upsert({
+        where: { paymentRef: sessionRef },
+        update: {},
+        create: {
+          bundleId: pack.id,
+          userId,
+          paidAmount: Math.round(totalAmount),
+          paymentRef: sessionRef,
+          provider: "novakou",
+          status: "PAID",
+        },
+      })
+      .catch((err) => {
+        // Ne JAMAIS faire échouer une livraison déjà effectuée pour une trace
+        // manquante : l'acheteur a son contenu, c'est ce qui compte.
+        console.error("[fulfillment pack] trace non enregistrée", err);
+      });
   }
 
   return {

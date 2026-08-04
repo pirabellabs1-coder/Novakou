@@ -1,7 +1,7 @@
 // Auto-versement d'un retrait EN_ATTENTE (vendeur / mentor / affilié).
 //
 // Objectif : « validation auto » — dès qu'un retrait est demandé, on déclenche
-// le versement réel via l'orchestrateur (Moneroo → FeexPay → FedaPay) sans
+// le versement réel via l'orchestrateur (FeexPay → FedaPay) sans
 // étape d'approbation admin.
 //
 // ── Dégradations SÛRES (aucun blocage vendeur, aucun double paiement) ──
@@ -20,7 +20,7 @@ import {
   normalizeMsisdn,
   resolveLegacyMethod,
   shortMethodLabel,
-} from "@/lib/moneroo-payout-methods";
+} from "@/lib/payments/payout-catalog";
 import { computeVendorBalance, computeMentorBalance } from "@/lib/formations/wallet-balance";
 import { isFeexpayConfigured } from "@/lib/feexpay";
 import { isFedapayConfigured } from "@/lib/fedapay";

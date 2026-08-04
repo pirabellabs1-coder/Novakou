@@ -59,9 +59,10 @@ export type GatewayRow = {
 /**
  * Identifiants hérités des variables d'environnement.
  *
- * Les passerelles historiques sont configurées par env (MONEROO_SECRET_KEY…).
- * Sans ce repli, la page admin les afficherait « non configurées » alors
- * qu'elles encaissent réellement — l'écran mentirait sur l'état du système.
+ * Les passerelles se configurent côté admin, avec repli sur les variables
+ * d'environnement. Sans ce repli, la page admin les afficherait « non
+ * configurées » alors qu'elles encaissent réellement — l'écran mentirait sur
+ * l'état du système.
  * Les identifiants saisis en base restent PRIORITAIRES : dès que l'admin en
  * enregistre, ce sont eux qui priment.
  */

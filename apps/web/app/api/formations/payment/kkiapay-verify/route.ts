@@ -115,6 +115,7 @@ export async function POST(req: NextRequest) {
         productIds: toIds(meta.productIds),
         discountCodeStr: typeof meta.discountCode === "string" && meta.discountCode ? meta.discountCode : null,
         sessionRef: internalRef,
+        bundleId: typeof meta.bundleId === "string" ? meta.bundleId : null,
       });
     } catch (err) {
       // Encaissé mais non livré : on laisse la tentative ouverte pour que le

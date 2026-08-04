@@ -12,7 +12,7 @@
  *   - JAMAIS de numéro de carte complet ni de CVV : pour une carte on
  *     n'accepte QUE label + brand + last4 (4 chiffres). Tout champ contenant
  *     plus de 8 chiffres consécutifs (hors téléphone Mobile Money) est rejeté.
- *   - Les cartes réelles restent traitées sur la page hébergée Moneroo.
+ *   - Les cartes réelles restent traitées sur la page hébergée la passerelle.
  */
 
 import { NextResponse } from "next/server";
@@ -235,7 +235,7 @@ export async function POST(request: Request) {
           error:
             "Pour votre sécurité, n'entrez jamais votre numéro de carte complet ici. " +
             "Seuls les 4 derniers chiffres sont acceptés — le paiement par carte " +
-            "est traité sur la page sécurisée Moneroo.",
+            "est traité sur la page sécurisée du fournisseur.",
         },
         { status: 400 },
       );
@@ -256,7 +256,7 @@ export async function POST(request: Request) {
     }
     data.brand = brand;
     data.last4 = last4;
-    data.provider = "moneroo";
+    data.provider = "passerelle";
     const expMonth = Number(body.expMonth);
     const expYear = Number(body.expYear);
     if (Number.isInteger(expMonth) && expMonth >= 1 && expMonth <= 12) data.expMonth = expMonth;

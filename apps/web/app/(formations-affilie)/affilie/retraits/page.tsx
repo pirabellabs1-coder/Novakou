@@ -6,7 +6,7 @@ import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScre
 import { getOperator } from "@/lib/payments/registry";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDraftField, clearDrafts } from "@/lib/hooks/use-draft-storage";
-import { getAvailablePayoutMethods, isPayoutCountryDisabled } from "@/lib/moneroo-payout-methods";
+import { getAvailablePayoutMethods, isPayoutCountryDisabled } from "@/lib/payments/payout-catalog";
 import { COUNTRIES } from "@/lib/countries";
 
 const DRAFT_PREFIX = "affilie:retrait";

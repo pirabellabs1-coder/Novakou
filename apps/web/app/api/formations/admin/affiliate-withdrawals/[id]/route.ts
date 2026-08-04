@@ -7,7 +7,7 @@ import {
   getPayoutMethod,
   normalizeMsisdn,
   shortMethodLabel,
-} from "@/lib/moneroo-payout-methods";
+} from "@/lib/payments/payout-catalog";
 import { sendWithdrawalPaidEmail, sendWithdrawalFailedEmail } from "@/lib/email/withdrawals";
 import { executePayout } from "@/lib/payout/execute";
 import { isFeexpayConfigured } from "@/lib/feexpay";
@@ -132,10 +132,10 @@ export async function PATCH(request: Request, { params }: Params) {
       return NextResponse.json({ data: { id, status: "TRAITE", mode: "manual" } });
     }
 
-    // ─── Mode Moneroo : déclencher un vrai payout ──────────────────────────────
+    // ─── Mode automatique : déclencher un vrai payout ──────────────────────────────
     const methodDef = getPayoutMethod(w.method);
     if (!methodDef) {
-      return NextResponse.json({ error: `Méthode "${w.method}" inconnue dans le catalogue Moneroo.` }, { status: 400 });
+      return NextResponse.json({ error: `Méthode "${w.method}" inconnue dans le catalogue des versements.` }, { status: 400 });
     }
 
     const recipient: Record<string, string> = {};
@@ -155,7 +155,7 @@ export async function PATCH(request: Request, { params }: Params) {
       return NextResponse.json({ error: `Coordonnées incomplètes : ${missing.join(", ")}` }, { status: 400 });
     }
 
-    // ── VERSEMENT via orchestrateur : Moneroo → FeexPay → FedaPay ──────────────
+    // ── VERSEMENT via orchestrateur : FeexPay → FedaPay ──────────────
     console.log(`[affiliate payout] id=${id} amount=${Math.round(w.amount)} method=${methodDef.id}`);
     const exec = await executePayout({
       method: methodDef.id,

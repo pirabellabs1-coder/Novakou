@@ -26,7 +26,7 @@ import {
   StInput,
   ST,
 } from "@/components/stitch";
-import { shortMethodLabel, getAvailablePayoutMethods, isPayoutCountryDisabled, PAYOUT_DISABLED_MESSAGE } from "@/lib/moneroo-payout-methods";
+import { shortMethodLabel, getAvailablePayoutMethods, isPayoutCountryDisabled, PAYOUT_DISABLED_MESSAGE } from "@/lib/payments/payout-catalog";
 import { COUNTRIES } from "@/lib/countries";
 import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
 import { getOperator } from "@/lib/payments/registry";

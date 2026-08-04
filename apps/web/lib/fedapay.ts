@@ -1,7 +1,7 @@
 // FedaPay — intégration PAYOUT (versement vers Mobile Money).
 // Docs : https://docs.fedapay.com/  (section « Payouts »)
 //
-// Ajouté comme 3e fournisseur de payout (après Moneroo et FeexPay) pour la
+// Ajouté comme 3e fournisseur de payout (après la passerelle et FeexPay) pour la
 // bascule automatique — voir lib/payout/execute.ts.
 //
 // Particularité : un payout FedaPay se fait en DEUX temps —
@@ -194,7 +194,7 @@ export function classifyFedapayError(msg: string): { category: FedapayErrorCateg
   return { category: "unknown", userMessage: `Erreur FedaPay : ${msg}` };
 }
 
-/** Normalise un statut FedaPay vers le vocabulaire interne (comme Moneroo). */
+/** Normalise un statut FedaPay vers le vocabulaire interne. */
 export function normalizeFedapayStatus(s: FedapayPayoutStatus | string): "success" | "failed" | "pending" {
   const v = String(s).toLowerCase();
   if (v === "sent") return "success";

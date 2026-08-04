@@ -759,7 +759,7 @@ const PAY_METHOD_META: Record<string, { label: string; Icon: LucideIcon }> = {
 };
 // Méthodes réellement proposables à l'acheteur.
 // PayPal et le virement bancaire en sont volontairement ABSENTS : la passerelle
-// (Moneroo) n'expose aucun moyen PayPal, et son seul virement (`bank_transfer_ng`)
+// (la passerelle) n'expose aucun moyen PayPal, et son seul virement (`bank_transfer_ng`)
 // est réservé au Nigeria/NGN — donc inutilisable pour nos paiements en XOF.
 // Les afficher promettait à l'acheteur un moyen qui ne pouvait pas aboutir : il
 // se retrouvait renvoyé vers le paiement mobile. On ne montre que ce qui marche.
@@ -895,7 +895,7 @@ function ProductBlock({ data, theme }: { data: Record<string, unknown>; theme: T
 
 // ═══════════════════════════════════════════════════════════════════════════
 // CHECKOUT BLOCK — vraie page de paiement inline (récap + order bump + promo +
-// coordonnées → payment/init → page sécurisée Moneroo)
+// coordonnées → payment/init → page sécurisée la passerelle)
 // ═══════════════════════════════════════════════════════════════════════════
 type BumpInfo = { id: string; title: string; description: string | null; imageUrl: string | null; price: number; originalPrice: number | null };
 
@@ -2642,7 +2642,7 @@ function renderBlockInner(block: Block, theme: Theme, onCta: () => void, parentC
     case "content-box": return <ContentBoxBlock key={block.id} data={block.data} theme={effTheme} onCta={onCta} parentColor={parentColor} funnelSlug={funnelSlug} salesLimit={salesLimit} salesCount={salesCount} ownerId={block.id} />;
     // Product
     case "product": return <ProductBlock key={block.id} data={block.data} theme={effTheme} />;
-    // Checkout — vraie page de paiement inline (order bump, promo, Moneroo)
+    // Checkout — vraie page de paiement inline (order bump, promo, la passerelle)
     case "checkout": return <CheckoutBlock key={block.id} data={block.data} theme={effTheme} />;
     // Lead capture (page de capture)
     case "lead-form": return <LeadFormBlock key={block.id} data={block.data} theme={effTheme} onCta={onCta} funnelSlug={funnelSlug} />;

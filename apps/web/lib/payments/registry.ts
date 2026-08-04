@@ -6,7 +6,7 @@
 // encaisser, qui sait reverser, et avec quel code natif.
 //
 // ─── MONEROO EST RETIRÉ (décision fondateur, définitive) ───────────────────
-// Moneroo n'est PAS un moyen de paiement, c'est un intermédiaire posé au-dessus
+// la passerelle n'est PAS un moyen de paiement, c'est un intermédiaire posé au-dessus
 // de comptes marchands qui nous appartiennent déjà. Il ne doit apparaître nulle
 // part : ni comme passerelle, ni comme route, ni comme repli silencieux.
 // Conséquence assumée : un opérateur qu'aucune passerelle branchée ne couvre

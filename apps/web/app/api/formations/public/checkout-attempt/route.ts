@@ -8,7 +8,7 @@ import { rateLimit } from "@/lib/api-rate-limit";
  * Enregistre une tentative de paiement (reussie, echouee ou abandonnee).
  * Appele par le frontend checkout lors de :
  *   - START : ouverture du checkout (opt: enregistrer start pour analytics)
- *   - FAIL  : erreur retournee par Moneroo/provider
+ *   - FAIL  : erreur retournee par la passerelle/provider
  *   - COMPLETE : paiement reussi (pour stats et dedoublonner les relances)
  *
  * Body: {

@@ -494,7 +494,7 @@ Mêmes méthodes que pour les formations. Fonds bloqués en séquestre, libéré
     tags: ["paiement", "mobile money", "carte", "paypal"],
     body: `
 ## Mobile Money (Afrique)
-Disponible dans **17 pays** via Moneroo et CinetPay :
+Disponible dans **17 pays** :
 | Opérateur | Pays couverts |
 |---|---|
 | **Orange Money** | Sénégal, Côte d'Ivoire, Cameroun, Mali, Burkina Faso, Guinée, Niger |

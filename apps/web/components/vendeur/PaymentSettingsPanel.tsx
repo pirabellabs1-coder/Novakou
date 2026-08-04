@@ -136,7 +136,7 @@ export default function PaymentSettingsPanel() {
       entry.phone = newPayout.phone.trim();
     } else if (spec.field === "iban") {
       entry.iban = newPayout.iban.trim();
-      // Pour un virement, Moneroo a aussi besoin du BIC, du nom de la banque
+      // Pour un virement, la passerelle a aussi besoin du BIC, du nom de la banque
       // et du titulaire. On les envoie si remplis, sinon l'admin devra les ajouter.
       if (newPayout.bic.trim()) entry.bic = newPayout.bic.trim();
       if (newPayout.bank_name.trim()) entry.bank_name = newPayout.bank_name.trim();
@@ -318,7 +318,7 @@ export default function PaymentSettingsPanel() {
                   />
                 </div>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-[11px] text-blue-900">
-                  Ces 4 informations sont requises par Moneroo pour traiter un virement bancaire.
+                  Ces 4 informations sont requises par la passerelle pour traiter un virement bancaire.
                 </div>
               </>
             )}

@@ -96,7 +96,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
   // Les champs `Order.paymentStatus` / `Order.stripePaymentIntentId` /
   // `Order.paidAt` n'existent plus au schéma (Order a juste `status` et
   // `escrowStatus` aujourd'hui). On no-op avec log pour ne pas crasher si
-  // un PI legacy retombe ici. Novakou utilise Moneroo/PayGenius — Stripe
+  // un PI legacy retombe ici. Novakou utilise la passerelle/PayGenius — Stripe
   // n'est plus surface checkout.
   console.warn(
     "[Stripe Webhook] payment_intent.succeeded (freelancehigh legacy) — handler désactivé",
@@ -176,7 +176,7 @@ async function handleSubscriptionCheckout(session: Stripe.Checkout.Session) {
   // Bureau session 4 cleanup : `User.subscriptionTier` / `stripeCustomerId`
   // / `subscriptionUpdatedAt` ne sont pas au schéma. Pour les abonnements
   // Novakou (creator/apprenant) utiliser le modèle `Subscription` géré par
-  // Moneroo/PayGenius via `subscription_initial` / `subscription_renewal`.
+  // la passerelle/PayGenius via `subscription_initial` / `subscription_renewal`.
   console.warn(
     "[Stripe Webhook] subscription checkout legacy — handler désactivé",
     { userId, planId, sessionId: session.id },

@@ -10,11 +10,11 @@ import { prisma } from "@/lib/prisma";
  *
  * Repli : si aucun article/instructeur résolu ou intersection vide → liste par
  * défaut. La sélection reste une préférence UI + metadata ; les canaux réels
- * sont gérés par la page hébergée Moneroo.
+ * sont gérés par la page hébergée du fournisseur.
  */
 
 // Méthodes présentées à l'acheteur (on ignore les valeurs internes comme
-// "moneroo", "stripe" ou "free" qui ne sont pas des canaux de paiement à choisir).
+// "passerelle", "stripe" ou "free" qui ne sont pas des canaux de paiement à choisir).
 const BUYER_FACING = ["orange_money", "wave", "mtn_momo", "moov_money", "card", "paypal", "bank_transfer"];
 const DEFAULT_METHODS = ["orange_money", "wave", "mtn_momo", "card"];
 

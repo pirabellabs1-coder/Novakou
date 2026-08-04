@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { paymentOptionsForCountry, availableCountries } from "@/lib/payments/gateways";
-import { isPayoutCountryDisabled, PAYOUT_DISABLED_MESSAGE } from "@/lib/moneroo-payout-methods";
+import { isPayoutCountryDisabled, PAYOUT_DISABLED_MESSAGE } from "@/lib/payments/payout-catalog";
 
 /**
  * GET /api/formations/payout-options            → pays où l'on peut retirer

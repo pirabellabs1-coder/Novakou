@@ -1,17 +1,13 @@
 import { NextResponse } from "next/server";
-import { retrievePayment as retrieveMoneroo, isMonerooConfigured } from "@/lib/moneroo";
-import { retrievePayment as retrievePayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
-import { fulfillCheckout } from "@/lib/formations/fulfillment";
 import { reconcileCollectByRef } from "@/lib/payments/reconcile-collect";
-import { prisma } from "@/lib/prisma";
 
 /**
- * GET /api/formations/payment/verify?id=xxx&provider=moneroo|paygenius
+ * GET /api/formations/payment/verify?id=xxx&provider=feexpay|fedapay|kkiapay|ipaymoney
  *
- * Vérifie un paiement (Moneroo ou PayGenius) ET finalise la commande
+ * Vérifie un paiement ET finalise la commande
  * (crée enrollments, crédite wallet vendeur, envoie emails) en utilisant
  * la metadata stockée chez le provider — PAS besoin de session utilisateur
- * (le user revient de PayGenius/Moneroo et peut ne plus avoir son cookie
+ * (le user revient de la page du fournisseur et peut ne plus avoir son cookie
  * NextAuth selon le navigateur et la stratégie de redirect cross-origin).
  *
  * Sécurité :
@@ -25,26 +21,9 @@ import { prisma } from "@/lib/prisma";
  * précédent), il skip les enrollments déjà existants.
  */
 
-type Provider = "moneroo" | "paygenius";
-
 /** Passerelles en service : elles passent par la réconciliation partagée. */
 const NOUVELLES_PASSERELLES = new Set(["feexpay", "fedapay", "kkiapay", "ipaymoney"]);
 
-function resolveProvider(raw: string | null): Provider {
-  return raw === "paygenius" ? "paygenius" : "moneroo";
-}
-
-function parseIdList(raw: unknown): string[] {
-  if (Array.isArray(raw)) return raw.map(String).filter(Boolean);
-  if (typeof raw === "string" && raw.trim()) {
-    try {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed.map(String);
-    } catch { /* fall through */ }
-    return raw.split(",").map((s) => s.trim()).filter(Boolean);
-  }
-  return [];
-}
 
 export async function GET(request: Request) {
   try {
@@ -53,14 +32,6 @@ export async function GET(request: Request) {
     if (!id) return NextResponse.json({ error: "id requis" }, { status: 400 });
 
     const rawProvider = (searchParams.get("provider") ?? "").trim().toLowerCase();
-    const provider = resolveProvider(searchParams.get("provider"));
-
-    if (provider === "paygenius" && !isPayGeniusConfigured()) {
-      return NextResponse.json({ error: "Vérification du paiement momentanément indisponible" }, { status: 503 });
-    }
-    if (provider === "moneroo" && !isMonerooConfigured()) {
-      return NextResponse.json({ error: "Moneroo non configuré" }, { status: 503 });
-    }
 
     // ── Passerelles actuelles ────────────────────────────────────────────
     // Cette route ne connaissait que deux fournisseurs, tous deux retirés. Un
@@ -99,123 +70,13 @@ export async function GET(request: Request) {
       });
     }
 
-    // 1. Récupère le paiement depuis le provider (source de vérité)
-    //    PayGenius : `id` = reference (MTX-XXXXXXXXXX)
-    //    Moneroo   : `id` = transaction id
-    const payment = provider === "paygenius"
-      ? await retrievePayGenius(id)
-      : await retrieveMoneroo(id);
-    const metadata = (payment.metadata ?? {}) as Record<string, unknown>;
-
-    // Si pas encore succès, on retourne juste le status (page affiche "en attente" / "échoué")
-    if (payment.status !== "success") {
-      return NextResponse.json({
-        data: {
-          id: payment.id,
-          status: payment.status,
-          amount: payment.amount,
-          currency: payment.currency,
-          metadata,
-          provider,
-          fulfilled: false,
-        },
-      });
-    }
-
-    // 2. Paiement réussi — extrait les ids depuis la metadata
-    const userId = typeof metadata.userId === "string" ? metadata.userId : "";
-    const sessionRef = typeof metadata.sessionRef === "string" ? metadata.sessionRef : String(metadata.internalRef ?? payment.id);
-    const formationIds = parseIdList(metadata.formationIds);
-    const productIds = parseIdList(metadata.productIds);
-    const discountCodeStr = metadata.discountCode ? String(metadata.discountCode) : null;
-    const affiliateProfileId = metadata.affiliateProfileId ? String(metadata.affiliateProfileId) : null;
-    const affiliateCommissionRate = Number(metadata.affiliateCommissionRate ?? 0);
-
-    // Type autre que formations_checkout (mentor_booking) → géré ailleurs
-    const type = String(metadata.type ?? "");
-    if (type && type !== "formations_checkout") {
-      return NextResponse.json({
-        data: {
-          id: payment.id,
-          status: payment.status,
-          metadata,
-          fulfilled: false,
-          note: `Type ${type} géré par un autre endpoint`,
-        },
-      });
-    }
-
-    if (!userId) {
-      return NextResponse.json(
-        {
-          error: "Metadata incomplète — userId manquant. Contactez le support si votre paiement a bien été prélevé.",
-          data: { status: payment.status, metadata },
-        },
-        { status: 400 }
-      );
-    }
-
-    if (formationIds.length === 0 && productIds.length === 0) {
-      return NextResponse.json(
-        { error: "Aucun produit dans la metadata", data: { status: payment.status, metadata } },
-        { status: 400 }
-      );
-    }
-
-    // 3. Fulfill (idempotent — skip si enrollment existe déjà)
-    try {
-      const result = await fulfillCheckout({
-        userId,
-        formationIds,
-        productIds,
-        discountCodeStr,
-        sessionRef,
-        affiliate: affiliateProfileId
-          ? { profileId: affiliateProfileId, commissionRate: affiliateCommissionRate }
-          : null,
-        // Defense-in-depth (vote 19) : on passe le montant vérifié par le
-        // provider pour que fulfillment refuse en cas de tampering metadata.
-        expectedAmountReceived: typeof payment.amount === "number" ? payment.amount : undefined,
-        // Rabais réellement débité (metadata signée) → autorité sur le montant
-        // remisé (cf. webhooks). Absent → recompute gardé.
-        chargedDiscountAmount:
-          metadata.discountAmount != null && String(metadata.discountAmount) !== ""
-            ? Number(metadata.discountAmount)
-            : undefined,
-      });
-
-      // Clean le panier de l'utilisateur (items achetés)
-      if (formationIds.length > 0) {
-        await prisma.cartItem
-          .deleteMany({ where: { userId, formationId: { in: formationIds } } })
-          .catch(() => null);
-      }
-      // Note : CartItem ne supporte que des formations (pas de colonne productId).
-      // Les produits digitaux ne transitent pas par le panier persistant.
-      void productIds;
-
-      return NextResponse.json({
-        data: {
-          id: payment.id,
-          status: payment.status,
-          amount: payment.amount,
-          currency: payment.currency,
-          metadata,
-          provider,
-          fulfilled: true,
-          result,
-        },
-      });
-    } catch (err) {
-      console.error("[payment/verify] fulfillCheckout failed:", err);
-      return NextResponse.json(
-        {
-          error: err instanceof Error ? err.message : "Finalisation échouée",
-          data: { status: payment.status, metadata, fulfilled: false },
-        },
-        { status: 500 }
-      );
-    }
+    // Toute autre passerelle est hors service. On refuse clairement plutôt que
+    // d'interroger une intégration supprimée — ce qui produisait une erreur
+    // technique illisible pour l'acheteur.
+    return NextResponse.json(
+      { error: "Ce mode de paiement n'est plus pris en charge." },
+      { status: 410 },
+    );
   } catch (err) {
     console.error("[payment/verify]", err);
     const message = err instanceof Error ? err.message : "Erreur inconnue";

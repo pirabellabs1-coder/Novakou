@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
+import { fulfillSubscription } from "@/lib/formations/fulfill-subscription";
 
 /**
  * Réconciliation d'un ENCAISSEMENT : constate l'état réel du paiement auprès du
@@ -187,6 +188,63 @@ export async function reconcileCollectAttempt(attempt: AttemptRow): Promise<Coll
   const formationIds = toIdList(meta.formationIds);
   const productIds = toIdList(meta.productIds);
 
+  // ── ABONNEMENT ──────────────────────────────────────────────────────────────
+  // Pas de contenu à « livrer » au sens d'un achat : on crée la période, la
+  // facture, la comptabilité, et on ouvre l'accès aux contenus inclus.
+  const membershipPlanId = typeof meta.membershipPlanId === "string" ? meta.membershipPlanId : "";
+  if (membershipPlanId) {
+    const r = await fulfillSubscription({
+      userId: attempt.userId,
+      planId: membershipPlanId,
+      paymentRef: attempt.providerRef ?? internalRef,
+      paymentProvider: typeof meta.paymentProvider === "string" ? meta.paymentProvider : null,
+    });
+    await prisma.checkoutAttempt
+      .update({ where: { id: attempt.id }, data: { status: "COMPLETED" } })
+      .catch(() => null);
+    return {
+      matched: true,
+      status: "success",
+      delivered: true,
+      attemptId: attempt.id,
+      reason: r.dejaTraite ? undefined : undefined,
+      fulfilled: { totalAmount: Math.round(attempt.amount), formationIds: [], productIds: [] },
+    };
+  }
+
+  // ── SÉANCE DE MENTORAT ──────────────────────────────────────────────────────
+  // Rien à livrer : on confirme la réservation et on met les fonds sous
+  // séquestre, exactement comme le faisait l'ancien webhook. Idempotent : une
+  // réservation déjà confirmée n'est pas retouchée.
+  const mentorBookingId = typeof meta.mentorBookingId === "string" ? meta.mentorBookingId : "";
+  if (mentorBookingId) {
+    const maj = await prisma.mentorBooking
+      .updateMany({
+        where: { id: mentorBookingId, status: "PAYMENT_PENDING" },
+        data: {
+          status: "PENDING",
+          escrowStatus: "HELD",
+          paidAt: new Date(),
+          paymentRef: attempt.providerRef,
+          paymentProvider: typeof meta.paymentProvider === "string" ? meta.paymentProvider : null,
+        },
+      })
+      .catch(() => ({ count: 0 }));
+    await prisma.checkoutAttempt
+      .update({ where: { id: attempt.id }, data: { status: "COMPLETED" } })
+      .catch(() => null);
+    return {
+      matched: true,
+      status: "success",
+      delivered: true,
+      attemptId: attempt.id,
+      // Déjà confirmée par un autre chemin (page de retour, webhook) : ce n'est
+      // pas une anomalie, c'est l'idempotence qui fonctionne.
+      reason: maj.count === 0 ? undefined : undefined,
+      fulfilled: { totalAmount: Math.round(attempt.amount), formationIds: [], productIds: [] },
+    };
+  }
+
   let livraison: Awaited<ReturnType<typeof fulfillCheckout>>;
   try {
     livraison = await fulfillCheckout({
@@ -210,6 +268,10 @@ export async function reconcileCollectAttempt(attempt: AttemptRow): Promise<Coll
        * venue du navigateur.
        */
       expectedAmountReceived: montantFournisseur ?? Math.round(attempt.amount),
+      // Achat d'un pack : sans cela le garde-fou ci-dessus compare le montant
+      // reçu à la somme des prix unitaires et refuse une livraison pourtant
+      // payée — un pack coûte moins cher que ses éléments pris séparément.
+      bundleId: typeof meta.bundleId === "string" ? meta.bundleId : null,
     });
   } catch (err) {
     // L'argent EST encaissé. On laisse la tentative ouverte pour que le cron

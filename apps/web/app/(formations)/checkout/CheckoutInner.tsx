@@ -82,7 +82,7 @@ export default function CheckoutInner() {
 
   // ── Form state ──────────────────────────────────────────────────────────────
   // Persist contact details across refreshes — buyers on slow mobile
-  // connections lose the form when CinetPay/Moneroo redirects them back
+  // connections lose the form when the gateway redirects them back
   // after a failed payment, otherwise they retype everything.
   const [firstName, setFirstName] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:firstName`, "");
   const [lastName, setLastName] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:lastName`, "");

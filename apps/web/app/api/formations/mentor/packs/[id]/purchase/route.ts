@@ -2,7 +2,7 @@
  * POST /api/formations/mentor/packs/[id]/purchase
  *
  * Acheter un pack de sessions (côté apprenant).
- * MVP : on crée directement la purchase (flow Moneroo/Stripe à brancher
+ * MVP : on crée directement la purchase (flux de paiement à brancher
  * quand le webhook paiement est prêt — pour l'instant, paiement marqué
  * comme payé en DEV pour faciliter le test end-to-end).
  *

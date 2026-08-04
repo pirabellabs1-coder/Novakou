@@ -1,6 +1,6 @@
 /**
  * POST /api/formations/public/memberships/[id]/subscribe
- * Initialise un paiement Moneroo / PayGenius pour s'abonner à un plan.
+ * Initialise un paiement la passerelle / PayGenius pour s'abonner à un plan.
  * Au paiement, le webhook (`type: "subscription_initial"`) crée la
  * Subscription + auto-enrolle le user dans toutes les formations/produits liés.
  */
@@ -12,23 +12,14 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveActiveUserId } from "@/lib/formations/active-user";
-import { initPayment as initMoneroo, isMonerooConfigured } from "@/lib/moneroo";
-import { initPayment as initPayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
 
-type Provider = "moneroo" | "paygenius";
-function resolveProvider(_raw: unknown): Provider {
-  // Moneroo est la SEULE passerelle du site (décision fondateur, définitive).
-  // Aucune préférence env ni repli automatique vers un autre fournisseur.
-  return "moneroo";
-}
+type Provider = "passerelle" | "paygenius";
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function POST(req: Request, { params }: Params) {
   try {
     const { id } = await params;
-    const body = await req.json().catch(() => ({}));
-    const provider: Provider = resolveProvider((body as { provider?: string }).provider);
 
     const session = await getServerSession(authOptions);
     const userId = await resolveActiveUserId(session, {
@@ -154,75 +145,14 @@ export async function POST(req: Request, { params }: Params) {
       });
     }
 
-    // Paid plan → init payment
-    const providerOk = provider === "paygenius" ? isPayGeniusConfigured() : isMonerooConfigured();
-    if (!providerOk) {
-      return NextResponse.json(
-        { error: "Le paiement est momentanément indisponible. Réessayez plus tard." },
-        { status: 503 },
-      );
-    }
-
-    // ── Affiliate attribution ────────────────────────────────────
-    let affiliateProfileId = "";
-    let affiliateCommissionRate = 0;
-    try {
-      const cookieStore = await cookies();
-      const affCookie =
-        cookieStore.get("fh_ref")?.value ?? cookieStore.get("fh_aff_code")?.value;
-      if (affCookie) {
-        const prof = await prisma.affiliateProfile.findUnique({
-          where: { affiliateCode: affCookie },
-          select: {
-            id: true, status: true,
-            program: { select: { commissionPct: true, isActive: true } },
-          },
-        });
-        if (prof && prof.status === "ACTIVE" && prof.program.isActive) {
-          affiliateProfileId = prof.id;
-          affiliateCommissionRate = (prof.program.commissionPct ?? 0) / 100;
-        }
-      }
-    } catch (err) {
-      console.warn("[subscribe affiliate cookie]", err);
-    }
-
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://novakou.com";
-    const sessionRef = `sub:${id}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
-    const description = `Abonnement Novakou — ${plan.name}`;
-    const metadata = {
-      type: "subscription_initial",
-      sessionRef,
-      userId,
-      planId: id,
-      paymentProvider: provider,
-      affiliateProfileId,
-      affiliateCommissionRate: String(affiliateCommissionRate),
-    };
-    const returnUrl = `${appUrl}/payment/return?ref=${encodeURIComponent(sessionRef)}&provider=${provider}`;
-
-    const fName = user.name ?? user.email.split("@")[0];
-    const [first, ...rest] = fName.split(" ");
-    const last = rest.join(" ") || "User";
-
-    let checkoutUrl: string;
-    if (provider === "paygenius") {
-      const pg = await initPayGenius({
-        amount: Math.round(plan.price), currency: plan.currency, description,
-        customer: { email: user.email, name: fName },
-        return_url: returnUrl, metadata,
-      });
-      checkoutUrl = pg.checkout_url;
-    } else {
-      const mnr = await initMoneroo({
-        amount: Math.round(plan.price), currency: plan.currency, description,
-        customer: { email: user.email, first_name: first || "Apprenant", last_name: last },
-        return_url: returnUrl, metadata,
-      });
-      checkoutUrl = mnr.checkout_url;
-    }
-
-    return NextResponse.json({ data: { checkout_url: checkoutUrl, sessionRef } });
+    // ── Plan PAYANT : le paiement ne part plus d'ici ─────────────────────────
+    // Il passe par l'écran de paiement de la plateforme, via
+    // /api/formations/payment/init avec `membershipPlanId`. Cette route se
+    // contente de dire qu'un paiement est nécessaire.
+    //
+    // Avant, elle initialisait elle-même un paiement chez une passerelle
+    // retirée et renvoyait l'acheteur sur la page hébergée du fournisseur.
+    return NextResponse.json({ data: { requiresPayment: true, planId: id, amount: Math.round(plan.price) } });
   } catch (err) {
     console.error("[memberships/subscribe]", err);
     const message = err instanceof Error ? err.message : "Erreur serveur";

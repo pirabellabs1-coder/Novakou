@@ -11,7 +11,7 @@ import {
   shortMethodLabel,
   isPayoutMethodDisabled,
   PAYOUT_DISABLED_MESSAGE,
-} from "@/lib/moneroo-payout-methods";
+} from "@/lib/payments/payout-catalog";
 import { notifyAdmins } from "@/lib/agents/notify";
 import { sendWithdrawalRequestedEmail } from "@/lib/email/withdrawals";
 import { processAffiliateWithdrawalAuto } from "@/lib/payout/process-withdrawal";
@@ -23,7 +23,7 @@ const MIN_WITHDRAWAL = 5000;
 
 const withdrawSchema = z.object({
   amount: z.number().min(MIN_WITHDRAWAL),
-  method: z.string().min(2), // id méthode Moneroo (ex: "wave_ci")
+  method: z.string().min(2), // id méthode la passerelle (ex: "wave_ci")
   msisdn: z.string().optional(),
   iban: z.string().optional(),
   country: z.string().optional(), // pays choisi → visible par l'admin
@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Données invalides" }, { status: 400 });
     const { amount, method, msisdn, country } = parsed.data;
 
-    // Méthode Moneroo valide ?
+    // Méthode la passerelle valide ?
     const methodDef = getPayoutMethod(method);
     if (!methodDef) {
       return NextResponse.json({ error: "Méthode de paiement non reconnue." }, { status: 400 });
@@ -185,7 +185,7 @@ export async function POST(req: NextRequest) {
 
     // Transaction : créer la demande EN_ATTENTE et RÉSERVER les commissions
     // (withdrawalId) — elles restent APPROVED mais ne sont plus retirables.
-    // AUCUN versement ici : l'admin validera et déclenchera le payout Moneroo.
+    // AUCUN versement ici : l'admin validera et déclenchera le payout la passerelle.
     const withdrawal = await prisma.$transaction(async (tx) => {
       const wd = await tx.affiliateWithdrawal.create({
         data: {

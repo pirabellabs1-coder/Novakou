@@ -11,7 +11,7 @@ import { useState } from "react";
 import { promptAction } from "@/store/prompt";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { confirmAction } from "@/store/confirm";
-import { getAvailablePayoutMethods } from "@/lib/moneroo-payout-methods";
+import { getAvailablePayoutMethods } from "@/lib/payments/payout-catalog";
 import {
   StCard,
   StPageHeader,
@@ -298,7 +298,7 @@ export default function AdminRetraitsVendeursPage() {
     },
     onSuccess: (data) => {
       // Bureau session 4 (post-mortem payouts) : avant on lisait
-      // `data.data.monerooStatus` (ancien nom) qui n'était JAMAIS retourné par le backend
+      // `data.data.monerooStatus` (nom hérité) qui n'était JAMAIS retourné par le backend
       // → toast trompeur "traitement en cours" même si l'init avait
       // réussi. Maintenant on remonte explicitement `status` + `payoutId`.
       const mode = data?.data?.mode;

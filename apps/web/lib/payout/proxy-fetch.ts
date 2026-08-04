@@ -8,7 +8,7 @@
 //   PAYOUT_PROXY_URL="http://user:pass@proxy-host:port"
 //
 // Inerte tant que la variable n'est pas posée : on retombe sur un fetch normal
-// (IP dynamique Vercel). Moneroo n'utilise PAS ce helper (pas de filtre IP) —
+// (IP dynamique Vercel). la passerelle n'utilise PAS ce helper (pas de filtre IP) —
 // ainsi le fournisseur principal ne dépend jamais du proxy.
 
 import { ProxyAgent } from "undici";

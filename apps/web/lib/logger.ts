@@ -9,7 +9,7 @@
  * Usage:
  *   import { logger } from "@/lib/logger";
  *   logger.info("checkout.init", { userId, amount });
- *   logger.error("webhook.failed", { provider: "moneroo", err: err.message });
+ *   logger.error("webhook.failed", { provider: "passerelle", err: err.message });
  */
 
 type LogLevel = "debug" | "info" | "warn" | "error" | "fatal";

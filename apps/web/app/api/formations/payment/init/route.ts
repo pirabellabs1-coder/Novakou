@@ -74,7 +74,77 @@ export async function POST(request: Request) {
     const formationIds: string[] = Array.isArray(body.formationIds) ? body.formationIds : [];
     const productIds: string[] = Array.isArray(body.productIds) ? body.productIds : [];
 
-    if (formationIds.length === 0 && productIds.length === 0) {
+    // ── PACK (bundle) ─────────────────────────────────────────────────────────
+    // Un pack n'est rien d'autre qu'un ensemble de formations et de produits
+    // vendus ensemble. On le développe ICI, côté serveur : le contenu et le
+    // prix viennent de la base, jamais du navigateur. L'acheteur passe donc par
+    // le même écran, le même encaissement et la même livraison que pour un
+    // achat simple — au lieu du parcours séparé qui partait chez une passerelle
+    // retirée.
+    const bundleId = typeof body.bundleId === "string" ? body.bundleId.trim() : "";
+    let bundlePrice: number | null = null;
+    if (bundleId) {
+      const bundle = await prisma.productBundle.findFirst({
+        where: { id: bundleId, isActive: true },
+        select: { id: true, priceXof: true, items: { select: { formationId: true, productId: true } } },
+      });
+      if (!bundle) {
+        return NextResponse.json({ error: "Ce pack n'est plus disponible" }, { status: 404 });
+      }
+      for (const it of bundle.items) {
+        if (it.formationId && !formationIds.includes(it.formationId)) formationIds.push(it.formationId);
+        if (it.productId && !productIds.includes(it.productId)) productIds.push(it.productId);
+      }
+      if (formationIds.length === 0 && productIds.length === 0) {
+        return NextResponse.json({ error: "Ce pack ne contient aucun élément" }, { status: 400 });
+      }
+      bundlePrice = bundle.priceXof;
+    }
+
+    // ── SÉANCE DE MENTORAT ────────────────────────────────────────────────────
+    // La réservation existe déjà (créneau réservé, en attente de paiement). On
+    // n'encaisse que son montant, relu en base. Ce parcours partait auparavant
+    // sur la page hébergée d'une passerelle retirée ; il passe désormais par le
+    // même écran que tout le reste.
+    const mentorBookingId = typeof body.mentorBookingId === "string" ? body.mentorBookingId.trim() : "";
+    let bookingPrice: number | null = null;
+    if (mentorBookingId) {
+      const booking = await prisma.mentorBooking.findFirst({
+        where: { id: mentorBookingId, studentId: userId ?? undefined, status: "PAYMENT_PENDING" },
+        select: { id: true, paidAmount: true },
+      });
+      if (!booking) {
+        return NextResponse.json(
+          { error: "Cette réservation n'est plus en attente de paiement." },
+          { status: 404 },
+        );
+      }
+      bookingPrice = Math.round(booking.paidAmount);
+      if (bookingPrice < 100) {
+        return NextResponse.json({ error: "Montant de séance invalide." }, { status: 400 });
+      }
+    }
+
+    // ── ABONNEMENT ────────────────────────────────────────────────────────────
+    // Le prix vient du plan, en base. L'accès aux contenus inclus est accordé à
+    // la confirmation du paiement, avec la période et la facture.
+    const membershipPlanId = typeof body.membershipPlanId === "string" ? body.membershipPlanId.trim() : "";
+    let planPrice: number | null = null;
+    if (membershipPlanId) {
+      const plan = await prisma.subscriptionPlan.findFirst({
+        where: { id: membershipPlanId, isActive: true },
+        select: { id: true, price: true },
+      });
+      if (!plan) {
+        return NextResponse.json({ error: "Cet abonnement n'est plus disponible" }, { status: 404 });
+      }
+      planPrice = Math.round(plan.price);
+      if (planPrice < 100) {
+        return NextResponse.json({ error: "Cet abonnement n'a pas de prix valide." }, { status: 400 });
+      }
+    }
+
+    if (formationIds.length === 0 && productIds.length === 0 && !mentorBookingId && !membershipPlanId) {
       return NextResponse.json({ error: "Aucun produit dans la commande" }, { status: 400 });
     }
 
@@ -182,7 +252,7 @@ export async function POST(request: Request) {
     // ── Lien de paiement à PRIX LIBRE : montant choisi par l'acheteur ──────
     // Autorisé UNIQUEMENT pour une commande d'un seul produit isPaymentLink
     // + allowCustomAmount. Le montant devient le total ; il sera crédité tel
-    // quel (vérifié par Moneroo) au fulfillment. Garde-fou strict : jamais pour
+    // quel (vérifié par la passerelle) au fulfillment. Garde-fou strict : jamais pour
     // un produit normal (empêche un acheteur de sous-payer).
     let customAmount: number | null = null;
     if (
@@ -198,6 +268,19 @@ export async function POST(request: Request) {
       }
       customAmount = amt;
     }
+
+    // Prix d'un pack : celui de la BASE, pas la somme de ses éléments (c'est
+    // justement la remise qui fait le pack). Il vient du serveur, donc aucun
+    // risque de sous-paiement — contrairement au montant libre ci-dessus, qui
+    // reste réservé aux liens de paiement.
+    if (bundlePrice != null) {
+      if (bundlePrice < 100) {
+        return NextResponse.json({ error: "Ce pack n'a pas de prix valide." }, { status: 400 });
+      }
+      customAmount = bundlePrice;
+    }
+    if (bookingPrice != null) customAmount = bookingPrice;
+    if (planPrice != null) customAmount = planPrice;
 
     const subTotal = customAmount ?? (formations.reduce((s, f) => s + f.price, 0) + products.reduce((s, p) => s + p.price, 0));
 
@@ -228,7 +311,7 @@ export async function POST(request: Request) {
 
     // ── Affiliation : résolution du cookie fh_ref pour TOUTES les ventes ──
     // (avant, seule la branche "commande gratuite" le faisait → les ventes
-    // PAYÉES via Moneroo ne créaient jamais de commission d'affiliation.)
+    // PAYÉES via la passerelle ne créaient jamais de commission d'affiliation.)
     let affiliateProfile: { profileId: string; commissionRate: number } | null = null;
     try {
       const cookieStore = await cookies();
@@ -247,12 +330,12 @@ export async function POST(request: Request) {
       console.warn("[payment/init affiliate cookie]", err);
     }
 
-    // Free order? Skip Moneroo and fulfill the order immediately.
+    // Free order? Skip la passerelle and fulfill the order immediately.
     // Anciennement on retournait juste une URL "/payment/return?free=1" qui se
     // contentait d'afficher un toast de succès — sans rien créer en base. Du
     // coup : pas d'enrollment / DigitalProductPurchase, pas d'email, pas de
     // notification, rien chez le vendeur ni dans l'admin. Maintenant on appelle
-    // directement fulfillCheckout (la même fonction que le webhook Moneroo
+    // directement fulfillCheckout (la même fonction que le webhook la passerelle
     // utilise après un paiement réel).
     if (totalAmount === 0) {
       const sessionRef = `free:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
@@ -268,6 +351,7 @@ export async function POST(request: Request) {
           // Commande rendue gratuite par le code : on transmet le rabais exact
           // décidé ici pour que le fulfillment réparte le même montant.
           chargedDiscountAmount: discountAmount,
+          bundleId: bundleId || null,
         });
         return NextResponse.json({
           data: {
@@ -359,6 +443,14 @@ export async function POST(request: Request) {
           internalRef,
           discountCode: appliedCode ?? null,
           paymentProvider: provider,
+          // Trace du pack : la livraison des formations et produits se fait
+          // déjà par les identifiants ci-dessus ; ceci sert à enregistrer
+          // l'achat du pack lui-même (statistiques vendeur, avis, historique).
+          bundleId: bundleId || null,
+          // Séance de mentorat : à la confirmation du paiement, c'est la
+          // réservation qui est confirmée, pas un contenu à livrer.
+          mentorBookingId: mentorBookingId || null,
+          membershipPlanId: membershipPlanId || null,
         } as never,
       },
       select: { id: true },

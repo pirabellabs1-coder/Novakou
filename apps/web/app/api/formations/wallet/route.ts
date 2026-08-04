@@ -17,12 +17,12 @@ import {
   resolveLegacyMethod,
   isPayoutMethodDisabled,
   PAYOUT_DISABLED_MESSAGE,
-} from "@/lib/moneroo-payout-methods";
+} from "@/lib/payments/payout-catalog";
 import { processInstructorWithdrawalAuto } from "@/lib/payout/process-withdrawal";
 import { notifyAdmins } from "@/lib/agents/notify";
 
 // Le POST déclenche un vrai versement fournisseur (appel API externe) → laisser
-// le temps à l'orchestrateur (Moneroo → FeexPay → FedaPay) de répondre.
+// le temps à l'orchestrateur (FeexPay → FedaPay) de répondre.
 export const maxDuration = 60;
 
 /**
@@ -335,7 +335,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // ── Normaliser la méthode vers un code Moneroo valide ────────────────────
+    // ── Normaliser la méthode vers un code la passerelle valide ────────────────────
     // Les anciens enregistrements utilisent "orange_money", "wave"... on les
     // résout selon le pays du user en "orange_money_ci" / "wave_sn" / etc.
     const userInfo = await prisma.user.findUnique({

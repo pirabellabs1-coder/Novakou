@@ -3,11 +3,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
-import { getAvailablePayoutMethods, PAYOUT_METHODS } from "@/lib/moneroo-payout-methods";
+import { getAvailablePayoutMethods, PAYOUT_METHODS } from "@/lib/payments/payout-catalog";
 
 /**
  * GET /api/formations/affilie/payout-methods
- * Méthodes de versement Moneroo disponibles pour l'affilié, filtrées par pays.
+ * Méthodes de versement disponibles pour l'affilié, filtrées par pays.
  */
 export async function GET() {
   try {
@@ -21,7 +21,7 @@ export async function GET() {
     const available = getAvailablePayoutMethods(country);
     const methods = (available.length > 0 ? available : PAYOUT_METHODS).map((m) => ({
       id: m.id,
-      label: m.label.replace(/ — Moneroo$/, ""),
+      label: m.label,
       icon: m.icon,
       requiredFields: m.requiredFields,
       placeholder: m.placeholder,

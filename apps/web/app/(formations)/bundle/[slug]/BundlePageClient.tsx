@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
+import { KkiapayWidget, type KkiapayInit } from "@/components/formations/KkiapayWidget";
 import Link from "next/link";
 import {
   Gift,
   GraduationCap,
   Package,
-  Wallet,
-  Loader2,
-  ShoppingCart,
   Infinity as InfinityIcon,
   ShieldCheck,
   CalendarCheck,
@@ -16,9 +16,6 @@ import {
 import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
 
 const fmtFCFA = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n)) + " FCFA";
-
-type Provider = "moneroo" | "paygenius";
-interface ProviderInfo { id: Provider; label: string; available: boolean; description: string }
 
 interface BundleItem {
   kind: "formation" | "product";
@@ -49,50 +46,62 @@ interface Bundle {
 }
 
 export default function BundlePageClient({ bundle }: { bundle: Bundle }) {
+  const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const themeColor = bundle.shop?.themeColor ?? "#006e2f";
 
-  // Liste des passerelles disponibles (Moneroo uniquement). Source de vérité :
-  // /api/formations/payment/providers (vérifie les env vars côté serveur).
-  // Si un seul est dispo on cache le sélecteur — sinon le visiteur choisit.
-  const [providers, setProviders] = useState<ProviderInfo[]>([]);
-  const [provider, setProvider] = useState<Provider>("moneroo");
-  useEffect(() => {
-    fetch("/api/formations/payment/providers")
-      .then((r) => r.json())
-      .then((j) => {
-        const list = (j.data ?? []) as ProviderInfo[];
-        setProviders(list);
-        const firstAvail = list.find((p) => p.available);
-        if (firstAvail) setProvider(firstAvail.id);
-      })
-      .catch(() => setProviders([]));
-  }, []);
-  const availableProviders = providers.filter((p) => p.available);
+  const [kkiapay, setKkiapay] = useState<KkiapayInit | null>(null);
+  const [email, setEmail] = useState(session?.user?.email ?? "");
+  const [name, setName] = useState(session?.user?.name ?? "");
+  const connecte = !!session?.user?.id;
 
-  async function handleBuy() {
+  /**
+   * Achat d'un pack par le MÊME chemin que tout le reste : l'écran de paiement
+   * unique, puis /payment/init. Le pack est développé côté serveur en ses
+   * formations et produits — c'est lui qui décide du contenu et du prix.
+   *
+   * Avant, ce parcours avait sa propre route et partait sur la page hébergée
+   * d'une passerelle retirée : deux tunnels d'achat, dont un que plus personne
+   * ne corrigeait.
+   */
+  async function startPayment({ operator, phone }: { operator: string; phone?: string; hosted: boolean }) {
+    if (!connecte && !email.trim()) {
+      setError("Votre e-mail est nécessaire pour recevoir le pack.");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      const r = await fetch(`/api/formations/public/bundles/${bundle.slug}/buy`, {
+      const res = await fetch("/api/formations/payment/init", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider }),
+        body: JSON.stringify({
+          bundleId: bundle.id,
+          ...(connecte ? {} : { guestEmail: email.trim(), guestName: name.trim() || undefined }),
+          paymentMethod: operator,
+          phone,
+        }),
       });
-      const j = await r.json();
-      if (j.code === "AUTH_REQUIRED") {
-        window.location.href = `/connexion?callbackUrl=${encodeURIComponent(`/bundle/${bundle.slug}`)}`;
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(json.error ?? "Le paiement n'a pas pu démarrer.");
+        setLoading(false);
         return;
       }
-      if (!r.ok || !j.data?.checkout_url) {
-        setError(j.error ?? "Erreur lors de l'initialisation du paiement");
+      if (json.data?.mode === "widget") {
+        setKkiapay(json.data as KkiapayInit);
         return;
       }
-      window.location.href = j.data.checkout_url;
+      const url = json.data?.checkout_url ?? json.checkout_url;
+      if (!url) {
+        setError("Réponse de paiement invalide.");
+        setLoading(false);
+        return;
+      }
+      window.location.href = url;
     } catch {
-      setError("Erreur réseau. Réessayez.");
-    } finally {
+      setError("Connexion impossible. Réessayez.");
       setLoading(false);
     }
   }
@@ -205,43 +214,44 @@ export default function BundlePageClient({ bundle }: { bundle: Bundle }) {
               <p className="text-sm text-gray-400 line-through mt-1">{fmtFCFA(bundle.itemsSum)}</p>
             )}
 
-            {/* Sélecteur de provider de paiement — visible si ≥ 2 dispo */}
-            {availableProviders.length > 1 && (
-              <div className="mt-5">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#5c647a] mb-2">
-                  Choisissez votre passerelle de paiement
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  {availableProviders.map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => setProvider(p.id)}
-                      className={`flex items-center gap-2 p-2.5 rounded-xl border-2 text-left transition-all ${
-                        provider === p.id
-                          ? "border-[#006e2f] bg-green-50"
-                          : "border-gray-200 bg-white hover:border-gray-300"
-                      }`}
-                    >
-                      <Wallet size={18} className={provider === p.id ? "text-[#006e2f]" : "text-[#5c647a]"} />
-                      <span className={`text-xs font-bold ${provider === p.id ? "text-[#006e2f]" : "text-[#191c1e]"}`}>
-                        {p.label}
-                      </span>
-                    </button>
-                  ))}
-                </div>
+            {!connecte && (
+              <div className="mt-5 space-y-2">
+                <input
+                  type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Votre e-mail" required
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#006e2f]"
+                />
+                <input
+                  type="text" value={name} onChange={(e) => setName(e.target.value)}
+                  placeholder="Votre nom (facultatif)"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#006e2f]"
+                />
+                <p className="text-[11px] text-[#5c647a]">C'est là que le pack sera envoyé.</p>
               </div>
             )}
 
-            <button
-              onClick={handleBuy}
-              disabled={loading}
-              className="w-full mt-4 py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md disabled:opacity-50"
-              style={{ background: `linear-gradient(to right, ${themeColor}, #22c55e)` }}
-            >
-              {loading ? <Loader2 size={18} className="animate-spin" /> : <ShoppingCart size={18} />}
-              {loading ? "Initialisation…" : "Acheter le pack"}
-            </button>
+            {/* L'écran de paiement de la plateforme, identique à celui d'un
+                achat simple : pays, moyen, numéro, puis paiement. */}
+            <div className="mt-5">
+              {kkiapay && (
+                // Passerelle à fenêtre : elle s'ouvre SUR notre page, l'acheteur
+                // ne part jamais ailleurs.
+                <KkiapayWidget
+                  init={kkiapay}
+                  onDelivered={() => { window.location.href = `/payment/return?ref=${encodeURIComponent(kkiapay.internalRef)}`; }}
+                  onFailed={(m) => { setKkiapay(null); setError(m); setLoading(false); }}
+                />
+              )}
+              <UnifiedPaymentScreen
+                embedded
+                amount={bundle.priceXof}
+                buyerName={name.trim() || null}
+                merchantName={bundle.shop?.name ?? undefined}
+                submitting={loading}
+                onPay={(args) => { void startPayment(args); }}
+              />
+            </div>
+
             {error && (
               <p className="text-xs text-red-600 mt-3 bg-red-50 border border-red-200 rounded-lg p-2">{error}</p>
             )}

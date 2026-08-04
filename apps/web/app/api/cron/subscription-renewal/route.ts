@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { initPayment as initMoneroo, isMonerooConfigured } from "@/lib/moneroo";
 import { sendSubscriptionRenewalEmail } from "@/lib/email/formations";
 import { requireCronAuth } from "@/lib/cron/auth";
 
@@ -10,11 +9,11 @@ import { requireCronAuth } from "@/lib/cron/auth";
  * Cron Vercel — tourne 1× par jour.
  *
  * Pour chaque Subscription `active` dont `currentPeriodEnd` arrive dans les
- * 24 heures (ou est passée), on déclenche un nouveau checkout Moneroo en
- * mode `subscription_renewal`. Le webhook moneroo finalisera la mise à jour
+ * 24 heures (ou est passée), on envoie à l'apprenant un lien vers notre page
+ * d'abonnement. Le paiement finalisera la mise à jour
  * de `currentPeriodEnd` au prochain cycle.
  *
- * Note : Moneroo en mode hosted-checkout ne fait pas de prélèvement
+ * Note : le paiement Mobile Money ne fait pas de prélèvement
  * automatique sans intervention de l'acheteur. Pour le MVP on initie un
  * paiement et on envoie le lien à l'apprenant par email (TODO V2 : auto-debit
  * via une méthode de paiement enregistrée). L'apprenant a 14 jours de grace
@@ -26,13 +25,8 @@ export async function GET(request: NextRequest) {
   const authError = requireCronAuth(request);
   if (authError) return authError;
 
-  // Moneroo (seule passerelle du site) doit être configuré
-  if (!isMonerooConfigured()) {
-    return NextResponse.json({
-      skipped: true,
-      reason: "Moneroo non configuré (MONEROO_SECRET_KEY manquant)",
-    });
-  }
+  // Plus de garde sur une passerelle : la relance envoie vers notre propre
+  // page d'abonnement, qui choisit elle-même la passerelle au moment de payer.
 
   const now = new Date();
   const horizon = new Date(now.getTime() + 24 * 60 * 60 * 1000); // +24h
@@ -56,7 +50,7 @@ export async function GET(request: NextRequest) {
       user: { select: { id: true, email: true, name: true } },
       plan: { select: { id: true, name: true, price: true, currency: true, interval: true, instructeurId: true, isActive: true } },
     },
-    take: 200, // hard cap pour éviter de saturer Moneroo
+    take: 200, // hard cap pour éviter de saturer la passerelle
   });
 
   const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
@@ -74,34 +68,16 @@ export async function GET(request: NextRequest) {
 
     try {
       const firstName = (sub.user.name || sub.user.email.split("@")[0]).split(" ")[0];
-      const lastName = (sub.user.name || "").split(" ").slice(1).join(" ") || "Membre";
 
-      // Moneroo est la SEULE passerelle du site (décision fondateur, définitive) :
+      // Le paiement passe par l'écran unique de la plateforme :
       // toutes les relances passent par elle, même si une vieille facture
       // référençait l'ancienne passerelle retirée.
-      const provider = "moneroo";
 
-      const sharedMeta = {
-        type: "subscription_renewal",
-        planId: sub.plan.id,
-        subscriptionId: sub.id,
-        userId: sub.user.id,
-        instructeurId: sub.plan.instructeurId,
-        interval: sub.plan.interval,
-        paymentProvider: provider,
-      };
-      const description = `Renouvellement : ${sub.plan.name}`;
-      const returnUrl = `${APP_URL}/payment/return?provider=${provider}`;
-
-      const mnr = await initMoneroo({
-        amount: Math.round(sub.plan.price),
-        currency: sub.plan.currency || "XOF",
-        description,
-        customer: { email: sub.user.email, first_name: firstName, last_name: lastName },
-        return_url: returnUrl,
-        metadata: sharedMeta,
-      });
-      const checkoutUrl = mnr.checkout_url;
+      // On envoie l'apprenant sur NOTRE page d'abonnement : il y règle son
+      // renouvellement par l'écran de paiement de la plateforme. Auparavant, ce
+      // cron créait lui-même un lien chez une passerelle retirée — l'e-mail de
+      // relance pointait donc vers une page morte.
+      const checkoutUrl = `${APP_URL}/abonnement/${sub.plan.id}`;
 
       // Note l'instant de relance pour dédupliquer dans les 23h (on n'écrit PAS
       // l'URL dans paymentMethod : ce champ = snapshot du moyen de paiement, pas

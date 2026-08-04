@@ -3,7 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { IS_DEV } from "@/lib/env";
 import { isFeexpayConfigured } from "@/lib/feexpay";
 import { isFedapayConfigured } from "@/lib/fedapay";
-import { getPayoutMethod, normalizeMsisdn } from "@/lib/moneroo-payout-methods";
+import { getPayoutMethod, normalizeMsisdn } from "@/lib/payments/payout-catalog";
 import { executePayout, type PayoutProviderId } from "@/lib/payout/execute";
 import { getPayoutMapping } from "@/lib/payout/methods-map";
 

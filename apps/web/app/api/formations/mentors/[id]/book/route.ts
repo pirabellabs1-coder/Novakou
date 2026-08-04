@@ -6,16 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { isSlotStillAvailable } from "@/lib/mentor/slots";
 import { generateRoomId } from "@/lib/mentor/jitsi";
-import { initPayment as initMoneroo, isMonerooConfigured } from "@/lib/moneroo";
-import { initPayment as initPayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
 
-type PaymentProvider = "moneroo" | "paygenius";
-
-function resolveProvider(_raw: unknown): PaymentProvider {
-  // Moneroo est la SEULE passerelle du site (décision fondateur, définitive).
-  // Aucune préférence env ni repli automatique vers un autre fournisseur.
-  return "moneroo";
-}
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -51,13 +42,12 @@ export async function POST(request: Request, { params }: Params) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { slotStart, studentGoals, durationMinutes: requestedDuration, provider: rawProvider } = body as {
+    const { slotStart, studentGoals, durationMinutes: requestedDuration } = body as {
       slotStart?: string;
       studentGoals?: string;
       durationMinutes?: number;
       provider?: string;
     };
-    const requestedProvider: PaymentProvider = resolveProvider(rawProvider);
 
     // Validation basique
     if (!slotStart || typeof slotStart !== "string") {
@@ -240,89 +230,14 @@ export async function POST(request: Request, { params }: Params) {
       });
     }
 
-    // ── STEP 2: Init payment (Moneroo / PayGenius / mock) ─────────────────
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
-    const internalRef = `mnt:${booking.id}`;
-    let checkoutUrl: string = "";
-    let provider: "moneroo" | "paygenius" | "mock" = "mock";
-
-    const providerConfigured =
-      requestedProvider === "paygenius" ? isPayGeniusConfigured() : isMonerooConfigured();
-    const useMock = !providerConfigured;
-    let initFallback = false;
-
-    if (!useMock) {
-      const fName = session.user.name ?? session.user.email?.split("@")[0] ?? "Apprenant";
-      const [first, ...rest] = fName.split(" ");
-      const last = rest.join(" ") || first;
-      const sharedMeta = {
-        bookingId: booking.id,
-        mentorId: mentor.id,
-        studentId,
-        internalRef,
-        type: "mentor_booking",
-      };
-      const returnUrl = `${appUrl}/payment/return?ref=${encodeURIComponent(internalRef)}&bookingId=${booking.id}&provider=${requestedProvider}`;
-      const description = `Réservation mentor — ${mentor.specialty || "Séance"}`;
-
-      try {
-        let providerRefId: string;
-        if (requestedProvider === "paygenius") {
-          const pg = await initPayGenius({
-            amount: mentor.sessionPrice,
-            currency: "XOF",
-            description,
-            customer: {
-              email: session.user.email!,
-              name: `${first || "Apprenant"} ${last || ""}`.trim(),
-            },
-            return_url: returnUrl,
-            metadata: sharedMeta,
-          });
-          provider = "paygenius";
-          checkoutUrl = pg.checkout_url;
-          providerRefId = pg.reference;
-        } else {
-          const mnr = await initMoneroo({
-            amount: mentor.sessionPrice,
-            currency: "XOF",
-            description,
-            customer: {
-              email: session.user.email!,
-              first_name: first || "Apprenant",
-              last_name: last || "—",
-            },
-            return_url: returnUrl,
-            metadata: sharedMeta,
-          });
-          provider = "moneroo";
-          checkoutUrl = mnr.checkout_url;
-          providerRefId = mnr.id;
-        }
-        await prisma.mentorBooking.update({
-          where: { id: booking.id },
-          data: { paymentProvider: provider, paymentRef: providerRefId },
-        });
-      } catch (err) {
-        console.warn(`[book] ${requestedProvider} failed, falling back to mock:`, err instanceof Error ? err.message : err);
-        initFallback = true;
-      }
-    }
-
-    if (useMock || initFallback) {
-      provider = "mock";
-      checkoutUrl = `/payment/return?mock=1&bookingId=${booking.id}&ref=${encodeURIComponent(internalRef)}`;
-      await prisma.mentorBooking.update({
-        where: { id: booking.id },
-        data: { paymentProvider: provider, paymentRef: internalRef },
-      });
-    }
-    // Should always have checkoutUrl by this point
-    if (!checkoutUrl) {
-      await prisma.mentorBooking.delete({ where: { id: booking.id } }).catch(() => {});
-      throw new Error("Impossible d'initialiser le paiement");
-    }
-
+    // ── ÉTAPE 2 : le paiement ne part PLUS d'ici ─────────────────────────────
+    // La réservation est créée « en attente de paiement ». L'encaissement se
+    // fait ensuite par l'écran de paiement de la plateforme, via
+    // /api/formations/payment/init avec `mentorBookingId`.
+    //
+    // Avant, cette route initialisait elle-même un paiement chez une passerelle
+    // retirée et renvoyait l'acheteur sur la page hébergée du fournisseur :
+    // deuxième tunnel d'achat, avec ses propres bugs et sa propre panne.
     return NextResponse.json({
       data: {
         bookingId: booking.id,
@@ -330,8 +245,6 @@ export async function POST(request: Request, { params }: Params) {
         durationMinutes: booking.durationMinutes,
         paidAmount: booking.paidAmount,
         status: booking.status,
-        checkoutUrl,
-        provider,
       },
     });
   } catch (err) {

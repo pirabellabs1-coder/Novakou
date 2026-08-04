@@ -1,11 +1,9 @@
 /**
- * Catalogue des méthodes de retrait Moneroo par pays.
+ * Catalogue des moyens de retrait, par pays.
  *
  * Sources :
- *   - https://docs.moneroo.io/api-reference/payouts/supported-methods
- *   - https://docs.moneroo.io/api-reference/payouts/initialize
  *
- * IMPORTANT : les codes méthode sont ceux exigés par l'API Moneroo.
+ * IMPORTANT : les codes méthode sont ceux exigés par l'API la passerelle.
  * Ils sont de la forme `provider_countrycode` (pas de "_money_" dans le nom).
  * Exemple : `orange_ci` (correct) PAS `orange_money_ci` (incorrect).
  *
@@ -19,7 +17,7 @@ import { isSupported } from "@/lib/payments/registry";
 export type PayoutField = "msisdn" | "account_number";
 
 export interface PayoutMethodDef {
-  /** Code Moneroo — passé tel quel à initPayout */
+  /** Code la passerelle — passé tel quel à initPayout */
   id: string;
   /** Libellé affiché à l'utilisateur */
   label: string;
@@ -29,7 +27,7 @@ export interface PayoutMethodDef {
   currency: string;
   /** Pays (codes ISO-2) où la méthode est utilisable */
   countries: string[];
-  /** Champs requis dans `recipient` (envoyés à Moneroo) */
+  /** Champs requis dans `recipient` (envoyés à la passerelle) */
   requiredFields: PayoutField[];
   /** Placeholder pour les champs */
   placeholder: Record<PayoutField, string>;
@@ -42,9 +40,16 @@ export interface PayoutMethodDef {
 }
 
 /**
- * Catalogue officiel Moneroo — mis à jour depuis docs.moneroo.io.
- * ⚠️ Ne pas inventer de codes, seulement utiliser ceux listés dans la doc.
- * Pour les méthodes non listées (Free Money Côte d'Ivoire, etc.), contacter Moneroo.
+ * Catalogue HISTORIQUE des moyens de retrait.
+ *
+ * Il décrit des moyens qui existent dans le monde, pas ceux par lesquels NOUS
+ * savons envoyer de l'argent : c'est le registre des passerelles qui en décide,
+ * via `getAvailablePayoutMethods`. Les entrées non servables restent ici pour
+ * que l'historique des retraits déjà versés garde ses libellés.
+ *
+ * ⚠️ Ne jamais inventer de code : un code erroné envoie l'argent sur le mauvais
+ * réseau. Seuls les codes confirmés par la documentation ou le SDK officiel
+ * d'une passerelle ont leur place ici.
  */
 export const PAYOUT_METHODS: PayoutMethodDef[] = [
   // ─── Sénégal (XOF) ───────────────────────────────────────
@@ -472,7 +477,7 @@ const COUNTRY_DIAL_CODES: Record<string, string> = {
 };
 
 /**
- * Normalise un numéro de téléphone en format `msisdn` Moneroo :
+ * Normalise un numéro de téléphone au format `msisdn` international :
  * digits only, international, SANS le + en tête.
  *
  * Si `methodId` est fourni, on détecte le pays via le catalogue et on
@@ -529,14 +534,14 @@ export function normalizeMsisdn(phone: string, methodId?: string): string {
 
 /**
  * Mapping des anciens codes (orange_money, wave, mtn_momo...) vers les codes
- * Moneroo exacts selon le pays du vendeur. Nécessaire pour migrer les données
+ * la passerelle exacts selon le pays du vendeur. Nécessaire pour migrer les données
  * déjà enregistrées via PaymentSettingsPanel sans casser la compatibilité.
  */
 export function resolveLegacyMethod(legacyId: string, country: string | null | undefined): string | null {
   if (!country) return null;
   const upper = country.toUpperCase();
   const map: Record<string, Record<string, string>> = {
-    // Anciens codes -> codes Moneroo officiels
+    // Anciens codes -> codes officiels des passerelles
     orange_money: {
       SN: "orange_sn",
       CI: "orange_ci",

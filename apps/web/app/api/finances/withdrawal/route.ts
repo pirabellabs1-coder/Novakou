@@ -2,7 +2,7 @@
 //
 // Modèles utilisés (WalletTransaction / WalletFreelance / WalletAgency) supprimés
 // lors du pivot Novakou. Les retraits vendeurs passent désormais par
-// /api/formations/vendeur/withdrawal (Moneroo / PayGenius / Wave / Orange Money).
+// /api/formations/vendeur/withdrawal (Mobile Money).
 
 import { NextResponse } from "next/server";
 

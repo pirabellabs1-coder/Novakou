@@ -1,9 +1,9 @@
 // Réconciliation d'un payout (mise à jour du retrait après confirmation du
 // fournisseur), commune à FeexPay et FedaPay.
 //
-// Réplique fidèlement les transitions du webhook Moneroo (handlePayoutWebhook)
+// Réplique fidèlement les transitions du webhook la passerelle (handlePayoutWebhook)
 // pour les trois types de retrait — vendeur/mentor, affilié, commission
-// plateforme — mais de façon agnostique du fournisseur. Le webhook Moneroo
+// plateforme — mais de façon agnostique du fournisseur. Le webhook la passerelle
 // garde sa propre logique (non touchée) ; ce module sert aux webhooks
 // feexpay/fedapay.
 //
@@ -12,7 +12,7 @@
 // webhook falsifié ne puisse jamais forcer un "success".
 
 import { prisma } from "@/lib/prisma";
-import { shortMethodLabel } from "@/lib/moneroo-payout-methods";
+import { shortMethodLabel } from "@/lib/payments/payout-catalog";
 import { sendWithdrawalPaidEmail, sendWithdrawalFailedEmail } from "@/lib/email/withdrawals";
 
 export type ReconcileStatus = "success" | "failed" | "pending";

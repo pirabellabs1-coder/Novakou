@@ -1010,7 +1010,7 @@ export async function sendDisputeNotificationEmail(params: {
 
 /**
  * Email envoyé quand un abonnement arrive à échéance (cron renouvellement).
- * Inclut le lien Moneroo pour relancer le paiement.
+ * Inclut le lien la passerelle pour relancer le paiement.
  */
 export async function sendSubscriptionRenewalEmail(params: {
   email: string;
@@ -1067,7 +1067,7 @@ export async function sendSubscriptionRenewalEmail(params: {
 
 // ── 22. Confirmation achat d'un Pack (Bundle) ──
 //
-// Envoyé immédiatement après confirmation Moneroo/PayGenius d'un bundle.
+// Envoyé immédiatement après confirmation la passerelle/PayGenius d'un bundle.
 // Liste les articles inclus + lien vers Mes Formations.
 export async function sendBundlePurchasedEmail(params: {
   email: string;

@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
 import { getOperator } from "@/lib/payments/registry";
-import { shortMethodLabel } from "@/lib/moneroo-payout-methods";
+import { shortMethodLabel } from "@/lib/payments/payout-catalog";
 import {
   StCard,
   StPageHeader,

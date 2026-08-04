@@ -25,7 +25,7 @@ export type PaymentOrigin =
   | "unknown";      // référence non reconnue avec montant > 0 — à vérifier
 
 const PAID_PREFIXES = [
-  "mnr:", "pg:", "moneroo:",
+  "mnr:", "pg:", "passerelle:",
   "orange_money:", "wave:", "mtn_momo:", "mtn:", "moov_money:", "moov:", "card:",
 ];
 

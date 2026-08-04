@@ -5,7 +5,7 @@
  * Webhook PayGenius (GeniusPay) — confirme un paiement ou un payout (cashout)
  * et déclenche le fulfillment ou la mise à jour du retrait correspondant.
  *
- * Architecture parallèle au handler Moneroo (apps/web/app/api/webhooks/moneroo)
+ * Architecture parallèle au handler la passerelle (apps/web/app/api/webhooks/passerelle)
  * mais avec deux différences clés :
  *
  *   1. Vérification de signature : HMAC-SHA256 sur `timestamp + "." + payload`
@@ -30,7 +30,7 @@ import {
 } from "@/lib/paygenius";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
 import { prisma } from "@/lib/prisma";
-import { shortMethodLabel } from "@/lib/moneroo-payout-methods";
+import { shortMethodLabel } from "@/lib/payments/payout-catalog";
 import { rateLimit } from "@/lib/api-rate-limit";
 import { sendDigitalProductDeliveryEmail } from "@/lib/email/formations";
 import { getCommissionRate } from "@/lib/formations/platform-settings";
@@ -168,7 +168,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, rejected: "amount_mismatch" });
   }
 
-  // ─── Routing par metadata.type (identique à Moneroo) ──────────────────
+  // ─── Routing par metadata.type (identique à la passerelle) ──────────────────
   if (type === "formations_checkout") {
     const userId = String(metadata.userId ?? "");
     const sessionRef = String(metadata.sessionRef ?? reference);
@@ -195,7 +195,7 @@ export async function POST(req: Request) {
         // Defense-in-depth (vote 19).
         expectedAmountReceived: verified.amount ?? undefined,
         // Rabais réellement débité (metadata signée) → autorité sur le montant
-        // remisé (cf. webhook Moneroo). Absent → recompute gardé.
+        // remisé (cf. webhook la passerelle). Absent → recompute gardé.
         chargedDiscountAmount:
           metadata.discountAmount != null && String(metadata.discountAmount) !== ""
             ? Number(metadata.discountAmount)
@@ -285,7 +285,7 @@ export async function POST(req: Request) {
       if (plan.interval === "yearly") periodEnd.setFullYear(periodEnd.getFullYear() + 1);
       else periodEnd.setMonth(periodEnd.getMonth() + 1);
 
-      // Trial : honoré comme sur Moneroo (statut "trialing" + trialEndsAt).
+      // Trial : honoré comme sur la passerelle (statut "trialing" + trialEndsAt).
       const hasTrial = !isRenewal && plan.trialDays && plan.trialDays > 0;
       const initialStatus = hasTrial ? "trialing" : "active";
       const trialEndsAt = hasTrial
@@ -429,7 +429,7 @@ export async function POST(req: Request) {
       });
       if (!bundle) return NextResponse.json({ error: "Bundle introuvable" }, { status: 400 });
 
-      // Idempotence par paymentRef (migration 2026052701) — voir Moneroo
+      // Idempotence par paymentRef (migration 2026052701) — voir la passerelle
       // webhook pour le détail. Un rachat post-refund n'est plus bloqué.
       const existingByRef = await prisma.productBundlePurchase.findUnique({
         where: { paymentRef: reference },
@@ -452,7 +452,7 @@ export async function POST(req: Request) {
       });
 
       // Bureau session 4 (P0 Karim/Marcus) — comptabilité bundle PayGenius.
-      // Cf. webhook Moneroo : sans ça, vendeur de bundles a un wallet à 0.
+      // Cf. webhook la passerelle : sans ça, vendeur de bundles a un wallet à 0.
       const bundleCommissionRate = await getCommissionRate();
       const bundlePlatform = Math.round(paidAmount * bundleCommissionRate);
       const bundleVendorNet = Math.max(0, paidAmount - bundlePlatform);
@@ -514,7 +514,7 @@ export async function POST(req: Request) {
       }
 
       const tag = `bundle_${purchase.id}`;
-      // Stock check (P1 Marcus) — voir webhook Moneroo pour le détail.
+      // Stock check (P1 Marcus) — voir webhook la passerelle pour le détail.
       const formationIdsInBundle = bundle.items
         .filter((i) => i.itemKind === "formation" && i.formationId)
         .map((i) => i.formationId!) as string[];
@@ -621,8 +621,8 @@ function parseIdList(raw: unknown): string[] {
 
 /**
  * Audit paiement 2026-05-26 — vote 20 : tolérance ±1 FCFA.
- * Symétrique de la fonction Moneroo. Voir le commentaire dans
- * apps/web/app/api/webhooks/moneroo/route.ts pour la logique détaillée.
+ * Symétrique de la fonction la passerelle. Voir le commentaire dans
+ * apps/web/app/api/webhooks/passerelle/route.ts pour la logique détaillée.
  */
 async function assertAmountMatches(
   paymentId: string,
@@ -687,7 +687,7 @@ async function assertAmountMatches(
       paymentId,
       err: err instanceof Error ? err.message : String(err),
     });
-    // Fail-RETRY (audit #9) — cf. webhook Moneroo.
+    // Fail-RETRY (audit #9) — cf. webhook la passerelle.
     return { ok: false, retry: true };
   }
 

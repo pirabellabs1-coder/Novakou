@@ -7,12 +7,12 @@ import { resolveActiveUserId } from "@/lib/formations/active-user";
 import {
   getAvailablePayoutMethods,
   PAYOUT_METHODS,
-} from "@/lib/moneroo-payout-methods";
+} from "@/lib/payments/payout-catalog";
 
 /**
  * GET /api/formations/wallet/payout-methods
  *
- * Retourne la liste des méthodes de retrait Moneroo disponibles pour
+ * Retourne la liste des méthodes de retrait la passerelle disponibles pour
  * l'utilisateur authentifié, filtrées selon son pays (`user.country`).
  *
  * Réponse :

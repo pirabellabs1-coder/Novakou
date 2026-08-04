@@ -43,7 +43,7 @@ async function issueGatewayRefund(
     }
   }
 
-  // For Moneroo/PayGenius payments (sessionRef = "moneroo:timestamp:uuid" or similar)
+  // Pour les paiements passerelle (sessionRef = "<passerelle>:timestamp:uuid")
   // These gateways typically don't support programmatic refunds —
   // the admin must process them manually via the provider dashboard.
   console.log(
@@ -840,7 +840,7 @@ async function handleBundleRefund(
     if (isFullRefund) {
       // 4. Révoque les Enrollments du bundle : flag refundedAt + clamp
       //    currentStudents. Le tag `bundle_<id>` est posé sur stripeSessionId
-      //    lors du fulfillment (cf. webhooks Moneroo/PayGenius).
+      //    lors du fulfillment (cf. réconciliation des encaissements).
       const bundleEnrollments = await tx.enrollment.findMany({
         where: { stripeSessionId: tag, refundedAt: null },
         select: { id: true, formationId: true },

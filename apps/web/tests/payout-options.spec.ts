@@ -4,7 +4,7 @@ import {
   getAvailablePayoutMethods,
   isPayoutMethodServable,
   normalizeMsisdn,
-} from "../lib/moneroo-payout-methods";
+} from "../lib/payments/payout-catalog";
 import { OPERATORS, PROVIDERS, routeFor, isSupported } from "../lib/payments/registry";
 
 /**

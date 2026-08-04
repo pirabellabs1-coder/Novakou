@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
 import Link from "next/link";
 import {
   BadgeCheck,
   CreditCard,
   GraduationCap,
   Package,
-  Wallet,
+
   Loader2,
   Ban,
   RefreshCw,
@@ -18,8 +19,6 @@ import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
 
 const fmtFCFA = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n)) + " FCFA";
 
-type Provider = "moneroo" | "paygenius";
-interface ProviderInfo { id: Provider; label: string; available: boolean; description: string }
 
 interface IncludedItem { id: string; slug: string; title: string; thumbnail?: string | null; banner?: string | null; price: number }
 interface Plan {
@@ -47,22 +46,14 @@ export default function MembershipPageClient({ plan }: { plan: Plan }) {
   const remaining = plan.maxMembers ? Math.max(0, plan.maxMembers - plan.activeCount) : null;
   const soldOut = plan.maxMembers !== null && remaining === 0;
 
-  // Provider selector — même pattern que la page bundle + le checkout principal.
-  const [providers, setProviders] = useState<ProviderInfo[]>([]);
-  const [provider, setProvider] = useState<Provider>("moneroo");
-  useEffect(() => {
-    fetch("/api/formations/payment/providers")
-      .then((r) => r.json())
-      .then((j) => {
-        const list = (j.data ?? []) as ProviderInfo[];
-        setProviders(list);
-        const firstAvail = list.find((p) => p.available);
-        if (firstAvail) setProvider(firstAvail.id);
-      })
-      .catch(() => setProviders([]));
-  }, []);
-  const availableProviders = providers.filter((p) => p.available);
+  const [besoinPaiement, setBesoinPaiement] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
 
+  /**
+   * Première étape : la route dit si un paiement est nécessaire (plan gratuit
+   * ou essai → accès immédiat). Si oui, on affiche l'écran de paiement de la
+   * plateforme, le même que pour n'importe quel achat.
+   */
   async function handleSubscribe() {
     if (soldOut) return;
     setLoading(true);
@@ -71,7 +62,6 @@ export default function MembershipPageClient({ plan }: { plan: Plan }) {
       const r = await fetch(`/api/formations/public/memberships/${plan.id}/subscribe`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider }),
       });
       const j = await r.json();
       if (j.code === "AUTH_REQUIRED") {
@@ -79,18 +69,46 @@ export default function MembershipPageClient({ plan }: { plan: Plan }) {
         return;
       }
       if (j.data?.free || j.data?.trial) {
-        // Plan gratuit ou démarrage d'essai gratuit → accès immédiat, pas de paiement.
         window.location.href = j.data.redirect_url ?? "/apprenant/abonnements";
         return;
       }
-      if (!r.ok || !j.data?.checkout_url) {
+      if (!r.ok) {
         setError(j.error ?? "Erreur lors de l'abonnement");
         return;
       }
-      window.location.href = j.data.checkout_url;
+      setBesoinPaiement(true);
     } catch {
       setError("Erreur réseau. Réessayez.");
     } finally {
+      setLoading(false);
+    }
+  }
+
+  /** Deuxième étape : l'encaissement, par le chemin unique de la plateforme. */
+  async function payerAbonnement({ operator, phone }: { operator: string; phone?: string; hosted: boolean }) {
+    setLoading(true);
+    setPayError(null);
+    try {
+      const res = await fetch("/api/formations/payment/init", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ membershipPlanId: plan.id, paymentMethod: operator, phone }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setPayError(json.error ?? "Le paiement n'a pas pu démarrer.");
+        setLoading(false);
+        return;
+      }
+      const url = json.data?.checkout_url ?? json.checkout_url;
+      if (!url) {
+        setPayError("Réponse de paiement invalide.");
+        setLoading(false);
+        return;
+      }
+      window.location.href = url;
+    } catch {
+      setPayError("Connexion impossible. Réessayez.");
       setLoading(false);
     }
   }
@@ -208,33 +226,24 @@ export default function MembershipPageClient({ plan }: { plan: Plan }) {
               </span>
             </div>
 
-            {availableProviders.length > 1 && !soldOut && (
+            {besoinPaiement && (
+              // L'écran de paiement de la plateforme, identique à celui d'un
+              // achat de formation. Pas de page hébergée d'un fournisseur.
               <div className="mt-5">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#5c647a] mb-2">
-                  Choisissez votre passerelle de paiement
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  {availableProviders.map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => setProvider(p.id)}
-                      className={`flex items-center gap-2 p-2.5 rounded-xl border-2 text-left transition-all ${
-                        provider === p.id
-                          ? "border-purple-500 bg-purple-50"
-                          : "border-gray-200 bg-white hover:border-gray-300"
-                      }`}
-                    >
-                      <Wallet size={18} className={provider === p.id ? "text-purple-600" : "text-[#5c647a]"} />
-                      <span className={`text-xs font-bold ${provider === p.id ? "text-purple-700" : "text-[#191c1e]"}`}>
-                        {p.label}
-                      </span>
-                    </button>
-                  ))}
-                </div>
+                {payError && (
+                  <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-2 mb-3">{payError}</p>
+                )}
+                <UnifiedPaymentScreen
+                  embedded
+                  amount={Math.round(plan.price)}
+                  merchantName={plan.shop?.name ?? undefined}
+                  submitting={loading}
+                  onPay={(args) => { void payerAbonnement(args); }}
+                />
               </div>
             )}
 
+            {!besoinPaiement && (
             <button
               onClick={handleSubscribe}
               disabled={loading || soldOut}
@@ -254,6 +263,7 @@ export default function MembershipPageClient({ plan }: { plan: Plan }) {
                     ? `Essayer ${plan.trialDays} jours gratuits`
                     : "S'abonner maintenant"}
             </button>
+            )}
             {error && (
               <p className="text-xs text-red-600 mt-3 bg-red-50 border border-red-200 rounded-lg p-2">{error}</p>
             )}

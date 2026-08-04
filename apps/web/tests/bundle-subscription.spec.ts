@@ -5,10 +5,9 @@ import { test, expect } from "@playwright/test";
  *
  * Ces tests garantissent qu'aucune régression future ne casse :
  *   - L'accès public aux pages /bundle/[slug] et /abonnement/[id]
- *   - L'affichage du sélecteur de paiement Moneroo / PayGenius
+ *   - L'affichage de l'écran de paiement de la plateforme
  *   - Le bouton d'achat
  *   - La présence du SDK Puter sur les boutiques (chatbot)
- *   - L'API publique des providers de paiement
  *
  * Convention : on ne fait PAS de paiement réel — on vérifie uniquement
  * que les pages répondent + que les sélecteurs/boutons sont visibles.
@@ -26,15 +25,11 @@ test.describe("Bundle public page", () => {
     // Doit avoir le titre dans le H1
     await expect(page.locator("h1").first()).toBeVisible();
 
-    // Sélecteur Moneroo + PayGenius (si les 2 providers sont configurés)
-    const moneroo = page.getByRole("button", { name: /moneroo/i });
-    const paygenius = page.getByRole("button", { name: /paygenius/i });
-    // Au moins un provider doit être visible (en prod les 2 sont configurés)
-    await expect(moneroo.or(paygenius).first()).toBeVisible();
-
-    // Bouton "Acheter le pack"
-    const buyBtn = page.getByRole("button", { name: /acheter le pack/i });
-    await expect(buyBtn).toBeVisible();
+    // L'écran de paiement de la plateforme : choix du pays, puis du moyen.
+    // Aucun nom de passerelle ne doit apparaître — c'est un détail
+    // d'infrastructure, l'acheteur n'a pas à le connaître.
+    await expect(page.getByText(/votre pays/i).first()).toBeVisible();
+    await expect(page.locator("body")).not.toContainText(/moneroo|paygenius/i);
   });
 });
 
@@ -60,13 +55,13 @@ test.describe("Subscription public page", () => {
 });
 
 test.describe("Payment providers API", () => {
-  test("exposes available providers without auth", async ({ request }) => {
+  test("l'ancienne liste publique de passerelles n'existe plus", async ({ request }) => {
+    // Elle annonçait une passerelle retirée comme « disponible ». Le choix de
+    // la passerelle se fait désormais côté serveur, à partir du pays et du
+    // moyen : l'acheteur n'a jamais à le faire, et personne n'a besoin de
+    // connaître nos fournisseurs.
     const res = await request.get("/api/formations/payment/providers");
-    expect(res.ok()).toBeTruthy();
-    const body = await res.json();
-    expect(Array.isArray(body.data)).toBeTruthy();
-    // Au moins un provider configuré en prod (Moneroo ou PayGenius)
-    expect(body.data.length).toBeGreaterThan(0);
+    expect(res.status()).toBe(404);
   });
 });
 

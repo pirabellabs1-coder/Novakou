@@ -142,7 +142,7 @@ export async function checkPayoutStatus(reference: string): Promise<{ status: Fe
 }
 
 // ─── CLASSIFICATION D'ERREUR ─────────────────────────────────────────────────
-// Même vocabulaire de catégories que classifyMonerooError, pour que
+// Même vocabulaire de catégories que les autres passerelles, pour que
 // l'orchestrateur traite tous les fournisseurs de façon uniforme.
 
 export type FeexpayErrorCategory = "insufficient_funds" | "validation" | "network" | "not_available" | "unknown";
@@ -180,7 +180,7 @@ export function classifyFeexpayError(msg: string): { category: FeexpayErrorCateg
   return { category: "unknown", userMessage: `Erreur FeexPay : ${msg}` };
 }
 
-/** Normalise un statut FeexPay vers le vocabulaire interne (comme Moneroo). */
+/** Normalise un statut FeexPay vers le vocabulaire interne. */
 export function normalizeFeexpayStatus(s: FeexpayPayoutStatus | string): "success" | "failed" | "pending" {
   const up = String(s).toUpperCase();
   if (up === "SUCCESSFUL") return "success";

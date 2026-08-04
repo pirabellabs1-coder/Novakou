@@ -161,7 +161,7 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
       );
       trackEvents.addToCart({ id: item.id, kind: item.kind, price: item.price, title: item.title });
       // Redirige vers notre page /checkout personnalisée (contact + méthode + résumé sur UNE page)
-      // au lieu d'appeler directement Moneroo (qui afficherait son propre formulaire 2 étapes).
+      // au lieu d'envoyer l'acheteur sur la page hébergée d'un fournisseur.
       // Pour bundle : on envoie sur la page détail du bundle qui a son propre
       // flux d'achat (init paiement spécifique). Pour formations/produits :
       // checkout direct avec fids/pids.

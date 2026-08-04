@@ -19,6 +19,7 @@ import {
   Video,
 } from "lucide-react";
 import { useDraftField, clearDrafts } from "@/lib/hooks/use-draft-storage";
+import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Slot {
@@ -103,16 +104,14 @@ export default function ReservationPage({ params }: { params: Promise<{ id: stri
   const [error, setError] = useState<string | null>(null);
 
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
+  const [bookingId, setBookingId] = useState<string | null>(null);
+  const [payError, setPayError] = useState<string | null>(null);
+  const [paying, setPaying] = useState(false);
   // `goals` is a free-form description of what the apprenant wants to work on
   // — the only field we persist, since slots/dates are validated against
   // live availability and shouldn't survive a refresh.
   const [goals, setGoals] = useDraftField(`mentor:reserver:${id}:goals`, "");
   const [confirming, setConfirming] = useState(false);
-  const [bookingResult, setBookingResult] = useState<{
-    bookingId: string;
-    meetingUrl: string;
-    scheduledAt: string;
-  } | null>(null);
 
   // Calendar state
   const initialMonth = preSelectSlotISO ? startOfMonth(new Date(preSelectSlotISO)) : startOfMonth(new Date());
@@ -193,6 +192,39 @@ export default function ReservationPage({ params }: { params: Promise<{ id: stri
     }
   }, [preSelectSlotISO, slots, autoApplied]);
 
+  /**
+   * Paiement de la séance par le MÊME chemin que tout le reste. La réservation
+   * existe déjà ; on n'encaisse que son montant, relu côté serveur.
+   */
+  async function payerSeance({ operator, phone }: { operator: string; phone?: string; hosted: boolean }) {
+    if (!bookingId) return;
+    setPaying(true);
+    setPayError(null);
+    try {
+      const res = await fetch("/api/formations/payment/init", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mentorBookingId: bookingId, paymentMethod: operator, phone }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setPayError(json.error ?? "Le paiement n'a pas pu démarrer.");
+        setPaying(false);
+        return;
+      }
+      const url = json.data?.checkout_url ?? json.checkout_url;
+      if (!url) {
+        setPayError("Réponse de paiement invalide.");
+        setPaying(false);
+        return;
+      }
+      window.location.href = url;
+    } catch {
+      setPayError("Connexion impossible. Réessayez.");
+      setPaying(false);
+    }
+  }
+
   async function handleConfirm() {
     if (!selectedSlot) return;
     setConfirming(true);
@@ -209,21 +241,10 @@ export default function ReservationPage({ params }: { params: Promise<{ id: stri
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Erreur");
 
-      // Redirect to payment (Moneroo or mock return page)
-      // The return page will call /confirm-payment which sets status=PENDING + escrowStatus=HELD
-      if (json.data.checkoutUrl) {
-        clearDrafts(`mentor:reserver:${id}`);
-        window.location.href = json.data.checkoutUrl;
-        return;
-      }
-
-      // Fallback (shouldn't happen): legacy response
+      // Le créneau est réservé, en attente de paiement. On enchaîne sur l'écran
+      // de paiement de la plateforme — le même que pour n'importe quel achat.
       clearDrafts(`mentor:reserver:${id}`);
-      setBookingResult({
-        bookingId: json.data.bookingId,
-        meetingUrl: json.data.meetingUrl ?? "",
-        scheduledAt: json.data.scheduledAt,
-      });
+      setBookingId(json.data.bookingId);
       setStep(4);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur");
@@ -616,55 +637,27 @@ export default function ReservationPage({ params }: { params: Promise<{ id: stri
         )}
 
         {/* Step 4 — Success */}
-        {step === 4 && bookingResult && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
-              <CheckCircle2 size={36} className="text-green-600" />
-            </div>
+        {step === 4 && bookingId && mentor && (
+          // Paiement de la séance : l'écran de la plateforme, identique à celui
+          // d'un achat de formation. Le créneau est déjà réservé — il ne sera
+          // confirmé au mentor qu'une fois le paiement encaissé.
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
             <div>
-              <h2 className="text-xl font-extrabold text-[#191c1e]">Demande envoyée !</h2>
-              <p className="text-sm text-[#5c647a] mt-1 max-w-md mx-auto">
-                Le mentor a été notifié. Dès qu&apos;il confirme, vous recevrez un email avec le lien de la séance.
+              <h2 className="text-lg font-extrabold text-[#191c1e]">Régler la séance</h2>
+              <p className="text-sm text-[#5c647a] mt-1">
+                Votre créneau est réservé. Il est confirmé au mentor dès le paiement reçu.
               </p>
             </div>
-
-            <div className="bg-[#f7f9fb] rounded-xl p-4 text-left text-xs space-y-2">
-              <div className="flex justify-between">
-                <span className="text-[#5c647a]">Date</span>
-                <span className="font-semibold text-[#191c1e] capitalize">{fmtDay(bookingResult.scheduledAt)} · {fmtTime(bookingResult.scheduledAt)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#5c647a]">Statut</span>
-                <span className="font-semibold text-amber-700">En attente de confirmation</span>
-              </div>
-              <div className="flex justify-between items-start">
-                <span className="text-[#5c647a]">Salle vidéo</span>
-                <a
-                  href={bookingResult.meetingUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline break-all text-right ml-3"
-                >
-                  {bookingResult.meetingUrl}
-                </a>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-2 pt-2">
-              <Link
-                href="/apprenant/sessions"
-                className="flex-1 px-5 py-2.5 rounded-xl text-sm font-bold text-white hover:opacity-90"
-                style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-              >
-                Voir mes sessions
-              </Link>
-              <Link
-                href="/mentors"
-                className="flex-1 px-5 py-2.5 rounded-xl text-sm font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200"
-              >
-                Autres mentors
-              </Link>
-            </div>
+            {payError && (
+              <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-2">{payError}</p>
+            )}
+            <UnifiedPaymentScreen
+              embedded
+              amount={mentor.sessionPrice}
+              merchantName={mentor.name ?? undefined}
+              submitting={paying}
+              onPay={(args) => { void payerSeance(args); }}
+            />
           </div>
         )}
       </div>

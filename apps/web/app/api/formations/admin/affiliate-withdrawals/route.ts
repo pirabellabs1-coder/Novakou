@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
-import { shortMethodLabel } from "@/lib/moneroo-payout-methods";
+import { shortMethodLabel } from "@/lib/payments/payout-catalog";
 
 function isAdmin(session: { user?: { role?: string | null } } | null): boolean {
   const role = session?.user?.role?.toString().toUpperCase();

@@ -30,26 +30,10 @@ function ReturnInner() {
 
   useEffect(() => {
     async function run() {
-      // ── Mentor booking payment finalization (mock or real) ──────────────
-      const bookingId = params.get("bookingId");
-      if (bookingId) {
-        try {
-          const res = await fetch(`/api/formations/mentor-bookings/${bookingId}/confirm-payment`, { method: "POST" });
-          const json = await res.json();
-          if (json.data) {
-            setStatus("success");
-            setMessage("Séance payée — en attente de confirmation du mentor. Les fonds sont bloqués en escrow.");
-            setRedirectTo("/apprenant/sessions");
-          } else {
-            setStatus("failed");
-            setMessage(json.error ?? "Échec de la confirmation du paiement");
-          }
-        } catch {
-          setStatus("failed");
-          setMessage("Erreur réseau lors de la confirmation");
-        }
-        return;
-      }
+      // Les séances de mentorat se confirment désormais par le même chemin que
+      // tout le reste : paiement, puis réconciliation côté serveur. Cette page
+      // n'a plus de branche dédiée — il n'y avait qu'elle pour la déclencher, et
+      // elle dépendait d'une passerelle retirée.
 
       // Free order or mock — finalize directly
       if (params.get("free") === "1") {
@@ -58,40 +42,6 @@ function ReturnInner() {
         return;
       }
 
-      if (params.get("mock") === "1") {
-        // Dev mode — simulate completed payment by calling checkout API
-        const fids = params.get("fids")?.split(",").filter(Boolean) ?? [];
-        const pids = params.get("pids")?.split(",").filter(Boolean) ?? [];
-        const code = params.get("code") || undefined;
-        try {
-          const res = await fetch("/api/formations/checkout", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              formationIds: fids,
-              productIds: pids,
-              discountCode: code,
-              paymentMethod: "mock",
-              clearCart: true,
-            }),
-          });
-          const json = await res.json();
-          if (json.data?.success) {
-            setStatus("success");
-            setMessage(`Achat confirmé : ${[...json.data.enrollments, ...json.data.purchases].length} produit(s)`);
-            setRedirectTo(json.data.enrollments?.length > 0
-              ? "/apprenant/mes-formations"
-              : "/apprenant/mes-produits");
-          } else {
-            setStatus("failed");
-            setMessage(json.error ?? "Échec de la commande");
-          }
-        } catch {
-          setStatus("failed");
-          setMessage("Erreur réseau");
-        }
-        return;
-      }
 
       // Flux réel : vérification par l'ID renvoyé en querystring.
       // Selon la passerelle : ?paymentId=..., ?reference=... ou ?id=...
@@ -100,7 +50,11 @@ function ReturnInner() {
         params.get("reference") ||
         params.get("ref") ||
         params.get("id");
-      const provider = params.get("provider") || "moneroo";
+      // Sans passerelle indiquée, on tente la réconciliation par référence :
+      // c'est elle qui retrouve la tentative et sa passerelle réelle. Le repli
+      // pointait vers une intégration supprimée — toute vérification sans
+      // paramètre échouait alors sans raison visible.
+      const provider = params.get("provider") || "feexpay";
       if (!paymentId) {
         setStatus("failed");
         setMessage("Référence de paiement manquante");

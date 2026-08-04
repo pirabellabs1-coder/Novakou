@@ -8,7 +8,7 @@ import {
   normalizeMsisdn,
   resolveLegacyMethod,
   shortMethodLabel,
-} from "@/lib/moneroo-payout-methods";
+} from "@/lib/payments/payout-catalog";
 import { computeVendorBalance, computeMentorBalance } from "@/lib/formations/wallet-balance";
 import { sendWithdrawalPaidEmail, sendWithdrawalFailedEmail } from "@/lib/email/withdrawals";
 import { executePayout } from "@/lib/payout/execute";
@@ -18,11 +18,11 @@ import { isFedapayConfigured } from "@/lib/fedapay";
 type Params = { params: Promise<{ id: string }> };
 
 type AccountDetails = {
-  // Nouveau format Moneroo : msisdn (digits only, international, sans +)
+  // Format attendu : msisdn (digits only, international, sans +)
   msisdn?: string;
   // Legacy : certains comptes vendeurs ont stocké "phone" avant la migration
   phone?: string;
-  // Legacy bancaire (non supporté en payout Moneroo)
+  // Legacy bancaire (non supporté en versement automatique)
   iban?: string;
   bic?: string;
   bank_name?: string;
@@ -87,7 +87,7 @@ export async function PATCH(request: Request, { params }: Params) {
       return NextResponse.json({ error: "Demande introuvable." }, { status: 404 });
     }
 
-    // ─── REJECT : refuser manuellement un retrait EN_ATTENTE sans appeler Moneroo ─
+    // ─── REJECT : refuser manuellement un retrait EN_ATTENTE sans appeler la passerelle ─
     if (action === "reject") {
       if (w.status !== "EN_ATTENTE") {
         return NextResponse.json({ error: `Seuls les retraits EN_ATTENTE peuvent être refusés (actuel: ${w.status}).` }, { status: 400 });
@@ -119,7 +119,7 @@ export async function PATCH(request: Request, { params }: Params) {
       const details = (w.accountDetails ?? {}) as Record<string, unknown>;
       const retryCount = typeof details._retryCount === "number" ? details._retryCount : 0;
       if (retryCount >= 3) {
-        return NextResponse.json({ error: "Limite de 3 tentatives atteinte. Contactez le support Moneroo.", retryCount }, { status: 400 });
+        return NextResponse.json({ error: "Limite de 3 tentatives atteinte. Contactez le support de la passerelle.", retryCount }, { status: 400 });
       }
       // Reset to EN_ATTENTE and increment retryCount
       await prisma.instructorWithdrawal.update({
@@ -154,7 +154,7 @@ export async function PATCH(request: Request, { params }: Params) {
     if (action === "approve") {
       // Si aucun fournisseur automatique n'est configuré, on retombe en manuel.
       // Le mode "auto" (défaut) passe par l'orchestrateur, qui
-      // essaie Moneroo → FeexPay → FedaPay : il suffit qu'UN seul soit configuré.
+      // essaie FeexPay → FedaPay : il suffit qu'UN seul soit configuré.
       const anyAutoProvider = (await isFeexpayConfigured()) || (await isFedapayConfigured());
       const providerConfigured =
         mode === "manual" ? true :
@@ -240,7 +240,7 @@ export async function PATCH(request: Request, { params }: Params) {
       let payoutRefId: string;
       let methodLabelHumain: string;
 
-      // ── BRANCH MONEROO (par défaut) ─────────────────────────────────────
+      // ── VERSEMENT AUTOMATIQUE (par défaut) ─────────────────────────────────────
       // Si le vendeur a enregistré "orange_money" (legacy), on le résout selon le pays
       const resolvedMethod = getPayoutMethod(rawMethod)
         ? rawMethod
@@ -251,7 +251,7 @@ export async function PATCH(request: Request, { params }: Params) {
         await prisma.instructorWithdrawal.update({
           where: { id },
           data: {
-            errorMessage: `Méthode inconnue dans le catalogue Moneroo : ${rawMethod}`,
+            errorMessage: `Méthode inconnue dans le catalogue des versements : ${rawMethod}`,
           },
         }).catch(() => null);
         return NextResponse.json(
@@ -290,7 +290,7 @@ export async function PATCH(request: Request, { params }: Params) {
         );
       }
 
-      // ── VERSEMENT via orchestrateur : Moneroo → FeexPay → FedaPay ────────
+      // ── VERSEMENT via orchestrateur : FeexPay → FedaPay ────────
       // Bascule automatique : si un fournisseur refuse (solde/IP/validation),
       // le MÊME versement est rejoué chez le suivant. Sur erreur ambiguë
       // (réseau/timeout) l'orchestrateur s'arrête sans REFUSE, pour éviter tout

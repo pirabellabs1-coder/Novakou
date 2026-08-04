@@ -20,7 +20,7 @@ import { IS_DEV } from "@/lib/env";
 import { executePayout } from "@/lib/payout/execute";
 import { isFeexpayConfigured } from "@/lib/feexpay";
 import { isFedapayConfigured } from "@/lib/fedapay";
-import { getPayoutMethod, normalizeMsisdn } from "@/lib/moneroo-payout-methods";
+import { getPayoutMethod, normalizeMsisdn } from "@/lib/payments/payout-catalog";
 import { sendWithdrawalRequestedEmail } from "@/lib/email/withdrawals";
 
 const VALID_METHODS = ["virement", "mobile_money", "paypal", "wise"] as const;
@@ -148,8 +148,8 @@ export async function POST(req: Request) {
     await sendWithdrawalRequestedEmail(session.user.email, session.user.name, amount, method === "mobile_money" ? "Mobile Money" : method, "/admin/retraits");
   }
 
-  // Versement Moneroo AUTOMATIQUE pour Mobile Money (l'admin s'auto-autorise).
-  // Le webhook Moneroo passera ensuite le PlatformPayout en TRAITE/REFUSE.
+  // Versement AUTOMATIQUE pour Mobile Money (l'admin s'auto-autorise).
+  // Le webhook de la passerelle passera ensuite le PlatformPayout en TRAITE/REFUSE.
   // Les autres méthodes (virement / paypal / wise) restent manuelles.
   const monerooMethodId = String(details.monerooMethod ?? "");
   const rawMsisdn = String(details.msisdn ?? details.phone ?? "");
@@ -158,7 +158,7 @@ export async function POST(req: Request) {
   if (method === "mobile_money" && anyAutoProvider && methodDef && rawMsisdn) {
     const fullName = (session?.user?.name || session?.user?.email || "Admin Novakou").trim();
     const parts = fullName.split(/\s+/);
-    // Orchestrateur : Moneroo → FeexPay → FedaPay, avec bascule sur refus et
+    // Orchestrateur : FeexPay → FedaPay, avec bascule sur refus et
     // arrêt de sûreté sur erreur ambiguë (voir lib/payout/execute.ts).
     const exec = await executePayout({
       method: monerooMethodId,

@@ -7,7 +7,7 @@
  *
  * Sécurité : le numéro de carte complet et le CVV ne sont JAMAIS saisis ni
  * stockés ici — seuls les 4 derniers chiffres. Les paiements par carte
- * restent traités sur la page hébergée Moneroo.
+ * restent traités sur la page hébergée la passerelle.
  */
 
 import { useEffect, useState } from "react";
@@ -209,7 +209,7 @@ export default function SavedPaymentMethodsPanel() {
       >
         <ShieldCheck size={16} className="mt-0.5 flex-shrink-0" />
         <p className="text-[11.5px] font-semibold leading-relaxed">
-          Les paiements par carte restent traités sur la page sécurisée Moneroo — nous n&apos;enregistrons jamais votre numéro de carte.
+          Les paiements par carte restent traités sur la page sécurisée du fournisseur — nous n&apos;enregistrons jamais votre numéro de carte.
         </p>
       </div>
 

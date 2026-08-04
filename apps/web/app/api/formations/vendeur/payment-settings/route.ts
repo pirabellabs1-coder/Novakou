@@ -23,7 +23,7 @@ const VALID_PAYMENT_METHODS = new Set([
   "mtn_momo",
   "moov_money",
   "card",
-  "moneroo",
+  "passerelle",
   "stripe",
   "paypal",
   "bank_transfer",
@@ -46,7 +46,7 @@ interface PayoutMethod {
   label?: string;
   phone?: string;
   iban?: string;
-  // Champs bancaires requis par Moneroo pour les virements SEPA/international
+  // Champs bancaires requis par la passerelle pour les virements SEPA/international
   bic?: string;
   bank_name?: string;
   account_holder?: string;
@@ -141,7 +141,7 @@ export async function PUT(req: Request) {
           );
         }
         entry.iban = iban;
-        // Moneroo exige egalement le BIC et le nom de la banque pour un virement
+        // la passerelle exige egalement le BIC et le nom de la banque pour un virement
         if (raw.bic) entry.bic = String(raw.bic).trim().toUpperCase();
         if (raw.bank_name) entry.bank_name = String(raw.bank_name).trim().slice(0, 100);
         if (raw.account_holder) entry.account_holder = String(raw.account_holder).trim().slice(0, 100);
