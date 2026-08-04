@@ -201,7 +201,12 @@ export function normalizeFeexpayStatus(s: FeexpayPayoutStatus | string): "succes
 // L'appel sort par le proxy à IP fixe : FeexPay filtre par IP, et les IP de
 // Vercel sont dynamiques (même contrainte que pour le versement).
 
-const FEEXPAY_COLLECT_BASE = "https://api.feexpay.me";
+// MÊME hôte que le versement. L'encaissement pointait sur `api.feexpay.me`,
+// qui répond 502 sur TOUTES ses routes : chaque paiement FeexPay échouait donc
+// avant même d'être tenté. Ce n'était pas une panne du fournisseur — c'était
+// la mauvaise adresse. Vérifié sur le même chemin : `api.feexpay.me` → 502,
+// `api-v2.feexpay.me` → 401 sans clé (donc la route existe et attend l'auth).
+const FEEXPAY_COLLECT_BASE = FEEXPAY_API_BASE;
 
 /**
  * Valeur du champ `reseau` attendue par FeexPay, par code opérateur interne.
