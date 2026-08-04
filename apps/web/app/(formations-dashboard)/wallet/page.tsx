@@ -398,7 +398,10 @@ export default function WalletPage() {
         )}
 
         {/* ── Grille hero 1.55fr / 1fr (maquette) ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1.55fr_1fr] gap-3.5 mb-4">
+        {/* `items-start` : sans lui, les colonnes s'égalisent en hauteur et le
+            bandeau vert s'étire sur toute la hauteur du formulaire de retrait,
+            laissant un grand aplat vide. Chaque carte garde sa hauteur propre. */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1.55fr_1fr] gap-3.5 mb-4 items-start">
           {/* Hero gradient vert — solde disponible */}
           <div
             className="relative overflow-hidden rounded-[20px] p-6 md:px-[26px] text-white"

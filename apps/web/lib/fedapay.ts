@@ -9,7 +9,7 @@
 //   2. PUT  /v1/payouts/start  → le DÉCLENCHE réellement (sinon rien n'est envoyé)
 // puis GET /v1/payouts/{id} pour suivre le statut final (sent / failed).
 
-import { payoutFetch } from "@/lib/payout/proxy-fetch";
+import { PayoutNeverSentError, payoutFetch } from "@/lib/payout/proxy-fetch";
 import { routeFor } from "@/lib/payments/registry";
 import { credential, hasCredentials } from "@/lib/payments/credentials";
 
@@ -159,9 +159,28 @@ export async function checkPayoutStatus(payoutId: string): Promise<{ status: Fed
 
 // ─── CLASSIFICATION D'ERREUR ─────────────────────────────────────────────────
 
-export type FedapayErrorCategory = "insufficient_funds" | "validation" | "network" | "not_available" | "unknown";
+export type FedapayErrorCategory =
+  | "insufficient_funds"
+  | "validation"
+  | "network"
+  | "not_available"
+  /** La requête n'a JAMAIS atteint le fournisseur : basculer est sans danger. */
+  | "never_sent"
+  | "unknown";
 
-export function classifyFedapayError(msg: string): { category: FedapayErrorCategory; userMessage: string } {
+export function classifyFedapayError(
+  msg: string,
+  err?: unknown,
+): { category: FedapayErrorCategory; userMessage: string } {
+  // Connexion jamais établie (DNS, refus, proxy injoignable) : la requête n'a
+  // pas atteint le fournisseur, donc aucun versement n'a pu partir. On peut
+  // essayer une autre passerelle sans risquer de payer deux fois.
+  if (err instanceof PayoutNeverSentError) {
+    return {
+      category: "never_sent",
+      userMessage: `FedaPay n'a pas pu être contacté (${err.code}). Une autre passerelle va être essayée.`,
+    };
+  }
   const lower = msg.toLowerCase();
   if (lower.includes("insufficient") || lower.includes("balance") || lower.includes("solde") || lower.includes("fund")) {
     return {

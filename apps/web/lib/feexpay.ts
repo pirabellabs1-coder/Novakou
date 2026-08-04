@@ -9,7 +9,7 @@
 // lancement. Il FAUT ensuite interroger l'endpoint de statut pour connaître le
 // résultat final (SUCCESSFUL / FAILED). Le webhook confirme aussi de son côté.
 
-import { payoutFetch } from "@/lib/payout/proxy-fetch";
+import { PayoutNeverSentError, payoutFetch } from "@/lib/payout/proxy-fetch";
 import { routeFor } from "@/lib/payments/registry";
 import { credential, hasCredentials } from "@/lib/payments/credentials";
 
@@ -145,9 +145,28 @@ export async function checkPayoutStatus(reference: string): Promise<{ status: Fe
 // Même vocabulaire de catégories que les autres passerelles, pour que
 // l'orchestrateur traite tous les fournisseurs de façon uniforme.
 
-export type FeexpayErrorCategory = "insufficient_funds" | "validation" | "network" | "not_available" | "unknown";
+export type FeexpayErrorCategory =
+  | "insufficient_funds"
+  | "validation"
+  | "network"
+  | "not_available"
+  /** La requête n'a JAMAIS atteint le fournisseur : basculer est sans danger. */
+  | "never_sent"
+  | "unknown";
 
-export function classifyFeexpayError(msg: string): { category: FeexpayErrorCategory; userMessage: string } {
+export function classifyFeexpayError(
+  msg: string,
+  err?: unknown,
+): { category: FeexpayErrorCategory; userMessage: string } {
+  // Connexion jamais établie (DNS, refus, proxy injoignable) : la requête n'a
+  // pas atteint le fournisseur, donc aucun versement n'a pu partir. On peut
+  // essayer une autre passerelle sans risquer de payer deux fois.
+  if (err instanceof PayoutNeverSentError) {
+    return {
+      category: "never_sent",
+      userMessage: `FeexPay n'a pas pu être contacté (${err.code}). Une autre passerelle va être essayée.`,
+    };
+  }
   const lower = msg.toLowerCase();
   if (lower.includes("insufficient") || lower.includes("balance") || lower.includes("solde")) {
     return {

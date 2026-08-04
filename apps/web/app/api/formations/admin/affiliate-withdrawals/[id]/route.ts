@@ -155,7 +155,7 @@ export async function PATCH(request: Request, { params }: Params) {
       return NextResponse.json({ error: `Coordonnées incomplètes : ${missing.join(", ")}` }, { status: 400 });
     }
 
-    // ── VERSEMENT via orchestrateur : FeexPay → FedaPay ──────────────
+    // ── VERSEMENT via orchestrateur : FedaPay → FeexPay ──────────────
     console.log(`[affiliate payout] id=${id} amount=${Math.round(w.amount)} method=${methodDef.id}`);
     const exec = await executePayout({
       method: methodDef.id,

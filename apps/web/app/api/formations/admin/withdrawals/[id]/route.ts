@@ -35,7 +35,7 @@ type AccountDetails = {
  *
  * Body :
  *   { action: "approve", mode?: "auto" | "manual" }
- *     → "auto" (défaut) : versement via l'orchestrateur FeexPay → FedaPay
+ *     → "auto" (défaut) : versement via l'orchestrateur FedaPay → FeexPay
  *     → "manual"           : virement hors plateforme, marque TRAITE direct
  *
  *   { action: "refuse", refusedReason: string } → REFUSE + motif
@@ -154,7 +154,7 @@ export async function PATCH(request: Request, { params }: Params) {
     if (action === "approve") {
       // Si aucun fournisseur automatique n'est configuré, on retombe en manuel.
       // Le mode "auto" (défaut) passe par l'orchestrateur, qui
-      // essaie FeexPay → FedaPay : il suffit qu'UN seul soit configuré.
+      // essaie FedaPay → FeexPay : il suffit qu'UN seul soit configuré.
       const anyAutoProvider = (await isFeexpayConfigured()) || (await isFedapayConfigured());
       const providerConfigured =
         mode === "manual" ? true :
@@ -290,7 +290,7 @@ export async function PATCH(request: Request, { params }: Params) {
         );
       }
 
-      // ── VERSEMENT via orchestrateur : FeexPay → FedaPay ────────
+      // ── VERSEMENT via orchestrateur : FedaPay → FeexPay ────────
       // Bascule automatique : si un fournisseur refuse (solde/IP/validation),
       // le MÊME versement est rejoué chez le suivant. Sur erreur ambiguë
       // (réseau/timeout) l'orchestrateur s'arrête sans REFUSE, pour éviter tout

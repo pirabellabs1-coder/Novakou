@@ -1,6 +1,6 @@
 // Orchestrateur de PAYOUT avec bascule automatique de fournisseur.
 //
-// Ordre de bascule : FeexPay → FedaPay.
+// Ordre de bascule : FedaPay → FeexPay.
 // On tente chaque fournisseur configuré ET capable de servir l'opérateur du
 // bénéficiaire. Si l'un REFUSE (solde insuffisant, IP non autorisée, validation),
 // on rejoue le même versement chez le suivant. Aucun argent ne circule entre
@@ -30,7 +30,15 @@ import { getPayoutMapping, baseMethodCode } from "@/lib/payout/methods-map";
 export type PayoutProviderId = "feexpay" | "fedapay";
 
 /** Ordre de tentative : le premier configuré ET capable emporte le versement. */
-const PROVIDER_ORDER: PayoutProviderId[] = ["feexpay", "fedapay"];
+/**
+ * Ordre d'essai des passerelles de VERSEMENT — décision fondateur du
+ * 2026-08-04 : FedaPay d'abord, FeexPay en secours.
+ *
+ * Ne pas confondre avec l'ordre d'ENCAISSEMENT, qui se décide par pays et par
+ * opérateur : ici, les deux passerelles servent les mêmes réseaux, c'est donc
+ * la fiabilité constatée qui tranche.
+ */
+const PROVIDER_ORDER: PayoutProviderId[] = ["fedapay", "feexpay"];
 
 export type PayoutExecutionInput = {
   /** Code opérateur interne (le suffixe _mentor est toléré). */
@@ -82,7 +90,16 @@ export type PayoutExecutionResult =
 
 // Une catégorie d'erreur est-elle « sûre » pour basculer (aucun argent déplacé) ?
 function isSafeToFallback(category: string): boolean {
-  return category === "insufficient_funds" || category === "not_available" || category === "validation";
+  return (
+    category === "insufficient_funds" ||
+    category === "not_available" ||
+    category === "validation" ||
+    // Connexion jamais établie : rien n'a pu partir chez ce fournisseur, donc
+    // en essayer un autre ne peut pas produire de double paiement. Sans ce cas,
+    // une simple panne de proxy bloquait le retrait alors qu'une deuxième
+    // passerelle savait le servir.
+    category === "never_sent"
+  );
 }
 
 /**
@@ -163,7 +180,7 @@ export async function executePayout(input: PayoutExecutionInput): Promise<Payout
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       const { category, userMessage } =
-        provider === "feexpay" ? classifyFeexpayError(msg) : classifyFedapayError(msg);
+        provider === "feexpay" ? classifyFeexpayError(msg, err) : classifyFedapayError(msg, err);
 
       if (isSafeToFallback(category)) {
         // Refus propre (rien n'a bougé) → on note et on tente le suivant.

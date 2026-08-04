@@ -23,7 +23,7 @@ import { processInstructorWithdrawalAuto } from "@/lib/payout/process-withdrawal
 import { notifyAdmins } from "@/lib/agents/notify";
 
 // Le POST déclenche un vrai versement fournisseur (appel API externe) → laisser
-// le temps à l'orchestrateur (FeexPay → FedaPay) de répondre.
+// le temps à l'orchestrateur (FedaPay → FeexPay) de répondre.
 export const maxDuration = 60;
 
 /**

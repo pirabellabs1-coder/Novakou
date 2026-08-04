@@ -1,7 +1,7 @@
 // Auto-versement d'un retrait EN_ATTENTE (vendeur / mentor / affilié).
 //
 // Objectif : « validation auto » — dès qu'un retrait est demandé, on déclenche
-// le versement réel via l'orchestrateur (FeexPay → FedaPay) sans
+// le versement réel via l'orchestrateur (FedaPay → FeexPay) sans
 // étape d'approbation admin.
 //
 // ── Dégradations SÛRES (aucun blocage vendeur, aucun double paiement) ──

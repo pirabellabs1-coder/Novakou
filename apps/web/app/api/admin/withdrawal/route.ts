@@ -158,7 +158,7 @@ export async function POST(req: Request) {
   if (method === "mobile_money" && anyAutoProvider && methodDef && rawMsisdn) {
     const fullName = (session?.user?.name || session?.user?.email || "Admin Novakou").trim();
     const parts = fullName.split(/\s+/);
-    // Orchestrateur : FeexPay → FedaPay, avec bascule sur refus et
+    // Orchestrateur : FedaPay → FeexPay, avec bascule sur refus et
     // arrêt de sûreté sur erreur ambiguë (voir lib/payout/execute.ts).
     const exec = await executePayout({
       method: monerooMethodId,
