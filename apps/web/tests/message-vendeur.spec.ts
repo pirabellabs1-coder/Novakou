@@ -51,3 +51,31 @@ test("les panneaux de notification ne débordent plus sur mobile", () => {
     expect(src).toMatch(/sm:absolute/);
   }
 });
+
+/**
+ * Le circuit du versement est un outil d'ADMIN. Il nomme les passerelles, ce
+ * qu'un vendeur ne doit jamais lire.
+ */
+test("le circuit n'est rendu que dans l'espace admin", () => {
+  const admin = lire("app/(formations-dashboard)/admin/retraits-vendeurs/page.tsx");
+  expect(admin).toContain("CircuitVersement");
+  for (const f of [
+    "app/(formations-dashboard)/wallet/page.tsx",
+    "app/(formations-affilie)/affilie/retraits/page.tsx",
+    "app/(formations-dashboard)/mentor/finances/page.tsx",
+  ]) {
+    expect(lire(f), `${f} exposerait le circuit à un vendeur`).not.toContain("_circuit");
+  }
+});
+
+/**
+ * Le pipeline doit rester pilotable par table : ajouter une passerelle est une
+ * entrée d'adaptateur, jamais une branche dans la boucle qui porte les règles
+ * de sûreté monétaire.
+ */
+test("l'orchestrateur ne connaît plus aucune passerelle par son nom", () => {
+  const src = lire("lib/payout/execute.ts");
+  const boucle = src.slice(src.indexOf("for (const provider of order)"));
+  expect(boucle, "la boucle teste encore une passerelle en dur").not.toMatch(/provider === "(feexpay|fedapay)"/);
+  expect(src).toContain("const ADAPTATEURS");
+});

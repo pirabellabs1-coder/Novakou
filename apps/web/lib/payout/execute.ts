@@ -59,11 +59,81 @@ export type PayoutExecutionInput = {
   forceProvider?: PayoutProviderId;
 };
 
+/**
+ * Ce qu'une passerelle doit savoir faire pour entrer dans le pipeline.
+ *
+ * Tout est ici : ajouter KkiaPay ou e-Pay Financial revient à écrire un
+ * adaptateur et à le nommer dans l'ordre — sans rouvrir la boucle ci-dessous,
+ * qui porte les règles de sûreté monétaire. C'est précisément ce code-là qu'on
+ * ne veut PAS toucher à chaque nouvelle intégration.
+ */
+type AdaptateurVersement = {
+  /** Clés présentes ? Sinon la passerelle est sautée, sans être appelée. */
+  configure: () => Promise<boolean>;
+  /**
+   * Route confirmée pour cet opérateur, ou null. On n'invente JAMAIS un
+   * endpoint de versement : sans route déclarée, la passerelle est sautée.
+   */
+  route: (m: NonNullable<ReturnType<typeof getPayoutMapping>>) => unknown;
+  /** Envoie le versement et rend la référence du fournisseur. */
+  envoyer: (
+    ctx: { input: PayoutExecutionInput; route: never; currency: string; motif: string },
+  ) => Promise<{ ref: string; statut: "success" | "pending" | "failed"; brut: string }>;
+  /** Traduit une erreur en catégorie — c'est elle qui autorise ou non la bascule. */
+  classer: (msg: string, err?: unknown) => { category: string; userMessage: string };
+  /** Nom lisible, pour l'admin uniquement. */
+  libelle: string;
+};
+
 export type PayoutAttempt = {
   provider: PayoutProviderId;
   outcome: "accepted" | "rejected" | "skipped" | "ambiguous";
   category?: string;
   detail?: string;
+};
+
+const ADAPTATEURS: Record<PayoutProviderId, AdaptateurVersement> = {
+  fedapay: {
+    libelle: "FedaPay",
+    configure: isFedapayConfigured,
+    route: (m) => m.fedapay ?? null,
+    classer: classifyFedapayError,
+    envoyer: async ({ input, route, currency, motif }) => {
+      const r = await fedapayInit({
+        amount: input.amount,
+        currencyIso: currency,
+        mode: (route as { mode: string }).mode,
+        phoneNumber: `+${input.msisdn}`,
+        countryIso: (route as { country?: string }).country ?? "",
+        customer: {
+          firstname: input.customer.firstName,
+          lastname: input.customer.lastName,
+          email: input.customer.email,
+        },
+        description: motif,
+        merchantReference: input.withdrawalId,
+      });
+      return { ref: String(r.id), statut: normalizeFedapayStatus(r.status), brut: String(r.status) };
+    },
+  },
+  feexpay: {
+    libelle: "FeexPay",
+    configure: isFeexpayConfigured,
+    route: (m) => m.feexpay ?? null,
+    classer: classifyFeexpayError,
+    envoyer: async ({ input, route, motif }) => {
+      const r = await feexpayInit({
+        endpoint: (route as { endpoint: string }).endpoint,
+        network: (route as { network: string }).network,
+        phoneNumber: input.msisdn,
+        amount: input.amount,
+        motif,
+        callbackInfo: input.withdrawalId,
+        email: input.customer.email,
+      });
+      return { ref: String(r.reference), statut: normalizeFeexpayStatus(r.status), brut: String(r.status) };
+    },
+  },
 };
 
 export type PayoutExecutionResult =
@@ -119,68 +189,45 @@ export async function executePayout(input: PayoutExecutionInput): Promise<Payout
   const order = input.forceProvider ? [input.forceProvider] : PROVIDER_ORDER;
 
   for (const provider of order) {
-    // 1) Configuré ?
-    const configured = provider === "feexpay" ? await isFeexpayConfigured() : await isFedapayConfigured();
-    if (!configured) {
-      attempts.push({ provider, outcome: "skipped", detail: "non configuré" });
+    const adaptateur = ADAPTATEURS[provider];
+    if (!adaptateur) {
+      attempts.push({ provider, outcome: "skipped", detail: "passerelle inconnue" });
       continue;
     }
 
-    // 2) Capable de servir cet opérateur ? Uniquement si le registre déclare
-    //    une route confirmée : on n'invente jamais un endpoint de versement.
-    const capable = provider === "feexpay" ? Boolean(mapping?.feexpay) : Boolean(mapping?.fedapay);
-    if (!capable) {
-      attempts.push({ provider, outcome: "skipped", detail: "opérateur non supporté" });
+    // 1) Configurée ? Sans clés, on ne l'appelle même pas.
+    if (!(await adaptateur.configure())) {
+      attempts.push({ provider, outcome: "skipped", detail: "non configurée" });
       continue;
     }
 
-    // 3) Tentative de versement.
+    // 2) Capable de servir CET opérateur ? Le registre seul en décide : sans
+    //    route confirmée, on saute — on n'invente jamais un endpoint. C'est ce
+    //    qui envoie directement un opérateur au fournisseur qui le sert.
+    const route = mapping ? adaptateur.route(mapping) : null;
+    if (!route) {
+      attempts.push({ provider, outcome: "skipped", detail: "opérateur non servi par cette passerelle" });
+      continue;
+    }
+
+    // 3) Tentative.
     try {
-      if (provider === "feexpay") {
-        const route = mapping!.feexpay!;
-        const r = await feexpayInit({
-          endpoint: route.endpoint,
-          network: route.network,
-          phoneNumber: input.msisdn,
-          amount: input.amount,
-          motif,
-          callbackInfo: input.withdrawalId,
-          email: input.customer.email,
-        });
-        const norm = normalizeFeexpayStatus(r.status);
-        if (norm === "failed") {
-          attempts.push({ provider, outcome: "rejected", category: "provider_failed", detail: `statut ${r.status}` });
-          lastRejectionMsg = "FeexPay a refusé le versement.";
-          continue;
-        }
-        attempts.push({ provider, outcome: "accepted", detail: `ref ${r.reference}` });
-        return { ok: true, provider, providerRef: r.reference, status: norm === "success" ? "success" : "pending", attempts };
-      }
-
-      // fedapay
-      const route = mapping!.fedapay!;
-      const r = await fedapayInit({
-        amount: input.amount,
-        currencyIso: currency,
-        mode: route.mode,
-        phoneNumber: `+${input.msisdn}`,
-        countryIso: mapping!.country,
-        customer: { firstname: input.customer.firstName, lastname: input.customer.lastName, email: input.customer.email },
-        description: motif,
-        merchantReference: input.withdrawalId,
+      const r = await adaptateur.envoyer({
+        input,
+        route: route as never,
+        currency,
+        motif,
       });
-      const norm = normalizeFedapayStatus(r.status);
-      if (norm === "failed") {
-        attempts.push({ provider, outcome: "rejected", category: "provider_failed", detail: `statut ${r.status}` });
-        lastRejectionMsg = "FedaPay a refusé le versement.";
+      if (r.statut === "failed") {
+        attempts.push({ provider, outcome: "rejected", category: "provider_failed", detail: `statut ${r.brut}` });
+        lastRejectionMsg = `${adaptateur.libelle} a refusé le versement.`;
         continue;
       }
-      attempts.push({ provider, outcome: "accepted", detail: `ref ${r.id}` });
-      return { ok: true, provider, providerRef: r.id, status: norm === "success" ? "success" : "pending", attempts };
+      attempts.push({ provider, outcome: "accepted", detail: `réf ${r.ref}` });
+      return { ok: true, provider, providerRef: r.ref, status: r.statut, attempts };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      const { category, userMessage } =
-        provider === "feexpay" ? classifyFeexpayError(msg, err) : classifyFedapayError(msg, err);
+      const { category, userMessage } = ADAPTATEURS[provider].classer(msg, err);
 
       if (isSafeToFallback(category)) {
         // Refus propre (rien n'a bougé) → on note et on tente le suivant.

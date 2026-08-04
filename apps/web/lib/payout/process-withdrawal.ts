@@ -46,6 +46,55 @@ async function anyAutoProviderConfigured(): Promise<boolean> {
  * le versement non activé sur le compte ET le réseau opérateur en panne —
  * trois causes, trois actions différentes, aucun moyen de savoir laquelle.
  */
+/**
+ * Enregistre le CIRCUIT du versement sur le retrait, pour l'espace admin.
+ *
+ * Il raconte le trajet réel : FedaPay validé, ou refusé puis passage à
+ * FeexPay, etc. Sans lui, l'admin voit un échec sans savoir qui a été essayé,
+ * dans quel ordre, ni pourquoi chacun a dit non.
+ *
+ * Il est rangé dans `accountDetails` — déjà en JSON et déjà réservé à l'admin —
+ * plutôt que dans une nouvelle colonne : ajouter une migration à la base de
+ * production au milieu d'un incident se paie plus cher que ça ne rapporte.
+ * Le vendeur ne voit JAMAIS ce champ.
+ */
+async function enregistrerCircuit(
+  table: "instructeur" | "affilie",
+  id: string,
+  attempts: PayoutAttempt[],
+) {
+  const circuit = attempts.map((a, i) => ({
+    rang: i + 1,
+    passerelle: a.provider,
+    issue: a.outcome,
+    categorie: a.category ?? null,
+    detail: (a.detail ?? "").slice(0, 300),
+  }));
+  try {
+    if (table === "instructeur") {
+      const w = await prisma.instructorWithdrawal.findUnique({
+        where: { id }, select: { accountDetails: true },
+      });
+      await prisma.instructorWithdrawal.update({
+        where: { id },
+        data: { accountDetails: { ...((w?.accountDetails ?? {}) as object), _circuit: circuit } as never },
+      });
+    } else {
+      const w = await prisma.affiliateWithdrawal.findUnique({
+        where: { id }, select: { accountDetails: true },
+      });
+      await prisma.affiliateWithdrawal.update({
+        where: { id },
+        data: { accountDetails: { ...((w?.accountDetails ?? {}) as object), _circuit: circuit } as never },
+      });
+    }
+  } catch (e) {
+    // Le circuit est un confort de diagnostic : jamais il ne doit faire échouer
+    // un versement qui, lui, a peut-être réussi.
+    console.error("[circuit versement]", e);
+  }
+}
+
 function avecTrace(message: string, attempts: PayoutAttempt[]): string {
   const trace = attempts
     .map((a) => `${a.provider}:${a.outcome}${a.category ? `/${a.category}` : ""}${a.detail ? ` (${a.detail})` : ""}`)
@@ -167,6 +216,8 @@ export async function processInstructorWithdrawalAuto(withdrawalId: string): Pro
     withdrawalId: w.id,
   });
 
+  await enregistrerCircuit("instructeur", w.id, exec.attempts);
+
   if (!exec.ok) {
     if (exec.terminal === "ambiguous") {
       await prisma.instructorWithdrawal
@@ -284,6 +335,8 @@ export async function processAffiliateWithdrawalAuto(withdrawalId: string): Prom
     description: `Retrait affilié Novakou - ${shortMethodLabel(methodDef.id)}`,
     withdrawalId: w.id,
   });
+
+  await enregistrerCircuit("affilie", w.id, exec.attempts);
 
   if (!exec.ok) {
     if (exec.terminal === "ambiguous") {

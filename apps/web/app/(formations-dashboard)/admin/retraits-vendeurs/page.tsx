@@ -86,6 +86,68 @@ const OPERATEURS_TESTABLES = Object.entries(
   }, {}),
 ).map(([code, moyens]) => ({ pays: NOMS_PAYS[code] ?? code, moyens }));
 
+type EtapeCircuit = {
+  rang: number;
+  passerelle: string;
+  issue: "accepted" | "rejected" | "skipped" | "ambiguous";
+  categorie: string | null;
+  detail: string;
+};
+
+/** Lit le circuit rangé dans `accountDetails` par l'orchestrateur. */
+function circuitDe(d: Record<string, unknown> | null | undefined): EtapeCircuit[] {
+  const c = (d ?? {})["_circuit"];
+  return Array.isArray(c) ? (c as EtapeCircuit[]) : [];
+}
+
+const ISSUE_LOOK: Record<EtapeCircuit["issue"], { texte: string; fond: string; encre: string; puce: string }> = {
+  accepted:  { texte: "Validé",   fond: "#eaf7ef", encre: "#0b6b33", puce: "#16a34a" },
+  rejected:  { texte: "Refusé",   fond: "#fdecef", encre: "#a01b33", puce: "#dc2626" },
+  ambiguous: { texte: "Incertain", fond: "#fdf8ec", encre: "#8a6100", puce: "#d97706" },
+  skipped:   { texte: "Non tenté", fond: "#f2f5f7", encre: "#5c647a", puce: "#94a3b8" },
+};
+
+/**
+ * Le circuit, lisible d'un coup d'œil : une ligne par passerelle, dans l'ordre
+ * d'essai, avec la raison exacte renvoyée par chacune.
+ */
+function CircuitVersement({ circuit }: { circuit: EtapeCircuit[] }) {
+  if (circuit.length === 0) return null;
+  return (
+    <div className="mt-4">
+      <p className="text-[10px] font-extrabold uppercase tracking-widest mb-2" style={{ color: ST.textMuted }}>
+        Circuit du versement
+      </p>
+      <div className="flex flex-col gap-1.5">
+        {circuit.map((e) => {
+          const look = ISSUE_LOOK[e.issue] ?? ISSUE_LOOK.skipped;
+          return (
+            <div
+              key={`${e.rang}-${e.passerelle}`}
+              className="flex items-start gap-2.5 rounded-[11px] px-3 py-2"
+              style={{ background: look.fond }}
+            >
+              <span
+                className="mt-[5px] w-2 h-2 rounded-full flex-shrink-0"
+                style={{ background: look.puce }}
+              />
+              <span className="text-[12px] font-extrabold w-[86px] flex-shrink-0" style={{ color: look.encre }}>
+                {e.passerelle}
+              </span>
+              <span className="text-[12px] font-extrabold w-[74px] flex-shrink-0" style={{ color: look.encre }}>
+                {look.texte}
+              </span>
+              <span className="text-[11.5px] font-medium break-words min-w-0" style={{ color: look.encre, opacity: 0.85 }}>
+                {e.detail || (e.categorie ?? "")}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function methodLabel(m: string) {
   const map: Record<string, string> = {
     virement: "Virement bancaire",
@@ -908,6 +970,14 @@ export default function AdminRetraitsVendeursPage() {
                       </div>
                     );
                   })()}
+
+                  {/* ── CIRCUIT DU VERSEMENT ─────────────────────────────────
+                      Le trajet réel de l'argent, passerelle par passerelle :
+                      qui a été essayé, dans quel ordre, et pourquoi chacun a
+                      accepté ou refusé. Sans lui, un échec ne dit pas s'il
+                      reste une passerelle à tenter ou si toutes ont dit non.
+                      RÉSERVÉ À L'ADMIN — le vendeur ne voit jamais ces noms. */}
+                  <CircuitVersement circuit={circuitDe(w.accountDetails)} />
 
                   {w.status === "EN_ATTENTE" && w.errorMessage && (
                     <div className="mt-4 border-l-4 pl-4 py-2 rounded-r-lg" style={{ borderColor: "#f3e2bd", background: ST.amberSoft }}>
