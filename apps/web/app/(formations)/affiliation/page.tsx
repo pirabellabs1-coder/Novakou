@@ -82,7 +82,7 @@ const faqs = [
   },
   {
     q: "Y a-t-il un montant minimum de retrait ?",
-    a: "Oui, le minimum est de 5 000 FCFA (≈ 8 €) par retrait. En dessous, votre solde validé reste disponible et continue de s'accumuler.",
+    a: "Oui, le minimum est de 100 FCFA par retrait. En dessous, votre solde validé reste disponible et continue de s'accumuler.",
   },
   {
     q: "Que se passe-t-il si l'acheteur se fait rembourser ?",
@@ -234,7 +234,7 @@ export default function AffiliationPage() {
               {[
                 { icon: Wallet, t: "Aucun investissement", d: "Pas de produit, pas de stock, pas de budget publicité requis." },
                 { icon: Percent, t: `${COMMISSION_PCT}% de commission`, d: "Sur chaque vente, l'un des taux les plus généreux du marché." },
-                { icon: Sparkles, t: "Payé en Mobile Money", d: "Orange Money, Wave, MTN — ou virement bancaire, dès 5 000 FCFA." },
+                { icon: Sparkles, t: "Payé en Mobile Money", d: "Orange Money, Wave, MTN — ou virement bancaire, dès 100 FCFA." },
                 { icon: ShieldCheck, t: "Risque zéro", d: "Vous ne payez jamais rien : vous ne faites qu'encaisser." },
               ].map((r) => {
                 const I = r.icon;
@@ -311,7 +311,7 @@ export default function AffiliationPage() {
                 Après une vente, la commission est d&apos;abord <strong className="text-[#191c1e]">«&nbsp;en validation&nbsp;» pendant 14 jours</strong>. Ce délai correspond à la période durant laquelle l&apos;acheteur peut demander un remboursement. C&apos;est une protection saine&nbsp;: si la vente est annulée, la commission l&apos;est aussi — personne n&apos;est lésé.
               </p>
               <p>
-                Passé ces 14 jours sans remboursement, votre commission devient <strong className="text-[#191c1e]">validée et 100&nbsp;% sûre</strong>&nbsp;: elle ne bougera plus. Elle rejoint votre solde retirable. Vous pouvez alors demander un <strong className="text-[#191c1e]">retrait dès 5 000 FCFA</strong>, via Orange Money, Wave, MTN MoMo ou virement bancaire, quand vous le souhaitez. Pas d&apos;attente arbitraire, pas de «&nbsp;1er du mois&nbsp;»&nbsp;: vous décidez.
+                Passé ces 14 jours sans remboursement, votre commission devient <strong className="text-[#191c1e]">validée et 100&nbsp;% sûre</strong>&nbsp;: elle ne bougera plus. Elle rejoint votre solde retirable. Vous pouvez alors demander un <strong className="text-[#191c1e]">retrait dès 100 FCFA</strong>, via Orange Money, Wave, MTN MoMo ou virement bancaire, quand vous le souhaitez. Pas d&apos;attente arbitraire, pas de «&nbsp;1er du mois&nbsp;»&nbsp;: vous décidez.
               </p>
             </div>
           </div>
@@ -319,7 +319,7 @@ export default function AffiliationPage() {
             {[
               { n: "1", t: "En validation", d: "Dès la vente, la commission est enregistrée et bloquée 14 jours (fenêtre de remboursement de l'acheteur).", c: "#b45309", bg: "#fef3c7" },
               { n: "2", t: "Validée — retirable", d: "Passé les 14 jours sans remboursement, la commission est garantie et rejoint votre solde.", c: "#006e2f", bg: "#e8f5e9" },
-              { n: "3", t: "Payée", d: "Vous demandez un retrait dès 5 000 FCFA via Mobile Money ou virement, à tout moment.", c: "#1565c0", bg: "#e3f2fd" },
+              { n: "3", t: "Payée", d: "Vous demandez un retrait dès 100 FCFA via Mobile Money ou virement, à tout moment.", c: "#1565c0", bg: "#e3f2fd" },
             ].map((s, idx) => (
               <div key={s.n} className="relative flex items-start gap-4 bg-[#f7f9fb] rounded-2xl p-5 border border-gray-100">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-extrabold flex-shrink-0" style={{ background: s.bg, color: s.c }}>

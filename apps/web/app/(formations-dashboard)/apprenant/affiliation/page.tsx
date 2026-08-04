@@ -12,6 +12,7 @@ import {
   StSectionTitle,
   ST,
 } from "@/components/stitch";
+import { MIN_WITHDRAWAL_XOF } from "@/lib/payments/payout-catalog";
 import {
   Link2,
   Share2,
@@ -144,7 +145,7 @@ export default function DevenirAffilierPage() {
                   { icon: Percent, label: "Commission sur chaque vente", value: `${COMMISSION_PCT}%` },
                   { icon: Calendar, label: "Versements", value: "Mensuel" },
                   { icon: Link2, label: "Formations disponibles", value: "Toutes" },
-                  { icon: Wallet, label: "Retrait min.", value: "5 000 FCFA" },
+                  { icon: Wallet, label: "Retrait min.", value: `${MIN_WITHDRAWAL_XOF} FCFA` },
                 ].map((row) => {
                   const Icon = row.icon;
                   return (

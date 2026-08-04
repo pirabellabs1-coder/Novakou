@@ -197,7 +197,7 @@ const sections: GuideSection[] = [
         </GP>
         <GH3>Cycle de paiement</GH3>
         <GP>
-          Paiement mensuel le 5 du mois suivant. Minimum de retrait : 5 000 FCFA. Les affiliés reçoivent automatiquement via Mobile Money ou virement bancaire selon leur configuration.
+          Paiement mensuel le 5 du mois suivant. Minimum de retrait : 100 FCFA. Les affiliés reçoivent automatiquement via Mobile Money ou virement bancaire selon leur configuration.
         </GP>
         <GH3>Cas concret</GH3>
         <GP>

@@ -137,7 +137,7 @@ const TABS = [
       { icon: CreditCard, title: "Cartes & paiements internationaux", desc: "Visa, Mastercard, SEPA, PayPal, Apple Pay. Parfait pour la diaspora africaine en France, Belgique, Canada et les clients internationaux qui veulent suivre une formation de votre catalogue. Paiement en 3× disponible pour les formations > 30 000 FCFA." },
       { icon: Lock, title: "Sécurité bancaire SSL/TLS", desc: "Chaque transaction est chiffrée avec les standards bancaires SSL/TLS. Conformité PCI DSS pour les paiements par carte. Vos clients voient le cadenas de sécurité et achètent en toute confiance — les taux d'abandon au checkout sont réduits de 40%." },
       { icon: Receipt, title: "Factures PDF automatiques conformes", desc: "Chaque vente génère et envoie automatiquement une facture PDF professionnelle à l'acheteur : numéro de facture, TVA si applicable, détail de la commande, coordonnées du vendeur. Aucun travail administratif pour vous." },
-      { icon: Gauge, title: "Retraits rapides sous 24-48h", desc: "Demandez un retrait depuis votre tableau de bord, recevez votre argent sous 24h sur Mobile Money ou sous 48h sur compte bancaire. Pas de seuil minimum abusif — retirez dès 5 000 FCFA." },
+      { icon: Gauge, title: "Retraits rapides sous 24-48h", desc: "Demandez un retrait depuis votre tableau de bord, recevez votre argent sous 24h sur Mobile Money ou sous 48h sur compte bancaire. Pas de seuil minimum abusif — retirez dès 100 FCFA." },
       { icon: Globe, title: "Afrique francophone + international", desc: "Couverture Mobile Money dans plusieurs pays africains : Sénégal, Côte d'Ivoire, Cameroun, Togo, Bénin, Mali, Burkina Faso et plus. L'international via Stripe." },
     ],
     mockup: {

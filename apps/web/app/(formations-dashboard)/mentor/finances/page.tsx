@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
 import { getOperator } from "@/lib/payments/registry";
 import { shortMethodLabel } from "@/lib/payments/payout-catalog";
+import { MIN_WITHDRAWAL_XOF } from "@/lib/payments/payout-catalog";
 import {
   StCard,
   StPageHeader,
@@ -209,7 +210,7 @@ export default function MentorFinancesPage() {
           actions={
             <StButton
               onClick={() => setModalOpen(true)}
-              disabled={available < 5000}
+              disabled={available < MIN_WITHDRAWAL_XOF}
               icon={Send}
             >
               Demander un retrait
@@ -293,15 +294,15 @@ export default function MentorFinancesPage() {
                   <StButton
                     variant="white"
                     icon={Send}
-                    disabled={available < 5000}
+                    disabled={available < MIN_WITHDRAWAL_XOF}
                     onClick={() => setModalOpen(true)}
                   >
                     Demander un retrait
                   </StButton>
                 </div>
-                {available < 5000 && (
+                {available < MIN_WITHDRAWAL_XOF && (
                   <p className="text-[10.5px] font-semibold opacity-80 mt-2">
-                    Retrait disponible à partir de 5 000 FCFA
+                    Retrait disponible à partir de {fmt(MIN_WITHDRAWAL_XOF)} FCFA
                   </p>
                 )}
               </div>
@@ -455,7 +456,7 @@ export default function MentorFinancesPage() {
               <StInput
                 label="Montant (FCFA)"
                 type="number"
-                min={5000}
+                min={MIN_WITHDRAWAL_XOF}
                 max={available}
                 step={500}
                 value={wAmount}

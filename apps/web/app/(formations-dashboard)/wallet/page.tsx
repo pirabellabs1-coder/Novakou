@@ -28,6 +28,7 @@ import {
 } from "@/components/stitch";
 import { shortMethodLabel, getAvailablePayoutMethods, isPayoutCountryDisabled, PAYOUT_DISABLED_MESSAGE } from "@/lib/payments/payout-catalog";
 import { COUNTRIES } from "@/lib/countries";
+import { MIN_WITHDRAWAL_XOF } from "@/lib/payments/payout-catalog";
 import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
 import { getOperator } from "@/lib/payments/registry";
 
@@ -369,7 +370,7 @@ export default function WalletPage() {
   const brand = defaultMethod ? methodBrand(defaultMethod.id, defaultMethod.label) : null;
 
   const howSteps: [string, string][] = [
-    ["Demandez un retrait", `Montant minimum : ${fmt(defaultMethod?.minAmount ?? 5000)} FCFA`],
+    ["Demandez un retrait", `Montant minimum : ${fmt(MIN_WITHDRAWAL_XOF)} FCFA`],
     ["Vérification rapide", "Contrôle de sécurité en quelques minutes"],
     ["Recevez vos fonds", "Sur Mobile Money sous 24 h · frais 1 %"],
   ];
@@ -427,17 +428,17 @@ export default function WalletPage() {
                 <StButton
                   variant="white"
                   icon={ArrowDown}
-                  disabled={!heroSource || heroAvailable < 1000}
+                  disabled={!heroSource || heroAvailable < MIN_WITHDRAWAL_XOF}
                   onClick={() => heroSource && openWithdrawDialog(heroSource)}
                 >
                   Retirer mes fonds
                 </StButton>
-                {heroSource && heroAvailable < 1000 && (
+                {heroSource && heroAvailable < MIN_WITHDRAWAL_XOF && (
                   // Un bouton grisé sans explication laisse le vendeur croire
                   // que le retrait est cassé. On dit ce qui manque.
                   <p className="w-full text-[12px] font-bold opacity-90 mt-1">
-                    Retrait possible à partir de 1 000 FCFA — il vous manque{" "}
-                    {fmt(1000 - heroAvailable)} FCFA.
+                    Retrait possible à partir de {fmt(MIN_WITHDRAWAL_XOF)} FCFA — il vous
+                    manque {fmt(MIN_WITHDRAWAL_XOF - heroAvailable)} FCFA.
                   </p>
                 )}
                 <Link
@@ -562,7 +563,7 @@ export default function WalletPage() {
                   size="sm"
                   variant="ghost-green"
                   icon={ArrowDown}
-                  disabled={data.mentor.available < 1000}
+                  disabled={data.mentor.available < MIN_WITHDRAWAL_XOF}
                   onClick={() => openWithdrawDialog("mentor")}
                 >
                   Retirer mes gains mentor
@@ -734,14 +735,14 @@ export default function WalletPage() {
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
-                min={1000}
+                min={MIN_WITHDRAWAL_XOF}
                 max={
                   showWithdraw === "vendor"
                     ? data.vendor?.available ?? 0
                     : data.mentor?.available ?? 0
                 }
                 step={500}
-                hint="Minimum : 1 000 FCFA"
+                hint={`Minimum : ${fmt(MIN_WITHDRAWAL_XOF)} FCFA`}
               />
 
               {selectedMethod && (

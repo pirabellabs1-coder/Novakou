@@ -8,9 +8,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDraftField, clearDrafts } from "@/lib/hooks/use-draft-storage";
 import { getAvailablePayoutMethods, isPayoutCountryDisabled } from "@/lib/payments/payout-catalog";
 import { COUNTRIES } from "@/lib/countries";
+import { MIN_WITHDRAWAL_XOF } from "@/lib/payments/payout-catalog";
 
 const DRAFT_PREFIX = "affilie:retrait";
-const MIN = 5000;
+const MIN = MIN_WITHDRAWAL_XOF;
 
 // Pays couverts par au moins une méthode (sélecteur pays, comme au checkout).
 

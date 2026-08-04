@@ -4,6 +4,8 @@ import {
   getAvailablePayoutMethods,
   isPayoutMethodServable,
   normalizeMsisdn,
+  isPayoutCountryDisabled,
+  MIN_WITHDRAWAL_XOF,
 } from "../lib/payments/payout-catalog";
 import { OPERATORS, PROVIDERS, routeFor, isSupported } from "../lib/payments/registry";
 
@@ -77,5 +79,37 @@ test("normaliser deux fois ne change rien", () => {
   for (const code of ["mtn_bj", "orange_sn", "togocel", "orange_ml"]) {
     const une = normalizeMsisdn("0157335726", code);
     expect(normalizeMsisdn(une, code)).toBe(une);
+  }
+});
+
+/**
+ * Un pays est fermé au retrait UNIQUEMENT quand aucune passerelle n'y verse.
+ *
+ * Auparavant une liste écrite à la main gardait le Sénégal et la Côte d'Ivoire
+ * fermés longtemps après que FeexPay et FedaPay aient su y envoyer l'argent.
+ * Personne ne pensait à la mettre à jour, et les vendeurs de ces pays lisaient
+ * « bientôt disponible » pour un service déjà opérationnel.
+ */
+test("un pays servi par une passerelle est ouvert au retrait", () => {
+  for (const pays of ["BJ", "CI", "SN", "TG", "ML", "NE"]) {
+    expect(getAvailablePayoutMethods(pays).length, `${pays} sans moyen`).toBeGreaterThan(0);
+    expect(isPayoutCountryDisabled(pays), `${pays} fermé alors qu'on sait y verser`).toBe(false);
+  }
+});
+
+test("un pays sans route reste fermé, sans liste à maintenir", () => {
+  for (const pays of ["CM", "BF", "KE"]) {
+    expect(isPayoutCountryDisabled(pays), `${pays} ouvert sans route de versement`).toBe(true);
+  }
+});
+
+/**
+ * Le montant minimum de retrait doit être LE MÊME partout. Il valait 100 côté
+ * admin, 1 000 côté vendeur, 5 000 côté mentor et affilié : un vendeur voyait
+ * son bouton grisé sans explication.
+ */
+test("aucun moyen servable n'exige plus que le minimum global", () => {
+  for (const m of getAvailablePayoutMethods(null)) {
+    expect(m.minAmount, `${m.id} exige ${m.minAmount} > ${MIN_WITHDRAWAL_XOF}`).toBeLessThanOrEqual(MIN_WITHDRAWAL_XOF);
   }
 });

@@ -318,7 +318,7 @@ const GUIDES = [
     levelColor: "#006e2f",
     chapters: "7 sections",
     title: "Devenir affilié Novakou : gagner en recommandant",
-    desc: "Touchez 40 % de commission sur chaque vente générée, sans rien créer. Lien unique, où le partager, validation 14 j, retrait Mobile Money dès 5 000 FCFA.",
+    desc: "Touchez 40 % de commission sur chaque vente générée, sans rien créer. Lien unique, où le partager, validation 14 j, retrait Mobile Money dès 100 FCFA.",
     category: "Gagner",
   },
   {

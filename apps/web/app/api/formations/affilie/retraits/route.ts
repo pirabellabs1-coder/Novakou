@@ -6,6 +6,7 @@ import { IS_DEV } from "@/lib/env";
 import { z } from "zod";
 import {
   getPayoutMethod,
+  MIN_WITHDRAWAL_XOF,
   isPayoutMethodServable,
   normalizeMsisdn,
   shortMethodLabel,
@@ -19,7 +20,7 @@ import { processAffiliateWithdrawalAuto } from "@/lib/payout/process-withdrawal"
 // Le POST déclenche un vrai versement fournisseur (appel API externe).
 export const maxDuration = 60;
 
-const MIN_WITHDRAWAL = 5000;
+const MIN_WITHDRAWAL = MIN_WITHDRAWAL_XOF;
 
 const withdrawSchema = z.object({
   amount: z.number().min(MIN_WITHDRAWAL),

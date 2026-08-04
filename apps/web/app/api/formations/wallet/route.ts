@@ -12,6 +12,7 @@ import { getActiveShopId } from "@/lib/formations/active-shop";
 import { VENDOR_NET_RATE } from "@/lib/formations/constants";
 import {
   getPayoutMethod,
+  MIN_WITHDRAWAL_XOF,
   isPayoutMethodServable,
   normalizeMsisdn,
   resolveLegacyMethod,
@@ -285,8 +286,8 @@ export async function POST(request: Request) {
     let accountDetails = body.accountDetails ?? {};
     const source: "vendor" | "mentor" = body.source === "mentor" ? "mentor" : "vendor";
 
-    if (!amount || amount < 1000) {
-      return NextResponse.json({ error: "Montant minimum : 1 000 FCFA" }, { status: 400 });
+    if (!amount || amount < MIN_WITHDRAWAL_XOF) {
+      return NextResponse.json({ error: `Montant minimum : ${MIN_WITHDRAWAL_XOF} FCFA` }, { status: 400 });
     }
     // Seuil de retrait minimum configurable par l'admin (FormationsConfig).
     const { getMinPayoutAmount } = await import("@/lib/formations/platform-settings");

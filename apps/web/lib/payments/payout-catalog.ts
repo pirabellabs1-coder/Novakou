@@ -435,28 +435,51 @@ export function getPayoutMethod(id: string): PayoutMethodDef | undefined {
 }
 
 /**
- * Pays (ISO-2) dont le RETRAIT Mobile Money n'est pas encore activé.
- * Le versement y sera ouvert très bientôt. En attendant, le sélecteur les
- * affiche avec un message d'indisponibilité et bloque la demande côté serveur.
+ * Un pays est fermé au retrait quand AUCUNE passerelle ne sait y verser.
+ *
+ * C'était auparavant une liste écrite à la main — Sénégal, Cameroun, Côte
+ * d'Ivoire — héritée de l'époque où une seule passerelle existait. Elle est
+ * restée en place après l'arrivée de FeexPay et FedaPay : le Sénégal et la
+ * Côte d'Ivoire sont donc restés fermés alors qu'on savait parfaitement y
+ * envoyer l'argent, et un vendeur ivoirien lisait « bientôt disponible » pour
+ * un moyen déjà opérationnel.
+ *
+ * En le dérivant du registre, la question ne peut plus se reposer : brancher
+ * une route ouvre le pays, la retirer le ferme, sans que personne ait à penser
+ * à mettre une liste à jour.
  */
-export const PAYOUT_DISABLED_COUNTRIES = ["SN", "CM", "CI"];
-
-/** Message affiché quand un vendeur cible un pays de retrait pas encore ouvert. */
-export const PAYOUT_DISABLED_MESSAGE =
-  "Les retraits vers le Sénégal, le Cameroun et la Côte d'Ivoire sont temporairement indisponibles. Cette option sera activée très bientôt.";
-
-/** Vrai si le pays (code ISO-2 ou nom) fait partie des pays de retrait non ouverts. */
 export function isPayoutCountryDisabled(country: string | null | undefined): boolean {
   const code = resolveCountryCode(country ?? "");
-  return !!code && PAYOUT_DISABLED_COUNTRIES.includes(code);
+  // Pays non reconnu (ou aucun encore choisi) → on ne bloque pas : ce serait
+  // refuser avant même que la personne ait indiqué où elle veut être payée.
+  if (!code) return false;
+  const duPays = PAYOUT_METHODS.filter((m) => m.countries.includes(code));
+  // `every` sur une liste vide vaut `true` — et c'est bien ce qu'on veut ici :
+  // un pays absent du catalogue n'a évidemment aucune route, donc il est fermé.
+  return duPays.every((m) => !isPayoutMethodServable(m.id));
 }
 
-/** Vrai si la méthode de retrait cible un pays pas encore ouvert. */
+/**
+ * Montant minimum d'un retrait, en FCFA — VALABLE PARTOUT.
+ *
+ * Il valait 100 côté admin, 1 000 côté vendeur, 5 000 côté mentor et affilié :
+ * quatre espaces, trois seuils, aucun ne l'expliquant à l'écran. Un vendeur
+ * voyait son bouton grisé sans savoir pourquoi.
+ *
+ * Une seule valeur, importée partout : elle ne peut plus diverger.
+ */
+export const MIN_WITHDRAWAL_XOF = 100;
+
+/** Message affiché quand un pays n'a encore aucun moyen de versement. */
+export const PAYOUT_DISABLED_MESSAGE =
+  "Le retrait vers ce pays n'est pas encore disponible. Nous y travaillons.";
+
+/** Vrai si le moyen vise un pays sans aucune route de versement. */
 export function isPayoutMethodDisabled(methodId: string | null | undefined): boolean {
   if (!methodId) return false;
   const m = getPayoutMethod(methodId);
   if (!m) return false;
-  return m.countries.some((c) => PAYOUT_DISABLED_COUNTRIES.includes(c));
+  return m.countries.some((c) => isPayoutCountryDisabled(c));
 }
 
 /** Libellé court pour l'UI (ex : "Wave", "MTN Mobile Money"). */

@@ -1416,7 +1416,7 @@ export default function GuideCompletNovakou() {
         </Step>
 
         <Step n={3}>
-          <strong>Demandez un retrait :</strong> Indiquez le montant a retirer (minimum 5 000 FCFA
+          <strong>Demandez un retrait :</strong> Indiquez le montant a retirer (minimum 100 FCFA
           ou equivalent). Le retrait est traite sous 24 a 48 heures ouvrees.
         </Step>
 

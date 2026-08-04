@@ -146,7 +146,7 @@ const sections: GuideSection[] = [
         <GUl>
           <GLi><GStrong>En validation (14 jours)</GStrong> : dès la vente, votre commission est enregistrée mais bloquée pendant 14 jours, le temps de la période de remboursement de l'acheteur.</GLi>
           <GLi><GStrong>Validée</GStrong> : passé ces 14 jours sans remboursement, votre commission devient 100 % sûre et s'ajoute à votre solde retirable.</GLi>
-          <GLi><GStrong>Payée</GStrong> : vous demandez un retrait (à partir de 5 000 FCFA) via Orange Money, Wave, MTN MoMo ou virement bancaire, quand vous voulez.</GLi>
+          <GLi><GStrong>Payée</GStrong> : vous demandez un retrait (à partir de 100 FCFA) via Orange Money, Wave, MTN MoMo ou virement bancaire, quand vous voulez.</GLi>
         </GUl>
         <GCallout variant="info" title="Pourquoi 14 jours ?">
           Ce délai protège tout le monde : si un acheteur se fait rembourser, la commission liée est simplement annulée. Une fois validé, votre solde ne bouge plus — vous êtes sûr d'être payé.
