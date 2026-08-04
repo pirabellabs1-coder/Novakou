@@ -9,7 +9,7 @@
 // lancement. Il FAUT ensuite interroger l'endpoint de statut pour connaître le
 // résultat final (SUCCESSFUL / FAILED). Le webhook confirme aussi de son côté.
 
-import { PayoutNeverSentError, payoutFetch } from "@/lib/payout/proxy-fetch";
+import { PayoutNeverSentError, codeSysteme, payoutFetch } from "@/lib/payout/proxy-fetch";
 import { routeFor } from "@/lib/payments/registry";
 import { credential, hasCredentials } from "@/lib/payments/credentials";
 
@@ -194,7 +194,14 @@ export function classifyFeexpayError(
     };
   }
   if (lower.includes("timeout") || lower.includes("econnrefused") || lower.includes("fetch failed") || lower.includes("bad gateway")) {
-    return { category: "network", userMessage: "FeexPay est temporairement injoignable. Réessayez." };
+    // Le code système est conservé dans le message : sans lui, impossible de
+    // distinguer une panne de proxy d'une panne de fournisseur — c'est ce qui
+    // a rendu l'incident du 4 août 2026 illisible pendant des heures.
+    const code = codeSysteme(err);
+    return {
+      category: "network",
+      userMessage: `FeexPay est temporairement injoignable${code ? ` (${code})` : ""}. Réessayez.`,
+    };
   }
   return { category: "unknown", userMessage: `Erreur FeexPay : ${msg}` };
 }

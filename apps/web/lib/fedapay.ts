@@ -9,7 +9,7 @@
 //   2. PUT  /v1/payouts/start  → le DÉCLENCHE réellement (sinon rien n'est envoyé)
 // puis GET /v1/payouts/{id} pour suivre le statut final (sent / failed).
 
-import { PayoutNeverSentError, payoutFetch } from "@/lib/payout/proxy-fetch";
+import { PayoutNeverSentError, codeSysteme, payoutFetch } from "@/lib/payout/proxy-fetch";
 import { routeFor } from "@/lib/payments/registry";
 import { credential, hasCredentials } from "@/lib/payments/credentials";
 
@@ -208,7 +208,14 @@ export function classifyFedapayError(
     };
   }
   if (lower.includes("timeout") || lower.includes("econnrefused") || lower.includes("fetch failed") || lower.includes("502") || lower.includes("503")) {
-    return { category: "network", userMessage: "FedaPay est temporairement injoignable. Réessayez." };
+    // Le code système est conservé dans le message : sans lui, impossible de
+    // distinguer une panne de proxy d'une panne de fournisseur — c'est ce qui
+    // a rendu l'incident du 4 août 2026 illisible pendant des heures.
+    const code = codeSysteme(err);
+    return {
+      category: "network",
+      userMessage: `FedaPay est temporairement injoignable${code ? ` (${code})` : ""}. Réessayez.`,
+    };
   }
   return { category: "unknown", userMessage: `Erreur FedaPay : ${msg}` };
 }

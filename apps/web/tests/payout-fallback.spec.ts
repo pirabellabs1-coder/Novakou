@@ -78,3 +78,13 @@ test("une panne de proxy est réessayée en direct, pas abandonnée", () => {
   expect(src).toContain("CODES_JAMAIS_ENVOYE.has(code)");
   expect(src).toContain("nouvelle tentative en direct");
 });
+
+test("le code système survit jusqu'au message conservé", () => {
+  // Sans lui, « temporairement injoignable » ne dit pas s'il faut corriger le
+  // proxy ou prévenir le fournisseur. L'incident du 4 août l'a montré.
+  const faux = Object.assign(new TypeError("fetch failed"), {
+    cause: Object.assign(new Error("socket hang up"), { code: "ECONNRESET" }),
+  });
+  expect(classifyFeexpayError("fetch failed", faux).userMessage).toContain("ECONNRESET");
+  expect(classifyFedapayError("fetch failed", faux).userMessage).toContain("ECONNRESET");
+});

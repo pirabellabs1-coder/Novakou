@@ -63,6 +63,32 @@ const CODES_JAMAIS_ENVOYE = new Set([
   "UND_ERR_PROXY",
 ]);
 
+/**
+ * Vérifie que le PROXY lui-même répond, par une requête SANS effet (GET).
+ *
+ * C'est ce qui permet de trancher sans deviner. Un échec de connexion peut
+ * signifier deux choses opposées : le proxy est mort (rien n'est parti, on peut
+ * réessayer) ou la connexion a été coupée EN COURS d'envoi (le versement est
+ * peut-être parti, réessayer paierait deux fois). Le code d'erreur seul ne les
+ * distingue pas.
+ *
+ * En sondant le proxy juste après l'échec, on obtient un fait : s'il est
+ * injoignable, la requête de versement ne peut pas l'avoir traversé.
+ */
+async function proxyRepond(origine: string): Promise<boolean> {
+  if (!cachedAgent) return false;
+  try {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 6000);
+    // GET sur l'origine du fournisseur : aucune écriture, aucun effet.
+    await fetch(origine, { method: "GET", signal: ctl.signal, dispatcher: cachedAgent } as RequestInit);
+    clearTimeout(t);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Erreur de versement dont on sait qu'AUCUNE requête n'a atteint le fournisseur. */
 export class PayoutNeverSentError extends Error {
   readonly code: string;
@@ -75,7 +101,7 @@ export class PayoutNeverSentError extends Error {
 }
 
 /** Extrait le code système d'une erreur undici, quel que soit son emballage. */
-function codeErreur(err: unknown): string | null {
+export function codeSysteme(err: unknown): string | null {
   let e: unknown = err;
   for (let i = 0; i < 4 && e && typeof e === "object"; i++) {
     const c = (e as { code?: unknown }).code;
@@ -100,8 +126,15 @@ export async function payoutFetch(url: string, init?: RequestInit): Promise<Resp
     const withDispatcher = { ...init, dispatcher: cachedAgent };
     return await fetch(url, withDispatcher as RequestInit);
   } catch (err) {
-    const code = codeErreur(err);
-    if (!code || !CODES_JAMAIS_ENVOYE.has(code)) {
+    const code = codeSysteme(err) ?? "inconnu";
+    const certain = CODES_JAMAIS_ENVOYE.has(code);
+
+    // Code non concluant : on demande au proxy s'il est encore là. S'il ne
+    // répond pas, la requête de versement ne peut pas l'avoir traversé.
+    const jamaisParti =
+      certain || (proxyUrl ? !(await proxyRepond(new URL(url).origin)) : false);
+
+    if (!jamaisParti) {
       // Erreur AMBIGUË : on la laisse remonter telle quelle, et l'orchestrateur
       // refusera de basculer. Mieux vaut un retrait en attente qu'un versement
       // payé deux fois.
@@ -125,7 +158,7 @@ export async function payoutFetch(url: string, init?: RequestInit): Promise<Resp
     try {
       return await fetch(url, init);
     } catch (err2) {
-      const code2 = codeErreur(err2);
+      const code2 = codeSysteme(err2);
       if (code2 && CODES_JAMAIS_ENVOYE.has(code2)) {
         throw new PayoutNeverSentError(code2, err2);
       }
