@@ -121,7 +121,7 @@ export function NotificationBell({ userId, notificationsHref = "/dashboard/param
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-neutral-dark border border-border-dark rounded-xl shadow-2xl z-50 overflow-hidden">
+        <div className="fixed left-3 right-3 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 bg-neutral-dark border border-border-dark rounded-xl shadow-2xl z-50 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border-dark">
             <h3 className="text-sm font-bold text-white">Notifications</h3>
             <div className="flex items-center gap-2">

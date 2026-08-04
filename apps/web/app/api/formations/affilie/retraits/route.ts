@@ -212,7 +212,14 @@ export async function POST(req: NextRequest) {
     const payout = await processAffiliateWithdrawalAuto(withdrawal.id);
     if (payout.status === "REFUSED") {
       return NextResponse.json(
-        { error: `Le versement a échoué : ${payout.reason}. Vos gains restent disponibles, réessayez.`, code: "PAYOUT_FAILED" },
+        {
+          // Même règle que pour les vendeurs : aucun nom de passerelle, aucune
+          // mention d'un compte qui n'est pas le sien.
+          error:
+            "Le versement n'a pas pu partir pour le moment. Vos gains restent " +
+            "disponibles et notre équipe est prévenue — réessayez dans quelques minutes.",
+          code: "PAYOUT_FAILED",
+        },
         { status: 400 },
       );
     }

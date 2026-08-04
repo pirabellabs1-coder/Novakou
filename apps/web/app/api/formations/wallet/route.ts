@@ -530,7 +530,17 @@ export async function POST(request: Request) {
       const payout = await processInstructorWithdrawalAuto(withdrawal.id);
       if (payout.status === "REFUSED") {
         return NextResponse.json(
-          { error: `Le versement a échoué : ${payout.reason}. Votre solde reste disponible, réessayez.`, code: "PAYOUT_FAILED" },
+          {
+            // Le vendeur n'a AUCUN compte chez nos passerelles — ce sont les
+            // nôtres. Lui annoncer « le solde de votre compte FeexPay est
+            // insuffisant » lui fait croire à un problème de son côté, et lui
+            // révèle une infrastructure qui ne le concerne pas. Le détail réel
+            // est enregistré sur le retrait, pour l'admin.
+            error:
+              "Le versement n'a pas pu partir pour le moment. Votre solde reste " +
+              "disponible et notre équipe est prévenue — réessayez dans quelques minutes.",
+            code: "PAYOUT_FAILED",
+          },
           { status: 400 },
         );
       }
@@ -610,7 +620,17 @@ export async function POST(request: Request) {
       const payout = await processInstructorWithdrawalAuto(withdrawal.id);
       if (payout.status === "REFUSED") {
         return NextResponse.json(
-          { error: `Le versement a échoué : ${payout.reason}. Votre solde reste disponible, réessayez.`, code: "PAYOUT_FAILED" },
+          {
+            // Le vendeur n'a AUCUN compte chez nos passerelles — ce sont les
+            // nôtres. Lui annoncer « le solde de votre compte FeexPay est
+            // insuffisant » lui fait croire à un problème de son côté, et lui
+            // révèle une infrastructure qui ne le concerne pas. Le détail réel
+            // est enregistré sur le retrait, pour l'admin.
+            error:
+              "Le versement n'a pas pu partir pour le moment. Votre solde reste " +
+              "disponible et notre équipe est prévenue — réessayez dans quelques minutes.",
+            code: "PAYOUT_FAILED",
+          },
           { status: 400 },
         );
       }

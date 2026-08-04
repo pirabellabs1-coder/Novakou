@@ -154,8 +154,12 @@ export function NovakouNotificationBell({ tone = "slate", viewAllHref }: Novakou
         )}
       </button>
 
+      {/* Sur mobile le panneau se cale sur la largeur de l'écran avec une marge :
+          360 px fixes ancrés à droite débordaient par la gauche, et le texte des
+          notifications se retrouvait coupé hors de l'écran. À partir de `sm` on
+          retrouve le panneau flottant de 360 px. */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-[360px] bg-white border border-zinc-100 rounded-2xl shadow-2xl z-50 overflow-hidden">
+        <div className="fixed left-3 right-3 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[360px] bg-white border border-zinc-100 rounded-2xl shadow-2xl z-50 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100">
             <h3 className="text-sm font-bold text-zinc-900">Notifications</h3>
             {unreadCount > 0 && (

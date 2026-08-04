@@ -53,6 +53,18 @@ function avecTrace(message: string, attempts: PayoutAttempt[]): string {
   return `${message}${trace ? ` — détail : ${trace}` : ""}`.slice(0, 900);
 }
 
+/**
+ * Ce que le VENDEUR lit quand un versement n'aboutit pas.
+ *
+ * Il n'a aucun compte chez nos passerelles — ce sont les nôtres. Lui annoncer
+ * « le solde de votre compte FeexPay est insuffisant » lui fait croire à un
+ * problème de son côté, et lui expose une infrastructure qui ne le regarde pas.
+ * Le détail réel est enregistré pour l'admin, qui lui peut agir dessus.
+ */
+const MOTIF_PUBLIC =
+  "Un incident technique de notre côté a empêché le versement. Votre solde reste " +
+  "disponible et notre équipe est prévenue — vous pouvez réessayer dans quelques minutes.";
+
 async function notify(userId: string, title: string, message: string, link: string) {
   await prisma.notification
     .create({ data: { userId, type: "PAYMENT", title, message: message.slice(0, 300), link } })
@@ -195,13 +207,21 @@ async function markInstructorRefused(id: string, userId: string, isMentor: boole
   await prisma.instructorWithdrawal
     .update({
       where: { id },
-      data: { status: "REFUSE", processedAt: new Date(), refusedReason: reason.slice(0, 300), errorMessage: reason.slice(0, 500) },
+      data: {
+        status: "REFUSE",
+        processedAt: new Date(),
+        // `refusedReason` est LU PAR LE VENDEUR dans son historique : il reste
+        // neutre. Le détail technique — nom de passerelle, code d'erreur, trace
+        // des tentatives — va dans `errorMessage`, réservé à l'admin.
+        refusedReason: MOTIF_PUBLIC,
+        errorMessage: reason.slice(0, 900),
+      },
     })
     .catch(() => null);
   await notify(
     userId,
-    "Retrait échoué",
-    `Votre retrait de ${Math.round(amount)} FCFA n'a pas pu être traité. ${reason} Votre solde reste disponible.`,
+    "Retrait non abouti",
+    `Votre retrait de ${Math.round(amount)} FCFA n'a pas pu être traité. ${MOTIF_PUBLIC}`,
     isMentor ? "/mentor/finances" : "/wallet",
   );
 }
@@ -284,11 +304,18 @@ export async function processAffiliateWithdrawalAuto(withdrawalId: string): Prom
     await prisma.affiliateWithdrawal
       .update({
         where: { id: w.id },
-        data: { status: "REFUSE", processedAt: new Date(), errorMessage: exec.userMessage.slice(0, 500), refusedReason: exec.userMessage.slice(0, 300) },
+        data: {
+          status: "REFUSE",
+          processedAt: new Date(),
+          // Même séparation que côté vendeur : détail pour l'admin, motif
+          // neutre pour l'affilié qui le lit dans son historique.
+          errorMessage: avecTrace(exec.userMessage, exec.attempts),
+          refusedReason: MOTIF_PUBLIC,
+        },
       })
       .catch(() => null);
     await prisma.affiliateCommission.updateMany({ where: { withdrawalId: w.id }, data: { withdrawalId: null } });
-    await notify(w.userId, "Retrait échoué", `Votre retrait de ${Math.round(w.amount)} FCFA n'a pas pu être traité. ${exec.userMessage} Vos gains restent disponibles.`, "/affilie/retraits");
+    await notify(w.userId, "Retrait non abouti", `Votre retrait de ${Math.round(w.amount)} FCFA n'a pas pu être traité. ${MOTIF_PUBLIC}`, "/affilie/retraits");
     return { status: "REFUSED", reason: exec.userMessage };
   }
 
