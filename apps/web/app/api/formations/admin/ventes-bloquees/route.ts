@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { IS_DEV } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
 import { estSondeDiagnostic } from "@/lib/payments/diagnostic-probe";
+import { estPasserelleRetiree } from "@/lib/payments/removed-gateways";
 
 /**
  * GET /api/formations/admin/ventes-bloquees   (admin uniquement)
@@ -77,11 +78,31 @@ export async function GET() {
    * et le délai raisonnable est dépassé. Si l'acheteur a confirmé sur son
    * téléphone, il a payé sans rien recevoir.
    */
+  const passerelleRetiree = tentatives
+    .filter((t) => {
+      const m = (t.metadata ?? {}) as Record<string, unknown>;
+      return estPasserelleRetiree(m.paymentProvider);
+    })
+    .map((t) => {
+      const m = (t.metadata ?? {}) as Record<string, unknown>;
+      return {
+        quand: t.createdAt.toISOString(),
+        montant: Math.round(t.amount),
+        moyen: t.paymentMethod,
+        passerelle: String(m.paymentProvider ?? "?"),
+        referenceFournisseur: t.providerRef,
+        acheteur: t.visitorEmail,
+        aVerifierChez: "tableau de bord de l'ancien fournisseur",
+      };
+    });
+
   const aVerifier = tentatives
     .filter((t) => ["STARTED", "ABANDONED"].includes(t.status) && t.providerRef && t.createdAt < seuil)
     // Les sondes de diagnostic ne sont pas des ventes : elles resteront
     // éternellement en attente et masqueraient les vraies.
     .filter((t) => !estSondeDiagnostic(t))
+    // Une passerelle retirée ne peut plus répondre : inutile de la « vérifier ».
+    .filter((t) => !estPasserelleRetiree((t.metadata as Record<string, unknown> | null)?.paymentProvider))
     .map((t) => {
       const meta = (t.metadata ?? {}) as Record<string, unknown>;
       return {
@@ -145,6 +166,12 @@ export async function GET() {
       total: tentatives.length,
       parStatut,
       aVerifier,
+      // Tentatives d'une passerelle retirée : le code ne peut PLUS les
+      // vérifier. Elles ne déclenchent plus d'alerte — sinon elles la
+      // noieraient toutes les quinze minutes — mais elles restent listées ici :
+      // si l'une avait réellement été payée, seul le tableau de bord de
+      // l'ancien fournisseur peut le dire.
+      passerelleRetiree,
       // Ce que la livraison a REELLEMENT ecrit.
       achatsRecents: achatsRecents.map((a) => ({
         quand: a.createdAt.toISOString(),

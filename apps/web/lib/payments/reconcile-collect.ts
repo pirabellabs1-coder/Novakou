@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
 import { fulfillSubscription } from "@/lib/formations/fulfill-subscription";
+import { estPasserelleRetiree } from "@/lib/payments/removed-gateways";
 
 /**
  * Réconciliation d'un ENCAISSEMENT : constate l'état réel du paiement auprès du
@@ -125,6 +126,33 @@ export async function reconcileCollectAttempt(attempt: AttemptRow): Promise<Coll
 
   const meta = (attempt.metadata ?? {}) as Record<string, unknown>;
   const provider = String(meta.paymentProvider ?? "").toLowerCase();
+
+  // ── Passerelle RETIRÉE ──────────────────────────────────────────────────────
+  // Plus aucun code ne sait l'interroger : réessayer toutes les cinq minutes ne
+  // produira jamais de réponse, et l'alerte resignalait ces tentatives toutes
+  // les quinze minutes, indéfiniment. On les CLÔT une fois, en gardant la
+  // raison — le diagnostic admin les liste à part, pour vérification manuelle
+  // sur le tableau de bord de l'ancien fournisseur si l'une avait été payée.
+  if (estPasserelleRetiree(provider)) {
+    await prisma.checkoutAttempt
+      .update({
+        where: { id: attempt.id },
+        data: {
+          status: "FAILED",
+          metadata: { ...meta, clotureMotif: "passerelle retirée — non vérifiable automatiquement" } as never,
+        },
+      })
+      .catch(() => null);
+    return {
+      matched: true,
+      status: "unknown",
+      delivered: false,
+      attemptId: attempt.id,
+      // Pas de `reason` : ce n'est plus une anomalie à signaler, c'est une
+      // tentative close. La signaler en boucle noierait les vraies.
+    };
+  }
+
   const checker = STATUS_CHECKERS[provider];
   if (!checker) {
     return { matched: true, status: "unknown", delivered: false, attemptId: attempt.id, reason: `Fournisseur « ${provider || "?"} » sans suivi de statut` };
