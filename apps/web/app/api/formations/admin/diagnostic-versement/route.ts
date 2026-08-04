@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { IS_DEV } from "@/lib/env";
 import { isPayoutProxyConfigured, payoutFetch } from "@/lib/payout/proxy-fetch";
-import { credential } from "@/lib/payments/credentials";
+import { credential, hasCredentials } from "@/lib/payments/credentials";
 
 /**
  * GET /api/formations/admin/diagnostic-versement
@@ -71,9 +71,19 @@ export async function GET(request: NextRequest) {
   }
 
   const proxyConfigure = isPayoutProxyConfigured();
+  // ⚠️ Les identifiants portent leur nom INTERNE (apiKey, secretKey…), pas
+  // celui de leur variable d'environnement. S'être trompé ici a fait croire
+  // que les clés manquaient alors qu'elles étaient bien là.
   const [cleFedapay, cleFeexpay] = await Promise.all([
-    credential("fedapay", "FEDAPAY_SECRET_KEY").catch(() => ""),
-    credential("feexpay", "FEEXPAY_API_KEY").catch(() => ""),
+    credential("fedapay", "secretKey").catch(() => ""),
+    credential("feexpay", "apiKey").catch(() => ""),
+  ]);
+
+  // La MÊME vérification que celle du versement : une passerelle qui échoue
+  // ici est purement et simplement SAUTÉE par l'orchestrateur, sans un mot.
+  const [pretFedapay, pretFeexpay] = await Promise.all([
+    hasCredentials("fedapay").catch(() => false),
+    hasCredentials("feexpay").catch(() => false),
   ]);
 
   const sondes: Sonde[] = [];
@@ -105,6 +115,17 @@ export async function GET(request: NextRequest) {
         payoutFetch("https://api-v2.feexpay.me/api/payouts/status/public/diagnostic", {
           method: "GET",
           headers: { Authorization: `Bearer ${cleFeexpay}`, "Content-Type": "application/json" },
+        }),
+      ),
+    );
+  }
+
+  if (cleFeexpay) {
+    sondes.push(
+      await sonder("FeexPay sans proxy", "direct", () =>
+        fetch("https://api-v2.feexpay.me/api/payouts/status/public/diagnostic", {
+          method: "GET",
+          headers: { Authorization: `Bearer ${cleFeexpay}` },
         }),
       ),
     );
@@ -155,6 +176,10 @@ export async function GET(request: NextRequest) {
       conclusion,
       proxyConfigure,
       identifiants: { fedapay: Boolean(cleFedapay), feexpay: Boolean(cleFeexpay) },
+      // « prêt » = ce que teste réellement l'orchestrateur avant d'essayer une
+      // passerelle. À faux, elle est sautée en silence.
+      pretPourVerser: { fedapay: pretFedapay, feexpay: pretFeexpay },
+      ordreEssai: ["fedapay", "feexpay"],
       sondes,
       note:
         "Aucun versement n'a été créé par ce diagnostic — ce sont uniquement des lectures.",
