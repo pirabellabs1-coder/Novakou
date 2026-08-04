@@ -11,7 +11,18 @@
 // (IP dynamique Vercel). la passerelle n'utilise PAS ce helper (pas de filtre IP) —
 // ainsi le fournisseur principal ne dépend jamais du proxy.
 
-import { ProxyAgent } from "undici";
+// ⚠️ On importe le `fetch` d'undici EXPLICITEMENT.
+//
+// Next.js remplace le `fetch` global par le sien (pour son cache) et cette
+// version IGNORE l'option `dispatcher` — silencieusement. Le proxy à IP fixe
+// était donc configuré, le code le passait, et il partait à la poubelle sans
+// un mot : tous les appels sortaient par l'IP dynamique de Vercel.
+//
+// FedaPay ne filtrant pas par IP, elle répondait 200 et masquait le défaut.
+// FeexPay, elle, refusait : « Your IP address (13.38.126.157) is not allowed
+// to perform payout operations » — la MÊME IP avec et sans proxy, ce qui a
+// fini par trahir le problème.
+import { ProxyAgent, fetch as undiciFetch } from "undici";
 
 let cachedAgent: ProxyAgent | null = null;
 let cachedUrl: string | null = null;
@@ -81,7 +92,7 @@ async function proxyRepond(origine: string): Promise<boolean> {
     const ctl = new AbortController();
     const t = setTimeout(() => ctl.abort(), 6000);
     // GET sur l'origine du fournisseur : aucune écriture, aucun effet.
-    await fetch(origine, { method: "GET", signal: ctl.signal, dispatcher: cachedAgent } as RequestInit);
+    await undiciFetch(origine, { method: "GET", signal: ctl.signal, dispatcher: cachedAgent });
     clearTimeout(t);
     return true;
   } catch {
@@ -121,10 +132,12 @@ export async function payoutFetch(url: string, init?: RequestInit): Promise<Resp
       cachedAgent = buildAgent(proxyUrl);
       cachedUrl = proxyUrl;
     }
-    // La fetch globale (undici) lit `dispatcher` ; le type standard RequestInit ne
-    // l'expose pas → on l'ajoute puis on caste au moment de l'appel.
-    const withDispatcher = { ...init, dispatcher: cachedAgent };
-    return await fetch(url, withDispatcher as RequestInit);
+    // `undiciFetch`, PAS le fetch global : lui seul honore le `dispatcher`.
+    const res = await undiciFetch(url, {
+      ...(init as Parameters<typeof undiciFetch>[1]),
+      dispatcher: cachedAgent,
+    });
+    return res as unknown as Response;
   } catch (err) {
     const code = codeSysteme(err) ?? "inconnu";
     const certain = CODES_JAMAIS_ENVOYE.has(code);

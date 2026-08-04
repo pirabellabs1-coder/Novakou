@@ -88,6 +88,28 @@ export async function GET(request: NextRequest) {
 
   const sondes: Sonde[] = [];
 
+  // ── L'IP RÉELLEMENT VUE PAR L'EXTÉRIEUR ───────────────────────────────────
+  // La question qui a coûté une journée : nos appels sortent-ils VRAIMENT par
+  // le proxy ? Next.js remplace le fetch global et ignorait l'option qui l'y
+  // envoyait — la configuration était bonne, le proxy jamais emprunté. On
+  // compare donc les deux IP au lieu de faire confiance à la configuration.
+  const ipVue = async (via: "proxy" | "direct") => {
+    try {
+      const r = via === "proxy"
+        ? await payoutFetch("https://api.ipify.org?format=json", { method: "GET" })
+        : await fetch("https://api.ipify.org?format=json", { method: "GET" });
+      const j = (await r.json().catch(() => ({}))) as { ip?: string };
+      return j.ip ?? "?";
+    } catch (e) {
+      return `injoignable (${e instanceof Error ? e.message : "?"})`;
+    }
+  };
+  const [ipProxy, ipDirecte] = await Promise.all([
+    proxyConfigure ? ipVue("proxy") : Promise.resolve("aucun proxy"),
+    ipVue("direct"),
+  ]);
+  const proxyEmprunte = proxyConfigure && ipProxy !== ipDirecte && !ipProxy.startsWith("injoignable");
+
   // 1. Le proxy lui-même, via une lecture anodine.
   if (proxyConfigure) {
     sondes.push(
@@ -149,7 +171,11 @@ export async function GET(request: NextRequest) {
   const directOk = sondes.some((s) => s.via === "direct" && s.statut !== null && s.statut < 400);
 
   let conclusion: string;
-  if (!proxyConfigure) {
+  if (proxyConfigure && !proxyEmprunte) {
+    conclusion =
+      `Le proxy est configuré mais N'EST PAS EMPRUNTÉ : nos appels sortent par ${ipDirecte}, ` +
+      `la même IP qu'en direct. Les fournisseurs qui filtrent par IP refuseront tous les versements.`;
+  } else if (!proxyConfigure) {
     conclusion =
       "Aucun proxy à IP fixe configuré. Les appels partent depuis les IP de Vercel, " +
       "qui changent — les fournisseurs les refuseront.";
@@ -175,6 +201,8 @@ export async function GET(request: NextRequest) {
     data: {
       conclusion,
       proxyConfigure,
+      // La preuve, pas la promesse : deux IP différentes = le proxy est emprunté.
+      ipSortie: { viaProxy: ipProxy, enDirect: ipDirecte, proxyEmprunte },
       identifiants: { fedapay: Boolean(cleFedapay), feexpay: Boolean(cleFeexpay) },
       // « prêt » = ce que teste réellement l'orchestrateur avant d'essayer une
       // passerelle. À faux, elle est sautée en silence.
