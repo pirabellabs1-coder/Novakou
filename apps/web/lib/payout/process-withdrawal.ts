@@ -14,7 +14,7 @@
 //     jamais de REFUSE (le versement est peut-être parti → éviter le doublon).
 
 import { prisma } from "@/lib/prisma";
-import { executePayout } from "@/lib/payout/execute";
+import { executePayout, type PayoutAttempt } from "@/lib/payout/execute";
 import {
   getPayoutMethod,
   normalizeMsisdn,
@@ -35,6 +35,22 @@ export type AutoPayoutResult =
 async function anyAutoProviderConfigured(): Promise<boolean> {
   const [fx, fd] = await Promise.all([isFeexpayConfigured(), isFedapayConfigured()]);
   return fx || fd;
+}
+
+/**
+ * Message d'erreur ENRICHI de la trace de chaque tentative, avec le texte BRUT
+ * renvoyé par la passerelle.
+ *
+ * Sans elle, seul notre message reformulé était conservé : « FeexPay est
+ * temporairement indisponible pour ce versement » recouvre l'IP non autorisée,
+ * le versement non activé sur le compte ET le réseau opérateur en panne —
+ * trois causes, trois actions différentes, aucun moyen de savoir laquelle.
+ */
+function avecTrace(message: string, attempts: PayoutAttempt[]): string {
+  const trace = attempts
+    .map((a) => `${a.provider}:${a.outcome}${a.category ? `/${a.category}` : ""}${a.detail ? ` (${a.detail})` : ""}`)
+    .join(" · ");
+  return `${message}${trace ? ` — détail : ${trace}` : ""}`.slice(0, 900);
 }
 
 async function notify(userId: string, title: string, message: string, link: string) {
@@ -142,7 +158,7 @@ export async function processInstructorWithdrawalAuto(withdrawalId: string): Pro
   if (!exec.ok) {
     if (exec.terminal === "ambiguous") {
       await prisma.instructorWithdrawal
-        .update({ where: { id: w.id }, data: { errorMessage: exec.userMessage.slice(0, 500) } })
+        .update({ where: { id: w.id }, data: { errorMessage: avecTrace(exec.userMessage, exec.attempts) } })
         .catch(() => null);
       await notify(uid, "Retrait en cours de vérification", `Votre retrait de ${Math.round(w.amount)} FCFA est en cours de vérification. Vous serez notifié sous peu.`, link);
       return { status: "PENDING_REVIEW", reason: exec.userMessage };
@@ -150,12 +166,12 @@ export async function processInstructorWithdrawalAuto(withdrawalId: string): Pro
     if (exec.terminal === "no_provider") {
       // Configuré mais opérateur non routable → laisser EN_ATTENTE (admin manuel).
       await prisma.instructorWithdrawal
-        .update({ where: { id: w.id }, data: { errorMessage: exec.userMessage.slice(0, 500) } })
+        .update({ where: { id: w.id }, data: { errorMessage: avecTrace(exec.userMessage, exec.attempts) } })
         .catch(() => null);
       await notify(uid, "Demande de retrait enregistrée", `Votre retrait de ${Math.round(w.amount)} FCFA est en cours de traitement (24-48h ouvrées).`, link);
       return { status: "PENDING_MANUAL", reason: exec.userMessage };
     }
-    await markInstructorRefused(w.id, uid, isMentor, w.amount, exec.userMessage);
+    await markInstructorRefused(w.id, uid, isMentor, w.amount, avecTrace(exec.userMessage, exec.attempts));
     return { status: "REFUSED", reason: exec.userMessage };
   }
 
@@ -252,14 +268,14 @@ export async function processAffiliateWithdrawalAuto(withdrawalId: string): Prom
   if (!exec.ok) {
     if (exec.terminal === "ambiguous") {
       await prisma.affiliateWithdrawal
-        .update({ where: { id: w.id }, data: { errorMessage: exec.userMessage.slice(0, 500) } })
+        .update({ where: { id: w.id }, data: { errorMessage: avecTrace(exec.userMessage, exec.attempts) } })
         .catch(() => null);
       await notify(w.userId, "Retrait en cours de vérification", `Votre retrait de ${Math.round(w.amount)} FCFA est en cours de vérification.`, "/affilie/retraits");
       return { status: "PENDING_REVIEW", reason: exec.userMessage };
     }
     if (exec.terminal === "no_provider") {
       await prisma.affiliateWithdrawal
-        .update({ where: { id: w.id }, data: { errorMessage: exec.userMessage.slice(0, 500) } })
+        .update({ where: { id: w.id }, data: { errorMessage: avecTrace(exec.userMessage, exec.attempts) } })
         .catch(() => null);
       await notify(w.userId, "Demande de retrait enregistrée", `Votre retrait de ${Math.round(w.amount)} FCFA est en attente de versement.`, "/affilie/retraits");
       return { status: "PENDING_MANUAL", reason: exec.userMessage };
