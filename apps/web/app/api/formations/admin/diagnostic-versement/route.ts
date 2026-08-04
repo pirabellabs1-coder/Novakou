@@ -153,6 +153,31 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  // 2b. Le DROIT DE VERSEMENT, et le solde — deux lectures, aucun mouvement.
+  //
+  //     FedaPay a refusé un versement par « Opération non autorisée » alors que
+  //     la même clé lit /v1/currencies en 200 : elle s'authentifie donc bien,
+  //     mais n'a peut-être pas le droit de décaisser. Lister les versements
+  //     répond à cette question sans en créer un.
+  if (cleFedapay) {
+    sondes.push(
+      await sonder("FedaPay — droit de versement", proxyConfigure ? "proxy" : "direct", () =>
+        payoutFetch("https://api.fedapay.com/v1/payouts?per_page=1", {
+          method: "GET",
+          headers: { Authorization: `Bearer ${cleFedapay}` },
+        }),
+      ),
+    );
+    sondes.push(
+      await sonder("FedaPay — solde du compte", proxyConfigure ? "proxy" : "direct", () =>
+        payoutFetch("https://api.fedapay.com/v1/balances", {
+          method: "GET",
+          headers: { Authorization: `Bearer ${cleFedapay}` },
+        }),
+      ),
+    );
+  }
+
   // 3. Les mêmes, SANS le proxy : si le direct passe et le proxy non, le
   //    coupable est le proxy. Si les deux échouent en 401, c'est l'IP.
   sondes.push(
@@ -191,6 +216,11 @@ export async function GET(request: NextRequest) {
     conclusion =
       "Le proxy répond mais le fournisseur refuse ce qui en sort : IP du proxy " +
       "probablement absente de la liste blanche, ou clé invalide. Regardez la réponse ci-dessous.";
+  } else if (sondes.some((x) => x.quoi.includes("droit de versement") && (x.statut ?? 0) >= 400)) {
+    conclusion =
+      "La clé FedaPay s'authentifie (lecture OK) mais n'a PAS le droit de verser : " +
+      "le décaissement n'est pas activé sur ce compte ou cette clé. Ce n'est pas une " +
+      "question de solde — demandez à FedaPay d'activer les versements.";
   } else {
     conclusion =
       "Le chemin de versement répond normalement. Si un retrait échoue quand même, " +
