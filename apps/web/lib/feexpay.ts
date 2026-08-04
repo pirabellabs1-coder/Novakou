@@ -343,9 +343,19 @@ export async function initCollect(params: FeexpayCollectParams): Promise<Feexpay
 export async function checkCollectStatus(
   reference: string,
 ): Promise<{ status: "success" | "failed" | "pending"; raw: unknown }> {
+  // ⚠️ La clé est INDISPENSABLE ici. Cet appel partait sans `Authorization`,
+  // alors que l'initiation du paiement l'envoie bien. Résultat : la demande
+  // arrivait sur le téléphone de l'acheteur, il confirmait — et nous ne
+  // pouvions JAMAIS lire le résultat. La page « Confirmez sur votre
+  // téléphone » tournait indéfiniment et le produit n'était jamais livré,
+  // sans la moindre erreur pour l'expliquer.
+  const apiKey = await getApiKey();
   const res = await payoutFetch(
     `${FEEXPAY_COLLECT_BASE}/api/transactions/getrequesttopay/integration/${encodeURIComponent(reference)}`,
-    { method: "GET", headers: { Accept: "application/json" } },
+    {
+      method: "GET",
+      headers: { Accept: "application/json", Authorization: `Bearer ${apiKey}` },
+    },
   );
   const json = (await res.json().catch(() => ({}))) as { status?: string; message?: string };
   if (!res.ok || !json.status) {

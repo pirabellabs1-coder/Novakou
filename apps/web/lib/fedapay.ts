@@ -141,7 +141,12 @@ export async function initPayout(params: FedapayPayoutInitParams): Promise<Fedap
 /** Statut d'un payout FedaPay : GET /v1/payouts/{id}. */
 export async function checkPayoutStatus(payoutId: string): Promise<{ status: FedapayPayoutStatus; raw: unknown }> {
   const base = getBaseUrl();
-  const res = await fetch(`${base}/payouts/${encodeURIComponent(payoutId)}`, {
+  // `payoutFetch`, PAS `fetch` : cet appel contournait le proxy à IP fixe et
+  // sortait par l'IP dynamique de Vercel. FedaPay ne filtre pas par IP
+  // aujourd'hui, donc ça passait — mais le jour où elle le fera, la
+  // consultation de statut cesserait de répondre sans que rien ne l'explique,
+  // et les versements resteraient « en attente » pour toujours.
+  const res = await payoutFetch(`${base}/payouts/${encodeURIComponent(payoutId)}`, {
     method: "GET",
     headers: await authHeaders(),
   });
