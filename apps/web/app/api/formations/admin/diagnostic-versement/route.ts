@@ -178,6 +178,25 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  // 2c. Statut d'un ENCAISSEMENT précis, sur demande : ?ref=<reference>
+  //
+  //      Un achat de 300 F est resté bloqué sur « Confirmez sur votre
+  //      téléphone » : l'appel de statut partait sans clé, donc ne lisait
+  //      jamais le résultat. La clé est corrigée, mais si la réconciliation
+  //      ne conclut toujours pas, c'est la RÉPONSE BRUTE de FeexPay qu'il
+  //      faut voir — pas nos suppositions.
+  const refDemandee = request.nextUrl.searchParams.get("ref");
+  if (refDemandee && cleFeexpay) {
+    sondes.push(
+      await sonder(`FeexPay — statut de « ${refDemandee} »`, proxyConfigure ? "proxy" : "direct", () =>
+        payoutFetch(
+          `https://api-v2.feexpay.me/api/transactions/getrequesttopay/integration/${encodeURIComponent(refDemandee)}`,
+          { method: "GET", headers: { Accept: "application/json", Authorization: `Bearer ${cleFeexpay}` } },
+        ),
+      ),
+    );
+  }
+
   // 3. Les mêmes, SANS le proxy : si le direct passe et le proxy non, le
   //    coupable est le proxy. Si les deux échouent en 401, c'est l'IP.
   sondes.push(
