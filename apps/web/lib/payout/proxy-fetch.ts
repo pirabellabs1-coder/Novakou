@@ -101,12 +101,35 @@ export async function payoutFetch(url: string, init?: RequestInit): Promise<Resp
     return await fetch(url, withDispatcher as RequestInit);
   } catch (err) {
     const code = codeErreur(err);
-    if (code && CODES_JAMAIS_ENVOYE.has(code)) {
-      throw new PayoutNeverSentError(code, err);
+    if (!code || !CODES_JAMAIS_ENVOYE.has(code)) {
+      // Erreur AMBIGUË : on la laisse remonter telle quelle, et l'orchestrateur
+      // refusera de basculer. Mieux vaut un retrait en attente qu'un versement
+      // payé deux fois.
+      throw err;
     }
-    // Toute autre erreur reste AMBIGUË : on la laisse remonter telle quelle,
-    // et l'orchestrateur refusera de basculer. Mieux vaut un retrait en
-    // attente qu'un versement payé deux fois.
-    throw err;
+
+    // ── Le proxy n'a pas répondu ────────────────────────────────────────────
+    // TOUTES les passerelles de versement sortent par ce proxy : s'il tombe,
+    // basculer de fournisseur ne sert à rien, les deux échouent pareil. Le
+    // retrait resterait bloqué sans que rien ne dise pourquoi.
+    //
+    // La connexion n'ayant jamais abouti, aucune requête n'est partie : on peut
+    // réessayer SANS le proxy en toute sécurité. Deux issues, toutes deux
+    // meilleures qu'un blocage : soit le versement passe, soit le fournisseur
+    // refuse proprement pour IP non autorisée — un refus explicite, sur lequel
+    // l'orchestrateur sait basculer et que l'admin peut lire.
+    if (!proxyUrl) throw new PayoutNeverSentError(code, err);
+    console.error(
+      `[payout] proxy à IP fixe injoignable (${code}) — nouvelle tentative en direct vers ${new URL(url).host}`,
+    );
+    try {
+      return await fetch(url, init);
+    } catch (err2) {
+      const code2 = codeErreur(err2);
+      if (code2 && CODES_JAMAIS_ENVOYE.has(code2)) {
+        throw new PayoutNeverSentError(code2, err2);
+      }
+      throw err2;
+    }
   }
 }

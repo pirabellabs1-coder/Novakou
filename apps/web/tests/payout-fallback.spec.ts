@@ -58,3 +58,23 @@ test("le versement essaie FedaPay avant FeexPay", () => {
   const src = readFileSync(join(process.cwd(), "lib/payout/execute.ts"), "utf8");
   expect(src).toContain('const PROVIDER_ORDER: PayoutProviderId[] = ["fedapay", "feexpay"]');
 });
+
+/**
+ * Le proxy à IP fixe est un point de défaillance UNIQUE : les deux passerelles
+ * de versement sortent par lui. S'il tombe, basculer de fournisseur ne sert à
+ * rien — d'où le repli en direct, sûr puisque rien n'est parti.
+ */
+test("les deux passerelles de versement sortent par le même helper", () => {
+  for (const f of ["lib/feexpay.ts", "lib/fedapay.ts"]) {
+    const src = readFileSync(join(process.cwd(), f), "utf8");
+    expect(src, `${f} doit passer par payoutFetch`).toContain("payoutFetch(");
+  }
+});
+
+test("une panne de proxy est réessayée en direct, pas abandonnée", () => {
+  const src = readFileSync(join(process.cwd(), "lib/payout/proxy-fetch.ts"), "utf8");
+  // Le repli ne doit exister QUE sur un échec de connexion : sur une erreur
+  // ambiguë, réessayer pourrait déclencher un second versement.
+  expect(src).toContain("CODES_JAMAIS_ENVOYE.has(code)");
+  expect(src).toContain("nouvelle tentative en direct");
+});
