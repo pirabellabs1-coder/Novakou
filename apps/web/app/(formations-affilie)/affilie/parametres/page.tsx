@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import {
-  CheckCircle2,
+
   Save,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -39,9 +40,6 @@ export default function AffilieParametresPage() {
   const [photoError, setPhotoError] = useState<string | null>(null);
 
   // Payout method (PayPal / Mobile Money / Bank)
-  const [payoutMethod, setPayoutMethod] = useState<"orange" | "wave" | "mtn" | "paypal" | "bank">("orange");
-  const [payoutAccount, setPayoutAccount] = useState("");
-  const [payoutSaved, setPayoutSaved] = useState(false);
 
   // Password
   const [currentPwd, setCurrentPwd] = useState("");
@@ -148,10 +146,6 @@ export default function AffilieParametresPage() {
     }
   }
 
-  function savePayout() {
-    setPayoutSaved(true);
-    setTimeout(() => setPayoutSaved(false), 2500);
-  }
 
   function toggleNotif(id: string, field: "email" | "push") {
     setNotifs((p) => p.map((n) => (n.id === id ? { ...n, [field]: !n[field] } : n)));
@@ -275,60 +269,28 @@ export default function AffilieParametresPage() {
           {activeTab === "paiement" && (
             <div className={card}>
               <h2 className="text-base font-bold text-white mb-2">Méthode de retrait</h2>
-              <p className="text-xs text-[#5c9e7a] mb-5">Choisissez où vous voulez recevoir vos commissions (montant min. 5 000 FCFA).</p>
+              {/* Cet onglet proposait d'enregistrer un moyen de retrait, avec des
+                  codes sans pays (« orange », « wave », « mtn ») qui ne
+                  correspondaient à aucune route de versement. Pire : le bouton
+                  « Sauvegarder » n'enregistrait RIEN — il affichait juste une
+                  confirmation. On promettait un réglage qui n'existait pas.
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-                {[
-                  { id: "orange", label: "Orange Money", icon: "phone_android", color: "from-orange-500/30 to-orange-600/10" },
-                  { id: "wave", label: "Wave", icon: "waves", color: "from-blue-500/30 to-blue-600/10" },
-                  { id: "mtn", label: "MTN Mobile Money", icon: "phone_android", color: "from-yellow-500/30 to-yellow-600/10" },
-                  { id: "paypal", label: "PayPal", icon: "account_balance_wallet", color: "from-sky-500/30 to-sky-600/10" },
-                  { id: "bank", label: "Virement bancaire", icon: "account_balance", color: "from-purple-500/30 to-purple-600/10" },
-                ].map((m) => (
-                  <button
-                    key={m.id}
-                    onClick={() => setPayoutMethod(m.id as "orange" | "wave" | "mtn" | "paypal" | "bank")}
-                    className={`flex items-center gap-3 p-4 rounded-xl border transition-all text-left ${
-                      payoutMethod === m.id ? "border-[#22c55e] bg-[#22c55e]/10" : "border-[#1e3a2f] hover:border-[#22c55e]/40"
-                    }`}
-                  >
-                    <span className={`w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br ${m.color}`}>
-                      <span className="material-symbols-outlined text-[20px] text-white">{m.icon}</span>
-                    </span>
-                    <span className="text-sm font-semibold text-white flex-1">{m.label}</span>
-                    {payoutMethod === m.id && <CheckCircle2 size={18} className="text-[#22c55e]" />}
-                  </button>
-                ))}
-              </div>
-
-              <div className="mb-4">
-                <label className={lbl}>
-                  {payoutMethod === "paypal" ? "Email PayPal" :
-                   payoutMethod === "bank" ? "IBAN" :
-                   "Numéro de téléphone"}
-                </label>
-                <input
-                  type="text"
-                  value={payoutAccount}
-                  onChange={(e) => setPayoutAccount(e.target.value)}
-                  placeholder={
-                    payoutMethod === "paypal" ? "vous@exemple.com" :
-                    payoutMethod === "bank" ? "FR76 ..." :
-                    "+221 77 123 45 67"
-                  }
-                  className={inp}
-                />
-              </div>
-
-              <div className="flex items-center gap-3">
-                <button onClick={savePayout}
-                  className="flex items-center gap-2 px-6 py-3 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90"
-                  style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}>
-                  <Save size={17} />
-                  Sauvegarder la méthode
-                </button>
-                {payoutSaved && <span className="text-sm text-[#22c55e] font-semibold">✓ Sauvegardé</span>}
-              </div>
+                  Le moyen se choisit désormais au moment du retrait, comme le
+                  moyen de paiement se choisit au moment de payer : on ne voit
+                  alors que ce par quoi on peut réellement être payé. */}
+              <p className="text-sm text-[#5c9e7a] mb-5 leading-relaxed">
+                Il n&apos;y a rien à régler ici. Vous choisissez votre pays, votre moyen et
+                votre numéro au moment de demander le retrait — vous ne voyez alors que
+                les moyens par lesquels nous pouvons réellement vous envoyer l&apos;argent,
+                et vous pouvez changer à chaque fois.
+              </p>
+              <Link
+                href="/affilie/retraits"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90"
+                style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+              >
+                Demander un retrait
+              </Link>
             </div>
           )}
 

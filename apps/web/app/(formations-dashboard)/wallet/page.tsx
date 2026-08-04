@@ -13,7 +13,6 @@ import {
   Download,
   History,
   Info,
-  Plus,
   Send,
   Share2,
   AlertCircle,
@@ -120,16 +119,6 @@ function fmtDate(iso: string) {
 }
 
 /** Couleur de marque + initiale pour le carré 38px de la méthode (maquette : Wave = bleu #19b5ec "W"). */
-function methodBrand(id: string, label: string): { bg: string; fg: string; letter: string } {
-  if (id.startsWith("wave")) return { bg: "#19b5ec", fg: "#fff", letter: "W" };
-  if (id.startsWith("orange")) return { bg: "#ff7900", fg: "#fff", letter: "O" };
-  if (id.startsWith("mtn")) return { bg: "#ffcc00", fg: "#13241b", letter: "M" };
-  if (id.startsWith("moov")) return { bg: "#0072bc", fg: "#fff", letter: "M" };
-  if (id.startsWith("mpesa")) return { bg: "#43b02a", fg: "#fff", letter: "M" };
-  if (id.startsWith("airtel")) return { bg: "#e40000", fg: "#fff", letter: "A" };
-  if (id.startsWith("djamo")) return { bg: "#4f46e5", fg: "#fff", letter: "D" };
-  return { bg: ST.green, fg: "#fff", letter: (label[0] ?? "M").toUpperCase() };
-}
 
 /** Note affichée en bout de ligne dans l'historique (maquette). */
 function withdrawalNote(w: Withdrawal): string {
@@ -160,7 +149,12 @@ function toCountryCode(v: string | null | undefined): string {
 export default function WalletPage() {
   const [data, setData] = useState<WalletData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showWithdraw, setShowWithdraw] = useState<"vendor" | "mentor" | null>(null);
+  /**
+   * Source du retrait : portefeuille vendeur ou mentor. Ce n'est plus l'état
+   * d'ouverture d'une fenêtre — le formulaire est toujours affiché, il n'y a
+   * plus de clic à faire pour le voir.
+   */
+  const [showWithdraw, setShowWithdraw] = useState<"vendor" | "mentor">("vendor");
   const [error, setError] = useState<string | null>(null);
 
   // Payout methods fetched dynamically from /api/formations/wallet/payout-methods
@@ -227,12 +221,16 @@ export default function WalletPage() {
 
   // Changement de pays → recalcule les méthodes disponibles (comme au checkout).
 
+  /** Bascule la source du retrait et pré-remplit le montant disponible. */
   function openWithdrawDialog(source: "vendor" | "mentor") {
     if (!data) return;
     const wallet = source === "vendor" ? data.vendor : data.mentor;
     setAmount(wallet?.available ?? 0);
     setShowWithdraw(source);
     setError(null);
+    // Le formulaire est plus bas dans la page : on y amène la personne plutôt
+    // que de la laisser chercher ce qui vient de changer.
+    document.getElementById("formulaire-retrait")?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   async function handleWithdraw() {
@@ -290,7 +288,7 @@ export default function WalletPage() {
         const j = await res.json();
         throw new Error(j.error || "Erreur lors de la demande");
       }
-      setShowWithdraw(null);
+      setAmount(0);
       setFields({});
       setOtp("");
       setOtpSent(false);
@@ -365,14 +363,15 @@ export default function WalletPage() {
   const heroSource: "vendor" | "mentor" | null = data.vendor ? "vendor" : data.mentor ? "mentor" : null;
   const heroAvailable = heroSource === "vendor" ? data.vendor!.available : heroSource === "mentor" ? data.mentor!.available : 0;
 
-  // Méthode "Par défaut" affichée dans la carte de droite (première dispo pour le pays).
-  const defaultMethod = methods[0];
-  const brand = defaultMethod ? methodBrand(defaultMethod.id, defaultMethod.label) : null;
 
+  // Ces trois lignes décrivent ce qui se passe VRAIMENT. Elles annonçaient un
+  // « contrôle de sécurité » qui n'existe plus — le versement est automatique —
+  // et des « frais 1 % » que rien ne prélève dans le code, alors que l'écran
+  // affilié affiche « Frais : 0 FCFA » juste à côté.
   const howSteps: [string, string][] = [
-    ["Demandez un retrait", `Montant minimum : ${fmt(MIN_WITHDRAWAL_XOF)} FCFA`],
-    ["Vérification rapide", "Contrôle de sécurité en quelques minutes"],
-    ["Recevez vos fonds", "Sur Mobile Money sous 24 h · frais 1 %"],
+    ["Choisissez et demandez", `Votre pays, votre moyen, votre numéro — dès ${fmt(MIN_WITHDRAWAL_XOF)} FCFA`],
+    ["Confirmez par e-mail", "Un code à six chiffres, pour que personne d'autre ne retire à votre place"],
+    ["Recevez vos fonds", "Versement automatique sur votre Mobile Money · sans frais"],
   ];
 
   return (
@@ -454,62 +453,142 @@ export default function WalletPage() {
 
           {/* Colonne droite : méthode de retrait + comment ça marche */}
           <div className="flex flex-col gap-3.5">
+            {/* Le retrait, EN DIRECT sur la page.
+                Il vivait dans une fenêtre modale, derrière un « moyen par
+                défaut » enregistré dans les paramètres — un réglage qui ne
+                pilotait plus rien, puisque le retrait redemande tout. On
+                choisit désormais son pays et son moyen ici, exactement comme
+                à l'achat, sans clic préalable et sans réglage à gérer. */}
+            <div id="formulaire-retrait">
             <StCard className="!p-[17px_19px]">
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-[13.5px] font-extrabold" style={{ color: ST.text }}>Méthode de retrait</span>
-                <Link href="/vendeur/parametres#paiement" className="text-[11.5px] font-extrabold hover:underline" style={{ color: ST.green }}>
-                  Gérer
-                </Link>
-              </div>
-              {defaultMethod && brand ? (
+              <h2 className="text-[17px] font-extrabold tracking-[-0.01em]" style={{ color: ST.text }}>
+                Retrait {showWithdraw === "mentor" ? "mentor" : "vendeur"}
+              </h2>
+              <p className="text-[12.5px] font-semibold mt-0.5 mb-5" style={{ color: ST.textSecondary }}>
+                Disponible :{" "}
+                <strong style={{ color: ST.text }}>
+                  {fmt(
+                    showWithdraw === "vendor"
+                      ? data.vendor?.available ?? 0
+                      : data.mentor?.available ?? 0
+                  )}{" "}
+                  FCFA
+                </strong>
+              </p>
+
+              {error && (
                 <div
-                  className="flex items-center gap-3 rounded-[13px] px-[13px] py-3"
-                  style={{ border: "1px solid #d7ecde", background: "#f0faf3" }}
+                  className="mb-4 rounded-[13px] px-3.5 py-3 flex items-start gap-2"
+                  style={{ background: ST.roseSoft, border: "1px solid #f3d4de" }}
                 >
-                  <div
-                    className="w-[38px] h-[38px] rounded-[11px] flex items-center justify-center font-extrabold text-[15px] flex-shrink-0"
-                    style={{ background: brand.bg, color: brand.fg }}
-                  >
-                    {brand.letter}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[13px] font-extrabold truncate" style={{ color: ST.text }}>
-                      {defaultMethod.label.replace(/\s*\(([^)]*)\)/, " $1")}
-                    </div>
-                    <div className="text-[11.5px] font-bold truncate" style={{ color: ST.textSecondary }}>
-                      {defaultMethod.processingTime} · min {fmt(defaultMethod.minAmount)} FCFA
-                    </div>
-                  </div>
-                  <span
-                    className="text-[10px] font-extrabold px-2 py-[3px] rounded-full flex-shrink-0"
-                    style={{ background: ST.greenSoft, color: ST.green }}
-                  >
-                    Par défaut
-                  </span>
-                </div>
-              ) : (
-                <div
-                  className="rounded-[13px] px-[13px] py-3 text-[11.5px] font-bold"
-                  style={{ border: "1px solid #f3e2bd", background: "#fdf8ec", color: ST.amberText }}
-                >
-                  Aucune méthode disponible pour votre pays. Configurez votre pays dans{" "}
-                  <Link href="/vendeur/parametres" className="underline">Paramètres → Compte</Link>.
+                  <AlertCircle size={16} style={{ color: ST.roseText }} className="mt-0.5 flex-shrink-0" />
+                  <p className="text-[12px] font-bold" style={{ color: ST.roseText }}>{error}</p>
                 </div>
               )}
-              <Link
-                href="/vendeur/parametres#paiement"
-                className="flex items-center gap-[9px] mt-2.5 text-[12px] font-extrabold hover:opacity-80 transition-opacity"
-                style={{ color: ST.textSecondary }}
-              >
-                <span
-                  className="flex items-center justify-center rounded-[8px] p-[5px] flex-shrink-0"
-                  style={{ border: "1px dashed #bcd6c5", color: ST.green }}
-                >
-                  <Plus size={13} />
-                </span>
-                Ajouter Orange Money ou MTN MoMo
-              </Link>
+
+              <div className="space-y-4">
+                {/* Choix du pays, du moyen et du numéro : EXACTEMENT le composant
+                    de l'écran de paiement, en sens « versement ». Un second écran
+                    aurait divergé du premier au premier correctif — ici les deux
+                    ne peuvent pas se contredire, c'est le même code. */}
+                <UnifiedPaymentScreen
+                  direction="payout"
+                  embedded
+                  hideSubmit
+                  amount={amount}
+                  defaultCountry={selectedCountry || null}
+                  onPay={() => {}}
+                  onSelectionChange={(sel) => {
+                    if (!sel) { setMethod(""); setFields({}); return; }
+                    setMethod(sel.operator);
+                    setFields(sel.phone ? { msisdn: sel.phone } : {});
+                    // Le pays vient du moyen retenu : c'est la seule source qui ne
+                    // peut pas se désynchroniser de ce que le vendeur a cliqué.
+                    const pays = getOperator(sel.operator)?.country;
+                    if (pays) setSelectedCountry(pays.toUpperCase());
+                  }}
+                />
+
+                <StInput
+                  label="Montant (FCFA)"
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(Number(e.target.value))}
+                  min={MIN_WITHDRAWAL_XOF}
+                  max={
+                    showWithdraw === "vendor"
+                      ? data.vendor?.available ?? 0
+                      : data.mentor?.available ?? 0
+                  }
+                  step={500}
+                  hint={`Minimum : ${fmt(MIN_WITHDRAWAL_XOF)} FCFA`}
+                />
+
+                {selectedMethod && (
+                  <div
+                    className="rounded-[13px] p-3 flex items-start gap-2.5"
+                    style={{ background: "#f1f8fe", border: "1px solid #cfe3f5" }}
+                  >
+                    <Clock size={15} style={{ color: ST.blueText }} className="mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 text-[12px]" style={{ color: "#0c447c" }}>
+                      <p className="font-extrabold">Délai : {selectedMethod.processingTime}</p>
+                      <p className="font-semibold mt-0.5">
+                        Montant min {fmt(selectedMethod.minAmount)} FCFA · Versement automatique, sans validation admin
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Confirmation par e-mail (sécurité) */}
+                <div className="rounded-xl border p-3" style={{ borderColor: ST.cardBorder, background: ST.bg }}>
+                  <p className="text-[12px] font-extrabold mb-2" style={{ color: ST.text }}>
+                    Confirmation par e-mail
+                  </p>
+                  {!otpSent ? (
+                    <StButton
+                      variant="secondary"
+                      className="w-full"
+                      disabled={sendingOtp || countryDisabled}
+                      onClick={sendWithdrawalOtp}
+                    >
+                      {sendingOtp ? "Envoi du code…" : "Recevoir le code par e-mail"}
+                    </StButton>
+                  ) : (
+                    <>
+                      <input
+                        inputMode="numeric"
+                        maxLength={6}
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                        placeholder="Code à 6 chiffres"
+                        className="w-full rounded-lg border px-3 py-2.5 text-center text-lg font-extrabold tracking-[0.4em] tabular-nums outline-none"
+                        style={{ borderColor: ST.cardBorder, color: ST.text }}
+                      />
+                      <button
+                        onClick={sendWithdrawalOtp}
+                        disabled={sendingOtp}
+                        className="mt-1.5 text-[11px] font-bold hover:underline"
+                        style={{ color: ST.green }}
+                      >
+                        {sendingOtp ? "Renvoi…" : "Renvoyer le code"}
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  <StButton
+                    className="flex-1"
+                    icon={Send}
+                    disabled={submitting || !amount || otp.trim().length !== 6 || countryDisabled}
+                    onClick={handleWithdraw}
+                  >
+                    {submitting ? "Envoi…" : `Demander ${fmt(amount)} FCFA`}
+                  </StButton>
+                </div>
+              </div>
             </StCard>
+            </div>
 
             <StCard className="!p-[17px_19px]">
               <div className="text-[13.5px] font-extrabold mb-[11px]" style={{ color: ST.text }}>
@@ -670,155 +749,6 @@ export default function WalletPage() {
         </StCard>
       </main>
 
-      {/* ── Modal de retrait (logique préservée, re-skin Stitch) ── */}
-      {showWithdraw && (
-        <div
-          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-          style={{ fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}
-          onClick={() => !submitting && setShowWithdraw(null)}
-        >
-          <div
-            className="bg-white rounded-[20px] max-w-md w-full p-6 max-h-[90vh] overflow-y-auto"
-            style={{ border: `1px solid ${ST.cardBorder}`, boxShadow: "0 18px 50px rgba(16,52,32,.18)" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-[17px] font-extrabold tracking-[-0.01em]" style={{ color: ST.text }}>
-              Retrait {showWithdraw === "mentor" ? "mentor" : "vendeur"}
-            </h2>
-            <p className="text-[12.5px] font-semibold mt-0.5 mb-5" style={{ color: ST.textSecondary }}>
-              Disponible :{" "}
-              <strong style={{ color: ST.text }}>
-                {fmt(
-                  showWithdraw === "vendor"
-                    ? data.vendor?.available ?? 0
-                    : data.mentor?.available ?? 0
-                )}{" "}
-                FCFA
-              </strong>
-            </p>
-
-            {error && (
-              <div
-                className="mb-4 rounded-[13px] px-3.5 py-3 flex items-start gap-2"
-                style={{ background: ST.roseSoft, border: "1px solid #f3d4de" }}
-              >
-                <AlertCircle size={16} style={{ color: ST.roseText }} className="mt-0.5 flex-shrink-0" />
-                <p className="text-[12px] font-bold" style={{ color: ST.roseText }}>{error}</p>
-              </div>
-            )}
-
-            <div className="space-y-4">
-              {/* Choix du pays, du moyen et du numéro : EXACTEMENT le composant
-                  de l'écran de paiement, en sens « versement ». Un second écran
-                  aurait divergé du premier au premier correctif — ici les deux
-                  ne peuvent pas se contredire, c'est le même code. */}
-              <UnifiedPaymentScreen
-                direction="payout"
-                embedded
-                hideSubmit
-                amount={amount}
-                defaultCountry={selectedCountry || null}
-                onPay={() => {}}
-                onSelectionChange={(sel) => {
-                  if (!sel) { setMethod(""); setFields({}); return; }
-                  setMethod(sel.operator);
-                  setFields(sel.phone ? { msisdn: sel.phone } : {});
-                  // Le pays vient du moyen retenu : c'est la seule source qui ne
-                  // peut pas se désynchroniser de ce que le vendeur a cliqué.
-                  const pays = getOperator(sel.operator)?.country;
-                  if (pays) setSelectedCountry(pays.toUpperCase());
-                }}
-              />
-
-              <StInput
-                label="Montant (FCFA)"
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(Number(e.target.value))}
-                min={MIN_WITHDRAWAL_XOF}
-                max={
-                  showWithdraw === "vendor"
-                    ? data.vendor?.available ?? 0
-                    : data.mentor?.available ?? 0
-                }
-                step={500}
-                hint={`Minimum : ${fmt(MIN_WITHDRAWAL_XOF)} FCFA`}
-              />
-
-              {selectedMethod && (
-                <div
-                  className="rounded-[13px] p-3 flex items-start gap-2.5"
-                  style={{ background: "#f1f8fe", border: "1px solid #cfe3f5" }}
-                >
-                  <Clock size={15} style={{ color: ST.blueText }} className="mt-0.5 flex-shrink-0" />
-                  <div className="flex-1 text-[12px]" style={{ color: "#0c447c" }}>
-                    <p className="font-extrabold">Délai : {selectedMethod.processingTime}</p>
-                    <p className="font-semibold mt-0.5">
-                      Montant min {fmt(selectedMethod.minAmount)} FCFA · Versement automatique, sans validation admin
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Confirmation par e-mail (sécurité) */}
-              <div className="rounded-xl border p-3" style={{ borderColor: ST.cardBorder, background: ST.bg }}>
-                <p className="text-[12px] font-extrabold mb-2" style={{ color: ST.text }}>
-                  Confirmation par e-mail
-                </p>
-                {!otpSent ? (
-                  <StButton
-                    variant="secondary"
-                    className="w-full"
-                    disabled={sendingOtp || countryDisabled}
-                    onClick={sendWithdrawalOtp}
-                  >
-                    {sendingOtp ? "Envoi du code…" : "Recevoir le code par e-mail"}
-                  </StButton>
-                ) : (
-                  <>
-                    <input
-                      inputMode="numeric"
-                      maxLength={6}
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                      placeholder="Code à 6 chiffres"
-                      className="w-full rounded-lg border px-3 py-2.5 text-center text-lg font-extrabold tracking-[0.4em] tabular-nums outline-none"
-                      style={{ borderColor: ST.cardBorder, color: ST.text }}
-                    />
-                    <button
-                      onClick={sendWithdrawalOtp}
-                      disabled={sendingOtp}
-                      className="mt-1.5 text-[11px] font-bold hover:underline"
-                      style={{ color: ST.green }}
-                    >
-                      {sendingOtp ? "Renvoi…" : "Renvoyer le code"}
-                    </button>
-                  </>
-                )}
-              </div>
-
-              <div className="flex gap-2">
-                <StButton
-                  variant="secondary"
-                  className="flex-1"
-                  disabled={submitting}
-                  onClick={() => setShowWithdraw(null)}
-                >
-                  Annuler
-                </StButton>
-                <StButton
-                  className="flex-1"
-                  icon={Send}
-                  disabled={submitting || !amount || otp.trim().length !== 6 || countryDisabled}
-                  onClick={handleWithdraw}
-                >
-                  {submitting ? "Envoi…" : `Demander ${fmt(amount)} FCFA`}
-                </StButton>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
