@@ -97,16 +97,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     staleTime: 60_000,
   });
 
-  const { data: withdrawalsRes } = useQuery<{ summary: { pending: number } | null }>({
-    queryKey: ["admin-vendor-withdrawals-badge"],
-    queryFn: () => fetch("/api/formations/admin/withdrawals?status=EN_ATTENTE&role=all").then((r) => r.json()),
-    staleTime: 60_000,
+  /**
+   * Tout ce qui attend une décision, en UN appel.
+   *
+   * Le menu comptait vingt-trois entrées identiques : rien ne disait qu'une
+   * pièce d'identité dormait depuis trois jours ou qu'un retrait attendait
+   * d'être versé. Il fallait ouvrir chaque page pour le découvrir — donc on ne
+   * le découvrait pas.
+   */
+  const { data: enAttente } = useQuery<{ data: { parPage: Record<string, number>; total: number } }>({
+    queryKey: ["admin-actions-en-attente"],
+    queryFn: () => fetch("/api/formations/admin/actions-en-attente").then((r) => r.json()),
+    // Rafraîchi seul : l'admin laisse souvent son onglet ouvert, et un badge
+    // figé sur une valeur périmée vaut moins que pas de badge du tout.
+    refetchInterval: 60_000,
+    staleTime: 30_000,
   });
+  const parPage = enAttente?.data?.parPage ?? {};
 
   const badges: BadgeCounts = {
     reports: dashRes?.data?.quickStats?.pendingReports ?? 0,
     comments: commentsRes?.summary?.withoutResponse ?? 0,
-    withdrawals: withdrawalsRes?.summary?.pending ?? 0,
+    withdrawals: parPage["/admin/retraits-vendeurs"] ?? 0,
   };
 
   return (
@@ -143,6 +155,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Right actions */}
         <div className="flex items-center gap-2">
+          {/* Repère global : un point rouge dès qu'une décision attend quelque
+              part, visible depuis N'IMPORTE QUELLE page admin. Sans lui, il
+              fallait déjà être dans le menu pour voir les compteurs — donc
+              savoir qu'il fallait regarder. */}
+          {(enAttente?.data?.total ?? 0) > 0 && (
+            <span
+              className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 text-rose-600 text-[11px] font-extrabold"
+              title="Éléments en attente d'une décision"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+              {enAttente?.data?.total} à traiter
+            </span>
+          )}
           <NovakouNotificationBell tone="light" viewAllHref="/admin/notifications" />
           <Link
             href="/admin/configuration"
@@ -217,6 +242,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               const showReports = item.href === "/admin/signalements" && badges.reports > 0;
               const showComments = item.href === "/admin/commentaires" && badges.comments > 0;
               const showWithdrawals = item.href === "/admin/retraits-vendeurs" && badges.withdrawals > 0;
+              // Toute autre page ayant des éléments en attente reçoit le même
+              // repère — sans avoir à l'ajouter une par une ici.
+              const aTraiter =
+                !showReports && !showComments && !showWithdrawals ? (parPage[item.href] ?? 0) : 0;
               return (
                 <li key={item.href}>
                   <Link
@@ -241,6 +270,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     {showComments && (
                       <span className="ml-auto bg-amber-100 text-amber-700 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">
                         {badges.comments}
+                      </span>
+                    )}
+                    {aTraiter > 0 && (
+                      <span className="ml-auto bg-rose-100 text-rose-600 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">
+                        {aTraiter}
                       </span>
                     )}
                     {showWithdrawals && (
