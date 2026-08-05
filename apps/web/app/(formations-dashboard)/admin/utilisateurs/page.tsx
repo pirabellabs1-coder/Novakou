@@ -32,7 +32,12 @@ type User = {
   role: string;
   status?: string;
   createdAt: string;
-  isInstructor: boolean;
+  // Rôles CUMULABLES : un compte peut vendre, acheter, mentorer et parrainer.
+  estVendeur: boolean;
+  estClient: boolean;
+  estMentor: boolean;
+  estAffilie: boolean;
+  estAdmin: boolean;
   instructorStatus: string | null;
   productsCount: number;
   totalEarned: number;
@@ -48,8 +53,10 @@ type User = {
 
 type Summary = {
   totalUsers: number;
-  totalInstructors: number;
-  totalLearners: number;
+  totalVendeurs: number;
+  totalClients: number;
+  totalMentors: number;
+  totalAffilies: number;
 };
 
 function formatFCFA(n: number) {
@@ -58,7 +65,7 @@ function formatFCFA(n: number) {
 
 export default function AdminUtilisateursPage() {
   const qc = useQueryClient();
-  const [filter, setFilter] = useState<"all" | "instructeurs" | "apprenants">(
+  const [filter, setFilter] = useState<"all" | "vendeurs" | "clients" | "mentors" | "affilies">(
     "all"
   );
   const [search, setSearch] = useState("");
@@ -104,18 +111,15 @@ export default function AdminUtilisateursPage() {
   const users = response?.data ?? [];
   const summary = response?.summary;
 
+  // Un compte peut tenir PLUSIEURS rôles à la fois : vendre, acheter, mentorer
+  // et parrainer. Les onglets ne s'excluent donc pas, et leurs totaux ne
+  // s'additionnent pas jusqu'au nombre de comptes — c'est normal.
   const tabs: { value: typeof filter; label: string; count: number }[] = [
     { value: "all", label: "Tous", count: summary?.totalUsers ?? 0 },
-    {
-      value: "instructeurs",
-      label: "Instructeurs",
-      count: summary?.totalInstructors ?? 0,
-    },
-    {
-      value: "apprenants",
-      label: "Apprenants",
-      count: summary?.totalLearners ?? 0,
-    },
+    { value: "vendeurs", label: "Vendeurs", count: summary?.totalVendeurs ?? 0 },
+    { value: "clients", label: "Clients", count: summary?.totalClients ?? 0 },
+    { value: "mentors", label: "Mentors", count: summary?.totalMentors ?? 0 },
+    { value: "affilies", label: "Affiliés", count: summary?.totalAffilies ?? 0 },
   ];
 
   return (
@@ -129,7 +133,7 @@ export default function AdminUtilisateursPage() {
           subtitle={
             isLoading
               ? "Chargement..."
-              : `${summary?.totalUsers ?? 0} comptes au total · ${summary?.totalInstructors ?? 0} instructeurs · ${summary?.totalLearners ?? 0} apprenants`
+              : `${summary?.totalUsers ?? 0} comptes · ${summary?.totalVendeurs ?? 0} vendeurs · ${summary?.totalClients ?? 0} clients · ${summary?.totalMentors ?? 0} mentors · ${summary?.totalAffilies ?? 0} affiliés`
           }
           actions={
             <StButton variant="secondary" icon={Download}>
@@ -139,7 +143,7 @@ export default function AdminUtilisateursPage() {
         />
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
           <StKpiCompact
             label="Comptes totaux"
             value={summary?.totalUsers ?? 0}
@@ -147,14 +151,14 @@ export default function AdminUtilisateursPage() {
             tone="green"
           />
           <StKpiCompact
-            label="Instructeurs"
-            value={summary?.totalInstructors ?? 0}
+            label="Vendeurs"
+            value={summary?.totalVendeurs ?? 0}
             icon={GraduationCap}
             tone="green"
           />
           <StKpiCompact
-            label="Apprenants"
-            value={summary?.totalLearners ?? 0}
+            label="Clients"
+            value={summary?.totalClients ?? 0}
             icon={UserCheck}
             tone="blue"
           />
@@ -267,15 +271,26 @@ export default function AdminUtilisateursPage() {
                           </div>
                         </td>
                         <td className="px-5 py-4" style={{ borderTop: `1px solid ${ST.divider}` }}>
-                          {u.isInstructor ? (
-                            <StChip tone="green" icon={GraduationCap}>
-                              Instructeur
-                            </StChip>
-                          ) : (
-                            <StChip tone="neutral" icon={UserCheck}>
-                              Apprenant
-                            </StChip>
-                          )}
+                          {/* TOUS ses rôles, pas un seul. Un vendeur qui achète
+                              aussi doit apparaître dans les deux listes — le
+                              ranger dans une case unique effaçait les autres. */}
+                          <div className="flex flex-wrap gap-1">
+                            {u.estAdmin && <StChip tone="amber">Admin</StChip>}
+                            {u.estVendeur && (
+                              <StChip tone="green" icon={GraduationCap}>Vendeur</StChip>
+                            )}
+                            {u.estClient && (
+                              <StChip tone="blue" icon={UserCheck}>Client</StChip>
+                            )}
+                            {u.estMentor && <StChip tone="green">Mentor</StChip>}
+                            {u.estAffilie && <StChip tone="blue">Affilié</StChip>}
+                            {!u.estAdmin && !u.estVendeur && !u.estClient && !u.estMentor && !u.estAffilie && (
+                              // Inscrit sans aucune activité : à distinguer d'un
+                              // client, sinon on croit avoir des acheteurs qu'on
+                              // n'a pas.
+                              <StChip tone="neutral">Inscrit</StChip>
+                            )}
+                          </div>
                           {/* Vrai client payant : au moins un achat encaissé via passerelle */}
                           {u.hasPaid && (
                             <div className="mt-1">

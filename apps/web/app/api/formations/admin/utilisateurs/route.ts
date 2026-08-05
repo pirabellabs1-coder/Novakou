@@ -23,8 +23,20 @@ export async function GET(request: Request) {
         { email: { contains: search, mode: "insensitive" } },
       ];
     }
-    if (filter === "instructeurs") where.instructeurProfile = { isNot: null };
-    if (filter === "apprenants") where.instructeurProfile = { is: null };
+    // ── Filtres par RÔLE RÉEL ──────────────────────────────────────────────
+    // Un compte n'est pas « instructeur ou apprenant » : il peut vendre ET
+    // acheter ET parrainer. On filtre donc sur l'existence du profil concerné,
+    // sans supposer qu'un rôle en exclut un autre.
+    if (filter === "vendeurs") where.instructeurProfile = { isNot: null };
+    if (filter === "mentors") where.mentorProfile = { isNot: null };
+    if (filter === "affilies") where.affiliateProfile = { isNot: null };
+    if (filter === "clients") {
+      where.OR = [
+        ...(Array.isArray(where.OR) ? where.OR : []),
+        { enrollments: { some: {} } },
+        { productPurchases: { some: {} } },
+      ];
+    }
 
     const users = await prisma.user.findMany({
       where,
@@ -47,6 +59,8 @@ export async function GET(request: Request) {
             digitalProducts: { select: { id: true } },
           },
         },
+        mentorProfile: { select: { id: true } },
+        affiliateProfile: { select: { id: true, affiliateCode: true } },
         enrollments: { select: { id: true, paidAmount: true, stripeSessionId: true } },
         productPurchases: { select: { id: true, paidAmount: true, stripeSessionId: true } },
       },
@@ -68,6 +82,16 @@ export async function GET(request: Request) {
         role: u.role,
         status: u.status,
         createdAt: u.createdAt,
+        // ── RÔLES CUMULABLES ────────────────────────────────────────────────
+        // Un même compte peut vendre, acheter, mentorer et parrainer. Les
+        // ranger dans une case unique ferait disparaître les trois autres de
+        // l'écran admin — c'est ce qui donnait « instructeur ou apprenant ».
+        estVendeur: u.instructeurProfile !== null,
+        estMentor: u.mentorProfile !== null,
+        estAffilie: u.affiliateProfile !== null,
+        estClient: u.enrollments.length + u.productPurchases.length > 0,
+        estAdmin: u.role === "ADMIN",
+        // Conservé pour ne pas casser un ancien appelant.
         isInstructor: u.instructeurProfile !== null,
         instructorStatus: u.instructeurProfile?.status ?? null,
         productsCount: (u.instructeurProfile?.formations.length ?? 0) + (u.instructeurProfile?.digitalProducts.length ?? 0),
@@ -86,15 +110,31 @@ export async function GET(request: Request) {
     });
 
     // Summary
-    const [totalUsers, totalInstructors, totalLearners] = await Promise.all([
+    const [totalUsers, totalVendeurs, totalMentors, totalAffilies, totalClients] = await Promise.all([
       prisma.user.count(),
       prisma.instructeurProfile.count(),
-      prisma.user.count({ where: { instructeurProfile: { is: null } } }),
+      prisma.mentorProfile.count(),
+      prisma.affiliateProfile.count(),
+      // Un client, c'est quelqu'un qui a acquis quelque chose — pas
+      // « quelqu'un qui n'est pas vendeur », ce qui comptait aussi les
+      // comptes inscrits n'ayant jamais rien fait.
+      prisma.user.count({
+        where: { OR: [{ enrollments: { some: {} } }, { productPurchases: { some: {} } }] },
+      }),
     ]);
 
     return NextResponse.json({
       data: enriched,
-      summary: { totalUsers, totalInstructors, totalLearners },
+      summary: {
+        totalUsers,
+        totalVendeurs,
+        totalMentors,
+        totalAffilies,
+        totalClients,
+        // Anciens noms, conservés le temps que tout le monde bascule.
+        totalInstructors: totalVendeurs,
+        totalLearners: totalClients,
+      },
     });
   } catch (err) {
     console.error("[admin/utilisateurs]", err);
