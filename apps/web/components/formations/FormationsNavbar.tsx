@@ -12,7 +12,10 @@ function initials(name: string | null | undefined) {
 }
 
 const NAV_LINKS = [
-  { href: "/", label: "Explorer" },
+  // L'entrée « Explorer » pointait vers l'accueil, juste à côté du logo qui y
+  // mène déjà : deux chemins vers la même page, dont un qui portait le nom
+  // d'une AUTRE page du menu (« Marketplace », soit /explorer). Retirée pour
+  // que chaque entrée désigne une destination distincte.
   { href: "/explorer", label: "Marketplace" },
   { href: "/fonctionnalites", label: "Fonctionnalités", mega: true },
   { href: "/tarifs", label: "Tarifs" },
