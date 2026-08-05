@@ -66,8 +66,12 @@ test("le filtre ne dépend pas du catalogue historique mais du registre", () => 
  * envoyait « 2290157335726 » (13 chiffres) au lieu de « 22957335726 ».
  */
 test("le numéro de versement sort au même format quelle que soit la saisie", () => {
-  const attendu = "22957335726";
-  for (const saisie of ["0157335726", "2290157335726", "57335726", "22957335726", "+229 01 57 33 57 26"]) {
+  // Bénin : le « 01 » fait PARTIE du numéro depuis le plan à 10 chiffres. On le
+  // retirait, produisant « 22957335726 » — un numéro qui n'existe plus. FeexPay
+  // acceptait le versement puis le transfert échouait, et le motif accusait les
+  // « coordonnées » du vendeur, qui étaient pourtant justes.
+  const attendu = "2290157335726";
+  for (const saisie of ["0157335726", "2290157335726", "+229 01 57 33 57 26"]) {
     expect(normalizeMsisdn(saisie, "mtn_bj"), `saisie « ${saisie} »`).toBe(attendu);
   }
   for (const saisie of ["771234567", "0771234567", "221771234567", "+221 77 123 45 67"]) {

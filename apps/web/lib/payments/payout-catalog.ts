@@ -527,26 +527,30 @@ export function normalizeMsisdn(phone: string, methodId?: string): string {
       const countryCode = methodDef.countries[0];
       const dialCode = COUNTRY_DIAL_CODES[countryCode];
       if (dialCode) {
-        // On retire l'indicatif s'il est déjà là, on normalise la partie locale,
-        // puis on le remet. Sans cette étape, un numéro DÉJÀ préfixé sortait
-        // intact : « 2290157335726 » partait tel quel (13 chiffres) au lieu de
-        // « 22957335726 ». L'écran de retrait produit exactement cette forme
-        // (indicatif + numéro saisi avec son 0), donc le cas est la règle, pas
-        // l'exception.
+        // On retire l'indicatif s'il est déjà là, on normalise la partie
+        // locale, puis on le remet. Sans cette étape, un numéro DÉJÀ préfixé
+        // ressortait intact et le préfixe se retrouvait doublé.
         if (digits.startsWith(dialCode)) {
           digits = digits.slice(dialCode.length);
         }
-        // Format local → international : le 0 de tête ne se transporte pas.
-        if (digits.startsWith("0")) {
+
+        // ── Bénin : le « 01 » FAIT PARTIE du numéro ─────────────────────────
+        // Depuis le passage au plan à 10 chiffres, un numéro béninois s'écrit
+        // « 0157335726 » et le « 01 » est OBLIGATOIRE : au national comme à
+        // l'international, il ne se retire pas. Le format attendu est donc
+        // « 2290157335726 ».
+        //
+        // On le retirait, sur la foi d'un commentaire hérité de l'ANCIEN plan
+        // de numérotation. Résultat : « 22957335726 » — un numéro qui n'existe
+        // plus. FeexPay acceptait le versement, puis le transfert échouait, et
+        // le motif affiché parlait de « coordonnées à vérifier » alors que le
+        // vendeur avait saisi le bon numéro.
+        if (countryCode !== "BJ" && digits.startsWith("0")) {
+          // Ailleurs, le 0 de tête est un préfixe national qui ne se
+          // transporte pas à l'international.
           digits = digits.slice(1);
         }
-        // Bénin : plan à 10 chiffres « 01XXXXXXXX ». Après avoir retiré le
-        // « 0 », il reste « 1XXXXXXXX » (9 chiffres) ; les passerelles
-        // attendent 8 chiffres (229XXXXXXXX, vérifié par un versement live
-        // réussi) → on retire aussi le « 1 » résiduel du préfixe national.
-        if (countryCode === "BJ" && digits.length === 9 && digits.startsWith("1")) {
-          digits = digits.slice(1);
-        }
+
         digits = dialCode + digits;
       }
     }
