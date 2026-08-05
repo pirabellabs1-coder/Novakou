@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { verifierFiche } from "@/lib/formations/product-quality";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
@@ -156,6 +157,22 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         : body.fileUrl !== undefined
           ? (body.fileUrl ? normalizeStorageUrlForDb(body.fileUrl) : null)
           : undefined;
+
+    // Mêmes règles qu'à la création — sinon on pourrait publier une fiche
+    // correcte puis la vider par une modification.
+    const problemes = await verifierFiche({
+      titre: body.title !== undefined ? body.title : existing.title,
+      description: body.description !== undefined ? body.description : existing.description,
+      prix: effectivePrice,
+      vignetteUrl: body.thumbnail !== undefined ? body.thumbnail : existing.thumbnail,
+      banniereUrl: body.banner !== undefined ? body.banner : existing.banner,
+    });
+    if (problemes.length > 0) {
+      return NextResponse.json(
+        { error: problemes.map((x) => x.message).join(" "), code: "FICHE_INCOMPLETE", problemes },
+        { status: 400 },
+      );
+    }
 
     const updated = await prisma.digitalProduct.update({
       where: { id },

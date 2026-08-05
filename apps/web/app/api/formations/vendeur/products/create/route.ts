@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { verifierFiche } from "@/lib/formations/product-quality";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
@@ -113,6 +114,29 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Le prix doit être strictement supérieur à 0 pour un produit payant." },
         { status: 400 }
+      );
+    }
+
+    // ── QUALITÉ DE LA FICHE ───────────────────────────────────────────────
+    // Titre trop court, description vide, image déformée : une boutique se
+    // juge en trois secondes, et le vendeur ne voit pas le problème parce que
+    // sur SON écran ça passe. On refuse à la source plutôt que de laisser une
+    // fiche bâclée représenter la plateforme.
+    const problemes = await verifierFiche({
+      titre: title,
+      description,
+      prix: priceNum,
+      vignetteUrl: thumbnail,
+      banniereUrl: banner,
+    });
+    if (problemes.length > 0) {
+      return NextResponse.json(
+        {
+          error: problemes.map((x) => x.message).join(" "),
+          code: "FICHE_INCOMPLETE",
+          problemes,
+        },
+        { status: 400 },
       );
     }
 
