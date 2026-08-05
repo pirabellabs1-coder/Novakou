@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { SelecteurDevise } from "@/components/formations/SelecteurDevise";
 
 /**
  * Barre de navigation d'une BOUTIQUE vendeur.
@@ -72,6 +73,9 @@ export function ShopHeader({
         </div>
 
         <div className="flex items-center gap-1">
+          {/* Le pays se choisit avant l'achat, pas au moment de payer : un prix
+              lisible dans sa propre devise est ce qui décide un visiteur. */}
+          <SelecteurDevise />
           <a
             href="/apprenant/mes-produits"
             className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 hover:text-slate-900 transition-colors flex-shrink-0 px-2 py-1"

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { shopFontStack } from "@/lib/formations/shop-fonts";
 import AdaptiveImage from "@/components/formations/AdaptiveImage";
+import { SelecteurDevise } from "@/components/formations/SelecteurDevise";
 import AISupportWidget from "@/components/formations/AISupportWidget";
 import SmartPopupRenderer from "@/components/marketing/SmartPopupRenderer";
 
@@ -140,6 +141,9 @@ export default function BoutiqueView({
             </a>
           </div>
           <div className="flex items-center gap-1">
+            {/* Même sélecteur que sur les fiches produit : le pays choisi suit
+                l'acheteur d'une page à l'autre. */}
+            <SelecteurDevise />
             <a href="/apprenant/mes-produits" className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 hover:text-slate-900 transition-colors flex-shrink-0 px-2 py-1">
               <span className="material-symbols-outlined text-[19px]">shopping_bag</span>
               <span className="hidden md:inline">Mes achats</span>
