@@ -24,6 +24,7 @@ const ENV_KEYS: Record<ProviderId, Record<string, string>> = {
     privateKey: "KKIAPAY_PRIVATE_KEY",
     secret: "KKIAPAY_SECRET",
   },
+  monetbil: { serviceKey: "MONETBIL_SERVICE_KEY" },
   ipaymoney: {
     secretKey: "IPAYMONEY_SECRET_KEY",
     webhookSecret: "IPAYMONEY_WEBHOOK_SECRET",

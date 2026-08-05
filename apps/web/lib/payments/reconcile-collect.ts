@@ -66,6 +66,10 @@ const STATUS_CHECKERS: Record<
     const { checkCollectStatus } = await import("@/lib/fedapay");
     return checkCollectStatus(ref);
   },
+  monetbil: async (ref) => {
+    const { checkCollectStatus } = await import("@/lib/monetbil");
+    return checkCollectStatus(ref);
+  },
   ipaymoney: async (ref, code) => {
     const { checkCollectStatus } = await import("@/lib/ipaymoney");
     // Le type ("mobile" / "card") est aussi obligatoire à la consultation.

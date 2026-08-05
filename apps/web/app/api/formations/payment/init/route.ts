@@ -656,6 +656,23 @@ export async function POST(request: Request) {
             });
           }
           directRef = r.reference;
+        } else if (candidate.provider === "monetbil") {
+          if (!phoneRaw) {
+            await failAttempt("Numéro de téléphone manquant", "missing_phone");
+            return NextResponse.json(
+              { error: "Un numéro de téléphone est requis pour ce moyen de paiement." },
+              { status: 400 },
+            );
+          }
+          const { initCollect } = await import("@/lib/monetbil");
+          const r = await initCollect({
+            amount: Math.round(totalAmount),
+            phoneNumber: phoneRaw,
+            paymentRef: internalRef,
+            notifyUrl: `${appUrl}/api/webhooks/monetbil`,
+            itemName: description,
+          });
+          directRef = r.reference;
         } else if (candidate.provider === "ipaymoney") {
           const { initCollect } = await import("@/lib/ipaymoney");
           const r = await initCollect({

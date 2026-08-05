@@ -92,6 +92,24 @@ export const PROVIDERS: ProviderMeta[] = [
     envVars: ["KKIAPAY_PUBLIC_KEY", "KKIAPAY_PRIVATE_KEY", "KKIAPAY_SECRET"],
   },
   {
+    id: "monetbil",
+    label: "Monetbil",
+    // Cameroun et zone XAF — la region que nos autres passerelles ne servent
+    // pas. Contrat etabli par sondage de leur API puis recoupe avec leur
+    // documentation officielle : POST /payment/v1/placePayment (service,
+    // phonenumber, amount) et POST /payment/v1/checkPayment.
+    //
+    // ENCAISSEMENT SEUL : onze variantes d'endpoint de versement testees
+    // repondent toutes 404. On n'invente pas une adresse qui deplace de
+    // l'argent — a activer quand Monetbil nous communiquera la leur.
+    //
+    // Comme iPay, le fournisseur route lui-meme vers le bon operateur a partir
+    // du NUMERO : un seul code « mobile », sans table par reseau.
+    directions: ["collect"],
+    collectIntegration: "server",
+    envVars: ["MONETBIL_SERVICE_KEY"],
+  },
+  {
     id: "ipaymoney",
     label: "iPay Money",
     // Niger. Encaissement mobile money et carte (VISA / Mastercard /
@@ -325,15 +343,25 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   },
 
   // ──────────────────────── Cameroun (XAF) ────────────────────────
-  // Aucune passerelle branchée ne couvre encore l'Afrique centrale.
+  // Monetbil ouvre enfin l'Afrique centrale à l'encaissement.
+  //
+  // Comme iPay, elle route elle-même vers le bon opérateur à partir du NUMÉRO :
+  // le code natif « mobile » est donc le même pour Orange et MTN, et c'est le
+  // fournisseur qui tranche. Déclarer des codes par réseau ici serait inventer
+  // une distinction que leur API ne fait pas.
+  //
+  // VERSEMENT vide à dessein : leur API n'expose aucun endpoint de
+  // décaissement (onze variantes testées, toutes en 404). Un vendeur
+  // camerounais peut donc VENDRE, pas encore retirer — et l'écran de retrait
+  // le lui dira, puisqu'il n'affiche que les moyens réellement servis.
   orange_cm: {
     label: "Orange Money (Cameroun)", country: "cm", currency: "XAF", family: "mobile_money",
-    collect: {},
+    collect: { monetbil: { code: "mobile" } },
     payout: {},
   },
   mtn_cm: {
     label: "MTN Mobile Money (Cameroun)", country: "cm", currency: "XAF", family: "mobile_money",
-    collect: {},
+    collect: { monetbil: { code: "mobile" } },
     payout: {},
   },
 
