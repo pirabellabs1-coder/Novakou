@@ -163,16 +163,6 @@ function AffiliéLayoutInner({ children }: { children: React.ReactNode }) {
             })}
           </ul>
 
-          <div className="border-t border-[#1e3a2f] my-4" />
-
-          <Link
-            href="/devenir-vendeur"
-            onClick={() => setSidebarOpen(false)}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-[#22c55e] hover:bg-[#22c55e]/10 transition-all"
-          >
-            <span className="material-symbols-outlined text-[20px] flex-shrink-0">storefront</span>
-            Devenir vendeur
-          </Link>
 
           <Link
             href="/apprenant/dashboard"

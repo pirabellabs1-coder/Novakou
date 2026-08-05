@@ -33,6 +33,28 @@ export default function DevenirVendeurPage() {
   const isVendor = role === "instructeur";
 
   async function handleUpgrade() {
+    /**
+     * Confirmation EXPLICITE, exigée par le fondateur.
+     *
+     * Ce bouton était atteignable depuis une entrée de menu dans les espaces
+     * client, mentor et affilié : un clic transformait le compte en compte
+     * vendeur, et la personne le découvrait ensuite. Les entrées de menu sont
+     * retirées, et ce geste-ci demande désormais un accord clair.
+     *
+     * Le changement reste irréversible depuis l'interface : on le dit, plutôt
+     * que de le laisser découvrir.
+     */
+    const ok = window.confirm(
+      [
+        "Votre compte deviendra un compte VENDEUR, avec la meme adresse e-mail.",
+        "",
+        "Vous pourrez publier et vendre vos produits.",
+        "Ce changement ne s'annule pas depuis votre espace.",
+        "",
+        "Confirmez-vous ?",
+      ].join("\n"),
+    );
+    if (!ok) return;
     setLoading(true);
     try {
       const res = await fetch("/api/formations/devenir-vendeur", { method: "POST" });

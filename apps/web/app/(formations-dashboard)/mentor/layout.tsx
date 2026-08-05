@@ -47,10 +47,6 @@ const navSections: NavSection[] = [
     items: [{ icon: LayoutDashboard, label: "Tableau de bord", href: "/mentor/dashboard" }],
   },
   {
-    label: "Gagner de l'argent",
-    items: [{ icon: Store, label: "Devenir vendeur", href: "/devenir-vendeur" }],
-  },
-  {
     label: "Mentorat",
     items: [
       { icon: Calendar, label: "Mon calendrier", href: "/mentor/calendrier" },

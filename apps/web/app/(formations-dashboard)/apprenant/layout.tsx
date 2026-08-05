@@ -60,7 +60,6 @@ const navSections: NavSection[] = [
   {
     label: "Gagner de l'argent",
     items: [
-      { icon: Store, label: "Devenir vendeur", href: "/devenir-vendeur" },
     ],
   },
   {
