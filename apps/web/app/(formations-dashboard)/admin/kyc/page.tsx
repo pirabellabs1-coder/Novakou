@@ -30,6 +30,8 @@ type KycItem = {
   currentLevel: number;
   documentType: string;
   documentUrl: string | null;
+  documentVersoUrl: string | null;
+  selfieUrl: string | null;
   status: "EN_ATTENTE" | "APPROUVE" | "REFUSE";
   refuseReason: string | null;
   createdAt: string;
@@ -342,32 +344,67 @@ export default function AdminKycPage() {
               </div>
             </div>
 
-            {selected.documentUrl && (
-              <div className="mb-6">
-                <p className="text-[10px] font-extrabold uppercase tracking-widest mb-2" style={{ color: ST.textMuted }}>
-                  Aperçu document
-                </p>
-                <div
-                  className="rounded-xl overflow-hidden max-h-[500px] overflow-y-auto"
-                  style={{ border: `1px solid ${ST.cardBorder}`, background: ST.bg }}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={selected.documentUrl}
-                    alt="Document KYC"
-                    className="w-full h-auto object-contain"
-                    onError={(e) => {
-                      const img = e.currentTarget;
-                      img.style.display = "none";
-                      const parent = img.parentElement;
-                      if (parent)
-                        parent.innerHTML =
-                          '<p class="p-6 text-center text-sm text-slate-500">L\'aperçu n\'a pas pu être chargé. Ouvrez le lien pour voir le document.</p>';
-                    }}
-                  />
+            {/* ── LES TROIS PIÈCES CÔTE À CÔTE ─────────────────────────
+                Valider une identité demande de comparer le visage à la photo
+                de la pièce et de lire le verso. N'en montrer qu'une revenait à
+                demander à l'admin de trancher à l'aveugle. */}
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-3">
+              {([
+                ["Recto", selected.documentUrl],
+                ["Verso", selected.documentVersoUrl],
+                ["Visage", selected.selfieUrl],
+              ] as Array<[string, string | null]>).map(([titre, lien]) => (
+                <div key={titre}>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <p className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: ST.textMuted }}>
+                      {titre}
+                    </p>
+                    {lien && (
+                      <a
+                        href={lien}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-extrabold hover:underline"
+                        style={{ color: ST.green }}
+                      >
+                        <ExternalLink size={12} />
+                        Ouvrir
+                      </a>
+                    )}
+                  </div>
+                  {lien ? (
+                    <div
+                      className="rounded-xl overflow-hidden max-h-[320px] overflow-y-auto"
+                      style={{ border: `1px solid ${ST.cardBorder}`, background: ST.bg }}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={lien}
+                        alt={`Pièce KYC — ${titre}`}
+                        className="w-full h-auto object-contain"
+                        onError={(e) => {
+                          const img = e.currentTarget;
+                          img.style.display = "none";
+                          const parent = img.parentElement;
+                          if (parent)
+                            parent.innerHTML =
+                              '<p class="p-5 text-center text-[12px] text-slate-500">Aperçu indisponible — ouvrez le lien.</p>';
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    // Une pièce absente est une INFORMATION : les dossiers
+                    // déposés avant cette exigence n'en ont que deux.
+                    <div
+                      className="rounded-xl p-5 text-center text-[12px] font-semibold"
+                      style={{ border: `1px dashed ${ST.cardBorder}`, background: ST.bg, color: ST.textMuted }}
+                    >
+                      Non fournie
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
+              ))}
+            </div>
 
             {selected.status === "EN_ATTENTE" ? (
               <>

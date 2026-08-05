@@ -714,7 +714,14 @@ model KycRequest {
   requestedLevel Int
   currentLevel   Int
   documentType   String
+  /// Recto de la pièce — obligatoire.
   documentUrl    String?
+  /// Verso de la pièce — obligatoire lui aussi : le recto seul ne prouve rien,
+  /// les informations de validité et le numéro figurent souvent au dos.
+  documentVersoUrl String?
+  /// Photo du visage, tenue par la personne. C'est elle qui relie la pièce à
+  /// son porteur : sans elle, une pièce trouvée ou empruntée suffit à passer.
+  selfieUrl      String?
   status         KycStatus @default(EN_ATTENTE)
   reviewedBy     String?
   reviewedAt     DateTime?

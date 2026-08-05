@@ -58,12 +58,20 @@ export async function GET(request: Request) {
             },
           });
 
-    // Helper : résout documentUrl en signed URL fraîche pour chaque request.
-    const resolve = async <T extends { documentUrl: string | null }>(items: T[]) =>
+    // Résout les TROIS pièces en liens signés frais. L'admin doit pouvoir
+    // comparer le visage à la photo de la pièce et lire le verso : n'en servir
+    // qu'une reviendrait à lui demander de valider à l'aveugle.
+    const resolve = async <
+      T extends { documentUrl: string | null; documentVersoUrl?: string | null; selfieUrl?: string | null },
+    >(
+      items: T[],
+    ) =>
       Promise.all(
         items.map(async (item) => ({
           ...item,
           documentUrl: item.documentUrl ? await resolveKycDocumentUrl(item.documentUrl) : null,
+          documentVersoUrl: item.documentVersoUrl ? await resolveKycDocumentUrl(item.documentVersoUrl) : null,
+          selfieUrl: item.selfieUrl ? await resolveKycDocumentUrl(item.selfieUrl) : null,
         })),
       );
 

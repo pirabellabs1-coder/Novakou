@@ -63,6 +63,134 @@ const DOC_BY_LEVEL: Record<2 | 4, string[]> = {
   4: ["DIPLOME", "CERTIFICAT_PRO", "ATTESTATION_EMPLOYEUR", "PORTFOLIO_PRO"],
 };
 
+/**
+ * Un emplacement de dépôt : zone de glisser-déposer, bouton galerie et bouton
+ * appareil photo. Extrait pour être posé TROIS fois — recto, verso, visage —
+ * au lieu d'être dupliqué, ce qui ferait diverger les trois au premier
+ * correctif.
+ */
+function DepotPiece({
+  titre,
+  consigne,
+  url,
+  apercu,
+  nomFichier,
+  televersement,
+  onFichier,
+  onVider,
+  camera = "environment",
+}: {
+  titre: string;
+  consigne: string;
+  url: string;
+  apercu: string;
+  nomFichier: string | null;
+  televersement: boolean;
+  onFichier: (f: File) => void;
+  onVider: () => void;
+  /** « user » ouvre la caméra FRONTALE — indispensable pour la photo du visage. */
+  camera?: "user" | "environment";
+}) {
+  const refFichier = useRef<HTMLInputElement>(null);
+  const refCamera = useRef<HTMLInputElement>(null);
+
+  return (
+    <div>
+      <label className="text-[11px] font-bold uppercase text-[#5c647a] block mb-1">
+        {titre} <span className="text-red-600">*</span>
+      </label>
+      <p className="text-[11.5px] text-[#5c647a] mb-2 leading-relaxed">{consigne}</p>
+
+      {url ? (
+        <div className="flex items-center justify-between gap-3 p-4 rounded-xl border border-[#006e2f]/20 bg-[#006e2f]/5">
+          <div className="flex items-center gap-3 min-w-0">
+            <CheckCircle2 className="w-6 h-6 text-[#006e2f] flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-[#191c1e] truncate">{nomFichier ?? "Fichier envoyé"}</p>
+              <a href={apercu || url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-[#006e2f] hover:underline">
+                Voir
+              </a>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onVider}
+            className="p-2 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-600 flex-shrink-0"
+            title="Supprimer"
+          >
+            <Trash2 className="w-[18px] h-[18px]" />
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <div
+            onClick={() => refFichier.current?.click()}
+            onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; }}
+            onDrop={(e) => {
+              e.preventDefault();
+              const f = e.dataTransfer.files[0];
+              if (f) onFichier(f);
+            }}
+            className={`rounded-xl border-2 border-dashed p-6 text-center cursor-pointer transition-colors ${
+              televersement ? "border-amber-300 bg-amber-50/40" : "border-gray-200 hover:border-[#006e2f]/40 hover:bg-[#006e2f]/5"
+            }`}
+          >
+            {televersement ? (
+              <>
+                <Loader2 className="w-7 h-7 text-amber-500 animate-spin mx-auto" />
+                <p className="text-sm text-[#5c647a] mt-2">Envoi en cours…</p>
+              </>
+            ) : (
+              <>
+                <UploadCloud className="w-8 h-8 text-[#006e2f] mx-auto" />
+                <p className="text-sm font-semibold text-[#191c1e] mt-2">Choisir un fichier</p>
+                <p className="text-[11px] text-[#5c647a] mt-1">JPG, PNG, WEBP ou PDF — 25 MB max</p>
+              </>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 md:hidden">
+            <button
+              type="button"
+              onClick={() => refFichier.current?.click()}
+              disabled={televersement}
+              className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#191c1e] hover:bg-gray-50 disabled:opacity-50"
+            >
+              <Images className="w-[18px] h-[18px]" />
+              Galerie
+            </button>
+            <button
+              type="button"
+              onClick={() => refCamera.current?.click()}
+              disabled={televersement}
+              className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#191c1e] hover:bg-gray-50 disabled:opacity-50"
+            >
+              <Camera className="w-[18px] h-[18px]" />
+              Photo
+            </button>
+          </div>
+
+          <input
+            ref={refFichier}
+            type="file"
+            accept="application/pdf,image/*"
+            className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) onFichier(f); }}
+          />
+          <input
+            ref={refCamera}
+            type="file"
+            accept="image/*"
+            capture={camera}
+            className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) onFichier(f); }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function formatDate(s: string) {
   return new Date(s).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
 }
@@ -72,13 +200,20 @@ export default function KycPage() {
   const [targetLevel, setTargetLevel] = useState<2 | 4>(2);
   const [documentType, setDocumentType] = useState("CNI");
   const [documentUrl, setDocumentUrl] = useState("");
+  const [versoUrl, setVersoUrl] = useState("");
+  const [versoPreviewUrl, setVersoPreviewUrl] = useState("");
+  const [versoFileName, setVersoFileName] = useState<string | null>(null);
+  const [selfieUrl, setSelfieUrl] = useState("");
+  const [selfiePreviewUrl, setSelfiePreviewUrl] = useState("");
+  const [selfieFileName, setSelfieFileName] = useState<string | null>(null);
   const [documentPreviewUrl, setDocumentPreviewUrl] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  async function handleFileUpload(file: File) {
+  /** Quelle des trois pièces on est en train d'envoyer. */
+  type Piece = "recto" | "verso" | "selfie";
+
+  async function handleFileUpload(file: File, piece: Piece = "recto") {
     if (!file) return;
     if (file.size > 25 * 1024 * 1024) {
       useToastStore.getState().addToast("error", "Fichier trop volumineux (25 MB max)");
@@ -98,10 +233,15 @@ export default function KycPage() {
       const res = await fetch("/api/upload/file", { method: "POST", body: form });
       const json = await res.json();
       if (json.success && json.file?.url) {
-        setDocumentUrl(json.file.path ?? json.file.url);
-        setDocumentPreviewUrl(json.file.url);
-        setUploadedFileName(file.name);
-        useToastStore.getState().addToast("success", "Document uploadé avec succès");
+        const chemin = json.file.path ?? json.file.url;
+        if (piece === "recto") {
+          setDocumentUrl(chemin); setDocumentPreviewUrl(json.file.url); setUploadedFileName(file.name);
+        } else if (piece === "verso") {
+          setVersoUrl(chemin); setVersoPreviewUrl(json.file.url); setVersoFileName(file.name);
+        } else {
+          setSelfieUrl(chemin); setSelfiePreviewUrl(json.file.url); setSelfieFileName(file.name);
+        }
+        useToastStore.getState().addToast("success", "Fichier envoyé");
       } else {
         useToastStore.getState().addToast("error", json.error ?? "Échec de l'upload");
       }
@@ -126,6 +266,8 @@ export default function KycPage() {
         body: JSON.stringify({
           documentType,
           documentUrl: documentUrl.trim(),
+          documentVersoUrl: versoUrl.trim(),
+          selfieUrl: selfieUrl.trim(),
           requestedLevel: targetLevel,
         }),
       });
@@ -279,114 +421,73 @@ export default function KycPage() {
               </div>
             </div>
 
-            <div>
-              <label className="text-[11px] font-bold uppercase text-[#5c647a] block mb-2">
-                Document (PDF, JPG, PNG — 25 MB max)
-              </label>
-
-              {documentUrl ? (
-                <div className="flex items-center justify-between gap-3 p-4 rounded-xl border border-[#006e2f]/20 bg-[#006e2f]/5">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <CheckCircle2 className="w-6 h-6 text-[#006e2f] flex-shrink-0" />
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-[#191c1e] truncate">{uploadedFileName ?? "Document uploadé"}</p>
-                      <a href={documentPreviewUrl || documentUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] text-[#006e2f] hover:underline">
-                        Voir le document
-                      </a>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => { setDocumentUrl(""); setDocumentPreviewUrl(""); setUploadedFileName(null); }}
-                    className="p-2 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-600 flex-shrink-0"
-                    title="Supprimer"
-                  >
-                    <Trash2 className="w-[18px] h-[18px]" />
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; }}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      const file = e.dataTransfer.files[0];
-                      if (file) handleFileUpload(file);
-                    }}
-                    className={`rounded-xl border-2 border-dashed p-8 text-center cursor-pointer transition-colors ${
-                      uploading ? "border-amber-300 bg-amber-50/40" : "border-gray-200 hover:border-[#006e2f]/40 hover:bg-[#006e2f]/5"
-                    }`}
-                  >
-                    {uploading ? (
-                      <>
-                        <Loader2 className="w-8 h-8 text-amber-500 animate-spin mx-auto" />
-                        <p className="text-sm text-[#5c647a] mt-2">Upload en cours…</p>
-                      </>
-                    ) : (
-                      <>
-                        <UploadCloud className="w-10 h-10 text-[#006e2f] mx-auto" />
-                        <p className="text-sm font-semibold text-[#191c1e] mt-2">Choisir un fichier depuis votre galerie</p>
-                        <p className="text-[11px] text-[#5c647a] mt-1">PDF, JPG, PNG, WEBP — max 25 MB</p>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Mobile: separate "Prendre une photo" button (ouvre la caméra native) */}
-                  <div className="grid grid-cols-2 gap-2 md:hidden">
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploading}
-                      className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#191c1e] hover:bg-gray-50 disabled:opacity-50"
-                    >
-                      <Images className="w-[18px] h-[18px]" />
-                      Galerie
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => cameraInputRef.current?.click()}
-                      disabled={uploading}
-                      className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#191c1e] hover:bg-gray-50 disabled:opacity-50"
-                    >
-                      <Camera className="w-[18px] h-[18px]" />
-                      Photo
-                    </button>
-                  </div>
-
-                  {/* Input principal : galerie / fichiers (mobile ouvre le sélecteur natif de fichiers) */}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="application/pdf,image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleFileUpload(file);
-                    }}
-                  />
-                  {/* Input caméra (mobile seulement) : capture="environment" force l'ouverture de la caméra arrière */}
-                  <input
-                    ref={cameraInputRef}
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleFileUpload(file);
-                    }}
-                  />
-                </div>
-              )}
-              <p className="text-[11px] text-[#5c647a] mt-1.5">
-                Votre document est stocké de façon sécurisée dans un bucket privé, accessible uniquement par l&apos;équipe de vérification.
+            {/* ── CONSIGNES ────────────────────────────────────────────
+                Elles ne sont pas décoratives : une pièce illisible ou une
+                photo trop sombre obligent à refuser le dossier, et la
+                personne recommence sans savoir pourquoi. Autant le dire
+                avant. */}
+            <div className="rounded-xl border p-4" style={{ borderColor: "#cfe3f5", background: "#f1f8fe" }}>
+              <p className="text-[12px] font-extrabold mb-2" style={{ color: "#0c447c" }}>
+                Pour que votre dossier soit accepté du premier coup
+              </p>
+              <ul className="text-[12px] leading-relaxed space-y-1" style={{ color: "#0c447c" }}>
+                <li>• Photographiez en <strong>pleine lumière</strong>, de préférence à la lumière du jour.</li>
+                <li>• Évitez les <strong>reflets et les ombres</strong> : ne mettez pas le flash directement sur la pièce.</li>
+                <li>• La pièce doit être <strong>entière dans le cadre</strong>, à plat, sans doigt qui masque une information.</li>
+                <li>• <strong>Chaque caractère doit être lisible</strong> : nom, date de naissance, numéro, dates de validité.</li>
+                <li>• Sur la photo de visage : <strong>tête nue, sans lunettes de soleil</strong>, visage bien éclairé et de face.</li>
+              </ul>
+              <p className="text-[11.5px] mt-2.5 font-semibold" style={{ color: "#0c447c" }}>
+                Les trois pièces sont obligatoires. Un dossier incomplet ou illisible est refusé.
               </p>
             </div>
 
+            <DepotPiece
+              titre="Recto de votre pièce"
+              consigne="La face qui porte votre photo et votre nom."
+              url={documentUrl}
+              apercu={documentPreviewUrl}
+              nomFichier={uploadedFileName}
+              televersement={uploading}
+              onFichier={(f) => handleFileUpload(f, "recto")}
+              onVider={() => { setDocumentUrl(""); setDocumentPreviewUrl(""); setUploadedFileName(null); }}
+            />
+
+            <DepotPiece
+              titre="Verso de votre pièce"
+              consigne="Le dos porte souvent le numéro et les dates de validité — il est indispensable."
+              url={versoUrl}
+              apercu={versoPreviewUrl}
+              nomFichier={versoFileName}
+              televersement={uploading}
+              onFichier={(f) => handleFileUpload(f, "verso")}
+              onVider={() => { setVersoUrl(""); setVersoPreviewUrl(""); setVersoFileName(null); }}
+            />
+
+            <DepotPiece
+              titre="Photo de votre visage"
+              consigne="Une photo de vous, de face, prise à l'instant. C'est elle qui relie la pièce à son porteur."
+              url={selfieUrl}
+              apercu={selfiePreviewUrl}
+              nomFichier={selfieFileName}
+              televersement={uploading}
+              camera="user"
+              onFichier={(f) => handleFileUpload(f, "selfie")}
+              onVider={() => { setSelfieUrl(""); setSelfiePreviewUrl(""); setSelfieFileName(null); }}
+            />
+
+            <p className="text-[11px] text-[#5c647a]">
+              Vos pièces sont stockées dans un espace privé, accessible uniquement par
+              l&apos;équipe de vérification.
+            </p>
+
             <button
               onClick={() => submitMutation.mutate()}
-              disabled={!documentUrl.trim() || submitMutation.isPending}
+              // Les TROIS pièces sont exigées. Le serveur refuse aussi de son
+              // côté : ce bouton évite un aller-retour, il ne fait pas la loi.
+              disabled={
+                !documentUrl.trim() || !versoUrl.trim() || !selfieUrl.trim() || submitMutation.isPending
+              }
               className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-white font-bold hover:opacity-90 disabled:opacity-50 transition-opacity"
               style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
             >

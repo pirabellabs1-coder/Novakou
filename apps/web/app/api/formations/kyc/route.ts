@@ -77,9 +77,11 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { documentType, documentUrl, requestedLevel } = body as {
+    const { documentType, documentUrl, documentVersoUrl, selfieUrl, requestedLevel } = body as {
       documentType?: string;
       documentUrl?: string;
+      documentVersoUrl?: string;
+      selfieUrl?: string;
       requestedLevel?: number;
     };
 
@@ -108,8 +110,32 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
-    if (!documentUrl || typeof documentUrl !== "string") {
-      return NextResponse.json({ error: "URL du document requis" }, { status: 400 });
+    // ── LES TROIS PIÈCES SONT OBLIGATOIRES ────────────────────────────────
+    //
+    // Le recto seul ne prouve rien : les dates de validité et le numéro
+    // figurent souvent au dos, et sans photo du visage une pièce trouvée ou
+    // empruntée suffit à passer. On refuse donc TOUT dossier incomplet, ici
+    // et pas seulement dans le formulaire — un appel direct à l'API doit se
+    // heurter à la même exigence.
+    const manquant: string[] = [];
+    if (!documentUrl || typeof documentUrl !== "string" || !documentUrl.trim()) {
+      manquant.push("le recto de votre pièce");
+    }
+    if (!documentVersoUrl || typeof documentVersoUrl !== "string" || !documentVersoUrl.trim()) {
+      manquant.push("le verso de votre pièce");
+    }
+    if (!selfieUrl || typeof selfieUrl !== "string" || !selfieUrl.trim()) {
+      manquant.push("votre photo de visage");
+    }
+    if (manquant.length > 0) {
+      return NextResponse.json(
+        {
+          error: `Dossier incomplet — il manque ${manquant.join(", ")}. Les trois sont obligatoires.`,
+          code: "KYC_INCOMPLET",
+          manquant,
+        },
+        { status: 400 },
+      );
     }
 
     const user = await prisma.user.findUnique({
@@ -137,15 +163,16 @@ export async function POST(request: Request) {
       );
     }
 
-    const storedDocumentUrl = normalizeKycDocumentReference(documentUrl);
-
+    // Les trois références sont garanties non vides par le contrôle plus haut.
     const req = await prisma.kycRequest.create({
       data: {
         userId: user.id,
         currentLevel: user.kyc ?? 0,
         requestedLevel: level,
         documentType,
-        documentUrl: storedDocumentUrl,
+        documentUrl: normalizeKycDocumentReference(documentUrl!),
+        documentVersoUrl: normalizeKycDocumentReference(documentVersoUrl!),
+        selfieUrl: normalizeKycDocumentReference(selfieUrl!),
       },
     });
 
