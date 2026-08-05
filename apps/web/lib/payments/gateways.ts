@@ -383,8 +383,28 @@ export async function resolveCollectProviders(
   // rendaient aucune page : l'acheteur atterrissait sur « Confirmez sur votre
   // téléphone » et regardait tourner indéfiniment.
   const estCarte = getOperator(operator)?.family === "card";
+
+  /**
+   * Ordre d'essai POUR LA CARTE, décidé par constat et non par principe.
+   *
+   * FedaPay était en tête — c'est elle qui héberge la page. Mais sur notre
+   * compte marchand, sa page de paiement n'affiche QUE du Mobile Money :
+   * la carte n'y est pas activée, et l'acheteur arrivait donc sur un écran
+   * sans le moyen qu'il venait de choisir.
+   *
+   * iPay Money passe donc devant en attendant que FedaPay ouvre la carte sur
+   * le compte. Remettre "fedapay" en tête suffira le jour où ce sera fait.
+   */
+  const PREFERENCE_CARTE: ProviderId[] = ["ipaymoney", "kkiapay", "fedapay"];
+
   const rang = (r: { provider: ProviderId; hosted: boolean }) => {
-    if (r.hosted) return estCarte ? 0 : 2;
+    if (estCarte) {
+      const i = PREFERENCE_CARTE.indexOf(r.provider);
+      return i === -1 ? PREFERENCE_CARTE.length : i;
+    }
+    // Mobile Money : on garde l'acheteur chez nous — débit direct, puis
+    // fenêtre sur notre page, et la page hébergée seulement en dernier.
+    if (r.hosted) return 2;
     return PROVIDERS.find((p) => p.id === r.provider)?.collectIntegration === "widget" ? 1 : 0;
   };
   return out
