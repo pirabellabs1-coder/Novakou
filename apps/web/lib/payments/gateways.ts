@@ -4,6 +4,7 @@ import { decryptCredentials, encryptCredentials, maskSecret } from "@/lib/crypto
 import {
   OPERATORS,
   PROVIDERS,
+  getOperator,
   listOperators,
   routeFor,
   type PaymentDirection,
@@ -374,8 +375,16 @@ export async function resolveCollectProviders(
   //   1. fenêtre du fournisseur posée SUR notre page — il reste sur le site ;
   //   2. page hébergée du fournisseur — il change de site, de design, et une
   //      part n'en revient jamais. Dernier recours uniquement.
+  //
+  // SAUF POUR LA CARTE : là, l'ordre s'inverse. Une carte ne se confirme pas
+  // sur un téléphone — elle EXIGE une page sécurisée, et nous n'avons pas le
+  // droit de collecter un numéro de carte sur nos pages (PCI-DSS). Classer la
+  // page hébergée en dernier faisait tenter d'abord des passerelles qui ne
+  // rendaient aucune page : l'acheteur atterrissait sur « Confirmez sur votre
+  // téléphone » et regardait tourner indéfiniment.
+  const estCarte = getOperator(operator)?.family === "card";
   const rang = (r: { provider: ProviderId; hosted: boolean }) => {
-    if (r.hosted) return 2;
+    if (r.hosted) return estCarte ? 0 : 2;
     return PROVIDERS.find((p) => p.id === r.provider)?.collectIntegration === "widget" ? 1 : 0;
   };
   return out

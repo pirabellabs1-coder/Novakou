@@ -586,6 +586,10 @@ export async function POST(request: Request) {
     // donc aucun risque de double débit. Le 2026-08-02, l'API d'encaissement
     // de FeexPay a répondu 502 pendant des heures ; sans bascule, toutes les
     // ventes tombaient alors qu'une autre passerelle savait les traiter.
+    // Le moyen retenu est-il une carte ? Son parcours diffère radicalement :
+    // page sécurisée du fournisseur, jamais de confirmation téléphonique.
+    const estCarte = getOperator(chosenOperator)?.family === "card";
+
     let directRef: string | null = null;
     let usedProvider: ProviderId = resolved.provider;
     const failures: string[] = [];
@@ -680,6 +684,19 @@ export async function POST(request: Request) {
           failures.push(`${candidate.provider} : non implémentée`);
           continue;
         }
+
+        // ── CARTE BANCAIRE : une page sécurisée, ou rien ────────────────────
+        // Un paiement par carte ne peut PAS se confirmer sur un téléphone. Si
+        // la passerelle n'a pas rendu d'URL de page bancaire, l'envoyer quand
+        // même vers « Confirmez sur votre téléphone » condamne l'acheteur à
+        // regarder une page tourner indéfiniment — aucune demande n'arrivera
+        // jamais. On passe à la passerelle suivante, qui saura l'héberger.
+        if (estCarte) {
+          failures.push(`${candidate.provider} : aucune page bancaire rendue`);
+          directRef = null;
+          continue;
+        }
+
         usedProvider = candidate.provider;
         break;
       } catch (err) {
@@ -692,6 +709,18 @@ export async function POST(request: Request) {
 
     if (!directRef) {
       const detail = failures.join(" | ") || "Aucune passerelle serveur disponible";
+      if (estCarte) {
+        await failAttempt(detail, "card_no_hosted_page");
+        return NextResponse.json(
+          {
+            error:
+              "Le paiement par carte est momentanément indisponible. " +
+              "Essayez le Mobile Money, ou réessayez dans un instant.",
+            detail,
+          },
+          { status: 502 },
+        );
+      }
       await failAttempt(detail, "all_gateways_failed");
       return NextResponse.json(
         { error: "Le paiement n'a pas pu être lancé. Réessayez dans un instant.", detail },

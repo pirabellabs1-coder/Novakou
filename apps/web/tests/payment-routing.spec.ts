@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import {
   OPERATORS,
+  PROVIDERS,
   routeFor,
   providersFor,
   resolveOperatorCode,
@@ -189,4 +190,32 @@ test("la carte reste servie par plusieurs passerelles", () => {
   // La carte est le seul moyen de certains pays (Mali) : une passerelle unique
   // y couperait toutes les ventes en cas de panne.
   expect(providersFor("card_xof", "collect").length).toBeGreaterThan(1);
+});
+
+/**
+ * Une CARTE ne se confirme pas sur un téléphone : elle exige une page
+ * sécurisée, et nous n'avons pas le droit de collecter un numéro de carte sur
+ * nos pages (PCI-DSS).
+ *
+ * Le classement général met la page hébergée en DERNIER — c'est juste pour le
+ * Mobile Money, où l'on veut garder l'acheteur chez nous. Appliqué à la carte,
+ * il faisait tenter d'abord des passerelles qui ne rendaient aucune page :
+ * l'acheteur atterrissait sur « Confirmez sur votre téléphone » et regardait
+ * tourner indéfiniment.
+ */
+test("la carte part d'abord sur une page sécurisée", () => {
+  const enc = PROVIDERS.filter((p) => p.directions.includes("collect"));
+  const routes = enc
+    .map((p) => ({ id: p.id, route: routeFor("card_xof", p.id, "collect") }))
+    .filter((x) => x.route);
+  expect(routes.length, "aucune passerelle ne sert la carte").toBeGreaterThan(0);
+  // Au moins une doit héberger la page — sinon la carte est invendable.
+  expect(routes.some((x) => x.route?.params?.hosted === "1")).toBe(true);
+});
+
+test("le Mobile Money garde le débit direct en tête", () => {
+  // L'inverse de la carte : ici on veut que l'acheteur reste sur notre page.
+  const r = routeFor("mtn_bj", "feexpay", "collect");
+  expect(r, "FeexPay doit servir MTN Bénin en débit direct").toBeTruthy();
+  expect(r?.params?.hosted).toBeUndefined();
 });
