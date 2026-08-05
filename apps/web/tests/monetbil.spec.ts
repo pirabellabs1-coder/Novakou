@@ -64,3 +64,11 @@ test("le paiement Monetbil est réellement lancé par payment/init", () => {
   const src = readFileSync(join(process.cwd(), "app/api/formations/payment/init/route.ts"), "utf8");
   expect(src).toContain('candidate.provider === "monetbil"');
 });
+
+test("la clé Monetbil est saisissable depuis l'écran admin", () => {
+  // Sans champ déclaré, la passerelle serait visible mais impossible à
+  // configurer autrement qu'en variable d'environnement — donc inutilisable
+  // pour quelqu'un qui n'a pas accès à Vercel.
+  const src = readFileSync(join(process.cwd(), "lib/payments/gateways.ts"), "utf8");
+  expect(src).toContain("monetbil: [{ key: \"serviceKey\"");
+});

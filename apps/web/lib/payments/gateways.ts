@@ -27,6 +27,10 @@ export const CREDENTIAL_FIELDS: Record<ProviderId, Array<{ key: string; label: s
     { key: "shopId", label: "Identifiant boutique", secret: false },
   ],
   fedapay: [{ key: "secretKey", label: "Clé secrète", secret: true }],
+  // Sans cette entrée, l'écran admin n'affiche AUCUN champ pour Monetbil :
+  // la passerelle serait déclarée mais impossible à configurer autrement
+  // qu'en variable d'environnement.
+  monetbil: [{ key: "serviceKey", label: "Clé de service", secret: true }],
   kkiapay: [
     { key: "publicKey", label: "Clé publique", secret: false },
     { key: "privateKey", label: "Clé privée", secret: true },
