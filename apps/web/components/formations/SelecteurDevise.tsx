@@ -68,7 +68,9 @@ export function SelecteurDevise({ tone = "light" }: { tone?: "light" | "dark" })
             : "border-[#e3e8ea] text-[#191c1e] hover:bg-slate-50"
         }`}
       >
-        <span className="text-[16px] leading-none">{courant.drapeau}</span>
+        <span className="w-[20px] shrink-0 text-center text-[15px] leading-none">
+          {courant.drapeau}
+        </span>
         <span className="hidden sm:inline">
           {courant.nom} ({devise.symbole})
         </span>
@@ -80,7 +82,11 @@ export function SelecteurDevise({ tone = "light" }: { tone?: "light" | "dark" })
 
       {ouvert && (
         <div
-          className="absolute right-0 top-full mt-2 w-[230px] max-h-[320px] overflow-y-auto rounded-2xl border border-[#e3e8ea] bg-white shadow-2xl z-50 py-1"
+          /* Les 12 pays doivent tenir d'un seul coup d'oeil. Plafonner la
+             liste plus bas la coupait en plein milieu, sans aucun indice
+             qu'elle defilait : la Guinee, en 11e position, etait tout
+             simplement invisible pour qui ne devinait pas le geste. */
+          className="absolute right-0 top-full mt-2 w-[230px] max-h-[80vh] overflow-y-auto overscroll-contain rounded-2xl border border-[#e3e8ea] bg-white shadow-2xl z-50 py-1"
           role="listbox"
         >
           {PAYS_AFFICHAGE.map((p) => {
@@ -93,11 +99,17 @@ export function SelecteurDevise({ tone = "light" }: { tone?: "light" | "dark" })
                 role="option"
                 aria-selected={actif}
                 onClick={() => choisir(p.code)}
-                className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-[14px] text-left transition-colors hover:bg-[#f5f8f6] ${
+                className={`w-full flex items-center gap-2.5 px-4 py-2 text-[14px] text-left transition-colors hover:bg-[#f5f8f6] ${
                   actif ? "font-extrabold text-[#006e2f]" : "font-semibold text-[#191c1e]"
                 }`}
               >
-                <span className="text-[17px] leading-none">{p.drapeau}</span>
+                {/* Windows ne possede aucune police de drapeaux : l'emoji y
+                    retombe sur ses deux lettres de code (« GA »), plus etroites
+                    qu'un drapeau. Sans largeur fixe, chaque ligne s'aligne
+                    differemment et la liste parait cassee. */}
+                <span className="w-[22px] shrink-0 text-center text-[15px] leading-none tabular-nums">
+                  {p.drapeau}
+                </span>
                 <span className="flex-1 truncate">{p.nom}</span>
                 <span className="text-[12px] text-[#5c647a]">{d.symbole}</span>
               </button>
