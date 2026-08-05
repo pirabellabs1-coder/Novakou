@@ -88,6 +88,60 @@ export function convertirDepuisFcfa(montantFcfa: number, devise: Devise): number
   return Math.ceil(brut / devise.arrondi) * devise.arrondi;
 }
 
+/**
+ * Montant à TRANSMETTRE À LA PASSERELLE, dans la devise qu'elle facturera.
+ *
+ * Distinct de l'affichage sur un point : ici, se tromper coûte de l'argent
+ * réel. Nos prix sont stockés en FCFA, mais une passerelle facture dans la
+ * devise de l'opérateur. Envoyer 5 000 sur un opérateur guinéen débiterait
+ * 5 000 GNF — environ 340 FCFA, quatorze fois moins que le prix affiché — et
+ * la vente serait considérée réussie : aucune erreur, aucun log, l'écart sort
+ * de la poche de la plateforme à chaque transaction.
+ *
+ * D'où le refus explicite sur devise inconnue. Retomber sur le montant brut
+ * serait exactement le comportement qui a rendu ce défaut invisible.
+ *
+ * Le calcul est volontairement le MÊME que celui de l'affichage : l'acheteur
+ * doit être débité du montant qu'il a lu, au franc près.
+ */
+export function montantAFacturer(
+  montantFcfa: number,
+  codeDevise: string | null | undefined,
+): { montant: number; devise: CodeDevise } {
+  const code = (codeDevise ?? "").trim().toUpperCase();
+  const devise = (DEVISES as Record<string, Devise | undefined>)[code];
+  if (!devise) {
+    throw new Error(
+      `Devise d'encaissement inconnue (« ${codeDevise ?? "vide"} ») : ` +
+        `impossible de convertir ${montantFcfa} FCFA sans risquer de débiter un montant faux.`,
+    );
+  }
+  if (!Number.isFinite(montantFcfa) || montantFcfa <= 0) {
+    throw new Error(`Montant à encaisser invalide : ${montantFcfa}`);
+  }
+  return { montant: convertirDepuisFcfa(montantFcfa, devise), devise: devise.code };
+}
+
+/**
+ * Ramène en FCFA un montant annoncé par une passerelle dans SA devise.
+ *
+ * Indispensable au garde-fou de livraison, qui refuse quand le montant reçu
+ * est inférieur au total recalculé. Comparé brut, un paiement libérien de
+ * 1 550 LRD passerait pour inférieur à un prix de 5 000 FCFA — et la livraison
+ * d'une commande pourtant payée serait refusée. À l'inverse, 73 000 GNF
+ * passeraient le contrôle sans rien prouver.
+ *
+ * On arrondit vers le BAS : la conversion aller arrondit vers le haut, donc
+ * le retour doit rester conservateur pour ne pas fabriquer des centimes qui
+ * n'ont jamais été payés.
+ */
+export function montantVersFcfa(montant: number, codeDevise: string | null | undefined): number {
+  const code = (codeDevise ?? "").trim().toUpperCase();
+  const devise = (DEVISES as Record<string, Devise | undefined>)[code];
+  if (!devise || devise.pourUnFcfa === 1) return Math.round(montant);
+  return Math.floor(montant / devise.pourUnFcfa);
+}
+
 /** Prix prêt à afficher, dans la devise choisie. */
 export function formaterPrix(montantFcfa: number, devise: Devise): string {
   const v = convertirDepuisFcfa(montantFcfa, devise);

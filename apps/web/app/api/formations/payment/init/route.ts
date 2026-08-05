@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveCollectProviders, activeProviders } from "@/lib/payments/gateways";
 import { resolveOperatorCode, getProvider, getOperator, countryFromPhone, currencyForOperator, type ProviderId } from "@/lib/payments/registry";
+import { montantAFacturer } from "@/lib/currency/rates";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
 import { computeCheckoutDiscount } from "@/lib/formations/checkout-discount";
 import { isAllowedBuyerEmail, ALLOWED_BUYER_EMAIL_MESSAGE } from "@/lib/email/allowed-buyer-email";
@@ -456,8 +457,10 @@ export async function POST(request: Request) {
       select: { id: true },
     });
 
-    // Metadata commune envoyée au provider (clés string/number/boolean uniquement)
-    const providerMetadata = {
+    // Metadata commune envoyée au provider (clés string/number/boolean uniquement).
+    // Réassignable : la branche Monetbil y ajoute le montant et la devise
+    // réellement facturés, dont la réconciliation a besoin pour comparer.
+    let providerMetadata: Record<string, string | number | boolean> = {
       type: "formations_checkout",
       sessionRef: internalRef,
       userId,
@@ -665,15 +668,40 @@ export async function POST(request: Request) {
             );
           }
           const { initCollect } = await import("@/lib/monetbil");
+          // Monetbil facture dans la devise de l'opérateur, pas dans la nôtre.
+          // Nos prix sont en FCFA : les transmettre bruts débiterait 5 000 GNF
+          // là où 5 000 FCFA sont dus. On convertit, ou on refuse — jamais
+          // d'envoi à l'aveugle.
+          let aFacturer: { montant: number; devise: string };
+          try {
+            aFacturer = montantAFacturer(Math.round(totalAmount), currencyForOperator(chosenOperator));
+          } catch (err) {
+            await failAttempt(
+              err instanceof Error ? err.message : "Devise d'encaissement indéterminable",
+              "currency_unresolved",
+            );
+            return NextResponse.json(
+              { error: "Ce moyen de paiement est momentanément indisponible." },
+              { status: 503 },
+            );
+          }
           const r = await initCollect({
             // Code natif de l'opérateur (CM_MTNMOBILEMONEY…), pris au registre.
             operatorCode: candidate.code,
-            amount: Math.round(totalAmount),
+            amount: aFacturer.montant,
             phoneNumber: phoneRaw,
             paymentRef: internalRef,
             notifyUrl: `${appUrl}/api/webhooks/monetbil`,
             itemName: description,
           });
+          // La réconciliation compare ce que la passerelle annonce à ce qu'on
+          // lui a demandé. Sans ces deux champs, elle comparerait des GNF à des
+          // FCFA et croirait chaque paiement incohérent.
+          providerMetadata = {
+            ...providerMetadata,
+            gatewayAmount: aFacturer.montant,
+            gatewayCurrency: aFacturer.devise,
+          };
           directRef = r.reference;
         } else if (candidate.provider === "ipaymoney") {
           const { initCollect } = await import("@/lib/ipaymoney");

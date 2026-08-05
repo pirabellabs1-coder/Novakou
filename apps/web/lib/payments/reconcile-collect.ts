@@ -1,3 +1,4 @@
+import { montantVersFcfa } from "@/lib/currency/rates";
 import { prisma } from "@/lib/prisma";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
 import { fulfillSubscription } from "@/lib/formations/fulfill-subscription";
@@ -175,10 +176,19 @@ export async function reconcileCollectAttempt(attempt: AttemptRow): Promise<Coll
 
   let status: "success" | "failed" | "pending";
   let montantFournisseur: number | null = null;
+  let montantFournisseurFcfa: number | null = null;
   try {
     const rep = await checker(providerRef, codeRoute);
     status = rep.status;
     montantFournisseur = typeof rep.amount === "number" && rep.amount > 0 ? rep.amount : null;
+    // La passerelle annonce dans SA devise. Le garde-fou de livraison, lui,
+    // raisonne en FCFA : sans ce retour, un paiement libérien de 1 550 LRD
+    // passerait pour inférieur à un prix de 5 000 FCFA et la livraison d'une
+    // commande pourtant payée serait refusée.
+    montantFournisseurFcfa =
+      montantFournisseur == null
+        ? null
+        : montantVersFcfa(montantFournisseur, typeof meta.gatewayCurrency === "string" ? meta.gatewayCurrency : null);
   } catch (err) {
     // Fournisseur injoignable : on ne conclut rien. Le paiement est peut-être
     // en cours ; annoncer un échec ici priverait l'acheteur de son produit.
@@ -299,7 +309,7 @@ export async function reconcileCollectAttempt(attempt: AttemptRow): Promise<Coll
        * tentative, calculé par nous à l'initialisation. Jamais une valeur
        * venue du navigateur.
        */
-      expectedAmountReceived: montantFournisseur ?? Math.round(attempt.amount),
+      expectedAmountReceived: montantFournisseurFcfa ?? Math.round(attempt.amount),
       // Achat d'un pack : sans cela le garde-fou ci-dessus compare le montant
       // reçu à la somme des prix unitaires et refuse une livraison pourtant
       // payée — un pack coûte moins cher que ses éléments pris séparément.

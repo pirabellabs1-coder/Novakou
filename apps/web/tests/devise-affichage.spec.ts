@@ -5,7 +5,50 @@ import {
   convertirDepuisFcfa,
   deviseDuPays,
   formaterPrix,
+  montantAFacturer,
+  montantVersFcfa,
 } from "@/lib/currency/rates";
+
+test("l'acheteur est débité exactement du montant qu'il a lu", () => {
+  // Affichage et encaissement doivent partager le MÊME calcul, sinon le prix
+  // annoncé et le prix débité divergent — et c'est l'acheteur qui le découvre.
+  for (const p of PAYS_AFFICHAGE) {
+    const d = deviseDuPays(p.code);
+    expect(montantAFacturer(5000, d.code).montant).toBe(convertirDepuisFcfa(5000, d));
+  }
+});
+
+test("une devise inconnue fait ÉCHOUER l'encaissement, jamais passer le montant brut", () => {
+  // Le coeur du garde-fou : envoyer 5 000 tel quel sur un opérateur guinéen
+  // débiterait 5 000 GNF au lieu de ~73 000. Mieux vaut refuser la vente.
+  for (const mauvais of ["", "   ", "EUR", "XYZ", null, undefined]) {
+    expect(() => montantAFacturer(5000, mauvais)).toThrow();
+  }
+  expect(() => montantAFacturer(0, "XOF")).toThrow();
+  expect(() => montantAFacturer(-100, "XOF")).toThrow();
+});
+
+test("la zone franc n'est pas altérée par la conversion d'encaissement", () => {
+  // XOF et XAF sont à parité : le montant transmis doit rester identique, sans
+  // quoi on casserait les dix pays qui encaissent déjà.
+  for (const code of ["XOF", "XAF"] as const) {
+    expect(montantAFacturer(5000, code).montant).toBe(5000);
+    expect(montantVersFcfa(5000, code)).toBe(5000);
+  }
+});
+
+test("le montant annoncé par la passerelle revient en FCFA sans perte de garde-fou", () => {
+  // Le garde-fou de livraison refuse quand le montant reçu est INFÉRIEUR au
+  // prix. Le retour doit donc toujours atteindre le prix d'origine, sinon une
+  // commande payée serait refusée à la livraison.
+  for (const p of PAYS_AFFICHAGE) {
+    const d = deviseDuPays(p.code);
+    for (const prix of [500, 5000, 25000, 100000]) {
+      const facture = montantAFacturer(prix, d.code).montant;
+      expect(montantVersFcfa(facture, d.code), `${p.nom} à ${prix}`).toBeGreaterThanOrEqual(prix);
+    }
+  }
+});
 
 /**
  * La conversion n'est qu'un AFFICHAGE — mais un affichage faux fait fuir un
