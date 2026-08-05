@@ -666,6 +666,8 @@ export async function POST(request: Request) {
           }
           const { initCollect } = await import("@/lib/monetbil");
           const r = await initCollect({
+            // Code natif de l'opérateur (CM_MTNMOBILEMONEY…), pris au registre.
+            operatorCode: candidate.code,
             amount: Math.round(totalAmount),
             phoneNumber: phoneRaw,
             paymentRef: internalRef,

@@ -338,7 +338,7 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // ─────────────────── Congo Brazzaville (XAF) ────────────────────
   mtn_cg: {
     label: "MTN Mobile Money (Congo)", country: "cg", currency: "XAF", family: "mobile_money",
-    collect: { feexpay: { code: "MTN CG" } },
+    collect: { feexpay: { code: "MTN CG" }, monetbil: { code: "CG_MTNMOBILEMONEY" } },
     payout: {},
   },
 
@@ -356,14 +356,38 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // le lui dira, puisqu'il n'affiche que les moyens réellement servis.
   orange_cm: {
     label: "Orange Money (Cameroun)", country: "cm", currency: "XAF", family: "mobile_money",
-    collect: { monetbil: { code: "mobile" } },
+    collect: { monetbil: { code: "CM_ORANGEMONEY" } },
     payout: {},
   },
   mtn_cm: {
     label: "MTN Mobile Money (Cameroun)", country: "cm", currency: "XAF", family: "mobile_money",
-    collect: { monetbil: { code: "mobile" } },
+    collect: { monetbil: { code: "CM_MTNMOBILEMONEY" } },
     payout: {},
   },
+  eu_cm: {
+    label: "Express Union (Cameroun)", country: "cm", currency: "XAF", family: "mobile_money",
+    collect: { monetbil: { code: "CM_EUMM" } },
+    payout: {},
+  },
+
+  // ─────────────────── Congo-Brazzaville & Gabon (XAF) ───────────────────
+  // Monetbil est la SEULE de nos passerelles a les servir. Le Congo etait
+  // jusqu'ici invendable ; le Gabon n'existait pas du tout chez nous.
+  airtel_cg: {
+    label: "Airtel Money (Congo)", country: "cg", currency: "XAF", family: "mobile_money",
+    collect: { monetbil: { code: "CG_AIRTELMONEY" } },
+    payout: {},
+  },
+  moov_ga: {
+    label: "Moov Africa (Gabon)", country: "ga", currency: "XAF", family: "mobile_money",
+    collect: { monetbil: { code: "GA_MOOVMONEY" } },
+    payout: {},
+  },
+
+  // Guinee (GNF), RD Congo (CDF), Ouganda (UGX) et Liberia (LRD) sont servis
+  // par Monetbil mais PAS declares ici : notre type de devise ne connait que
+  // XOF et XAF. Les ajouter demande d'elargir ce type et tout ce qui en
+  // depend — a faire dans un lot dedie, pas au detour de celui-ci.
 
   // ─────────────────────── Cartes bancaires ───────────────────────
   card_xof: {

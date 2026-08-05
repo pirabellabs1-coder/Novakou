@@ -43,13 +43,34 @@ test("une clé de service absente est reconnue comme telle", () => {
   expect(classifyMonetbilError("MISSING_MSISDN — missing phonenumber").category).toBe("validation");
 });
 
-test("un seul code par pays : c'est le fournisseur qui route", () => {
-  // Monetbil choisit l'opérateur d'après le NUMÉRO. Inventer un code par
-  // réseau créerait une distinction que leur API ne fait pas.
-  const cm = Object.entries(OPERATORS).filter(([, o]) => (o as { country?: string }).country === "cm");
-  for (const [code] of cm) {
-    expect(routeFor(code, "monetbil", "collect")?.code).toBe("mobile");
+test("chaque opérateur porte le code EXACT de leur documentation", () => {
+  // Leur table associe un code précis à chaque réseau (CM_MTNMOBILEMONEY…).
+  // J'avais d'abord mis un « mobile » générique en supposant, comme iPay, un
+  // routage par le numéro : c'était faux, et un code inventé enverrait
+  // l'argent sur le mauvais réseau.
+  const attendus: Record<string, string> = {
+    orange_cm: "CM_ORANGEMONEY",
+    mtn_cm: "CM_MTNMOBILEMONEY",
+    eu_cm: "CM_EUMM",
+    mtn_cg: "CG_MTNMOBILEMONEY",
+    airtel_cg: "CG_AIRTELMONEY",
+    moov_ga: "GA_MOOVMONEY",
+  };
+  for (const [code, natif] of Object.entries(attendus)) {
+    expect(routeFor(code, "monetbil", "collect")?.code, code).toBe(natif);
   }
+});
+
+test("Monetbil ouvre le Congo et le Gabon, invendables jusqu'ici", () => {
+  // Le Congo n'etait servi que par FeexPay ; le Gabon par personne.
+  expect(routeFor("moov_ga", "monetbil", "collect")).not.toBeNull();
+  expect(routeFor("airtel_cg", "monetbil", "collect")).not.toBeNull();
+  // MTN Congo a desormais DEUX passerelles : une panne chez l'une ne ferme
+  // plus le pays.
+  const mtnCg = Object.keys(OPERATORS).includes("mtn_cg");
+  expect(mtnCg).toBe(true);
+  expect(routeFor("mtn_cg", "feexpay", "collect")).not.toBeNull();
+  expect(routeFor("mtn_cg", "monetbil", "collect")).not.toBeNull();
 });
 
 test("le statut Monetbil est réellement consultable par la réconciliation", () => {

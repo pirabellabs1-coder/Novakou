@@ -64,6 +64,13 @@ export type MonetbilCollectResult = {
  * `phoneNumber` doit porter l'indicatif pays, chiffres seuls (ex 237690000000).
  */
 export async function initCollect(params: {
+  /**
+   * Code natif de l'opérateur chez Monetbil (« CM_MTNMOBILEMONEY »…), tel que
+   * leur documentation le liste. On le transmet plutôt que de compter sur une
+   * détection implicite : leur table associe un code précis à chaque réseau,
+   * et deviner reviendrait à envoyer l'argent sur le mauvais.
+   */
+  operatorCode?: string;
   amount: number;
   phoneNumber: string;
   /** Notre référence interne — sert au rapprochement et au webhook. */
@@ -82,6 +89,7 @@ export async function initCollect(params: {
       // sans lui, elle répond MISSING_MSISDN.
       phonenumber: params.phoneNumber.replace(/\D/g, ""),
       amount: String(Math.round(params.amount)),
+      ...(params.operatorCode ? { operator: params.operatorCode } : {}),
       payment_ref: params.paymentRef,
       ...(params.itemName ? { item_ref: params.itemName.slice(0, 60) } : {}),
       ...(params.notifyUrl ? { notify_url: params.notifyUrl } : {}),
