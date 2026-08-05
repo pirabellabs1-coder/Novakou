@@ -86,6 +86,12 @@ export function SelecteurDevise({ tone = "light" }: { tone?: "light" | "dark" })
              liste plus bas la coupait en plein milieu, sans aucun indice
              qu'elle defilait : la Guinee, en 11e position, etait tout
              simplement invisible pour qui ne devinait pas le geste. */
+          /* Avec 18 pays, la liste peut depasser un petit ecran. On ne cherche
+             plus a tout faire tenir a tout prix : on rend le defilement
+             VISIBLE. Le defaut precedent n'etait pas qu'elle defilait, c'est
+             que rien ne le disait — la Guinee etait sous la coupure et
+             personne ne pouvait le deviner. */
+          style={{ scrollbarWidth: "thin", scrollbarColor: "#c7d0cb transparent" }}
           className="absolute right-0 top-full mt-2 w-[230px] max-h-[80vh] overflow-y-auto overscroll-contain rounded-2xl border border-[#e3e8ea] bg-white shadow-2xl z-50 py-1"
           role="listbox"
         >
@@ -99,7 +105,7 @@ export function SelecteurDevise({ tone = "light" }: { tone?: "light" | "dark" })
                 role="option"
                 aria-selected={actif}
                 onClick={() => choisir(p.code)}
-                className={`w-full flex items-center gap-2.5 px-4 py-2 text-[14px] text-left transition-colors hover:bg-[#f5f8f6] ${
+                className={`w-full flex items-center gap-2.5 px-4 py-1.5 text-[14px] text-left transition-colors hover:bg-[#f5f8f6] ${
                   actif ? "font-extrabold text-[#006e2f]" : "font-semibold text-[#191c1e]"
                 }`}
               >

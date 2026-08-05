@@ -62,10 +62,43 @@ test("chaque pays proposé au visiteur a bien une devise", () => {
     const d = deviseDuPays(p.code);
     expect(d.pourUnFcfa).toBeGreaterThan(0);
     expect(d.symbole.length).toBeGreaterThan(0);
-    if (!["BJ", "CI", "SN", "TG", "ML", "NE", "BF", "CM", "CG", "GA"].includes(p.code)) {
-      expect(d.code).not.toBe("XOF");
+    // Hors zone franc, retomber sur le FCFA signifierait que le pays a été
+    // ajouté au sélecteur sans qu'on lui donne de devise.
+    const zoneFranc = ["BJ", "BF", "CI", "GW", "ML", "NE", "SN", "TG", "CM", "CF", "TD", "CG", "GQ", "GA"];
+    if (!zoneFranc.includes(p.code)) {
+      expect(d.code, `${p.nom} retombe sur le FCFA`).not.toBe("XOF");
     }
   }
+});
+
+test("toute devise déclarée est atteignable par un pays du sélecteur", () => {
+  // Le sens qui manquait. On avait défini LRD et UGX sans jamais proposer le
+  // Liberia ni l'Ouganda : une devise que personne ne peut choisir n'existe
+  // pas, et rien ne le signalait.
+  const atteintes = new Set(PAYS_AFFICHAGE.map((p) => deviseDuPays(p.code).code));
+  for (const code of Object.keys(DEVISES)) {
+    expect(atteintes.has(code as keyof typeof DEVISES), `${code} n'est proposé à personne`).toBe(true);
+  }
+});
+
+test("les deux unions monétaires sont listées en entier", () => {
+  // Un pays de la zone franc oublié retomberait sur le FCFA par défaut, donc
+  // afficherait juste : l'oubli serait invisible jusqu'à ce qu'un acheteur
+  // cherche son pays et ne le trouve pas.
+  const listes = new Set(PAYS_AFFICHAGE.map((p) => p.code));
+  for (const c of ["BJ", "BF", "CI", "GW", "ML", "NE", "SN", "TG"]) {
+    expect(listes.has(c), `UEMOA : ${c} manque`).toBe(true);
+    expect(deviseDuPays(c).code).toBe("XOF");
+  }
+  for (const c of ["CM", "CF", "TD", "CG", "GQ", "GA"]) {
+    expect(listes.has(c), `CEMAC : ${c} manque`).toBe(true);
+    expect(deviseDuPays(c).code).toBe("XAF");
+  }
+});
+
+test("aucun pays n'est proposé deux fois", () => {
+  const codes = PAYS_AFFICHAGE.map((p) => p.code);
+  expect(new Set(codes).size).toBe(codes.length);
 });
 
 test("le prix affiché reste lisible", () => {

@@ -49,10 +49,21 @@ export const DEVISES: Record<CodeDevise, Devise> = {
   LRD: { code: "LRD", symbole: "L$", pourUnFcfa: 0.31, arrondi: 5 },
 };
 
-/** Devise d'usage d'un pays, par code ISO-2. */
+/**
+ * Devise d'usage d'un pays, par code ISO-2.
+ *
+ * Les deux unions monétaires sont listées EN ENTIER — 8 pays pour l'UEMOA,
+ * 6 pour la CEMAC. Un pays de la zone franc absent d'ici retomberait sur le
+ * FCFA par défaut, donc afficherait juste : c'est précisément ce qui rend
+ * l'oubli invisible, et pourquoi la liste doit être complète plutôt que
+ * remplie au fur et à mesure des demandes.
+ */
 const DEVISE_PAR_PAYS: Record<string, CodeDevise> = {
-  BJ: "XOF", CI: "XOF", SN: "XOF", TG: "XOF", ML: "XOF", NE: "XOF", BF: "XOF",
-  CM: "XAF", CG: "XAF", GA: "XAF", TD: "XAF", CF: "XAF",
+  // UEMOA
+  BJ: "XOF", BF: "XOF", CI: "XOF", GW: "XOF", ML: "XOF", NE: "XOF", SN: "XOF", TG: "XOF",
+  // CEMAC
+  CM: "XAF", CF: "XAF", TD: "XAF", CG: "XAF", GQ: "XAF", GA: "XAF",
+  // Hors zone franc
   GN: "GNF", CD: "CDF", UG: "UGX", LR: "LRD",
 };
 
@@ -91,15 +102,21 @@ export function formaterPrix(montantFcfa: number, devise: Devise): string {
  */
 export const PAYS_AFFICHAGE: Array<{ code: string; nom: string; drapeau: string }> = [
   { code: "BJ", nom: "Bénin", drapeau: "🇧🇯" },
+  { code: "BF", nom: "Burkina Faso", drapeau: "🇧🇫" },
   { code: "CI", nom: "Côte d'Ivoire", drapeau: "🇨🇮" },
-  { code: "SN", nom: "Sénégal", drapeau: "🇸🇳" },
-  { code: "TG", nom: "Togo", drapeau: "🇹🇬" },
+  { code: "GW", nom: "Guinée-Bissau", drapeau: "🇬🇼" },
   { code: "ML", nom: "Mali", drapeau: "🇲🇱" },
   { code: "NE", nom: "Niger", drapeau: "🇳🇪" },
-  { code: "BF", nom: "Burkina Faso", drapeau: "🇧🇫" },
+  { code: "SN", nom: "Sénégal", drapeau: "🇸🇳" },
+  { code: "TG", nom: "Togo", drapeau: "🇹🇬" },
   { code: "CM", nom: "Cameroun", drapeau: "🇨🇲" },
+  { code: "CF", nom: "Centrafrique", drapeau: "🇨🇫" },
+  { code: "TD", nom: "Tchad", drapeau: "🇹🇩" },
   { code: "CG", nom: "Congo", drapeau: "🇨🇬" },
+  { code: "GQ", nom: "Guinée équatoriale", drapeau: "🇬🇶" },
   { code: "GA", nom: "Gabon", drapeau: "🇬🇦" },
   { code: "GN", nom: "Guinée", drapeau: "🇬🇳" },
   { code: "CD", nom: "RD Congo", drapeau: "🇨🇩" },
+  { code: "UG", nom: "Ouganda", drapeau: "🇺🇬" },
+  { code: "LR", nom: "Liberia", drapeau: "🇱🇷" },
 ];
