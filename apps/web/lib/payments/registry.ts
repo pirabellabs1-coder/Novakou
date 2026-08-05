@@ -385,9 +385,24 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   },
 
   // Guinee (GNF), RD Congo (CDF), Ouganda (UGX) et Liberia (LRD) sont servis
-  // par Monetbil mais PAS declares ici : notre type de devise ne connait que
-  // XOF et XAF. Les ajouter demande d'elargir ce type et tout ce qui en
-  // depend — a faire dans un lot dedie, pas au detour de celui-ci.
+  // par Monetbil mais PAS declares ici. Les codes sont connus et verifies dans
+  // leur documentation officielle (widget v2.1), ils n'ont pas a etre redevines :
+  //
+  //   GN_MTNMOBILEMONEY, GN_ORANGEMONEY                  → GNF
+  //   CD_ORANGEMONEY, CD_AIRTELMONEY, CD_AFRICELL        → CDF
+  //   UG_AIRTELMONEY, UG_MTNMOBILEMONEY  (mini 500)      → UGX
+  //   LR_MTNMOBILEMONEY                                  → LRD
+  //
+  // ⚠️ CE QUI BLOQUE N'EST PAS LE TYPE DE DEVISE, C'EST LE MONTANT.
+  // Nos prix sont stockes en FCFA et transmis tels quels a la passerelle. Or
+  // Monetbil facture dans la devise de l'operateur : un produit a 5 000 FCFA
+  // envoye sur GN_MTNMOBILEMONEY debiterait 5 000 GNF, soit environ 340 FCFA.
+  // On encaisserait quatorze fois moins que le prix affiche, sans la moindre
+  // erreur visible — la vente serait « reussie ».
+  //
+  // Declarer ces operateurs EXIGE donc au prealable la conversion du montant
+  // au moment du paiement. Tant qu'elle n'existe pas, ouvrir ces pays revient
+  // a offrir les produits.
 
   // ─────────────────────── Cartes bancaires ───────────────────────
   card_xof: {
