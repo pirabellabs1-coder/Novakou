@@ -34,7 +34,7 @@ const COUNTRIES = ALL_COUNTRIES.map((c) => ({
   iso: c.code,
 }));
 
-// Identifiants alignés sur Instructeur.acceptedPaymentMethods (côté vendeur).
+// Identifiants alignés sur Vendeur.acceptedPaymentMethods (côté vendeur).
 type PaymentMethod =
   | "orange_money"
   | "wave"

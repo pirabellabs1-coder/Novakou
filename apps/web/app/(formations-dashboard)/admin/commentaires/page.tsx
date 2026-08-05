@@ -175,7 +175,7 @@ export default function AdminCommentairesPage() {
                     {r.response && (
                       <div className="ml-14 pl-4 border-l-2 border-[#22c55e]">
                         <p className="text-[10px] font-bold uppercase tracking-widest text-[#006e2f] mb-1">
-                          Réponse · {r.formation.instructeur.user.name ?? "Instructeur"}
+                          Réponse · {r.formation.instructeur.user.name ?? "Vendeur"}
                         </p>
                         <p className="text-xs text-zinc-600 leading-relaxed">{r.response}</p>
                       </div>

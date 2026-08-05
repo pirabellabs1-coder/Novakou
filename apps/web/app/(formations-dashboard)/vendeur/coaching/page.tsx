@@ -75,7 +75,7 @@ function fmtDateTime(iso: string) {
 
 export default function CoachingPage() {
   const { data: session } = useSession();
-  const userName = session?.user?.name ?? "Instructeur";
+  const userName = session?.user?.name ?? "Vendeur";
 
   const { data, isLoading, refetch } = useQuery<MentorDashboardPayload>({
     queryKey: ["vendeur-coaching-mentor-dashboard"],

@@ -204,7 +204,7 @@ export function FormationPurchaseEmail({
                       fontSize: "14px",
                     }}
                   >
-                    {locale === "fr" ? "Instructeur" : "Instructor"}
+                    {locale === "fr" ? "Vendeur" : "Instructor"}
                   </td>
                   <td
                     style={{

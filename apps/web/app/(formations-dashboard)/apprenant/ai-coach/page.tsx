@@ -12,7 +12,7 @@ Ton role : aider l'apprenant a tirer le maximum de ses formations. Tu es expert 
 - Resolution de problemes techniques (code, outils, concepts difficiles)
 
 Contexte :
-- Apprenants : jeunes adultes, etudiants, freelances debutants, reconvertis pro
+- Clients : jeunes adultes, etudiants, freelances debutants, reconvertis pro
 - Pays : Senegal, Cote d'Ivoire, Benin, Cameroun, Togo, Mali, France francophone
 - Defis typiques : temps limite, connexion instable, budget serre, reseau pro a construire
 
@@ -37,7 +37,7 @@ export default function ApprenantAICoachPage() {
     <AIAgentChat
       role="apprenant"
       icon="school"
-      title="Coach IA Apprenant"
+      title="Coach IA Client"
       subtitle="Votre assistant pour progresser, rester motivé et mettre en pratique"
       gradientFrom="#3b82f6"
       gradientTo="#06b6d4"

@@ -616,7 +616,7 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
             {/* Stats row */}
             <section className="bg-white p-6 md:p-8 grid grid-cols-2 md:grid-cols-4 gap-6">
               {[
-                { label: "Apprenants", value: formation.studentsCount.toLocaleString("fr-FR") },
+                { label: "Clients", value: formation.studentsCount.toLocaleString("fr-FR") },
                 { label: "Avis", value: formation.reviewsCount.toLocaleString("fr-FR") },
                 { label: "Note", value: formation.rating > 0 ? `${formation.rating.toFixed(1)}/5` : "—" },
                 { label: "Statut", value: status.label },

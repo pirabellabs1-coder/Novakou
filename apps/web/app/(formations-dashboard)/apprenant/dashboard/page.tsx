@@ -75,7 +75,7 @@ function getInitials(name?: string | null): string {
 
 export default function ApprenantDashboardPage() {
   const { data: session } = useSession();
-  const fullName = session?.user?.name ?? "Apprenant";
+  const fullName = session?.user?.name ?? "Client";
   const firstName = fullName.split(" ")[0] || fullName;
 
   const { data, isLoading } = useQuery({

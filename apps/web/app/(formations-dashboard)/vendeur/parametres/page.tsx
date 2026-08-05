@@ -55,7 +55,7 @@ const notifGroups = [
     ],
   },
   {
-    label: "Apprenants",
+    label: "Clients",
     items: [
       { key: "new_message", label: "Nouveau message", desc: "Un apprenant vous a envoyé un message", email: true, push: true },
       { key: "new_review", label: "Nouvel avis", desc: "Un apprenant a laissé un avis sur votre formation", email: false, push: true },
@@ -566,7 +566,7 @@ export default function ParamaetresPage() {
                     <div className="flex items-start justify-between gap-2 flex-wrap">
                       <div>
                         <p className="font-bold text-[#191c1e]">Kofi Asante</p>
-                        <p className="text-xs text-[#5c647a]">Instructeur & Coach · Sénégal</p>
+                        <p className="text-xs text-[#5c647a]">Vendeur & Coach · Sénégal</p>
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-extrabold text-[#006e2f]">{Number(tarifSession).toLocaleString("fr-FR")} FCFA</p>

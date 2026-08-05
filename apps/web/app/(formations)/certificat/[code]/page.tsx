@@ -36,7 +36,7 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
     (sum, s) => sum + s.lessons.length,
     0,
   );
-  const studentName = cert.user.name || cert.user.email.split("@")[0] || "Apprenant";
+  const studentName = cert.user.name || cert.user.email.split("@")[0] || "Client";
 
   return (
     <>

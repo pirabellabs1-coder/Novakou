@@ -31,7 +31,7 @@ export const KAZA_GRADIENT =
 /* ───────────────────────── Hero navy KAZA ───────────────────────────── */
 
 interface KazaHeroProps {
-  /** Badge pill au-dessus du titre. Ex : "Pro", "Apprenant", "Étape 3/8" */
+  /** Badge pill au-dessus du titre. Ex : "Pro", "Client", "Étape 3/8" */
   badge?: string;
   /** Couleur du badge — orange (pro), vert (actif), bleu (info), blanc */
   badgeColor?: "orange" | "green" | "blue" | "white";

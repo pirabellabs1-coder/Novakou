@@ -205,7 +205,7 @@ function DiscussionCard({
           )}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
-              <p className="text-sm font-bold text-[#13241b]">{discussion.user.name ?? "Apprenant"}</p>
+              <p className="text-sm font-bold text-[#13241b]">{discussion.user.name ?? "Client"}</p>
               <span className="text-[11px] text-[#5d7166]">· {timeAgo(discussion.createdAt)}</span>
               {discussion.isPinned && (
                 <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 uppercase inline-flex items-center gap-1">
@@ -254,7 +254,7 @@ function DiscussionCard({
                     <div className="flex items-center gap-2 flex-wrap mb-0.5">
                       <p className="text-xs font-bold text-[#13241b]">{r.user.name ?? "Membre"}</p>
                       {r.isInstructor && (
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 uppercase">Instructeur</span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 uppercase">Vendeur</span>
                       )}
                       <span className="text-[10px] text-[#5d7166]">· {timeAgo(r.createdAt)}</span>
                     </div>

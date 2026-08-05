@@ -18,7 +18,7 @@ const BADGE_CONFIG: Record<string, BadgeConfig> = {
   "Business": { name: "Business", icon: "workspace_premium", color: "text-indigo-400 bg-indigo-400/10 border-indigo-400/20" },
   "Agence": { name: "Agence", icon: "domain", color: "text-cyan-400 bg-cyan-400/10 border-cyan-400/20" },
   "High Seller": { name: "High Seller", icon: "local_fire_department", color: "text-red-400 bg-red-400/10 border-red-400/20" },
-  "Instructeur Certifie": { name: "Instructeur", icon: "school", color: "text-indigo-400 bg-indigo-400/10 border-indigo-400/20" },
+  "Vendeur Certifie": { name: "Vendeur", icon: "school", color: "text-indigo-400 bg-indigo-400/10 border-indigo-400/20" },
   "Agence Verifiee": { name: "Agence Verifiee", icon: "domain", color: "text-cyan-400 bg-cyan-400/10 border-cyan-400/20" },
 };
 

@@ -492,10 +492,10 @@ export default function MentorDashboardPage() {
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-3">
-                          <StAvatar name={b.student.name ?? b.student.email ?? "Apprenant"} size={40} src={b.student.image} />
+                          <StAvatar name={b.student.name ?? b.student.email ?? "Client"} size={40} src={b.student.image} />
                           <div>
                             <p className="text-[13px] font-extrabold" style={{ color: ST.text }}>
-                              {b.student.name ?? b.student.email ?? "Apprenant"}
+                              {b.student.name ?? b.student.email ?? "Client"}
                             </p>
                             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                               <span className="text-[11.5px] font-semibold flex items-center gap-1" style={{ color: ST.textSecondary }}>
@@ -634,10 +634,10 @@ export default function MentorDashboardPage() {
                   {pastSessions.map((s) => (
                     <div key={s.id} className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
-                        <StAvatar name={s.student.name ?? "Apprenant"} size={28} />
+                        <StAvatar name={s.student.name ?? "Client"} size={28} />
                         <div className="min-w-0">
                           <p className="text-[12px] font-extrabold truncate" style={{ color: ST.text }}>
-                            {s.student.name ?? "Apprenant"}
+                            {s.student.name ?? "Client"}
                           </p>
                           <p className="text-[10px] font-semibold" style={{ color: ST.textMuted }}>{fmtDate(s.scheduledAt)}</p>
                         </div>
@@ -682,7 +682,7 @@ export default function MentorDashboardPage() {
                   <span className="text-[13px] font-extrabold">{profile.totalSessions}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[12px] text-white/85">Apprenants</span>
+                  <span className="text-[12px] text-white/85">Clients</span>
                   <span className="text-[13px] font-extrabold">{profile.totalStudents}</span>
                 </div>
                 <div className="flex items-center justify-between">

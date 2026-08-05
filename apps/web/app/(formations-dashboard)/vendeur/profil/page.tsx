@@ -161,7 +161,7 @@ export default function ProfilPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#13241b]">Mon Profil Instructeur</h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#13241b]">Mon Profil Vendeur</h1>
           <p className="text-sm text-[#5c647a] mt-1">Ces informations apparaissent sur votre page publique</p>
         </div>
         <div className="flex items-center gap-2">

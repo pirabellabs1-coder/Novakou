@@ -183,7 +183,7 @@ function BookingCard({
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-extrabold" style={{ color: ST.text }}>
-              {booking.student.name ?? booking.student.email ?? "Apprenant"}
+              {booking.student.name ?? booking.student.email ?? "Client"}
             </p>
             {booking.student.email && (
               <p className="text-[11.5px] font-semibold truncate" style={{ color: ST.textMuted }}>{booking.student.email}</p>

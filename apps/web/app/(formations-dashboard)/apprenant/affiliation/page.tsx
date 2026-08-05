@@ -110,7 +110,7 @@ export default function DevenirAffilierPage() {
   });
 
   const joined = isAlreadyAffiliate || joinMutation.isSuccess;
-  const userName = session?.user?.name ?? "Apprenant";
+  const userName = session?.user?.name ?? "Client";
 
   if (checkLoading) {
     return (

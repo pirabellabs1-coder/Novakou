@@ -669,7 +669,7 @@ export default function MentorPublicProfilePage({ params }: { params: Promise<{ 
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <p className="text-sm font-bold text-[#191c1e]">
-                                {r.student.name ?? "Apprenant"}
+                                {r.student.name ?? "Client"}
                               </p>
                               <span className="text-[11px] text-[#5c647a]">{timeAgo(r.date)}</span>
                             </div>

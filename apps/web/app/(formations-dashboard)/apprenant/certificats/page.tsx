@@ -79,7 +79,7 @@ export default function CertificatsPage() {
 
   const certs: Certificate[] = data?.data ?? [];
   const selectedCert = certs.find((c) => c.id === selected);
-  const displayName = session?.user?.name ?? "Apprenant";
+  const displayName = session?.user?.name ?? "Client";
 
   const handleDownloadPDF = (cert: Certificate) => {
     window.open(`/api/formations/apprenant/certificates/${cert.id}/pdf`, "_blank");

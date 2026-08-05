@@ -190,7 +190,7 @@ function ApprenantLayoutInner({ children }: { children: React.ReactNode }) {
 
   const cartCount: number = cartData?.count ?? 0;
   const user = session?.user;
-  const displayName = user?.name ?? "Apprenant";
+  const displayName = user?.name ?? "Client";
   const initials = getInitials(user?.name);
   const avatarUrl =
     ((user as Record<string, unknown> | undefined)?.image as string | undefined) ??
@@ -273,7 +273,7 @@ function ApprenantLayoutInner({ children }: { children: React.ReactNode }) {
               <span className="text-sm font-bold text-slate-900 max-w-[140px] truncate">
                 {displayName}
               </span>
-              <span className="text-[11px] text-slate-500">Apprenant</span>
+              <span className="text-[11px] text-slate-500">Client</span>
             </div>
             <ChevronDown className="hidden md:block w-4 h-4 text-slate-400 ml-1" />
           </Link>

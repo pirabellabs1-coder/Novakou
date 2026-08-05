@@ -233,12 +233,12 @@ export default function MentorApprenantsPage() {
             {filtered.map((s) => (
               <StCard key={s.id}>
                 <div className="flex items-start gap-4">
-                  <StAvatar name={s.name ?? s.email ?? "Apprenant"} size={48} src={s.image} />
+                  <StAvatar name={s.name ?? s.email ?? "Client"} size={48} src={s.image} />
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-2 flex-wrap">
                       <p className="text-[13px] font-extrabold truncate" style={{ color: ST.text }}>
-                        {s.name ?? s.email ?? "Apprenant"}
+                        {s.name ?? s.email ?? "Client"}
                       </p>
                       {s.email && s.name && (
                         <p className="text-[11px] font-semibold truncate" style={{ color: ST.textMuted }}>{s.email}</p>

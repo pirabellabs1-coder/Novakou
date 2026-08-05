@@ -92,7 +92,7 @@ export default function SalleJitsiPage() {
       height: "100%",
       userInfo: {
         displayName: booking.viewerRole === "student"
-          ? `${booking.student.name ?? "Apprenant"} (apprenant)`
+          ? `${booking.student.name ?? "Client"} (apprenant)`
           : `${booking.mentor.name ?? "Mentor"} (mentor)`,
       },
       configOverwrite: {

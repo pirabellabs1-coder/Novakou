@@ -16,7 +16,30 @@ const registerSchema = z.object({
     .regex(/[A-Z]/, "Le mot de passe doit contenir au moins une majuscule")
     .regex(/[a-z]/, "Le mot de passe doit contenir au moins une minuscule")
     .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre"),
-  name: z.string().min(2, "Le nom est requis"),
+  /**
+   * Le nom doit RESSEMBLER à un nom.
+   *
+   * « 774401381 » — un numéro de téléphone — passait le contrôle et remplissait
+   * la liste des utilisateurs de comptes sans visage. Un vendeur ne peut pas
+   * traiter avec ça, et l'admin ne peut pas distinguer un vrai inscrit d'un
+   * robot.
+   *
+   * On exige donc au moins deux lettres et pas une majorité de chiffres. On
+   * reste volontairement permissif sur le reste : les noms d'Afrique de
+   * l'Ouest portent apostrophes, traits d'union, accents et particules — un
+   * filtre trop strict rejetterait de vrais clients, ce qui coûte plus cher
+   * que de laisser passer un pseudonyme fantaisiste.
+   */
+  name: z
+    .string()
+    .trim()
+    .min(3, "Le nom doit contenir au moins 3 caracteres")
+    .refine((v) => (v.match(/\p{L}/gu) ?? []).length >= 2, {
+      message: "Indiquez votre nom, pas un numero : au moins deux lettres sont attendues.",
+    })
+    .refine((v) => (v.match(/\d/g) ?? []).length <= (v.match(/\p{L}/gu) ?? []).length, {
+      message: "Ce nom contient trop de chiffres. Indiquez votre nom tel qu'on vous appelle.",
+    }),
   role: z.enum(["freelance", "client", "agence"]).default("client"),
   country: z.string().max(100).optional(),
   formationsRole: z.enum(["apprenant", "instructeur", "mentor", "affilie"]).optional(),

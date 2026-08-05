@@ -51,7 +51,7 @@ export function PublicStatsStrip() {
 
   const items = [
     { label: "Créateurs", value: s?.totalInstructors ?? 0, icon: "groups" },
-    { label: "Apprenants", value: s?.totalLearners ?? 0, icon: "school" },
+    { label: "Clients", value: s?.totalLearners ?? 0, icon: "school" },
     { label: "Produits", value: s?.totalProductsCount ?? 0, icon: "inventory_2" },
     { label: "Pays", value: s?.totalCountries ?? 0, icon: "public" },
   ];

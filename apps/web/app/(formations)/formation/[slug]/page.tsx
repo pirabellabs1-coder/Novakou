@@ -190,7 +190,7 @@ export default async function FormationPage({
                         },
                         author: {
                           "@type": "Person",
-                          name: r.user?.name || "Apprenant Novakou",
+                          name: r.user?.name || "Client Novakou",
                         },
                         datePublished: r.createdAt.toISOString().split("T")[0],
                         reviewBody: r.comment.slice(0, 280),

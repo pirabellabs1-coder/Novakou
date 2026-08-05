@@ -72,7 +72,7 @@ interface Review {
   user: { id: string; name: string | null; image: string | null };
 }
 
-interface Instructeur {
+interface Vendeur {
   // Anonymat : identite perso jamais exposee. On ne garde que l'id (pixels/reco/
   // inquiry) et les pixels marketing du vendeur.
   id: string;
@@ -106,7 +106,7 @@ interface Formation {
   viewsCount: number;
   totalLessons: number;
   category: { id: string; slug: string; name: string } | null;
-  instructeur: Instructeur;
+  instructeur: Vendeur;
   sections: Section[];
   reviews: Review[];
   shop: { slug: string; name: string; legalName: string | null; font: string | null; themeColor: string | null; logoUrl?: string | null } | null;
@@ -562,7 +562,7 @@ export default function FormationPageClient({ slug }: { slug: string }) {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className="text-sm font-bold text-[#191c1e]">{r.user.name ?? "Apprenant"}</p>
+                            <p className="text-sm font-bold text-[#191c1e]">{r.user.name ?? "Client"}</p>
                             <span className="text-[11px] text-[#5c647a]">{timeAgo(r.createdAt)}</span>
                           </div>
                           <StarRating rating={r.rating} size={13} />

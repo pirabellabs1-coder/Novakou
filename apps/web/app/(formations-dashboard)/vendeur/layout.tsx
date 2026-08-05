@@ -184,7 +184,7 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
     try { localStorage.setItem("vendeur-sidebar-collapsed", String(next)); } catch { /* ignore */ }
   }
 
-  const displayName = session?.user?.name ?? "Instructeur";
+  const displayName = session?.user?.name ?? "Vendeur";
   const initials = getInitials(session?.user?.name);
   const avatarUrl = session?.user?.image;
 

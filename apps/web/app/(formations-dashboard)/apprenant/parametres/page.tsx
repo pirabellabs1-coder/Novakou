@@ -286,7 +286,7 @@ export default function ParametresPage() {
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={image}
-                          alt={prenom || "Apprenant"}
+                          alt={prenom || "Client"}
                           className="w-20 h-20 rounded-full object-cover"
                         />
                       ) : (
@@ -308,8 +308,8 @@ export default function ParametresPage() {
                       </button>
                     </div>
                     <div>
-                      <p className="text-[13.5px] font-extrabold mb-1" style={{ color: ST.text }}>{prenom || "Apprenant"} {nom}</p>
-                      <p className="text-[12px] font-semibold mb-3" style={{ color: ST.textSecondary }}>Apprenant · {email || "—"}</p>
+                      <p className="text-[13.5px] font-extrabold mb-1" style={{ color: ST.text }}>{prenom || "Client"} {nom}</p>
+                      <p className="text-[12px] font-semibold mb-3" style={{ color: ST.textSecondary }}>Client · {email || "—"}</p>
                       <div className="flex gap-2 flex-wrap">
                         <StButton
                           onClick={() => fileInputRef.current?.click()}

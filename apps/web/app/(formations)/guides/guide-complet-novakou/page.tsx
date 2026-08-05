@@ -164,7 +164,7 @@ function MockDashboard() {
           {[
             { label: "Ventes", value: "\u2014", sub: "Ce mois", color: C.primary },
             { label: "Revenus", value: "\u2014 F", sub: "Ce mois", color: "#2563eb" },
-            { label: "Apprenants", value: "\u2014", sub: "Cette semaine", color: "#7c3aed" },
+            { label: "Clients", value: "\u2014", sub: "Cette semaine", color: "#7c3aed" },
             { label: "Taux conversion", value: "\u2014", sub: "Tunnel principal", color: "#f59e0b" },
           ].map((s) => (
             <div key={s.label} className="rounded-xl p-3 border" style={{ borderColor: "#e5eae1" }}>
@@ -731,7 +731,7 @@ export default function GuideCompletNovakou() {
         <Step n={1}>
           <strong>Allez sur la page d&apos;inscription :</strong> Rendez-vous sur{" "}
           <Link href="/inscription?role=vendeur" style={{ color: C.primary, fontWeight: 600 }}>novakou.com/inscription</Link>{" "}
-          et selectionnez le role <strong>&quot;Vendeur / Instructeur&quot;</strong>. Vous pouvez aussi
+          et selectionnez le role <strong>&quot;Vendeur&quot;</strong>. Vous pouvez aussi
           arriver directement via le lien <code style={{ backgroundColor: "#f3f4f6", padding: "2px 6px", borderRadius: 4, fontSize: 13 }}>novakou.com/inscription?role=vendeur</code>.
         </Step>
 

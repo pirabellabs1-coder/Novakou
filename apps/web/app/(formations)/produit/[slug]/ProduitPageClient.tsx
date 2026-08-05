@@ -54,7 +54,7 @@ interface Review {
   user: { id: string; name: string | null; image: string | null };
 }
 
-interface Instructeur {
+interface Vendeur {
   // Anonymat : identite perso jamais exposee. On ne garde que l'id (pixels/reco/
   // inquiry) et les pixels marketing du vendeur.
   id: string;
@@ -86,7 +86,7 @@ interface Product {
   watermarkEnabled?: boolean;
   previewAvailable?: boolean;
   category: { id: string; slug: string; name: string } | null;
-  instructeur: Instructeur;
+  instructeur: Vendeur;
   reviews: Review[];
   shop: { slug: string; name: string; legalName: string | null; font: string | null; themeColor: string | null; logoUrl?: string | null } | null;
   createdAt: string;

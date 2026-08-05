@@ -218,7 +218,7 @@ export default function MentorDisputesAdminPage() {
 
           <div className="grid md:grid-cols-2 gap-4 mb-6">
             <div className="bg-gray-50 rounded-xl p-4">
-              <p className="text-[10px] font-bold uppercase text-[#5c647a] mb-2">Apprenant</p>
+              <p className="text-[10px] font-bold uppercase text-[#5c647a] mb-2">Client</p>
               <p className="text-sm font-bold text-[#13241b]">{selected.student.name ?? "—"}</p>
               <p className="text-xs text-[#5c647a]">{selected.student.email}</p>
             </div>
