@@ -351,7 +351,16 @@ export async function checkCollectStatus(
   // sans la moindre erreur pour l'expliquer.
   const apiKey = await getApiKey();
   const res = await payoutFetch(
-    `${FEEXPAY_COLLECT_BASE}/api/transactions/getrequesttopay/integration/${encodeURIComponent(reference)}`,
+    // Chemin de CONSULTATION, différent de celui qui lance le paiement.
+    // `/api/transactions/getrequesttopay/integration/{ref}` n'existe pas sur
+    // api-v2 : le serveur y répond « Cannot GET », c'est-à-dire aucune route.
+    // Un achat de 300 F est resté bloqué là-dessus — le paiement partait, et
+    // nous ne pouvions jamais lire son résultat.
+    //
+    // Le bon chemin a été trouvé en sondant : seul celui-ci répond 401 sans
+    // clé (donc la route existe et attend l'authentification), les autres
+    // répondent « Cannot GET ».
+    `${FEEXPAY_COLLECT_BASE}/api/transactions/public/single/status/${encodeURIComponent(reference)}`,
     {
       method: "GET",
       headers: { Accept: "application/json", Authorization: `Bearer ${apiKey}` },

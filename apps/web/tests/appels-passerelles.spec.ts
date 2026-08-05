@@ -23,7 +23,7 @@ test("tout appel de passerelle porte une clé d'authentification", () => {
     // lignes qui suivent immédiatement l'URL.
     const blocs = src.split(/await (?:payoutFetch|fetch)\(/).slice(1);
     for (const b of blocs) {
-      const debut = b.slice(0, 500);
+      const debut = b.slice(0, 1200);
       // `headers,` = en-têtes construits plus haut (ils portent la clé).
       // `headers: { … }` écrit sur place DOIT contenir une authentification :
       // c'est précisément ce bloc-là qui était vide chez FeexPay.
@@ -52,4 +52,12 @@ test("aucun appel de passerelle ne contourne le proxy à IP fixe", () => {
       `${f} : un appel utilise fetch au lieu de payoutFetch`,
     ).toBe(false);
   }
+});
+
+test("le chemin de consultation FeexPay est celui qui existe vraiment", () => {
+  const src = lire("feexpay.ts");
+  // Vérifié par sondage : seul ce chemin répond 401 sans clé sur api-v2 (la
+  // route existe), les autres répondent « Cannot GET » — aucune route.
+  expect(src).toContain("/api/transactions/public/single/status/");
+  expect(src).not.toContain("/api/transactions/getrequesttopay/integration/${encodeURIComponent(reference)}");
 });
