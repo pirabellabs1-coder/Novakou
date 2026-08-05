@@ -197,6 +197,25 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  // 2d. MONETBIL — la clé de service est-elle reconnue ?
+  //
+  //      Avec une fausse clé, leur API répond SERVICE_NOT_FOUND ; avec la
+  //      bonne, elle répond autre chose. C'est donc une LECTURE qui suffit à
+  //      dire si l'encaissement camerounais fonctionnera, sans créer le
+  //      moindre paiement.
+  const cleMonetbil = await credential("monetbil", "serviceKey").catch(() => "");
+  if (cleMonetbil) {
+    sondes.push(
+      await sonder("Monetbil — clé de service", proxyConfigure ? "proxy" : "direct", () =>
+        payoutFetch("https://api.monetbil.com/payment/v1/checkPayment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({ service: cleMonetbil, paymentId: "diagnostic" }),
+        }),
+      ),
+    );
+  }
+
   // 3. Les mêmes, SANS le proxy : si le direct passe et le proxy non, le
   //    coupable est le proxy. Si les deux échouent en 401, c'est l'IP.
   sondes.push(
@@ -252,7 +271,11 @@ export async function GET(request: NextRequest) {
       proxyConfigure,
       // La preuve, pas la promesse : deux IP différentes = le proxy est emprunté.
       ipSortie: { viaProxy: ipProxy, enDirect: ipDirecte, proxyEmprunte },
-      identifiants: { fedapay: Boolean(cleFedapay), feexpay: Boolean(cleFeexpay) },
+      identifiants: {
+        fedapay: Boolean(cleFedapay),
+        feexpay: Boolean(cleFeexpay),
+        monetbil: Boolean(cleMonetbil),
+      },
       // « prêt » = ce que teste réellement l'orchestrateur avant d'essayer une
       // passerelle. À faux, elle est sautée en silence.
       pretPourVerser: { fedapay: pretFedapay, feexpay: pretFeexpay },
