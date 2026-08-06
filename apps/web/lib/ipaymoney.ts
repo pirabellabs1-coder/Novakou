@@ -40,10 +40,25 @@ export function isIpaymoneyConfigured(): Promise<boolean> {
 export type IpaymoneyStatus = "success" | "failed" | "pending";
 
 /** Vocabulaire interne commun à toutes les passerelles. */
+/**
+ * Statuts d'attente LÉGITIMES. Les lister permet de distinguer « l'acheteur
+ * n'a pas encore confirmé » de « on ne comprend pas la réponse » — deux
+ * situations que le repli sur « pending » confondait silencieusement.
+ */
+const IPAY_ATTENTE = new Set(["pending", "initiated", "processing", "in_progress", "created", "waiting"]);
+
 export function normalizeIpaymoneyStatus(s: string | undefined | null): IpaymoneyStatus {
   const v = String(s ?? "").toLowerCase();
   if (v === "succeeded" || v === "success" || v === "successful" || v === "completed") return "success";
   if (v === "failed" || v === "cancelled" || v === "canceled" || v === "rejected") return "failed";
+
+  // Statut ININTELLIGIBLE. On conserve « pending » — annoncer un échec
+  // priverait de son produit un acheteur qui a peut-être payé — mais on le
+  // JOURNALISE, sinon il reste indiscernable d'une attente normale et la
+  // vente se bloque sans que rien n'en explique la raison.
+  if (!IPAY_ATTENTE.has(v)) {
+    console.error(`[ipaymoney] statut inconnu, traité en attente : « ${v || "(vide)"} »`);
+  }
   return "pending";
 }
 
@@ -154,6 +169,17 @@ export async function checkCollectStatus(
     throw new Error(json.message || `iPay Money : statut indisponible (HTTP ${res.status})`);
   }
   const amount = Number(json.amount);
+
+  // Aucun champ de statut à la racine : la réponse n'a pas la forme attendue.
+  // On journalise l'intégralité — sans elle, impossible de savoir quelle clé
+  // lire, et la vente reste bloquée indéfiniment.
+  if (json.status == null) {
+    console.error(
+      `[ipaymoney] paiement ${reference} sans champ de statut :`,
+      JSON.stringify(json).slice(0, 800),
+    );
+  }
+
   return {
     status: normalizeIpaymoneyStatus(json.status),
     amount: Number.isFinite(amount) ? amount : null,

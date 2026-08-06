@@ -388,11 +388,27 @@ export async function initCollect(params: FedapayCollectParams): Promise<Fedapay
  * erreurs empilées. Résultat : un paiement bel et bien encaissé restait
  * éternellement « en attente » chez nous, et le produit n'était jamais livré.
  */
+/**
+ * Statuts d'attente LÉGITIMES, tels que FedaPay les nomme. Les lister permet
+ * de distinguer « l'acheteur n'a pas encore confirmé » de « on ne comprend pas
+ * la réponse » — deux situations que le repli sur « pending » confondait.
+ */
+const FEDAPAY_ATTENTE = new Set(["pending", "created", "started", "processing", "sent"]);
+
 export function normalizeFedapayTransactionStatus(s: string | undefined | null): "success" | "failed" | "pending" {
   const v = String(s ?? "").toLowerCase();
   if (v === "approved" || v === "transferred") return "success";
   // « refunded » : l'argent est reparti, il ne faut surtout pas livrer.
   if (v === "declined" || v === "canceled" || v === "cancelled" || v === "refunded") return "failed";
+
+  // Statut ININTELLIGIBLE. On reste sur « pending » — annoncer un échec
+  // priverait de son produit un acheteur qui a peut-être payé — mais on le
+  // JOURNALISE. Sans cette trace, un statut inconnu était indiscernable d'une
+  // attente normale : la réconciliation ne concluait jamais, la page de
+  // confirmation tournait jusqu'au délai, et rien n'indiquait pourquoi.
+  if (!FEDAPAY_ATTENTE.has(v)) {
+    console.error(`[fedapay] statut de transaction inconnu, traité en attente : « ${v || "(vide)"} »`);
+  }
   return "pending";
 }
 
@@ -418,6 +434,19 @@ export async function checkCollectStatus(
     amount?: number | string;
   };
   const amount = Number(tx.amount);
+
+  // Aucun champ de statut trouvé, ni sous « v1/transaction », ni sous
+  // « transaction », ni à la racine. On journalise la réponse ENTIÈRE : c'est
+  // le seul moyen de savoir quelle forme FedaPay renvoie réellement, et donc
+  // pourquoi une vente reste bloquée. Le commentaire ci-dessus redoutait ce
+  // cas sans jamais le signaler.
+  if (tx.status == null) {
+    console.error(
+      `[fedapay] transaction ${transactionId} sans champ de statut :`,
+      JSON.stringify(json).slice(0, 800),
+    );
+  }
+
   return {
     status: normalizeFedapayTransactionStatus(tx.status),
     amount: Number.isFinite(amount) ? amount : null,
