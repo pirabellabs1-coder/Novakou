@@ -53,6 +53,21 @@ export const PAYOUT_METHOD_MAP: Record<string, PayoutMethodMapping> = {
     feexpay: { endpoint: "transfer/global", network: "MOOV" },
     fedapay: { mode: "moov" },
   },
+  // Celtiis manquait ICI alors que le registre le declarait reversable par
+  // FedaPay : deux tables qui se contredisaient. Le moteur de versement lit
+  // celle-ci, donc tout retrait Celtiis etait refuse avec « operateur non servi
+  // par cette passerelle » — un message qui accusait la passerelle alors que
+  // c'est notre table qui etait incomplete.
+  //
+  // « sbin » n'est PAS devine : c'est l'identifiant FedaPay confirme de Celtiis,
+  // deja utilise a l'encaissement. Et chez FedaPay le meme identifiant sert aux
+  // deux sens — mtn_open et moov le montrent. Si leur API le refusait malgre
+  // tout, le versement echouerait sans deplacer d'argent : le reseau vise est
+  // le bon, seule l'acceptation reste a confirmer par un vrai retrait.
+  celtiis_bj: {
+    country: "bj", currency: "XOF",
+    fedapay: { mode: "sbin" },
+  },
 
   // ── Côte d'Ivoire (XOF) ── (FedaPay : à confirmer)
   mtn_ci:   { country: "ci", currency: "XOF", feexpay: { endpoint: "mtn_ci" } },
