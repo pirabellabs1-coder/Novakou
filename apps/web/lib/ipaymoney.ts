@@ -166,7 +166,26 @@ export async function checkCollectStatus(
     message?: string;
   };
   if (!res.ok) {
-    throw new Error(json.message || `iPay Money : statut indisponible (HTTP ${res.status})`);
+    // Un 4xx est une erreur PERMANENTE : la requête est mal formée ou la
+    // référence inconnue. La réessayer toutes les cinq minutes ne la résoudra
+    // jamais — et jusqu'ici elle remontait comme une simple indisponibilité,
+    // donc la vente restait « en attente » indéfiniment sans que personne ne
+    // sache qu'elle ne se débloquerait pas toute seule.
+    const permanente = res.status >= 400 && res.status < 500 && res.status !== 429;
+
+    // On journalise le CONTEXTE de la requête, pas seulement le refus : sans
+    // savoir ce qu'on a envoyé, « Missing params » ne désigne aucun paramètre.
+    console.error(
+      `[ipaymoney] statut refusé (HTTP ${res.status}${permanente ? ", permanent" : ", transitoire"})` +
+        ` — ref « ${reference} », type « ${paymentType || "mobile"} », env « ${envHeaderValue(sandbox)} »` +
+        ` — réponse : ${JSON.stringify(json).slice(0, 500)}`,
+    );
+
+    const err = new Error(
+      json.message || `iPay Money : statut indisponible (HTTP ${res.status})`,
+    ) as Error & { permanent?: boolean };
+    err.permanent = permanente;
+    throw err;
   }
   const amount = Number(json.amount);
 

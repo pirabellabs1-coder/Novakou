@@ -192,12 +192,22 @@ export async function reconcileCollectAttempt(attempt: AttemptRow): Promise<Coll
   } catch (err) {
     // Fournisseur injoignable : on ne conclut rien. Le paiement est peut-être
     // en cours ; annoncer un échec ici priverait l'acheteur de son produit.
+    //
+    // Mais une erreur PERMANENTE (4xx : requête mal formée, référence inconnue)
+    // ne se résoudra jamais d'elle-même. La faire passer pour « en attente »
+    // la noyait parmi les paiements réellement en cours : la tentative était
+    // reprise toutes les cinq minutes, indéfiniment, sans que personne ne
+    // sache qu'elle ne se débloquerait pas. On la classe « unknown » — la
+    // catégorie qui appelle un examen humain — sans jamais la déclarer échouée.
+    const permanente = Boolean((err as { permanent?: boolean })?.permanent);
     return {
       matched: true,
-      status: "pending",
+      status: permanente ? "unknown" : "pending",
       delivered: false,
       attemptId: attempt.id,
-      reason: `Statut indisponible : ${err instanceof Error ? err.message : String(err)}`,
+      reason:
+        (permanente ? "Appel de statut REFUSÉ (ne se résoudra pas seul) : " : "Statut indisponible : ") +
+        (err instanceof Error ? err.message : String(err)),
     };
   }
 
