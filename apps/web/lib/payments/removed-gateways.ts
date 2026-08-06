@@ -13,7 +13,7 @@
  * diagnostic admin : si l'une d'elles avait réellement été payée, elle ne peut
  * être vérifiée que sur le tableau de bord de l'ancien fournisseur.
  */
-export const PASSERELLES_RETIREES = new Set(["moneroo", "paygenius", "geniuspay"]);
+export const PASSERELLES_RETIREES = new Set(["moneroo", "paygenius", "geniuspay", "kkiapay"]);
 
 /** Vrai si cette tentative vient d'une passerelle qu'on n'interroge plus. */
 export function estPasserelleRetiree(provider: unknown): boolean {

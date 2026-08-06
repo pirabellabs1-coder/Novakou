@@ -80,11 +80,6 @@ const STATUS_CHECKERS: Record<
     // Le type ("mobile" / "card") est aussi obligatoire à la consultation.
     return checkCollectStatus(ref, code);
   },
-  kkiapay: async (ref) => {
-    // La référence est l'identifiant de transaction rendu par la fenêtre.
-    const { verifyTransaction } = await import("@/lib/kkiapay");
-    return verifyTransaction(ref);
-  },
 };
 
 /**

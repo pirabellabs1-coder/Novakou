@@ -19,11 +19,6 @@ import type { ProviderId } from "@/lib/payments/registry";
 const ENV_KEYS: Record<ProviderId, Record<string, string>> = {
   feexpay: { apiKey: "FEEXPAY_API_KEY", shopId: "FEEXPAY_SHOP_ID" },
   fedapay: { secretKey: "FEDAPAY_SECRET_KEY" },
-  kkiapay: {
-    publicKey: "KKIAPAY_PUBLIC_KEY",
-    privateKey: "KKIAPAY_PRIVATE_KEY",
-    secret: "KKIAPAY_SECRET",
-  },
   monetbil: { serviceKey: "MONETBIL_SERVICE_KEY" },
   ipaymoney: {
     secretKey: "IPAYMONEY_SECRET_KEY",

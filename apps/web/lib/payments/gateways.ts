@@ -32,11 +32,6 @@ export const CREDENTIAL_FIELDS: Record<ProviderId, Array<{ key: string; label: s
   // la passerelle serait déclarée mais impossible à configurer autrement
   // qu'en variable d'environnement.
   monetbil: [{ key: "serviceKey", label: "Clé de service", secret: true }],
-  kkiapay: [
-    { key: "publicKey", label: "Clé publique", secret: false },
-    { key: "privateKey", label: "Clé privée", secret: true },
-    { key: "secret", label: "Secret", secret: true },
-  ],
   ipaymoney: [
     { key: "secretKey", label: "Clé secrète", secret: true },
     // Chaîne partagée que le fournisseur renvoie dans l'en-tête `secret-hash`
@@ -84,11 +79,6 @@ function envCredentials(provider: ProviderId): Record<string, string> {
       shopId: pick(process.env.FEEXPAY_SHOP_ID),
     },
     fedapay: { secretKey: pick(process.env.FEDAPAY_SECRET_KEY) },
-    kkiapay: {
-      publicKey: pick(process.env.KKIAPAY_PUBLIC_KEY),
-      privateKey: pick(process.env.KKIAPAY_PRIVATE_KEY),
-      secret: pick(process.env.KKIAPAY_SECRET),
-    },
     ipaymoney: {
       secretKey: pick(process.env.IPAYMONEY_SECRET_KEY),
       webhookSecret: pick(process.env.IPAYMONEY_WEBHOOK_SECRET),
@@ -404,7 +394,7 @@ export async function resolveCollectProviders(
    * iPay Money passe donc devant en attendant que FedaPay ouvre la carte sur
    * le compte. Remettre "fedapay" en tête suffira le jour où ce sera fait.
    */
-  const PREFERENCE_CARTE: ProviderId[] = ["ipaymoney", "kkiapay", "fedapay"];
+  const PREFERENCE_CARTE: ProviderId[] = ["ipaymoney", "fedapay"];
 
   const rang = (r: { provider: ProviderId; hosted: boolean }) => {
     if (estCarte) {
