@@ -115,6 +115,24 @@ export const PROVIDERS: ProviderMeta[] = [
     envVars: ["MONETBIL_SERVICE_KEY"],
   },
   {
+    id: "pawapay",
+    label: "PawaPay",
+    // Agregateur Mobile Money multi-pays. Contrat releve dans leur
+    // documentation publique (API v2) : POST /v2/deposits, GET /v2/deposits/{id}.
+    //
+    // AUCUN operateur ne lui est encore rattache, et c'est deliberé : PawaPay
+    // expose GET /v2/active-conf, qui renvoie les pays et operateurs REELLEMENT
+    // actives sur notre compte. Leurs codes suivent un motif regulier
+    // (« MTN_MOMO_BEN ») donc tentant a extrapoler — une liste devinee
+    // proposerait a l'acheteur des operateurs que notre contrat ne couvre pas.
+    //
+    // Sans PAWAPAY_API_TOKEN la passerelle est inactive : la declarer ici ne
+    // change donc rien a ce qui est propose aujourd'hui.
+    directions: ["collect"],
+    collectIntegration: "server",
+    envVars: ["PAWAPAY_API_TOKEN"],
+  },
+  {
     id: "ipaymoney",
     label: "iPay Money",
     // Niger. Encaissement mobile money et carte (VISA / Mastercard /
