@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { requireCronAuth } from "@/lib/cron/auth";
 import { reconcileCollectAttempt } from "@/lib/payments/reconcile-collect";
 
@@ -26,14 +27,28 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 /**
- * Fenêtre de reprise. Au-delà, une tentative encore « STARTED » n'a
- * quasi-certainement jamais été payée (l'acheteur a abandonné avant de valider
- * sur son téléphone) et un autre cron l'archive.
+ * Fenêtre du passage RAPIDE : ce qu'on rebalaye intégralement toutes les 5 min.
+ *
+ * Ce n'était auparavant PAS une fenêtre de priorité mais une fenêtre de
+ * renoncement — au-delà, plus rien ne reprenait la tentative, jamais. Le
+ * raisonnement (« au-delà de 48 h, l'acheteur n'a sûrement jamais payé ») est
+ * faux exactement dans le cas qui compte : quand la réconciliation elle-même
+ * est cassée, une vente PAYÉE reste « STARTED » pendant 48 h, puis sort de la
+ * fenêtre et devient une perte définitive. Le recensement du 2026-08-06 a
+ * trouvé 76 tentatives dans cet état, dont 75 hors fenêtre.
  */
 const WINDOW_HOURS = 48;
 
 /** Plafond par passage : on tourne toutes les 5 min, inutile de tout balayer. */
 const MAX_PER_RUN = 60;
+
+/**
+ * Rattrapage des ANCIENNES, hors fenêtre rapide. Peu nombreuses par passage,
+ * les plus vieilles d'abord : le retard se résorbe sans faire exploser le
+ * temps d'exécution, et surtout AUCUNE tentative n'est plus jamais abandonnée
+ * parce qu'elle a vieilli.
+ */
+const MAX_ANCIENNES_PER_RUN = 12;
 
 export async function GET(request: NextRequest) {
   const authError = requireCronAuth(request);
@@ -41,23 +56,35 @@ export async function GET(request: NextRequest) {
 
   const since = new Date(Date.now() - WINDOW_HOURS * 3600_000);
 
-  const attempts = await prisma.checkoutAttempt.findMany({
-    where: {
-      // ABANDONED compte AUSSI. Un autre cron déclare une tentative abandonnée
-      // au bout d'une heure d'inactivité — mais « abandonnée » n'est que NOTRE
-      // supposition : seul le fournisseur sait si l'acheteur a fini par
-      // confirmer sur son téléphone. Ne regarder que STARTED faisait que toute
-      // vente confirmée après 60 minutes était perdue définitivement, sans que
-      // rien ne la reprenne jamais.
-      status: { in: ["STARTED", "ABANDONED"] },
-      // Sans référence fournisseur il n'y a rien à interroger : l'init a échoué
-      // avant même d'atteindre la passerelle.
-      providerRef: { not: null },
-      createdAt: { gte: since },
-    },
+  // ABANDONED compte AUSSI. Un autre cron déclare une tentative abandonnée au
+  // bout d'une heure d'inactivité — mais « abandonnée » n'est que NOTRE
+  // supposition : seul le fournisseur sait si l'acheteur a fini par confirmer
+  // sur son téléphone. Ne regarder que STARTED faisait que toute vente
+  // confirmée après 60 minutes était perdue définitivement.
+  //
+  // Sans référence fournisseur il n'y a rien à interroger : l'init a échoué
+  // avant même d'atteindre la passerelle.
+  const nonConclues = {
+    status: { in: ["STARTED", "ABANDONED"] },
+    providerRef: { not: null },
+  } satisfies Prisma.CheckoutAttemptWhereInput;
+
+  const recentesAReprendre = await prisma.checkoutAttempt.findMany({
+    where: { ...nonConclues, createdAt: { gte: since } },
     orderBy: { createdAt: "asc" },
     take: MAX_PER_RUN,
   });
+
+  // Le rattrapage qui manquait. Une tentative ne doit JAMAIS cesser d'être
+  // reprise du seul fait qu'elle a vieilli : c'est ainsi qu'une vente payée
+  // mais non livrée devient invisible et définitive.
+  const anciennesAReprendre = await prisma.checkoutAttempt.findMany({
+    where: { ...nonConclues, createdAt: { lt: since } },
+    orderBy: { createdAt: "asc" },
+    take: MAX_ANCIENNES_PER_RUN,
+  });
+
+  const attempts = [...recentesAReprendre, ...anciennesAReprendre];
 
   /**
    * Tentatives récentes que ce cron NE reprend PAS, et pourquoi.
