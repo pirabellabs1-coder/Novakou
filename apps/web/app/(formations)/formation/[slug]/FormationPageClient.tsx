@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useDeviseAffichage } from "@/components/formations/SelecteurDevise";
+import { formaterPrix } from "@/lib/currency/rates";
 import ShopFooter from "@/components/formations/ShopFooter";
 import { FormationsFooter } from "@/components/formations/FormationsFooter";
 import { FormationsNavbar } from "@/components/formations/FormationsNavbar";
@@ -219,6 +221,10 @@ function SectionAccordion({ section, index }: { section: Section; index: number 
 // ─── Main ──────────────────────────────────────────────────────────────────────
 export default function FormationPageClient({ slug }: { slug: string }) {
   const router = useRouter();
+  // Meme regle que la fiche produit : le prix STOCKE reste en FCFA, seule sa
+  // lecture suit le pays choisi dans l'en-tete.
+  const deviseAffichage = useDeviseAffichage();
+  const fmtPrix = (n: number) => formaterPrix(n, deviseAffichage);
   const [formation, setFormation] = useState<Formation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -620,13 +626,14 @@ export default function FormationPageClient({ slug }: { slug: string }) {
                       <p className="text-3xl font-extrabold text-[#006e2f]">Gratuit</p>
                     ) : (
                       <>
-                        <p className="text-3xl font-extrabold text-[#006e2f]">{fmt(formation.price)}</p>
-                        <span className="text-sm font-bold text-[#5c647a]">FCFA</span>
+                        <p className="text-3xl font-extrabold text-[#006e2f]">
+                          {fmtPrix(formation.price)}
+                        </p>
                       </>
                     )}
                   </div>
                   {formation.originalPrice && formation.originalPrice > formation.price && (
-                    <p className="text-sm text-gray-400 line-through">{fmt(formation.originalPrice)} FCFA</p>
+                    <p className="text-sm text-gray-400 line-through">{fmtPrix(formation.originalPrice)}</p>
                   )}
                 </div>
 
@@ -750,7 +757,7 @@ export default function FormationPageClient({ slug }: { slug: string }) {
         <div className="min-w-0 flex-1">
           <p className="text-[11px] text-[#5c647a] leading-none">{formation.isFree ? "" : "Prix"}</p>
           <p className="text-lg font-extrabold text-[#006e2f] leading-tight truncate">
-            {formation.isFree ? "Gratuit" : `${fmt(formation.price)} FCFA`}
+            {formation.isFree ? "Gratuit" : fmtPrix(formation.price)}
           </p>
         </div>
         <button

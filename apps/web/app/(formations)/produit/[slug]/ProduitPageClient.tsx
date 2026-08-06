@@ -44,6 +44,11 @@ import AISupportWidget from "@/components/formations/AISupportWidget";
 import { SaleAvailability } from "@/components/formations/SaleAvailability";
 import { RelatedProducts } from "@/components/formations/RelatedProducts";
 import { BlocContact } from "@/components/formations/BlocContact";
+// Le pays choisi dans l'en-tete doit valoir ICI aussi : afficher « Guinee (GNF) »
+// au-dessus d'un prix en FCFA laisse l'acheteur sans reponse a la seule
+// question qu'il se pose — combien ca lui coute.
+import { useDeviseAffichage } from "@/components/formations/SelecteurDevise";
+import { formaterPrix } from "@/lib/currency/rates";
 import ReviewsCarousel from "@/components/formations/ReviewsCarousel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -138,6 +143,10 @@ function StarRating({ rating, size = 14 }: { rating: number; size?: number }) {
 // ─── Main ──────────────────────────────────────────────────────────────────────
 export default function ProduitPageClient({ slug }: { slug: string }) {
   const router = useRouter();
+  // Devise choisie dans l'en-tete de la boutique. Le prix STOCKE reste en FCFA,
+  // seule sa lecture change.
+  const deviseAffichage = useDeviseAffichage();
+  const fmtPrix = (n: number) => formaterPrix(n, deviseAffichage);
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -403,13 +412,14 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                       <p className="text-3xl font-extrabold text-[#006e2f]">Gratuit</p>
                     ) : (
                       <>
-                        <p className="text-3xl font-extrabold text-[#006e2f]">{fmt(product.price)}</p>
-                        <span className="text-sm font-bold text-[#5c647a]">FCFA</span>
+                        <p className="text-3xl font-extrabold text-[#006e2f]">
+                          {fmtPrix(product.price)}
+                        </p>
                       </>
                     )}
                   </div>
                   {product.originalPrice && product.originalPrice > product.price && (
-                    <p className="text-sm text-gray-400 line-through mt-1">{fmt(product.originalPrice)} FCFA</p>
+                    <p className="text-sm text-gray-400 line-through mt-1">{fmtPrix(product.originalPrice)}</p>
                   )}
                 </div>
 
@@ -681,7 +691,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
           <div className="min-w-0 flex-1">
             <p className="text-[11px] text-[#5c647a] leading-none">{isFree ? "" : "Prix"}</p>
             <p className="text-lg font-extrabold text-[#006e2f] leading-tight truncate">
-              {isFree ? "Gratuit" : `${fmt(product.price)} FCFA`}
+              {isFree ? "Gratuit" : fmtPrix(product.price)}
             </p>
           </div>
           <button
