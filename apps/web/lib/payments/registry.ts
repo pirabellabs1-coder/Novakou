@@ -406,6 +406,13 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     collect: { monetbil: { code: "GA_MOOVMONEY" } },
     payout: {},
   },
+  // Absent de la documentation v2.1 fournie — elle est plus ancienne que le
+  // compte. Code relevé par le fondateur sur sa fiche opérateur Monetbil.
+  airtel_ga: {
+    label: "Airtel Money (Gabon)", country: "ga", currency: "XAF", family: "mobile_money",
+    collect: { monetbil: { code: "GA_AIRTELMONEY" } },
+    payout: {},
+  },
 
   // ───────── Hors zone franc : Guinee, RD Congo, Ouganda, Liberia ─────────
   // Codes releves dans la documentation officielle Monetbil (widget v2.1),

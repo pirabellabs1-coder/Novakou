@@ -48,7 +48,20 @@ export type MonetbilStatus = "success" | "failed" | "pending";
 export function normalizeMonetbilStatus(s: unknown): MonetbilStatus {
   const n = typeof s === "number" ? s : Number.parseInt(String(s ?? ""), 10);
   if (n === 1) return "success";
-  if (n === 0 || Number.isNaN(n)) return "pending";
+  if (n === 0) return "pending";
+
+  // Statut ININTERPRÉTABLE — champ absent, texte au lieu d'un nombre, réponse
+  // d'une forme qu'on n'attendait pas. On reste sur « pending », car annoncer
+  // un échec priverait de son produit un acheteur qui a peut-être payé.
+  //
+  // Mais on le JOURNALISE. Sans cette trace, le cas se confondait avec un vrai
+  // paiement en cours : la page de confirmation tournait jusqu'au délai
+  // d'expiration et rien nulle part n'indiquait pourquoi. Un « pending »
+  // éternel et un « en attente » légitime doivent être distinguables.
+  if (Number.isNaN(n)) {
+    console.error("[monetbil] statut inintelligible, traité en attente :", JSON.stringify(s));
+    return "pending";
+  }
   return "failed";
 }
 
@@ -134,8 +147,21 @@ export async function checkCollectStatus(
   };
   const tx = json.transaction ?? json;
   const brut = tx.amount;
+  const status = normalizeMonetbilStatus(tx.status);
+
+  // Le champ de statut est introuvable : ni `transaction.status`, ni `status`
+  // à la racine. On journalise la réponse ENTIÈRE — c'est la seule façon de
+  // savoir quelle forme Monetbil renvoie réellement, et donc pourquoi la page
+  // de confirmation ne se termine jamais.
+  if (tx.status == null) {
+    console.error(
+      `[monetbil] checkPayment sans champ de statut (ref ${reference}) :`,
+      JSON.stringify(json).slice(0, 800),
+    );
+  }
+
   return {
-    status: normalizeMonetbilStatus(tx.status),
+    status,
     amount: brut == null ? null : Math.round(Number(brut)),
     raw: json,
   };
