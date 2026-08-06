@@ -1,3 +1,4 @@
+import type { CodeDevise } from "@/lib/currency/rates";
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import { decryptCredentials, encryptCredentials, maskSecret } from "@/lib/crypto/secret-box";
@@ -244,7 +245,7 @@ export type PaymentOption = {
   code: string;
   label: string;
   family: "mobile_money" | "card";
-  currency: "XOF" | "XAF";
+  currency: CodeDevise;
   country: string;
   /** Fournisseur qui traitera ce moyen (le plus prioritaire disponible). */
   provider: ProviderId;

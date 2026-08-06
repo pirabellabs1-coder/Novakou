@@ -8,6 +8,7 @@ import {
   montantAFacturer,
   montantVersFcfa,
 } from "@/lib/currency/rates";
+import { OPERATORS } from "@/lib/payments/registry";
 
 test("l'acheteur est débité exactement du montant qu'il a lu", () => {
   // Affichage et encaissement doivent partager le MÊME calcul, sinon le prix
@@ -142,6 +143,26 @@ test("les deux unions monétaires sont listées en entier", () => {
 test("aucun pays n'est proposé deux fois", () => {
   const codes = PAYS_AFFICHAGE.map((p) => p.code);
   expect(new Set(codes).size).toBe(codes.length);
+});
+
+test("la devise du registre et celle de l'affichage ne divergent jamais", () => {
+  // Deux tables de devises finiraient par se contredire, et l'ecart se paierait
+  // en montants debites faux. Le registre decide de ce qu'on facture, le
+  // selecteur de ce qu'on affiche : les deux doivent dire la meme chose.
+  for (const [cle, op] of Object.entries(OPERATORS)) {
+    if (!op.country || op.family === "card") continue;
+    const attendue = deviseDuPays(op.country).code;
+    expect(op.currency, `${cle} (${op.country})`).toBe(attendue);
+  }
+});
+
+test("tout opérateur encaissable a une devise convertible", () => {
+  // Un operateur dont la devise n'est pas dans la table ferait echouer la vente
+  // au moment du paiement — mieux vaut le savoir ici qu'en production.
+  for (const [cle, op] of Object.entries(OPERATORS)) {
+    if (Object.keys(op.collect).length === 0) continue;
+    expect(() => montantAFacturer(5000, op.currency), `${cle}`).not.toThrow();
+  }
 });
 
 test("le prix affiché reste lisible", () => {

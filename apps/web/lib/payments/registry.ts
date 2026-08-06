@@ -25,6 +25,11 @@
 // On ne devine JAMAIS un routage : un code inventé envoie l'argent sur le
 // mauvais réseau ou casse la transaction.
 
+// La devise d'un opérateur vient du même endroit que celle de l'affichage :
+// deux tables distinctes finiraient par diverger, et l'écart se paierait en
+// montants débités faux.
+import type { CodeDevise } from "@/lib/currency/rates";
+
 export type PaymentDirection = "collect" | "payout";
 
 /** Identifiant de passerelle. Ouvert : toute intégration s'ajoute sans toucher au type. */
@@ -127,7 +132,7 @@ export type OperatorEntry = {
   label: string;
   /** Pays ISO-2 minuscule. Vide pour la carte (rattachée à une devise). */
   country: string;
-  currency: "XOF" | "XAF";
+  currency: CodeDevise;
   family: "mobile_money" | "card";
   /** providerId → route d'ENCAISSEMENT. Vide = personne n'encaisse. */
   collect: Record<ProviderId, ProviderRoute>;
@@ -384,25 +389,55 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     payout: {},
   },
 
-  // Guinee (GNF), RD Congo (CDF), Ouganda (UGX) et Liberia (LRD) sont servis
-  // par Monetbil mais PAS declares ici. Les codes sont connus et verifies dans
-  // leur documentation officielle (widget v2.1), ils n'ont pas a etre redevines :
+  // ───────── Hors zone franc : Guinee, RD Congo, Ouganda, Liberia ─────────
+  // Codes releves dans la documentation officielle Monetbil (widget v2.1),
+  // jamais deduits d'un motif : c'est le code qui decide sur quel reseau part
+  // l'argent, une lettre de travers et le paiement echoue ou part ailleurs.
   //
-  //   GN_MTNMOBILEMONEY, GN_ORANGEMONEY                  → GNF
-  //   CD_ORANGEMONEY, CD_AIRTELMONEY, CD_AFRICELL        → CDF
-  //   UG_AIRTELMONEY, UG_MTNMOBILEMONEY  (mini 500)      → UGX
-  //   LR_MTNMOBILEMONEY                                  → LRD
-  //
-  // ⚠️ CE QUI BLOQUE N'EST PAS LE TYPE DE DEVISE, C'EST LE MONTANT.
-  // Nos prix sont stockes en FCFA et transmis tels quels a la passerelle. Or
-  // Monetbil facture dans la devise de l'operateur : un produit a 5 000 FCFA
-  // envoye sur GN_MTNMOBILEMONEY debiterait 5 000 GNF, soit environ 340 FCFA.
-  // On encaisserait quatorze fois moins que le prix affiche, sans la moindre
-  // erreur visible — la vente serait « reussie ».
-  //
-  // Declarer ces operateurs EXIGE donc au prealable la conversion du montant
-  // au moment du paiement. Tant qu'elle n'existe pas, ouvrir ces pays revient
-  // a offrir les produits.
+  // Ces pays ne facturent PAS en FCFA. Ils n'ont pu etre ouverts qu'une fois
+  // la conversion faite au moment du paiement (`montantAFacturer`) : jusque-la
+  // un produit a 5 000 FCFA vendu en Guinee aurait debite 5 000 GNF, soit
+  // environ 340 FCFA — quatorze fois moins, sans la moindre erreur visible.
+  mtn_gn: {
+    label: "MTN Mobile Money (Guinée)", country: "gn", currency: "GNF", family: "mobile_money",
+    collect: { monetbil: { code: "GN_MTNMOBILEMONEY" } },
+    payout: {},
+  },
+  orange_gn: {
+    label: "Orange Money (Guinée)", country: "gn", currency: "GNF", family: "mobile_money",
+    collect: { monetbil: { code: "GN_ORANGEMONEY" } },
+    payout: {},
+  },
+  orange_cd: {
+    label: "Orange Money (RD Congo)", country: "cd", currency: "CDF", family: "mobile_money",
+    collect: { monetbil: { code: "CD_ORANGEMONEY" } },
+    payout: {},
+  },
+  airtel_cd: {
+    label: "Airtel Money (RD Congo)", country: "cd", currency: "CDF", family: "mobile_money",
+    collect: { monetbil: { code: "CD_AIRTELMONEY" } },
+    payout: {},
+  },
+  africell_cd: {
+    label: "Africell Money (RD Congo)", country: "cd", currency: "CDF", family: "mobile_money",
+    collect: { monetbil: { code: "CD_AFRICELL" } },
+    payout: {},
+  },
+  airtel_ug: {
+    label: "Airtel Money (Ouganda)", country: "ug", currency: "UGX", family: "mobile_money",
+    collect: { monetbil: { code: "UG_AIRTELMONEY" } },
+    payout: {},
+  },
+  mtn_ug: {
+    label: "MTN Mobile Money (Ouganda)", country: "ug", currency: "UGX", family: "mobile_money",
+    collect: { monetbil: { code: "UG_MTNMOBILEMONEY" } },
+    payout: {},
+  },
+  mtn_lr: {
+    label: "Lonestar Cell MTN (Liberia)", country: "lr", currency: "LRD", family: "mobile_money",
+    collect: { monetbil: { code: "LR_MTNMOBILEMONEY" } },
+    payout: {},
+  },
 
   // ─────────────────────── Cartes bancaires ───────────────────────
   card_xof: {
@@ -471,7 +506,7 @@ export function isSupported(operatorCode: string, direction: PaymentDirection): 
 /** Opérateurs filtrables par direction / devise / pays — pour construire les UI. */
 export function listOperators(opts: {
   direction: PaymentDirection;
-  currency?: "XOF" | "XAF";
+  currency?: CodeDevise;
   country?: string;
   family?: OperatorEntry["family"];
 }): Array<{ code: string } & OperatorEntry> {
@@ -534,7 +569,7 @@ const GENERIC_FAMILY: Record<string, string> = {
  * Devise d'un pays, déduite de ses opérateurs déclarés. Null si le pays est
  * inconnu du registre.
  */
-export function currencyForCountry(country: string | null | undefined): "XOF" | "XAF" | null {
+export function currencyForCountry(country: string | null | undefined): CodeDevise | null {
   const c = (country ?? "").trim().toLowerCase();
   if (!c) return null;
   for (const op of Object.values(OPERATORS)) {
@@ -544,7 +579,7 @@ export function currencyForCountry(country: string | null | undefined): "XOF" | 
 }
 
 /** Devise à facturer pour un opérateur donné (le Congo est en XAF, pas XOF). */
-export function currencyForOperator(code: string | null | undefined): "XOF" | "XAF" | null {
+export function currencyForOperator(code: string | null | undefined): CodeDevise | null {
   return getOperator(code)?.currency ?? null;
 }
 
@@ -570,7 +605,7 @@ export function countryFromPhone(phone: string | null | undefined): string | nul
  */
 export function resolveOperatorCode(
   raw: string | null | undefined,
-  opts: { country?: string | null; phone?: string | null; currency?: "XOF" | "XAF" } = {},
+  opts: { country?: string | null; phone?: string | null; currency?: CodeDevise } = {},
 ): string | null {
   const code = (raw ?? "").trim().toLowerCase();
   if (!code) return null;
