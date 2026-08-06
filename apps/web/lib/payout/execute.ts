@@ -19,6 +19,7 @@
 // (renvoie une référence). L'identifiant de retrait interne sert de clé
 // l'id du retrait, ce qui protège les ré-essais du MÊME fournisseur.
 
+import { routeFor } from "@/lib/payments/registry";
 import {
   initPayout as feexpayInit, isFeexpayConfigured, classifyFeexpayError, normalizeFeexpayStatus,
 } from "@/lib/feexpay";
@@ -27,7 +28,7 @@ import {
 } from "@/lib/fedapay";
 import { getPayoutMapping, baseMethodCode } from "@/lib/payout/methods-map";
 
-export type PayoutProviderId = "feexpay" | "fedapay";
+export type PayoutProviderId = "feexpay" | "fedapay" | "pawapay";
 
 /** Ordre de tentative : le premier configuré ET capable emporte le versement. */
 /**
@@ -38,7 +39,10 @@ export type PayoutProviderId = "feexpay" | "fedapay";
  * opérateur : ici, les deux passerelles servent les mêmes réseaux, c'est donc
  * la fiabilité constatée qui tranche.
  */
-const PROVIDER_ORDER: PayoutProviderId[] = ["fedapay", "feexpay"];
+// PawaPay en DERNIER : aucun versement reel ne l'a encore eprouve. Il ne prend
+// donc la main que la ou les deux autres ne savent pas faire — c'est-a-dire
+// partout hors zone franc, ou il est de toute facon le seul.
+const PROVIDER_ORDER: PayoutProviderId[] = ["fedapay", "feexpay", "pawapay"];
 
 export type PayoutExecutionInput = {
   /** Code opérateur interne (le suffixe _mentor est toléré). */
@@ -114,6 +118,46 @@ const ADAPTATEURS: Record<PayoutProviderId, AdaptateurVersement> = {
         merchantReference: input.withdrawalId,
       });
       return { ref: String(r.id), statut: normalizeFedapayStatus(r.status), brut: String(r.status) };
+    },
+  },
+  pawapay: {
+    libelle: "PawaPay",
+    configure: async () => (await import("@/lib/pawapay")).isPawapayConfigured(),
+    // La route vient du REGISTRE, pas de la table des methodes : dupliquer les
+    // codes dans deux tables les ferait diverger, et l'ecart se paierait en
+    // virements partis sur le mauvais reseau.
+    route: (m) => {
+      const code = (m as { code?: string }).code;
+      if (!code) return null;
+      const r = routeFor(code, "pawapay", "payout");
+      return r ? { provider: r.code, code } : null;
+    },
+    classer: (msg: string) => ({
+      category: "provider_failed" as const,
+      userMessage: `PawaPay : ${msg}`,
+    }),
+    envoyer: async ({ input, route, motif }) => {
+      const { provider, code } = route as { provider: string; code: string };
+      const { initPayout } = await import("@/lib/pawapay");
+      // MEME conversion qu'a l'encaissement. L'enjeu est plus grand ici :
+      // envoyer un montant FCFA brut a un vendeur ougandais lui verserait
+      // 5 000 UGX au lieu de ~32 000, avec un virement marque reussi.
+      const { montantAFacturer } = await import("@/lib/currency/rates");
+      const { chargerTaux } = await import("@/lib/currency/taux-store");
+      await chargerTaux();
+      const { currencyForOperator } = await import("@/lib/payments/registry");
+      const aVerser = montantAFacturer(Math.round(input.amount), currencyForOperator(code));
+      const r = await initPayout({
+        provider,
+        amount: aVerser.montant,
+        currency: aVerser.devise,
+        phoneNumber: input.msisdn.replace(/\D/g, ""),
+        payoutRef: input.withdrawalId,
+        customerMessage: motif.slice(0, 22),
+      });
+      if (!r.accepted) throw new Error(r.reason ?? "versement refuse");
+      // PawaPay accepte puis confirme par rappel : « pending » est le bon etat.
+      return { ref: r.reference, statut: "pending" as const, brut: "ACCEPTED" };
     },
   },
   feexpay: {
@@ -204,7 +248,12 @@ export async function executePayout(input: PayoutExecutionInput): Promise<Payout
     // 2) Capable de servir CET opérateur ? Le registre seul en décide : sans
     //    route confirmée, on saute — on n'invente jamais un endpoint. C'est ce
     //    qui envoie directement un opérateur au fournisseur qui le sert.
-    const route = mapping ? adaptateur.route(mapping) : null;
+    // On transmet TOUJOURS le code interne de l'operateur, meme sans entree
+    // dans la table des methodes. Sans ca, PawaPay etait saute pour les neuf
+    // pays hors zone franc : ils n'ont aucune entree dans cette table, qui n'a
+    // jamais servi qu'a FedaPay et FeexPay. Les deux autres continuent de
+    // renvoyer null quand leur cle manque — leur comportement ne change pas.
+    const route = adaptateur.route({ ...(mapping ?? {}), code: method } as never);
     if (!route) {
       attempts.push({ provider, outcome: "skipped", detail: "opérateur non servi par cette passerelle" });
       continue;
