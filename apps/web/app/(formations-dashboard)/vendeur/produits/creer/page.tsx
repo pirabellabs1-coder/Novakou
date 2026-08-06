@@ -334,6 +334,55 @@ export default function CreerProduitPage() {
     },
   });
 
+  /**
+   * ENREGISTREMENT AUTOMATIQUE EN BROUILLON QUAND LE VENDEUR PART.
+   *
+   * Le formulaire sauvegardait deja dans le navigateur, mais cette copie est
+   * liee a l'appareil : invisible depuis « Mes produits », perdue au changement
+   * de telephone ou quand Android tue l'onglet. Un vendeur a signale avoir cru
+   * perdre ses e-books pour cette raison — son travail existait, il ne pouvait
+   * simplement pas le retrouver.
+   *
+   * On enregistre donc EN BASE au moment ou il quitte. `visibilitychange` et
+   * non `beforeunload` : sur mobile, un onglet bascule en arriere-plan et est
+   * tue sans jamais declencher beforeunload.
+   *
+   * `keepalive` permet a la requete d'aboutir alors que la page se ferme.
+   */
+  const dejaEnregistre = useRef(false);
+  useEffect(() => {
+    const sauver = () => {
+      if (dejaEnregistre.current) return;
+      if (document.visibilityState !== "hidden") return;
+      // Un titre suffit : sans lui, il n'y a rien a retrouver dans la liste.
+      if (!title.trim() || !selected?.kind) return;
+      dejaEnregistre.current = true;
+      try {
+        fetch("/api/formations/vendeur/products/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          keepalive: true,
+          body: JSON.stringify({
+            kind: selected.kind,
+            productType: selected.productType,
+            title, shortDesc, description, category,
+            thumbnail: thumbnail || null,
+            banner: banner || null,
+            price: isFree ? 0 : price,
+            isFree,
+            publish: false,
+            files: isFormation ? undefined : files,
+          }),
+        });
+      } catch {
+        // La copie navigateur reste : on n'a rien aggrave.
+      }
+    };
+    document.addEventListener("visibilitychange", sauver);
+    return () => document.removeEventListener("visibilitychange", sauver);
+  }, [title, shortDesc, description, category, thumbnail, banner, price, isFree, selected, isFormation, files]);
+
+
   // ─── Validation par champ (pour les checkmarks inline + tooltip raisons) ─
   const titleValid = title.trim().length > 0;
   const categoryValid = category.length > 0;
@@ -1673,15 +1722,34 @@ export default function CreerProduitPage() {
             )}
 
             {step < lastStep ? (
-              <button
-                onClick={goNext}
-                disabled={!canProceed}
-                title={!canProceed ? missingReason : "Continuer vers l'étape suivante"}
-                className="inline-flex items-center gap-2 px-6 md:px-7 py-3 rounded-xl bg-emerald-500 text-white text-sm font-bold shadow-md hover:bg-emerald-600 hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-              >
-                Continuer
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              <>
+                {/* « Brouillon » des la premiere etape, pas seulement a la fin.
+                    Un vendeur bloque en cours de route n'atteint jamais le
+                    dernier ecran : c'est precisement lui qui a besoin de
+                    sauvegarder. Il suffit d'un titre. */}
+                {title.trim() && selected?.kind && (
+                  <button
+                    onClick={() => createMutation.mutate(false)}
+                    disabled={createMutation.isPending}
+                    title="Enregistrer en brouillon et continuer plus tard"
+                    className="inline-flex items-center gap-2 px-4 py-3 rounded-xl border-2 border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 transition-all"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span className="hidden sm:inline">
+                      {createMutation.isPending ? "Enregistrement…" : "Brouillon"}
+                    </span>
+                  </button>
+                )}
+                <button
+                  onClick={goNext}
+                  disabled={!canProceed}
+                  title={!canProceed ? missingReason : "Continuer vers l'étape suivante"}
+                  className="inline-flex items-center gap-2 px-6 md:px-7 py-3 rounded-xl bg-emerald-500 text-white text-sm font-bold shadow-md hover:bg-emerald-600 hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  Continuer
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </>
             ) : (
               <>
                 <button

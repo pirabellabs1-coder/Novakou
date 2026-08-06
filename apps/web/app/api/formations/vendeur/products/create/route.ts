@@ -94,9 +94,12 @@ export async function POST(request: Request) {
       ? Math.max(40, Math.min(90, Number.isFinite(affPctRaw) ? Math.round(affPctRaw) : 40))
       : null;
 
-    if (!kind || !title || price === undefined || price === null) {
+    // Un BROUILLON n'exige qu'un titre : c'est le minimum pour le retrouver
+    // dans sa liste. Tout le reste peut etre complete plus tard — c'est le
+    // propre d'un brouillon.
+    if (!kind || !title || (publish && (price === undefined || price === null))) {
       return NextResponse.json(
-        { error: "kind, title et price sont requis" },
+        { error: publish ? "kind, title et price sont requis" : "Un titre est requis pour enregistrer un brouillon." },
         { status: 400 }
       );
     }
@@ -110,7 +113,7 @@ export async function POST(request: Request) {
       );
     }
     const isFreeFlag = priceNum === 0;
-    if (!isFreeFlag && priceNum <= 0) {
+    if (publish && !isFreeFlag && priceNum <= 0) {
       return NextResponse.json(
         { error: "Le prix doit être strictement supérieur à 0 pour un produit payant." },
         { status: 400 }
@@ -122,13 +125,22 @@ export async function POST(request: Request) {
     // juge en trois secondes, et le vendeur ne voit pas le problème parce que
     // sur SON écran ça passe. On refuse à la source plutôt que de laisser une
     // fiche bâclée représenter la plateforme.
-    const problemes = await verifierFiche({
-      titre: title,
-      description,
-      prix: priceNum,
-      vignetteUrl: thumbnail,
-      banniereUrl: banner,
-    });
+    // Les controles de PUBLICATION ne s'appliquent qu'a une publication.
+    //
+    // Un vendeur signalait avoir perdu ses e-books : son image etait refusee,
+    // donc rien n'etait cree, donc rien n'apparaissait dans « Brouillons ».
+    // Il croyait son travail perdu. C'est la validation qui doit empecher la
+    // MISE EN LIGNE, jamais l'enregistrement — sinon on punit exactement celui
+    // qui prend le temps de bien faire.
+    const problemes = publish
+      ? await verifierFiche({
+          titre: title,
+          description,
+          prix: priceNum,
+          vignetteUrl: thumbnail,
+          banniereUrl: banner,
+        })
+      : [];
     if (problemes.length > 0) {
       return NextResponse.json(
         {
