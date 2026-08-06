@@ -1034,6 +1034,27 @@ model VendorShop {
   aboutText    String? @db.Text // texte « À propos » personnalisé (optionnel)
   font         String? // police d'écriture de la boutique (voir lib/shop-fonts)
 
+  // ── Identité PUBLIQUE de la boutique ────────────────────────────────────
+  // Distincts des champs légaux ci-dessus : ceux-là s'affichent sur la vitrine
+  // et servent à joindre le vendeur. Un e-mail légal (facturation, mentions)
+  // n'est pas forcément celui qu'on veut donner à un acheteur.
+  //
+  // Ils remplacent le profil PERSONNEL du vendeur : le site ne met plus en
+  // avant une personne mais une boutique — un vendeur peut en tenir plusieurs,
+  // chacune avec sa propre identité.
+  contactEmail    String?
+  whatsapp        String? // numéro complet, indicatif compris
+  websiteUrl      String?
+  socialFacebook  String?
+  socialInstagram String?
+  socialLinkedin  String?
+  socialYoutube   String?
+
+  // Nombre de ventes visible sur la vitrine. FAUX par défaut : « 0 vente »
+  // sous un produit décourage l'achat bien plus qu'un chiffre élevé ne le
+  // motive. Le vendeur choisit de l'exposer, il ne le subit pas.
+  showSalesCount  Boolean @default(false)
+
   instructeur InstructeurProfile @relation("InstructeurShops", fields: [instructeurId], references: [id], onDelete: Cascade)
   formations  Formation[]        @relation("ShopFormations")
   products    DigitalProduct[]   @relation("ShopProducts")

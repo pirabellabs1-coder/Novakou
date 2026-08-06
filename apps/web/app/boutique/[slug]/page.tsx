@@ -80,6 +80,16 @@ const resolve = cache(async (slugParam: string) => {
         font: true,
         customDomain: true,
         customDomainVerified: true,
+        // Identite PUBLIQUE de la boutique : elle remplace le profil personnel
+        // du vendeur. Le site met en avant une boutique, pas une personne.
+        showSalesCount: true,
+        contactEmail: true,
+        whatsapp: true,
+        websiteUrl: true,
+        socialFacebook: true,
+        socialInstagram: true,
+        socialLinkedin: true,
+        socialYoutube: true,
         instructeur: {
           select: {
             id: true,
@@ -201,6 +211,7 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
         }}
       />
       <BoutiqueView
+        afficherVentes={shop.showSalesCount}
       instructeurId={shop.instructeur?.id}
       shopSlug={shop.slug}
       font={shop.font}
