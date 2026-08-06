@@ -471,6 +471,12 @@ IMPORTANT :
             type="button"
             onClick={(e) => { e.stopPropagation(); setTextColorOpen((s) => !s); setHighlightOpen(false); }}
             title="Couleur du texte"
+            /* Sans ceci, le mousedown deplace le focus HORS de l'editeur et la
+               selection se replie sur un simple curseur. focus() rend ensuite
+               le focus, mais la phrase selectionnee est deja perdue : la
+               couleur s'applique a rien et l'utilisateur voit « ca ne marche
+               pas ». preventDefault garde la selection intacte. */
+            onMouseDown={(e) => e.preventDefault()}
             className="p-2 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-colors flex items-center gap-0.5"
           >
             <span className="material-symbols-outlined text-[18px]">format_color_text</span>
@@ -479,6 +485,8 @@ IMPORTANT :
           {textColorOpen && (
             <div
               onClick={(e) => e.stopPropagation()}
+              /* Meme raison, pour toutes les pastilles du panneau d'un coup. */
+              onMouseDown={(e) => e.preventDefault()}
               className="absolute top-full left-0 mt-1 z-50 bg-white border border-zinc-200 shadow-lg p-2 w-48"
             >
               <div className="grid grid-cols-4 gap-1">
@@ -516,6 +524,12 @@ IMPORTANT :
             type="button"
             onClick={(e) => { e.stopPropagation(); setHighlightOpen((s) => !s); setTextColorOpen(false); }}
             title="Surligner"
+            /* Sans ceci, le mousedown deplace le focus HORS de l'editeur et la
+               selection se replie sur un simple curseur. focus() rend ensuite
+               le focus, mais la phrase selectionnee est deja perdue : la
+               couleur s'applique a rien et l'utilisateur voit « ca ne marche
+               pas ». preventDefault garde la selection intacte. */
+            onMouseDown={(e) => e.preventDefault()}
             className="p-2 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-colors flex items-center gap-0.5"
           >
             <span className="material-symbols-outlined text-[18px]">format_ink_highlighter</span>
@@ -524,6 +538,8 @@ IMPORTANT :
           {highlightOpen && (
             <div
               onClick={(e) => e.stopPropagation()}
+              /* Meme raison, pour toutes les pastilles du panneau d'un coup. */
+              onMouseDown={(e) => e.preventDefault()}
               className="absolute top-full left-0 mt-1 z-50 bg-white border border-zinc-200 shadow-lg p-2 w-44"
             >
               <div className="grid grid-cols-3 gap-1">
