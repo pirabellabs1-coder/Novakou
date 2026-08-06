@@ -703,6 +703,55 @@ export async function POST(request: Request) {
             gatewayCurrency: aFacturer.devise,
           };
           directRef = r.reference;
+        } else if (candidate.provider === "pawapay") {
+          if (!phoneRaw) {
+            await failAttempt("Numéro de téléphone manquant", "missing_phone");
+            return NextResponse.json(
+              { error: "Un numéro de téléphone est requis pour ce moyen de paiement." },
+              { status: 400 },
+            );
+          }
+          // Même piège que Monetbil : PawaPay facture dans la devise de
+          // l'opérateur. Envoyer nos FCFA bruts débiterait 5 000 UGX au lieu de
+          // ~31 000 — la vente serait « réussie » et l'écart sortirait de notre
+          // poche, sans la moindre erreur visible.
+          let aFacturer: { montant: number; devise: string };
+          try {
+            aFacturer = montantAFacturer(Math.round(totalAmount), currencyForOperator(chosenOperator));
+          } catch (err) {
+            await failAttempt(
+              err instanceof Error ? err.message : "Devise d'encaissement indéterminable",
+              "currency_unresolved",
+            );
+            return NextResponse.json(
+              { error: "Ce moyen de paiement est momentanément indisponible." },
+              { status: 503 },
+            );
+          }
+          const { initCollect } = await import("@/lib/pawapay");
+          const r = await initCollect({
+            // Code natif PawaPay (« MTN_MOMO_BEN »…), pris au registre.
+            provider: candidate.code,
+            amount: aFacturer.montant,
+            currency: aFacturer.devise,
+            phoneNumber: phoneRaw.replace(/\D/g, ""),
+            paymentRef: internalRef,
+            // Vu par l'acheteur sur son téléphone — 22 caractères maximum chez eux.
+            customerMessage: "Novakou",
+          });
+          if (!r.accepted) {
+            await failAttempt(r.reason ?? "Paiement refusé par la passerelle", "provider_rejected");
+            return NextResponse.json(
+              { error: r.reason ?? "Ce paiement a été refusé. Vérifiez votre numéro." },
+              { status: 400 },
+            );
+          }
+          providerMetadata = {
+            ...providerMetadata,
+            gatewayAmount: aFacturer.montant,
+            gatewayCurrency: aFacturer.devise,
+          };
+          directRef = r.reference;
         } else if (candidate.provider === "ipaymoney") {
           const { initCollect } = await import("@/lib/ipaymoney");
           const r = await initCollect({
