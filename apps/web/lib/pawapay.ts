@@ -81,6 +81,8 @@ export type PawapayOperateur = {
   pays: string;
   /** Devise dans laquelle CET opérateur facture. */
   devise: string;
+  /** Logo officiel héberg é par PawaPay, s'ils en fournissent un. */
+  logo?: string;
 };
 
 /**
@@ -95,6 +97,7 @@ export async function activeConfiguration(): Promise<PawapayOperateur[]> {
       country?: string;
       providers?: Array<{
         provider?: string;
+        logo?: string;
         currencies?: Array<{ currency?: string }>;
       }>;
     }>;
@@ -105,7 +108,7 @@ export async function activeConfiguration(): Promise<PawapayOperateur[]> {
     for (const op of p.providers ?? []) {
       const devise = op.currencies?.[0]?.currency;
       if (p.country && op.provider && devise) {
-        out.push({ provider: op.provider, pays: p.country, devise });
+        out.push({ provider: op.provider, pays: p.country, devise, logo: op.logo });
       }
     }
   }

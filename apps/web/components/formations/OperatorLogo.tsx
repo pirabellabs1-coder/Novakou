@@ -1,4 +1,11 @@
-// Pastilles d'opérateurs pour l'écran de paiement.
+"use client";
+
+// Logos d'opérateurs pour l'écran de paiement.
+//
+// On tente d'abord le LOGO OFFICIEL, servi depuis notre domaine (voir
+// /api/operateurs/logo). S'il n'existe pas ou ne charge pas, on retombe sur la
+// pastille dessinée ci-dessous — un repli discret plutôt qu'une image cassée
+// au moment precis ou l'acheteur decide de payer.
 //
 // Dessinées en SVG inline, aux couleurs officielles de chaque marque, sans
 // reproduire de logo protégé : on reste reconnaissable sans copier l'oeuvre
@@ -7,6 +14,8 @@
 //
 // Un opérateur inconnu retombe sur une pastille neutre plutôt que sur un trou
 // visuel — ajouter un moyen au registre ne doit jamais casser l'affichage.
+
+import { useState } from "react";
 
 type Props = { code: string; size?: number };
 
@@ -53,7 +62,26 @@ function CardMark({ size }: { size: number }) {
 }
 
 export function OperatorLogo({ code, size = 34 }: Props) {
+  // La carte n'a pas de logo d'operateur : sa marque universelle vaut mieux
+  // qu'un logo de banque particuliere.
+  const [logoKo, setLogoKo] = useState(false);
   if (code.startsWith("card_")) return <CardMark size={size} />;
+
+  if (!logoKo) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={`/api/operateurs/logo/${encodeURIComponent(code)}`}
+        alt=""
+        width={size}
+        height={size}
+        loading="lazy"
+        onError={() => setLogoKo(true)}
+        className="rounded-[8px] object-contain bg-white flex-shrink-0"
+        style={{ width: size, height: size }}
+      />
+    );
+  }
 
   const brand = BRANDS.find((b) => b.match.test(code));
   const bg = brand?.bg ?? "#E7EBEF";
