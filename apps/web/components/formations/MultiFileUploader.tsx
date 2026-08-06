@@ -69,18 +69,24 @@ export function MultiFileUploader({
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** Message NON bloquant : l'envoi est tenté quand même. */
+  const [avertissement, setAvertissement] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
 
   const acceptAttr = accept ?? DEFAULT_ACCEPT_BY_TYPE[productType] ?? DEFAULT_ACCEPT_BY_TYPE.AUTRE;
   const hint = HINT_BY_TYPE[productType] ?? HINT_BY_TYPE.AUTRE;
 
   const uploadOne = useCallback(async (file: File): Promise<ProductFile | null> => {
-    const form = new FormData();
-    form.append("file", file);
-    form.append("bucket", "order-deliveries");
-
-    // Retry sur 502/503/504 (cold start Vercel) — 3 tentatives max
+    // Retry sur 502/503/504 (cold start Vercel) — 3 tentatives max.
     const attempt = async (n: number): Promise<Response> => {
+      // Le FormData est reconstruit A CHAQUE tentative. Le reutiliser echouait
+      // silencieusement : un corps de requete deja consomme ne peut pas etre
+      // renvoye, donc la reprise partait vide ou cassait — precisement sur les
+      // reseaux mobiles instables, la ou elle sert le plus.
+      const form = new FormData();
+      form.append("file", file);
+      form.append("bucket", "order-deliveries");
+
       const ctrl = new AbortController();
       const tid = setTimeout(() => ctrl.abort(), 90_000);
       try {
@@ -107,6 +113,15 @@ export function MultiFileUploader({
       setError("Session expirée. Reconnectez-vous puis réessayez.");
       return null;
     }
+    // 413 : le serveur a coupé avant de lire le fichier. Le message par défaut
+    // ne dirait rien d'exploitable a un vendeur.
+    if (res.status === 413) {
+      setError(
+        `« ${file.name} » est trop lourd pour être envoyé (${(file.size / 1048576).toFixed(1)} Mo). ` +
+          "Compressez-le ou découpez-le en plusieurs fichiers.",
+      );
+      return null;
+    }
 
     let data: { success?: boolean; file?: { url?: string; path?: string }; error?: string } | null = null;
     try { data = await res.json(); } catch {
@@ -129,7 +144,25 @@ export function MultiFileUploader({
   const handleFiles = useCallback(
     async (fileList: FileList | File[]) => {
       setError(null);
+      setAvertissement(null);
       const incoming = Array.from(fileList);
+
+      // AVERTIR AVANT QUE L'ONGLET NE MEURE.
+      // Sur un telephone modeste, Android tue l'onglet en cours d'envoi et
+      // affiche « Memoire insuffisante » — un message systeme qui ne vient pas
+      // de nous et n'explique rien au vendeur. Il croit que la plateforme
+      // refuse son fichier alors que c'est son appareil qui cede.
+      // navigator.deviceMemory renvoie la RAM en Go (Chrome/Android ; absent
+      // ailleurs, on ne previent alors pas plutot que d'alarmer a tort).
+      const ramGo = (navigator as { deviceMemory?: number }).deviceMemory;
+      const plusLourd = Math.max(...incoming.map((f) => f.size), 0);
+      if (typeof ramGo === "number" && ramGo <= 4 && plusLourd > 8 * 1048576) {
+        setAvertissement(
+          `Fichier volumineux (${(plusLourd / 1048576).toFixed(0)} Mo) sur un appareil à mémoire limitée. ` +
+            "Si l'envoi s'interrompt, fermez vos autres applications et onglets, " +
+            "ou faites-le depuis un ordinateur.",
+        );
+      }
       if (value.length + incoming.length > maxFiles) {
         setError(`Maximum ${maxFiles} fichiers autorisés.`);
         return;
@@ -315,6 +348,13 @@ export function MultiFileUploader({
 
       {error && (
         <p className="text-[10px] text-[#ba1a1a] font-bold uppercase tracking-widest">{error}</p>
+      )}
+      {/* Avertissement NON bloquant : l'envoi est tenté quand même. En ambre et
+          non en rouge — ce n'est pas un refus, c'est une mise en garde. */}
+      {avertissement && (
+        <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2">
+          {avertissement}
+        </p>
       )}
     </div>
   );
