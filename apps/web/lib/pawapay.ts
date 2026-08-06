@@ -207,3 +207,87 @@ export async function checkCollectStatus(
       return { status: "pending", amount: montant, currency: rep.data.currency ?? null };
   }
 }
+
+// ─── Versement (décaissement vers un vendeur) ──────────────────────────────
+//
+// Contrat relevé dans leur documentation : POST /v2/payouts, symétrique du
+// dépôt. `GET /v2/payouts/{payoutId}` en donne l'état.
+
+/**
+ * Envoie de l'argent vers un compte Mobile Money.
+ *
+ * @param amount DÉJÀ converti dans `currency` par `montantAFacturer()`.
+ *               Ici l'erreur est PIRE qu'à l'encaissement : envoyer un montant
+ *               FCFA brut à un vendeur ougandais lui verserait 5 000 UGX au
+ *               lieu de ~32 000 — on le paierait six fois moins que son dû, et
+ *               le virement serait pourtant marqué réussi.
+ */
+export async function initPayout(params: {
+  provider: string;
+  amount: number;
+  currency: string;
+  phoneNumber: string;
+  /** Notre référence interne, pour recoller le versement. */
+  payoutRef: string;
+  customerMessage?: string;
+}): Promise<{ reference: string; accepted: boolean; reason?: string }> {
+  const payoutId = crypto.randomUUID();
+
+  type Rep = {
+    payoutId?: string;
+    status?: "ACCEPTED" | "REJECTED" | "DUPLICATE_IGNORED";
+    failureReason?: { failureCode?: string; failureMessage?: string };
+  };
+
+  const rep = await appel<Rep>("/v2/payouts", {
+    method: "POST",
+    body: JSON.stringify({
+      payoutId,
+      recipient: {
+        type: "MMO",
+        accountDetails: { phoneNumber: params.phoneNumber, provider: params.provider },
+      },
+      amount: String(Math.round(params.amount)),
+      currency: params.currency,
+      clientReferenceId: params.payoutRef,
+      ...(params.customerMessage
+        ? { customerMessage: params.customerMessage.slice(0, 22) }
+        : {}),
+    }),
+  });
+
+  const accepted = rep.status === "ACCEPTED" || rep.status === "DUPLICATE_IGNORED";
+  return {
+    reference: rep.payoutId ?? payoutId,
+    accepted,
+    reason: accepted ? undefined : rep.failureReason?.failureMessage ?? rep.status,
+  };
+}
+
+/**
+ * État réel d'un versement. Mêmes précautions qu'à l'encaissement :
+ * NOT_FOUND et IN_RECONCILIATION ne valent pas échec — conclure trop vite
+ * ferait rejouer un virement déjà parti.
+ */
+export async function checkPayoutStatus(
+  reference: string,
+): Promise<{ status: PawapayStatut; amount: number | null; currency: string | null }> {
+  type Rep = {
+    status?: "FOUND" | "NOT_FOUND";
+    data?: { status?: string; amount?: string; currency?: string };
+  };
+  const rep = await appel<Rep>(`/v2/payouts/${encodeURIComponent(reference)}`);
+  if (rep.status !== "FOUND" || !rep.data) {
+    return { status: "pending", amount: null, currency: null };
+  }
+  const brut = rep.data.amount == null ? null : Number(rep.data.amount);
+  const montant = brut != null && Number.isFinite(brut) ? Math.round(brut) : null;
+  switch (rep.data.status) {
+    case "COMPLETED":
+      return { status: "success", amount: montant, currency: rep.data.currency ?? null };
+    case "FAILED":
+      return { status: "failed", amount: montant, currency: rep.data.currency ?? null };
+    default:
+      return { status: "pending", amount: montant, currency: rep.data.currency ?? null };
+  }
+}
