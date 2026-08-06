@@ -43,6 +43,13 @@ function extraireReference(corps: unknown): string | null {
 
   const candidat =
     b.depositId ?? data.depositId ??
+    // « Checkouts » est un type de rappel distinct dans leur tableau de bord :
+    // sans cette clé, un paiement passé par leur page hébergée arriverait ici
+    // sans référence exploitable et ne serait livré qu'au passage suivant du
+    // cron. On accepte les deux graphies, leur documentation n'étant pas
+    // explicite sur celle qu'ils emploient.
+    b.checkoutId ?? data.checkoutId ??
+    b.checkoutRequestId ?? data.checkoutRequestId ??
     b.payoutId ?? data.payoutId ??
     b.refundId ?? data.refundId ??
     b.clientReferenceId ?? data.clientReferenceId;
