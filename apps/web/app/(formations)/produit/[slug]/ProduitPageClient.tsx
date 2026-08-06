@@ -43,6 +43,7 @@ import { InquiryWidget } from "@/components/formations/InquiryWidget";
 import AISupportWidget from "@/components/formations/AISupportWidget";
 import { SaleAvailability } from "@/components/formations/SaleAvailability";
 import { RelatedProducts } from "@/components/formations/RelatedProducts";
+import { BlocContact } from "@/components/formations/BlocContact";
 import ReviewsCarousel from "@/components/formations/ReviewsCarousel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -88,7 +89,7 @@ interface Product {
   category: { id: string; slug: string; name: string } | null;
   instructeur: Vendeur;
   reviews: Review[];
-  shop: { slug: string; name: string; legalName: string | null; font: string | null; themeColor: string | null; logoUrl?: string | null } | null;
+  shop: { slug: string; name: string; legalName: string | null; font: string | null; themeColor: string | null; logoUrl?: string | null; contactEmail?: string | null; whatsapp?: string | null } | null;
   createdAt: string;
 }
 
@@ -643,6 +644,17 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
             <ReviewsCarousel reviews={product.reviews} themeColor={product.shop?.themeColor ?? "#006e2f"} />
           </div>
         )}
+
+        {/* Contact : l'acheteur vient de finir la description, il hesite, et
+            c'est la qu'une question sans reponse le fait partir. Apres les
+            recommandations, on le lui offrirait une fois deja parti ailleurs. */}
+        <BlocContact
+          contactEmail={product.shop?.contactEmail}
+          whatsapp={product.shop?.whatsapp}
+          nomBoutique={product.shop?.name}
+          titreProduit={product.title}
+          themeColor={product.shop?.themeColor}
+        />
 
         {/* Recommandations « Vous aimerez aussi » (v2 Phase 2) */}
         <div className="mt-6">

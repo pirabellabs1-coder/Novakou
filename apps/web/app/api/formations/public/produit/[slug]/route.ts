@@ -27,7 +27,7 @@ export async function GET(_req: Request, { params }: Params) {
         },
         category: { select: { id: true, slug: true, name: true } },
         // Boutique du produit → footer boutique + identité sur la page produit.
-        shop: { select: { slug: true, name: true, legalName: true, font: true, themeColor: true, logoUrl: true } },
+        shop: { select: { slug: true, name: true, legalName: true, font: true, themeColor: true, logoUrl: true, contactEmail: true, whatsapp: true } },
         files: {
           orderBy: { order: "asc" },
           select: { id: true, name: true, mimeType: true },
@@ -110,6 +110,11 @@ export async function GET(_req: Request, { params }: Params) {
             font: product.shop.font,
             themeColor: product.shop.themeColor,
             logoUrl: product.shop.logoUrl,
+            // Alimentent le bloc « Contactez-nous ». Rien d'autre de la
+            // boutique n'est exposé : ce sont les seuls champs destinés au
+            // public, les champs légaux restent aux pages qui les exigent.
+            contactEmail: product.shop.contactEmail,
+            whatsapp: product.shop.whatsapp,
           }
         : null,
       createdAt: product.createdAt,
