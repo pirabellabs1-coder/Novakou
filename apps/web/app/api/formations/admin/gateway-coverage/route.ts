@@ -22,7 +22,9 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
-  const role = (session?.user as { role?: string } | undefined)?.role;
+  // Casse non garantie en base : comparer la valeur brute refusait l'acces a
+  // de vrais administrateurs.
+  const role = session?.user?.role?.toString().toUpperCase();
   if (!session?.user || (role !== "ADMIN" && !IS_DEV)) {
     return NextResponse.json({ error: "Accès refusé — admin requis." }, { status: 403 });
   }

@@ -9,7 +9,11 @@ export const dynamic = "force-dynamic";
 
 async function garde() {
   const session = await getServerSession(authOptions);
-  const role = (session?.user as { role?: string } | undefined)?.role;
+  // toUpperCase() n'est pas cosmetique : le role est stocke sans casse
+  // garantie. Comparer la valeur brute a « ADMIN » refusait l'acces a de vrais
+  // administrateurs, avec un message qui accusait leurs droits plutot que le
+  // code.
+  const role = session?.user?.role?.toString().toUpperCase();
   return Boolean(session?.user) && (role === "ADMIN" || IS_DEV);
 }
 

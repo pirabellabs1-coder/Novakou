@@ -28,9 +28,15 @@ export default function TauxPage() {
         if (j?.data?.taux) {
           setTaux(Object.fromEntries(Object.entries(j.data.taux).map(([k, v]) => [k, String(v)])));
           setEtat("pret");
-        } else setMessage(j.error ?? "Chargement impossible.");
+        } else {
+          setMessage(j.error ?? "Chargement impossible.");
+          setEtat("pret");
+        }
       })
-      .catch(() => setMessage("Chargement impossible."));
+      .catch(() => {
+        setMessage("Chargement impossible.");
+        setEtat("pret");
+      });
   }, []);
 
   async function enregistrer() {
@@ -58,7 +64,15 @@ export default function TauxPage() {
     }
   }
 
-  if (etat === "chargement") return <div className="p-6 text-sm text-slate-500">Chargement…</div>;
+  // Sans sortie d'erreur, un refus laissait la page sur « Chargement… » pour
+  // toujours : l'utilisateur voyait un ecran fige au lieu de la raison.
+  if (etat === "chargement") {
+    return (
+      <div className="p-6 text-sm text-slate-500">
+        {message ? <span className="text-red-600">{message}</span> : "Chargement…"}
+      </div>
+    );
+  }
 
   return (
     <div className="p-5 md:p-8 max-w-3xl space-y-5">
