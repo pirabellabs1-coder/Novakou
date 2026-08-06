@@ -24,6 +24,21 @@ const BRANDS: Array<{ match: RegExp; bg: string; fg: string; text: string }> = [
   { match: /^celtiis_/, bg: "#0C2C84", fg: "#ffffff", text: "CT" },  // Celtiis Cash
   { match: /^coris_/, bg: "#00A0DF", fg: "#ffffff", text: "CO" },    // Coris Money
   { match: /^airtel_/, bg: "#E40000", fg: "#ffffff", text: "AM" },   // Airtel Money
+  // Operateurs ouverts par PawaPay. Sans ces entrees ils retombaient sur les
+  // deux premieres lettres de leur CODE INTERNE : M-Pesa s'affichait « VO »
+  // (vodacom_mz) et Movitel « MO ». Deux lettres qui ne correspondent a rien
+  // de ce que l'acheteur voit ecrit a l'ecran.
+  { match: /^(mpesa_|vodacom_)/, bg: "#E30613", fg: "#ffffff", text: "M-P" }, // M-Pesa / Vodacom
+  { match: /^movitel_/, bg: "#F7A800", fg: "#1a1a1a", text: "MVT" }, // Movitel
+  { match: /^tigo_/, bg: "#1E3A8A", fg: "#ffffff", text: "TG" },     // Tigo Pesa
+  { match: /^halotel_/, bg: "#F58220", fg: "#ffffff", text: "HP" },  // Halopesa
+  { match: /^zamtel_/, bg: "#009639", fg: "#ffffff", text: "ZM" },   // Zamtel Kwacha
+  { match: /^tnm_/, bg: "#00A94F", fg: "#ffffff", text: "TNM" },     // TNM Mpamba
+  { match: /^airteltigo_/, bg: "#E40000", fg: "#ffffff", text: "AT" },// AirtelTigo
+  { match: /^vodafone_/, bg: "#E60000", fg: "#ffffff", text: "VF" }, // Vodafone Cash
+  { match: /^africell_/, bg: "#7B2D8E", fg: "#ffffff", text: "AF" }, // Africell
+  { match: /^eu_/, bg: "#0B3D91", fg: "#ffffff", text: "EU" },       // Express Union
+  { match: /^zamani_/, bg: "#00843D", fg: "#ffffff", text: "ZA" },   // Zamani Money
 ];
 
 /** Marque « carte bancaire » : deux disques entrelacés, universellement lus. */

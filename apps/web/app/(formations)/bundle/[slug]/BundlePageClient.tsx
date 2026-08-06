@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePrix } from "@/components/formations/Prix";
 import { useSession } from "next-auth/react";
 import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
 import { KkiapayWidget, type KkiapayInit } from "@/components/formations/KkiapayWidget";
@@ -15,7 +16,9 @@ import {
 } from "lucide-react";
 import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
 
-const fmtFCFA = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n)) + " FCFA";
+// Le formateur vit DANS le composant et derive du pays choisi : il couvre
+// ainsi tous les prix de cet ecran d un coup. En fonction de module, il
+// fallait ecrire « FCFA » en dur — donc rater la conversion partout.
 
 interface BundleItem {
   kind: "formation" | "product";
@@ -46,6 +49,7 @@ interface Bundle {
 }
 
 export default function BundlePageClient({ bundle }: { bundle: Bundle }) {
+  const fmtFCFA = usePrix();
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

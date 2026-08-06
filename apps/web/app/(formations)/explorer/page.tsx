@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useToastStore } from "@/store/toast";
+import { usePrix } from "@/components/formations/Prix";
 import AdaptiveImage from "@/components/formations/AdaptiveImage";
 
 import Link from "next/link";
@@ -74,9 +75,9 @@ type ExplorerData = {
   stats: { totalFormations: number; totalProducts: number; totalBundles: number; total: number };
 };
 
-function formatFCFA(n: number) {
-  return new Intl.NumberFormat("fr-FR").format(Math.round(n)) + " FCFA";
-}
+// Le formateur vit DANS le composant et derive du pays choisi : il couvre
+// ainsi tous les prix de cet ecran d un coup. En fonction de module, il
+// fallait ecrire « FCFA » en dur — donc rater la conversion partout.
 
 
 const GRADIENTS = [
@@ -105,6 +106,7 @@ function StarRating({ rating }: { rating: number }) {
 }
 
 function ProductCard({ item, idx }: { item: Item; idx: number }) {
+  const formatFCFA = usePrix();
   const gradient = GRADIENTS[idx % GRADIENTS.length];
   const href =
     item.kind === "formation" ? `/formation/${item.slug}` :
@@ -415,6 +417,7 @@ function CategorySections({
 }
 
 function GiftModal({ item, onClose }: { item: Item | null; onClose: () => void }) {
+  const formatFCFA = usePrix();
   const [form, setForm] = useState({ recipientEmail: "", recipientName: "", message: "" });
   const [success, setSuccess] = useState<string | null>(null);
 

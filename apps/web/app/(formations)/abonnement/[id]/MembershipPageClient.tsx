@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePrix } from "@/components/formations/Prix";
 import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
 import Link from "next/link";
 import {
@@ -17,7 +18,9 @@ import {
 } from "lucide-react";
 import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
 
-const fmtFCFA = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n)) + " FCFA";
+// Le formateur vit DANS le composant et derive du pays choisi : il couvre
+// ainsi tous les prix de cet ecran d un coup. En fonction de module, il
+// fallait ecrire « FCFA » en dur — donc rater la conversion partout.
 
 
 interface IncludedItem { id: string; slug: string; title: string; thumbnail?: string | null; banner?: string | null; price: number }
@@ -40,6 +43,7 @@ interface Plan {
 }
 
 export default function MembershipPageClient({ plan }: { plan: Plan }) {
+  const fmtFCFA = usePrix();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const themeColor = plan.shop?.themeColor ?? "#006e2f";
