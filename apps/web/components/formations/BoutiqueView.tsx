@@ -55,6 +55,7 @@ export default function BoutiqueView({
   instructeurId,
   shopSlug,
   font,
+  afficherVentes = false,
 }: {
   owner: Owner;
   formations: Item[];
@@ -64,6 +65,12 @@ export default function BoutiqueView({
   instructeurId?: string;
   shopSlug?: string;
   font?: string | null;
+  /**
+   * Nombre de ventes visible sur les cartes. FAUX par defaut : « 0 vente »
+   * sous un produit decourage l'achat bien plus qu'un chiffre eleve ne le
+   * motive. Le vendeur l'active depuis les parametres de sa boutique.
+   */
+  afficherVentes?: boolean;
 }) {
   const deviseAffichage = useDeviseAffichage();
   const fmtPrix = (n: number) => formaterPrix(n, deviseAffichage);
@@ -299,26 +306,10 @@ export default function BoutiqueView({
                 </div>
               </div>
 
-              <div className="md:ml-auto grid grid-cols-3 gap-2 flex-shrink-0 md:mt-0 mt-1">
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-center hover:-translate-y-0.5 transition-transform">
-                  <p className="text-xl font-extrabold tabular-nums" style={{ color: themeColor }}>{all.length}</p>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-0.5">Produits</p>
-                </div>
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-center hover:-translate-y-0.5 transition-transform">
-                  <p className="text-xl font-extrabold tabular-nums" style={{ color: themeColor }}>
-                    {all.reduce((s, i) => s + i.count, 0)}
-                  </p>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-0.5">Clients</p>
-                </div>
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-center hover:-translate-y-0.5 transition-transform">
-                  <p className="text-xl font-extrabold tabular-nums" style={{ color: themeColor }}>
-                    {all.length > 0
-                      ? (all.reduce((s, i) => s + (i.rating || 0), 0) / all.filter((i) => i.rating > 0).length || 0).toFixed(1)
-                      : "—"}
-                  </p>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-0.5">Note</p>
-                </div>
-              </div>
+              {/* Les compteurs « Produits / Clients / Note » sont retirés de la
+                  vitrine (demande fondateur). Une boutique qui débute affichait
+                  ses chiffres faibles en évidence, juste sous son nom : ça
+                  dessert précisément ceux qui en ont le plus besoin. */}
             </div>
 
             {/* `whitespace-pre-line` : la bio est du texte brut. Sans ça, les
@@ -593,10 +584,16 @@ export default function BoutiqueView({
                           )}
                           <span className="text-slate-500">{(item.reviewsCount ?? 0).toLocaleString("fr-FR")} avis</span>
                         </span>
-                        <span className="inline-flex items-center gap-1.5 text-slate-500">
-                          <span className="material-symbols-outlined text-[14px]">{cl.icon}</span>
-                          <span>{item.count.toLocaleString("fr-FR")} {item.count > 1 ? cl.plural : cl.single}</span>
-                        </span>
+                        {/* Le nombre de ventes est MASQUÉ par défaut : « 0 vente »
+                            sous un produit décourage l'achat bien plus qu'un
+                            chiffre élevé ne le motive. Le vendeur peut le
+                            réafficher depuis les paramètres de sa boutique. */}
+                        {afficherVentes && (
+                          <span className="inline-flex items-center gap-1.5 text-slate-500">
+                            <span className="material-symbols-outlined text-[14px]">{cl.icon}</span>
+                            <span>{item.count.toLocaleString("fr-FR")} {item.count > 1 ? cl.plural : cl.single}</span>
+                          </span>
+                        )}
                       </div>
                       <div className="mt-3 pt-3 border-t border-slate-100">
                         <div className="flex items-baseline justify-between mb-3 gap-2">
