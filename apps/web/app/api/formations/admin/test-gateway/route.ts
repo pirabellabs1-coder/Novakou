@@ -231,7 +231,12 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => ({}));
   const provider = String(body.provider ?? "").trim().toLowerCase();
-  if (!["feexpay", "fedapay", "kkiapay", "ipaymoney"].includes(provider)) {
+  // Liste des fournisseurs pour lesquels une sonde EXISTE réellement. Elle
+  // doit rester alignée avec l'aiguillage plus bas et avec les boutons de
+  // l'écran admin : « pawapay » avait sa sonde et son bouton, mais pas son
+  // entrée ici — le test échouait donc sur un message trompeur, qui laissait
+  // croire à une passerelle mal intégrée alors que tout fonctionnait.
+  if (!["feexpay", "fedapay", "kkiapay", "ipaymoney", "pawapay"].includes(provider)) {
     return NextResponse.json({ error: "Fournisseur non testable : " + provider }, { status: 400 });
   }
 
