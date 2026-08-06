@@ -28,7 +28,7 @@ import {
 } from "@/lib/fedapay";
 import { getPayoutMapping, baseMethodCode } from "@/lib/payout/methods-map";
 
-export type PayoutProviderId = "feexpay" | "fedapay" | "pawapay";
+export type PayoutProviderId = "feexpay" | "fedapay" | "pawapay" | "monetbil";
 
 /** Ordre de tentative : le premier configuré ET capable emporte le versement. */
 /**
@@ -42,7 +42,7 @@ export type PayoutProviderId = "feexpay" | "fedapay" | "pawapay";
 // PawaPay en DERNIER : aucun versement reel ne l'a encore eprouve. Il ne prend
 // donc la main que la ou les deux autres ne savent pas faire — c'est-a-dire
 // partout hors zone franc, ou il est de toute facon le seul.
-const PROVIDER_ORDER: PayoutProviderId[] = ["fedapay", "feexpay", "pawapay"];
+const PROVIDER_ORDER: PayoutProviderId[] = ["fedapay", "feexpay", "pawapay", "monetbil"];
 
 export type PayoutExecutionInput = {
   /** Code opérateur interne (le suffixe _mentor est toléré). */
@@ -118,6 +118,36 @@ const ADAPTATEURS: Record<PayoutProviderId, AdaptateurVersement> = {
         merchantReference: input.withdrawalId,
       });
       return { ref: String(r.id), statut: normalizeFedapayStatus(r.status), brut: String(r.status) };
+    },
+  },
+  monetbil: {
+    libelle: "Monetbil",
+    // SE REFUSE TANT QUE L'ADRESSE EST INCONNUE, et c'est deliberé. Monetbil
+    // couvrirait la Guinee, le Liberia, le Gabon, le Cameroun et la RD Congo -
+    // les pays qui n'ont aujourd'hui aucun chemin de retrait. Mais onze
+    // variantes d'endpoint testees repondent 404 : on n'invente pas une adresse
+    // qui deplace de l'argent.
+    //
+    // Le declarer « pret » ferait pire que rien : la verification de couverture
+    // annoncerait ces pays servis, et le trou deviendrait invisible - alors que
+    // c'est justement lui qu'il faut garder sous les yeux.
+    //
+    // POSER MONETBIL_PAYOUT_URL SUFFIRA a l'activer, sans autre changement.
+    configure: async () => Boolean(process.env.MONETBIL_PAYOUT_URL?.trim()),
+    route: (m) => {
+      const code = (m as { code?: string }).code;
+      if (!code) return null;
+      const r = routeFor(code, "monetbil", "payout");
+      return r ? { operateur: r.code, code } : null;
+    },
+    classer: (msg: string) => ({
+      category: "provider_failed" as const,
+      userMessage: `Monetbil : ${msg}`,
+    }),
+    envoyer: async () => {
+      // Inatteignable tant que configure() renvoie faux. Presente pour que
+      // l'activation soit une ligne le jour ou l'adresse arrive.
+      throw new Error("Adresse de versement Monetbil non communiquee.");
     },
   },
   pawapay: {

@@ -90,9 +90,11 @@ export const PROVIDERS: ProviderMeta[] = [
     // documentation officielle : POST /payment/v1/placePayment (service,
     // phonenumber, amount) et POST /payment/v1/checkPayment.
     //
-    // ENCAISSEMENT SEUL : onze variantes d'endpoint de versement testees
-    // repondent toutes 404. On n'invente pas une adresse qui deplace de
-    // l'argent — a activer quand Monetbil nous communiquera la leur.
+    // VERSEMENT : routes declarees, adresse ENCORE INCONNUE. Onze variantes
+    // d'endpoint testees repondent 404 ; Monetbil doit nous communiquer la
+    // leur. L'adaptateur existe cote code et se refuse tant que MONETBIL_PAYOUT_URL
+    // n'est pas renseignee — il suffira de la poser pour ouvrir la Guinee, le
+    // Liberia, le Gabon, le Cameroun et la RD Congo au retrait.
     //
     // Comme iPay, le fournisseur route lui-meme vers le bon operateur a partir
     // du NUMERO : un seul code « mobile », sans table par reseau.
@@ -342,7 +344,7 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   eu_cm: {
     label: "Express Union (Cameroun)", country: "cm", currency: "XAF", family: "mobile_money",
     collect: { monetbil: { code: "CM_EUMM" } },
-    payout: {} },
+    payout: { monetbil: { code: "CM_EUMM" } } },
 
   // ─────────────────── Congo-Brazzaville & Gabon (XAF) ───────────────────
   // Monetbil est la SEULE de nos passerelles a les servir. Le Congo etait
@@ -355,7 +357,7 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   moov_ga: {
     label: "Moov Africa (Gabon)", country: "ga", currency: "XAF", family: "mobile_money",
     collect: { monetbil: { code: "GA_MOOVMONEY" } },
-    payout: {} },
+    payout: { monetbil: { code: "GA_MOOVMONEY" } } },
   // Absent de la documentation v2.1 fournie — elle est plus ancienne que le
   // compte. Code relevé par le fondateur sur sa fiche opérateur Monetbil.
   airtel_ga: {
@@ -376,11 +378,11 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   mtn_gn: {
     label: "MTN Mobile Money (Guinée)", country: "gn", currency: "GNF", family: "mobile_money",
     collect: { monetbil: { code: "GN_MTNMOBILEMONEY" } },
-    payout: {} },
+    payout: { monetbil: { code: "GN_MTNMOBILEMONEY" } } },
   orange_gn: {
     label: "Orange Money (Guinée)", country: "gn", currency: "GNF", family: "mobile_money",
     collect: { monetbil: { code: "GN_ORANGEMONEY" } },
-    payout: {} },
+    payout: { monetbil: { code: "GN_ORANGEMONEY" } } },
   orange_cd: {
     label: "Orange Money (RD Congo)", country: "cd", currency: "CDF", family: "mobile_money",
     collect: {
@@ -394,7 +396,7 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   africell_cd: {
     label: "Africell Money (RD Congo)", country: "cd", currency: "CDF", family: "mobile_money",
     collect: { monetbil: { code: "CD_AFRICELL" } },
-    payout: {} },
+    payout: { monetbil: { code: "CD_AFRICELL" } } },
   airtel_ug: {
     label: "Airtel Money (Ouganda)", country: "ug", currency: "UGX", family: "mobile_money",
     collect: {
@@ -408,7 +410,7 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   mtn_lr: {
     label: "Lonestar Cell MTN (Liberia)", country: "lr", currency: "LRD", family: "mobile_money",
     collect: { monetbil: { code: "LR_MTNMOBILEMONEY" } },
-    payout: {} },
+    payout: { monetbil: { code: "LR_MTNMOBILEMONEY" } } },
 
   // ─────────────────────── Cartes bancaires ───────────────────────
   card_xof: {
