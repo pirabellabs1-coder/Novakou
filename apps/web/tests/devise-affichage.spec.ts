@@ -9,6 +9,7 @@ import {
   montantVersFcfa,
 } from "@/lib/currency/rates";
 import { OPERATORS } from "@/lib/payments/registry";
+import { PAYS_DESSINES } from "@/components/formations/CountryFlag";
 
 test("l'acheteur est débité exactement du montant qu'il a lu", () => {
   // Affichage et encaissement doivent partager le MÊME calcul, sinon le prix
@@ -171,4 +172,28 @@ test("le prix affiché reste lisible", () => {
   const lisible = (s: string) => s.replace(/[  ]/g, " ");
   expect(lisible(formaterPrix(5000, deviseDuPays("BJ")))).toBe("5 000 F CFA");
   expect(lisible(formaterPrix(0, deviseDuPays("GN")))).toBe("0 GNF");
+});
+
+test("chaque pays du sélecteur a un vrai drapeau dessiné", () => {
+  // Sans ce test, un pays ajouté sans son dessin afficherait une pastille grise
+  // avec son code ISO au milieu de vrais drapeaux — exactement ce qui faisait
+  // paraître la liste bâclée avec les emoji sous Windows.
+  const dessines = new Set(PAYS_DESSINES);
+  for (const p of PAYS_AFFICHAGE) {
+    expect(dessines.has(p.code.toLowerCase()), `${p.nom} (${p.code}) n'a pas de drapeau`).toBe(true);
+  }
+});
+
+test("chaque pays encaissable a un vrai drapeau dessiné", () => {
+  // L'écran de paiement affiche aussi des drapeaux : un pays ouvert à la vente
+  // sans son dessin y apparaîtrait en pastille grise.
+  const dessines = new Set(PAYS_DESSINES);
+  const paysVente = new Set(
+    Object.values(OPERATORS)
+      .filter((o) => o.country && Object.keys(o.collect).length > 0)
+      .map((o) => o.country.toLowerCase()),
+  );
+  for (const c of paysVente) {
+    expect(dessines.has(c), `${c} est vendable mais n'a pas de drapeau`).toBe(true);
+  }
 });

@@ -26,6 +26,18 @@ function Vertical({ colors }: { colors: string[] }) {
   );
 }
 
+/** Bandes horizontales égales. */
+function Horizontal({ colors }: { colors: string[] }) {
+  const h = H / colors.length;
+  return (
+    <>
+      {colors.map((c, i) => (
+        <rect key={i} x={0} y={i * h} width={W} height={h} fill={c} />
+      ))}
+    </>
+  );
+}
+
 /** Étoile à 5 branches centrée. */
 function Star({ cx, cy, r, fill }: { cx: number; cy: number; r: number; fill: string }) {
   const pts: string[] = [];
@@ -103,7 +115,75 @@ const FLAGS: Record<string, React.ReactNode> = {
       <polygon points="24,4.48 24,16 6.72,16" fill="#DC241F" />
     </>
   ),
+  // Gabon — vert, jaune, bleu horizontaux.
+  ga: <Horizontal colors={["#009E60", "#FCD116", "#3A75C4"]} />,
+  // Guinée — rouge, jaune, vert verticaux.
+  gn: <Vertical colors={["#CE1126", "#FCD116", "#009460"]} />,
+  // Tchad — bleu, jaune, rouge verticaux.
+  td: <Vertical colors={["#002664", "#FECB00", "#C60C30"]} />,
+  // Guinée équatoriale — vert/blanc/rouge + triangle bleu côté hampe.
+  gq: (
+    <>
+      <Horizontal colors={["#3E9A00", "#FFFFFF", "#E32118"]} />
+      <polygon points="0,0 6.4,8 0,16" fill="#0073CE" />
+    </>
+  ),
+  // Guinée-Bissau — jaune en haut, vert en bas, bande rouge côté hampe
+  // occupant un tiers, étoile noire centrée dessus.
+  gw: (
+    <>
+      <rect x="0" y="0" width="24" height="8" fill="#FCD116" />
+      <rect x="0" y="8" width="24" height="8" fill="#009E49" />
+      <rect x="0" y="0" width="8" height="16" fill="#CE1126" />
+      <Star cx={4} cy={8} r={2.8} fill="#000000" />
+    </>
+  ),
+  // RD Congo — bleu ciel, bande rouge en diagonale bordée de jaune, étoile
+  // jaune au canton. La diagonale monte du coin bas-hampe au coin haut-flottant.
+  cd: (
+    <>
+      <rect width="24" height="16" fill="#007FFF" />
+      <polygon points="0,16 4.8,16 24,3.2 24,0 19.2,0 0,12.8" fill="#F7D618" />
+      <polygon points="0.9,15.1 23.1,0.9 23.1,2.1 2.1,15.1" fill="#CE1021" />
+      <Star cx={4.4} cy={3.6} r={2.6} fill="#F7D618" />
+    </>
+  ),
+  // Centrafrique — quatre bandes horizontales barrées d'une bande rouge
+  // verticale au centre, étoile jaune au canton.
+  cf: (
+    <>
+      <Horizontal colors={["#003082", "#FFFFFF", "#289728", "#FFCE00"]} />
+      <rect x="9.6" y="0" width="4.8" height="16" fill="#D21034" />
+      <Star cx={3.2} cy={2.6} r={2.1} fill="#FFCE00" />
+    </>
+  ),
+  // Ouganda — six bandes noir/jaune/rouge, disque blanc centré (la grue
+  // couronnée n'est pas lisible à cette taille : on garde le disque seul).
+  ug: (
+    <>
+      <Horizontal colors={["#000000", "#FCDC04", "#D90000", "#000000", "#FCDC04", "#D90000"]} />
+      <circle cx="12" cy="8" r="3.4" fill="#FFFFFF" />
+    </>
+  ),
+  // Liberia — onze bandes rouge/blanc et canton bleu à étoile blanche.
+  lr: (
+    <>
+      <rect width="24" height="16" fill="#FFFFFF" />
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <rect key={i} x="0" y={(i * 2 * H) / 11} width="24" height={H / 11} fill="#BF0A30" />
+      ))}
+      <rect x="0" y="0" width={(H * 5) / 11} height={(H * 5) / 11} fill="#002868" />
+      <Star cx={3.64} cy={3.64} r={2.4} fill="#FFFFFF" />
+    </>
+  ),
 };
+
+/**
+ * Pays réellement DESSINÉS. Exporté pour que les tests puissent vérifier
+ * qu'aucun pays proposé au visiteur ne retombe sur la pastille de repli :
+ * un code ISO gris au milieu de vrais drapeaux se remarque immédiatement.
+ */
+export const PAYS_DESSINES = Object.keys(FLAGS);
 
 export function CountryFlag({ code, className = "" }: Props) {
   const iso = (code || "").trim().toLowerCase();

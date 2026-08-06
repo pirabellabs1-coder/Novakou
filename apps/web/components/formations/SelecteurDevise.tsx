@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { CountryFlag } from "@/components/formations/CountryFlag";
 import { PAYS_AFFICHAGE, deviseDuPays } from "@/lib/currency/rates";
 
 /**
@@ -68,9 +69,7 @@ export function SelecteurDevise({ tone = "light" }: { tone?: "light" | "dark" })
             : "border-[#e3e8ea] text-[#191c1e] hover:bg-slate-50"
         }`}
       >
-        <span className="w-[20px] shrink-0 text-center text-[15px] leading-none">
-          {courant.drapeau}
-        </span>
+        <CountryFlag code={courant.code} className="w-[20px] h-[13px]" />
         <span className="hidden sm:inline">
           {courant.nom} ({devise.symbole})
         </span>
@@ -82,15 +81,11 @@ export function SelecteurDevise({ tone = "light" }: { tone?: "light" | "dark" })
 
       {ouvert && (
         <div
-          /* Les 12 pays doivent tenir d'un seul coup d'oeil. Plafonner la
-             liste plus bas la coupait en plein milieu, sans aucun indice
-             qu'elle defilait : la Guinee, en 11e position, etait tout
-             simplement invisible pour qui ne devinait pas le geste. */
-          /* Avec 18 pays, la liste peut depasser un petit ecran. On ne cherche
-             plus a tout faire tenir a tout prix : on rend le defilement
-             VISIBLE. Le defaut precedent n'etait pas qu'elle defilait, c'est
-             que rien ne le disait — la Guinee etait sous la coupure et
-             personne ne pouvait le deviner. */
+          /* Avec 18 pays la liste peut depasser un petit ecran. Elle etait
+             auparavant plafonnee si bas qu'elle se coupait en plein milieu
+             SANS que rien ne l'indique : la Guinee passait sous la coupure et
+             restait introuvable. Le defaut n'etait pas le defilement, c'est
+             qu'il etait invisible — d'ou la barre toujours affichee. */
           style={{ scrollbarWidth: "thin", scrollbarColor: "#c7d0cb transparent" }}
           className="absolute right-0 top-full mt-2 w-[230px] max-h-[80vh] overflow-y-auto overscroll-contain rounded-2xl border border-[#e3e8ea] bg-white shadow-2xl z-50 py-1"
           role="listbox"
@@ -109,13 +104,9 @@ export function SelecteurDevise({ tone = "light" }: { tone?: "light" | "dark" })
                   actif ? "font-extrabold text-[#006e2f]" : "font-semibold text-[#191c1e]"
                 }`}
               >
-                {/* Windows ne possede aucune police de drapeaux : l'emoji y
-                    retombe sur ses deux lettres de code (« GA »), plus etroites
-                    qu'un drapeau. Sans largeur fixe, chaque ligne s'aligne
-                    differemment et la liste parait cassee. */}
-                <span className="w-[22px] shrink-0 text-center text-[15px] leading-none tabular-nums">
-                  {p.drapeau}
-                </span>
+                {/* SVG et non emoji : Windows ne rend AUCUN drapeau emoji, il
+                    affiche les deux lettres du code a la place. */}
+                <CountryFlag code={p.code} className="w-[22px] h-[15px]" />
                 <span className="flex-1 truncate">{p.nom}</span>
                 <span className="text-[12px] text-[#5c647a]">{d.symbole}</span>
               </button>

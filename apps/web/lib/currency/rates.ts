@@ -149,28 +149,29 @@ export function formaterPrix(montantFcfa: number, devise: Devise): string {
 }
 
 /**
- * Pays proposés au sélecteur, avec leur drapeau.
+ * Pays proposés au sélecteur.
  *
- * Un drapeau se lit plus vite qu'un code : c'est ce qui permet à un visiteur
- * de repérer son pays sans lire.
+ * Pas de drapeau ici : Windows ne rend AUCUN emoji drapeau (il affiche les
+ * deux lettres du code à la place). Le dessin vient de <CountryFlag>, en SVG,
+ * pour un rendu identique partout — un drapeau se repère sans lire.
  */
-export const PAYS_AFFICHAGE: Array<{ code: string; nom: string; drapeau: string }> = [
-  { code: "BJ", nom: "Bénin", drapeau: "🇧🇯" },
-  { code: "BF", nom: "Burkina Faso", drapeau: "🇧🇫" },
-  { code: "CI", nom: "Côte d'Ivoire", drapeau: "🇨🇮" },
-  { code: "GW", nom: "Guinée-Bissau", drapeau: "🇬🇼" },
-  { code: "ML", nom: "Mali", drapeau: "🇲🇱" },
-  { code: "NE", nom: "Niger", drapeau: "🇳🇪" },
-  { code: "SN", nom: "Sénégal", drapeau: "🇸🇳" },
-  { code: "TG", nom: "Togo", drapeau: "🇹🇬" },
-  { code: "CM", nom: "Cameroun", drapeau: "🇨🇲" },
-  { code: "CF", nom: "Centrafrique", drapeau: "🇨🇫" },
-  { code: "TD", nom: "Tchad", drapeau: "🇹🇩" },
-  { code: "CG", nom: "Congo", drapeau: "🇨🇬" },
-  { code: "GQ", nom: "Guinée équatoriale", drapeau: "🇬🇶" },
-  { code: "GA", nom: "Gabon", drapeau: "🇬🇦" },
-  { code: "GN", nom: "Guinée", drapeau: "🇬🇳" },
-  { code: "CD", nom: "RD Congo", drapeau: "🇨🇩" },
-  { code: "UG", nom: "Ouganda", drapeau: "🇺🇬" },
-  { code: "LR", nom: "Liberia", drapeau: "🇱🇷" },
+export const PAYS_AFFICHAGE: Array<{ code: string; nom: string }> = [
+  { code: "BJ", nom: "Bénin" },
+  { code: "BF", nom: "Burkina Faso" },
+  { code: "CI", nom: "Côte d'Ivoire" },
+  { code: "GW", nom: "Guinée-Bissau" },
+  { code: "ML", nom: "Mali" },
+  { code: "NE", nom: "Niger" },
+  { code: "SN", nom: "Sénégal" },
+  { code: "TG", nom: "Togo" },
+  { code: "CM", nom: "Cameroun" },
+  { code: "CF", nom: "Centrafrique" },
+  { code: "TD", nom: "Tchad" },
+  { code: "CG", nom: "Congo" },
+  { code: "GQ", nom: "Guinée équatoriale" },
+  { code: "GA", nom: "Gabon" },
+  { code: "GN", nom: "Guinée" },
+  { code: "CD", nom: "RD Congo" },
+  { code: "UG", nom: "Ouganda" },
+  { code: "LR", nom: "Liberia" },
 ];
