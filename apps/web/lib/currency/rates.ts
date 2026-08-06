@@ -21,7 +21,9 @@
 /** Devise de référence : celle dans laquelle tout est stocké et versé. */
 export const DEVISE_REFERENCE = "XOF" as const;
 
-export type CodeDevise = "XOF" | "XAF" | "GNF" | "CDF" | "UGX" | "LRD";
+export type CodeDevise =
+  | "XOF" | "XAF" | "GNF" | "CDF" | "UGX" | "LRD"
+  | "GHS" | "KES" | "MWK" | "MZN" | "NGN" | "RWF" | "SLE" | "TZS" | "ZMW";
 
 export type Devise = {
   code: CodeDevise;
@@ -41,12 +43,31 @@ export type Devise = {
  * servent à afficher, jamais à décider d'un versement.
  */
 export const DEVISES: Record<CodeDevise, Devise> = {
+  // Zone franc — parité FIXE, ce n'est pas une approximation.
   XOF: { code: "XOF", symbole: "F CFA", pourUnFcfa: 1, arrondi: 1 },
   XAF: { code: "XAF", symbole: "FCFA", pourUnFcfa: 1, arrondi: 1 },
-  GNF: { code: "GNF", symbole: "GNF", pourUnFcfa: 14.6, arrondi: 500 },
-  CDF: { code: "CDF", symbole: "FC", pourUnFcfa: 4.6, arrondi: 100 },
-  UGX: { code: "UGX", symbole: "USh", pourUnFcfa: 6.2, arrondi: 100 },
-  LRD: { code: "LRD", symbole: "L$", pourUnFcfa: 0.31, arrondi: 5 },
+
+  // Taux RELEVÉS le 2026-08-06 (exchangerate-api.com), pas estimés.
+  // Les quatre premiers l'étaient auparavant, et l'écart était réel : le CDF
+  // était réglé à 4,6 pour une valeur réelle de 4,03 — on surfacturait
+  // l'acheteur congolais de 14 %. À l'inverse le GNF sous-facturait de 5 %.
+  // C'est exactement le risque que porte un taux figé, et il grandit avec les
+  // devises qui bougent vraiment (naira, cedi, shilling).
+  GNF: { code: "GNF", symbole: "GNF", pourUnFcfa: 15.45, arrondi: 500 },
+  CDF: { code: "CDF", symbole: "FC", pourUnFcfa: 4.03, arrondi: 100 },
+  UGX: { code: "UGX", symbole: "USh", pourUnFcfa: 6.48, arrondi: 100 },
+  LRD: { code: "LRD", symbole: "L$", pourUnFcfa: 0.317, arrondi: 5 },
+
+  // Pays ouverts par PawaPay.
+  GHS: { code: "GHS", symbole: "GH₵", pourUnFcfa: 0.0206, arrondi: 1 },
+  KES: { code: "KES", symbole: "KSh", pourUnFcfa: 0.2276, arrondi: 10 },
+  MWK: { code: "MWK", symbole: "MK", pourUnFcfa: 3.069, arrondi: 100 },
+  MZN: { code: "MZN", symbole: "MT", pourUnFcfa: 0.1123, arrondi: 5 },
+  NGN: { code: "NGN", symbole: "₦", pourUnFcfa: 2.393, arrondi: 100 },
+  RWF: { code: "RWF", symbole: "FRw", pourUnFcfa: 2.584, arrondi: 100 },
+  SLE: { code: "SLE", symbole: "Le", pourUnFcfa: 0.0434, arrondi: 1 },
+  TZS: { code: "TZS", symbole: "TSh", pourUnFcfa: 4.612, arrondi: 100 },
+  ZMW: { code: "ZMW", symbole: "ZK", pourUnFcfa: 0.0336, arrondi: 1 },
 };
 
 /**
@@ -65,6 +86,9 @@ const DEVISE_PAR_PAYS: Record<string, CodeDevise> = {
   CM: "XAF", CF: "XAF", TD: "XAF", CG: "XAF", GQ: "XAF", GA: "XAF",
   // Hors zone franc
   GN: "GNF", CD: "CDF", UG: "UGX", LR: "LRD",
+  // Ouverts par PawaPay
+  GH: "GHS", KE: "KES", MW: "MWK", MZ: "MZN", NG: "NGN",
+  RW: "RWF", SL: "SLE", TZ: "TZS", ZM: "ZMW",
 };
 
 /** Devise à afficher pour ce pays, FCFA par défaut. */
@@ -174,4 +198,13 @@ export const PAYS_AFFICHAGE: Array<{ code: string; nom: string }> = [
   { code: "CD", nom: "RD Congo" },
   { code: "UG", nom: "Ouganda" },
   { code: "LR", nom: "Liberia" },
+  { code: "GH", nom: "Ghana" },
+  { code: "NG", nom: "Nigeria" },
+  { code: "KE", nom: "Kenya" },
+  { code: "TZ", nom: "Tanzanie" },
+  { code: "RW", nom: "Rwanda" },
+  { code: "ZM", nom: "Zambie" },
+  { code: "MW", nom: "Malawi" },
+  { code: "MZ", nom: "Mozambique" },
+  { code: "SL", nom: "Sierra Leone" },
 ];

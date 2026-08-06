@@ -176,6 +176,71 @@ const FLAGS: Record<string, React.ReactNode> = {
       <Star cx={3.64} cy={3.64} r={2.4} fill="#FFFFFF" />
     </>
   ),
+  // Ghana — rouge/jaune/vert + étoile noire centrée.
+  gh: (
+    <>
+      <Horizontal colors={["#CE1126", "#FCD116", "#006B3F"]} />
+      <Star cx={12} cy={8} r={2.6} fill="#000000" />
+    </>
+  ),
+  // Nigeria — vert, blanc, vert verticaux.
+  ng: <Vertical colors={["#008751", "#FFFFFF", "#008751"]} />,
+  // Kenya — noir/blanc/rouge/blanc/vert + bouclier rouge central.
+  ke: (
+    <>
+      <Horizontal colors={["#000000", "#FFFFFF", "#BB0000", "#FFFFFF", "#006600"]} />
+      <ellipse cx="12" cy="8" rx="2.2" ry="4" fill="#BB0000" stroke="#FFFFFF" strokeWidth="0.6" />
+    </>
+  ),
+  // Tanzanie — diagonale noire bordée de jaune, vert en haut, bleu en bas.
+  tz: (
+    <>
+      <polygon points="0,0 0,16 24,16" fill="#1EB53A" />
+      <polygon points="24,0 0,0 24,16" fill="#00A3DD" />
+      <polygon points="0,16 24,0 24,2.6 3.9,16" fill="#FCD116" />
+      <polygon points="0.9,16 24,0.6 24,1.9 2.9,16" fill="#000000" />
+    </>
+  ),
+  // Rwanda — bleu (moitié haute), jaune, vert + soleil jaune en haut à droite.
+  rw: (
+    <>
+      <rect x="0" y="0" width="24" height="8" fill="#00A1DE" />
+      <rect x="0" y="8" width="24" height="4" fill="#FAD201" />
+      <rect x="0" y="12" width="24" height="4" fill="#20603D" />
+      <circle cx="18.5" cy="4" r="1.9" fill="#E5BE01" />
+    </>
+  ),
+  // Zambie — vert, avec trois bandes rouge/noir/orange au flottant.
+  zm: (
+    <>
+      <rect width="24" height="16" fill="#198A00" />
+      <rect x="15" y="9" width="2.6" height="7" fill="#DE2010" />
+      <rect x="17.6" y="9" width="2.6" height="7" fill="#000000" />
+      <rect x="20.2" y="9" width="2.6" height="7" fill="#EF7D00" />
+      <circle cx="19.4" cy="5" r="2.2" fill="#EF7D00" />
+    </>
+  ),
+  // Malawi — noir/rouge/vert + soleil rouge levant sur la bande noire.
+  mw: (
+    <>
+      <Horizontal colors={["#000000", "#CE1126", "#339E35"]} />
+      <circle cx="12" cy="5.3" r="2.4" fill="#CE1126" />
+    </>
+  ),
+  // Mozambique — vert/blanc/noir/blanc/jaune + triangle rouge au guindant.
+  mz: (
+    <>
+      <rect x="0" y="0" width="24" height="5" fill="#009A00" />
+      <rect x="0" y="5" width="24" height="1" fill="#FFFFFF" />
+      <rect x="0" y="6" width="24" height="4" fill="#000000" />
+      <rect x="0" y="10" width="24" height="1" fill="#FFFFFF" />
+      <rect x="0" y="11" width="24" height="5" fill="#FCE100" />
+      <polygon points="0,0 8,8 0,16" fill="#D21034" />
+      <Star cx={2.6} cy={8} r={2} fill="#FFFFFF" />
+    </>
+  ),
+  // Sierra Leone — vert, blanc, bleu horizontaux.
+  sl: <Horizontal colors={["#1EB53A", "#FFFFFF", "#0072C6"]} />,
 };
 
 /**

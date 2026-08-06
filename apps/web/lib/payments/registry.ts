@@ -125,12 +125,10 @@ export const PROVIDERS: ProviderMeta[] = [
     // l'argent sur le mauvais reseau. Recoupes avec GET /v2/active-conf, qui
     // dit ce que NOTRE compte couvre reellement.
     //
-    // Rattache UNIQUEMENT aux pays dont la devise figure deja dans notre table
-    // de conversion (XOF, XAF, CDF, UGX). PawaPay ouvre neuf pays de plus -
-    // Ghana, Kenya, Malawi, Mozambique, Nigeria, Rwanda, Sierra Leone,
-    // Tanzanie, Zambie - mais leurs devises n'y sont pas : montantAFacturer()
-    // refuserait la vente. C'est le garde-fou qui fonctionne, pas un oubli :
-    // ces pays s'ouvriront quand leurs taux seront poses.
+    // Couvre 18 pays. Les neuf hors zone franc - Ghana, Kenya, Malawi,
+    // Mozambique, Nigeria, Rwanda, Sierra Leone, Tanzanie, Zambie - ont
+    // desormais leur taux dans la table de conversion : sans lui,
+    // montantAFacturer() refusait la vente, et c'est ce qui les tenait fermes.
     //
     // Priorite 100 (reglee en admin) : PawaPay passe APRES les passerelles
     // eprouvees. Il sert de secours tant qu'aucun paiement reel ne l'a valide.
@@ -506,6 +504,113 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     collect: {},
     payout: {},
   },
+
+  // ───── Ouverts par PawaPay (hors zone franc) ─────────────────────────────
+  // Codes relevés dans leur documentation officielle (v2/docs/providers), et
+  // recoupés avec /v2/active-conf. Chaque devise a son taux dans la table de
+  // conversion : sans lui, montantAFacturer() refuserait la vente — c'est ce
+  // qui a tenu ces pays fermés jusqu'ici.
+  mtn_gh: {
+    label: "MTN Mobile Money (Ghana)", country: "gh", currency: "GHS", family: "mobile_money",
+    collect: { pawapay: { code: "MTN_MOMO_GHA" } },
+    payout: {},
+  },
+  airteltigo_gh: {
+    label: "AirtelTigo (Ghana)", country: "gh", currency: "GHS", family: "mobile_money",
+    collect: { pawapay: { code: "AIRTELTIGO_GHA" } },
+    payout: {},
+  },
+  vodafone_gh: {
+    label: "Vodafone Cash (Ghana)", country: "gh", currency: "GHS", family: "mobile_money",
+    collect: { pawapay: { code: "VODAFONE_GHA" } },
+    payout: {},
+  },
+  mtn_ng: {
+    label: "MTN Mobile Money (Nigeria)", country: "ng", currency: "NGN", family: "mobile_money",
+    collect: { pawapay: { code: "MTN_MOMO_NGA" } },
+    payout: {},
+  },
+  airtel_ng: {
+    label: "Airtel Money (Nigeria)", country: "ng", currency: "NGN", family: "mobile_money",
+    collect: { pawapay: { code: "AIRTEL_NGA" } },
+    payout: {},
+  },
+  mpesa_ke: {
+    label: "M-Pesa (Kenya)", country: "ke", currency: "KES", family: "mobile_money",
+    collect: { pawapay: { code: "MPESA_KEN" } },
+    payout: {},
+  },
+  vodacom_tz: {
+    label: "Vodacom M-Pesa (Tanzanie)", country: "tz", currency: "TZS", family: "mobile_money",
+    collect: { pawapay: { code: "VODACOM_TZA" } },
+    payout: {},
+  },
+  airtel_tz: {
+    label: "Airtel Money (Tanzanie)", country: "tz", currency: "TZS", family: "mobile_money",
+    collect: { pawapay: { code: "AIRTEL_TZA" } },
+    payout: {},
+  },
+  tigo_tz: {
+    label: "Tigo Pesa (Tanzanie)", country: "tz", currency: "TZS", family: "mobile_money",
+    collect: { pawapay: { code: "TIGO_TZA" } },
+    payout: {},
+  },
+  halotel_tz: {
+    label: "Halopesa (Tanzanie)", country: "tz", currency: "TZS", family: "mobile_money",
+    collect: { pawapay: { code: "HALOTEL_TZA" } },
+    payout: {},
+  },
+  mtn_rw: {
+    label: "MTN Mobile Money (Rwanda)", country: "rw", currency: "RWF", family: "mobile_money",
+    collect: { pawapay: { code: "MTN_MOMO_RWA" } },
+    payout: {},
+  },
+  airtel_rw: {
+    label: "Airtel Money (Rwanda)", country: "rw", currency: "RWF", family: "mobile_money",
+    collect: { pawapay: { code: "AIRTEL_RWA" } },
+    payout: {},
+  },
+  mtn_zm: {
+    label: "MTN Mobile Money (Zambie)", country: "zm", currency: "ZMW", family: "mobile_money",
+    collect: { pawapay: { code: "MTN_MOMO_ZMB" } },
+    payout: {},
+  },
+  airtel_zm: {
+    label: "Airtel Money (Zambie)", country: "zm", currency: "ZMW", family: "mobile_money",
+    collect: { pawapay: { code: "AIRTEL_OAPI_ZMB" } },
+    payout: {},
+  },
+  zamtel_zm: {
+    label: "Zamtel Kwacha (Zambie)", country: "zm", currency: "ZMW", family: "mobile_money",
+    collect: { pawapay: { code: "ZAMTEL_ZMB" } },
+    payout: {},
+  },
+  airtel_mw: {
+    label: "Airtel Money (Malawi)", country: "mw", currency: "MWK", family: "mobile_money",
+    collect: { pawapay: { code: "AIRTEL_MWI" } },
+    payout: {},
+  },
+  tnm_mw: {
+    label: "TNM Mpamba (Malawi)", country: "mw", currency: "MWK", family: "mobile_money",
+    collect: { pawapay: { code: "TNM_MWI" } },
+    payout: {},
+  },
+  vodacom_mz: {
+    label: "M-Pesa (Mozambique)", country: "mz", currency: "MZN", family: "mobile_money",
+    collect: { pawapay: { code: "VODACOM_MOZ" } },
+    payout: {},
+  },
+  movitel_mz: {
+    label: "Movitel (Mozambique)", country: "mz", currency: "MZN", family: "mobile_money",
+    collect: { pawapay: { code: "MOVITEL_MOZ" } },
+    payout: {},
+  },
+  orange_sl: {
+    label: "Orange Money (Sierra Leone)", country: "sl", currency: "SLE", family: "mobile_money",
+    collect: { pawapay: { code: "ORANGE_SLE" } },
+    payout: {},
+  },
+
 };
 
 // ─────────────────────────── Lecture du registre ───────────────────────────
