@@ -197,3 +197,40 @@ test("chaque pays encaissable a un vrai drapeau dessiné", () => {
     expect(dessines.has(c), `${c} est vendable mais n'a pas de drapeau`).toBe(true);
   }
 });
+
+test("un paiement légitime passe TOUJOURS le garde-fou de livraison", () => {
+  // LE test qui compte avant d'ouvrir de vrais paiements.
+  //
+  // Chaîne réelle : prix FCFA → montantAFacturer → la passerelle débite ce
+  // montant → elle le rapporte → montantVersFcfa → comparé au prix.
+  // fulfillCheckout REFUSE de livrer si le retour tombe sous (prix − 1 FCFA).
+  //
+  // Une conversion mal arrondie priverait donc de son produit un acheteur qui
+  // a réellement payé — le pire défaut possible, et silencieux : la vente
+  // apparaîtrait encaissée.
+  const TOLERANCE = 1;
+  for (const p of PAYS_AFFICHAGE) {
+    const d = deviseDuPays(p.code);
+    for (const prix of [200, 500, 1000, 2500, 5000, 9900, 25000, 50000, 100000]) {
+      const debite = montantAFacturer(prix, d.code).montant;
+      const retour = montantVersFcfa(debite, d.code);
+      expect(
+        retour >= prix - TOLERANCE,
+        `${p.nom} à ${prix} F CFA : débité ${debite} ${d.symbole}, retour ${retour} F CFA — livraison REFUSÉE`,
+      ).toBe(true);
+    }
+  }
+});
+
+test("les pays qui vont recevoir de vrais paiements sont exacts au franc près", () => {
+  // Cameroun, Congo, Gabon : zone XAF, parité fixe avec le FCFA. Aucun écart
+  // n'est acceptable ici — un centime de dérive signalerait qu'un taux s'est
+  // glissé là où il ne doit pas y en avoir.
+  for (const pays of ["CM", "CG", "GA"]) {
+    const d = deviseDuPays(pays);
+    for (const prix of [200, 1000, 5000, 50000]) {
+      expect(montantAFacturer(prix, d.code).montant, `${pays} à ${prix}`).toBe(prix);
+      expect(montantVersFcfa(prix, d.code), `${pays} retour ${prix}`).toBe(prix);
+    }
+  }
+});
