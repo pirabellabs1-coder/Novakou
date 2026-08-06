@@ -46,18 +46,30 @@ function Colonne({ titre, lignes, actif }: { titre: string; lignes: Ligne[]; act
       </div>
 
       {lignes.length === 0 ? (
-        <p className="text-[13px] text-slate-400 italic py-2">Aucun moyen déclaré.</p>
+        <p className="text-[13px] text-slate-400 italic py-2">Aucun moyen géré.</p>
       ) : (
         <div className="rounded-xl border border-slate-200 divide-y divide-slate-100 max-h-[340px] overflow-y-auto">
-          {lignes.map((l) => (
-            <div key={`${l.operateur}-${l.code}`} className="flex items-center gap-2.5 px-3 py-1.5">
-              <CountryFlag code={l.pays} className="w-[20px] h-[13px]" />
-              <span className="text-[13px] font-semibold text-slate-800 flex-1 truncate">{l.label}</span>
-              <span className="text-[11px] text-slate-500 tabular-nums">{l.devise}</span>
-              {/* Le code natif : c'est lui qui decide sur quel reseau part
-                  l'argent. Le montrer permet de le recouper avec la doc du
-                  fournisseur sans ouvrir le code source. */}
-              <code className="text-[10px] text-slate-400 font-mono truncate max-w-[140px]">{l.code}</code>
+          {/* Un rang par PAYS, moyens en pastilles. Le code natif et la devise
+              ont ete retires : c'est du detail d'integration, pas de la
+              couverture — et ils noyaient la seule question qui compte, « qui
+              gere quoi ». */}
+          {pays.map((c) => (
+            <div key={c} className="flex items-start gap-2.5 px-3 py-2">
+              <CountryFlag code={c} className="w-[20px] h-[13px] mt-0.5" />
+              <div className="flex flex-wrap gap-1.5 flex-1">
+                {lignes
+                  .filter((l) => l.pays === c)
+                  .map((l) => (
+                    <span
+                      key={l.operateur}
+                      className="text-[12px] font-semibold text-slate-700 bg-slate-100 rounded-full px-2 py-0.5"
+                    >
+                      {/* Le pays est deja porte par le drapeau : le repeter dans
+                          chaque libelle rendait la ligne illisible. */}
+                      {l.label.replace(/\s*\([^)]*\)\s*$/, "")}
+                    </span>
+                  ))}
+              </div>
             </div>
           ))}
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Prix } from "@/components/formations/Prix";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -16,9 +17,6 @@ interface Suggestion {
   href: string;
 }
 
-function fmtFCFA(n: number) {
-  return new Intl.NumberFormat("fr-FR").format(Math.round(n)) + " FCFA";
-}
 
 /**
  * Suggest 3-6 related products to add at checkout. Keep it subtle (horizontal
@@ -81,7 +79,7 @@ export default function UpsellSuggestions({
             <div className="p-3">
               <p className="text-xs font-bold text-slate-900 leading-snug line-clamp-2">{s.title}</p>
               <div className="flex items-center justify-between mt-2">
-                <span className="text-sm font-extrabold text-emerald-700">{fmtFCFA(s.price)}</span>
+                <Prix fcfa={s.price} className="text-sm font-extrabold text-emerald-700" />
                 {s.rating > 0 && (
                   <span className="inline-flex items-center gap-0.5 text-[10px] text-slate-500">
                     <span className="material-symbols-outlined text-[12px] text-amber-400" style={{ fontVariationSettings: "'FILL' 1" }}>

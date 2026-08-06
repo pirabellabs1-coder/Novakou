@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Prix } from "@/components/formations/Prix";
 import Link from "next/link";
 import AdaptiveImage from "@/components/formations/AdaptiveImage";
 import { Star, ShoppingBag, Sparkles } from "lucide-react";
@@ -20,7 +21,6 @@ interface Reco {
   category: string | null;
 }
 
-const fmtFCFA = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n));
 
 /**
  * Section « Vous aimerez aussi » — recommandations par catégorie (v2 Phase 2).
@@ -114,7 +114,7 @@ export function RelatedProducts({
                   </div>
                 )}
                 <div className="mt-2 text-sm font-extrabold text-[#006e2f]">
-                  {it.price === 0 ? "Gratuit" : `${fmtFCFA(it.price)} FCFA`}
+                  <Prix fcfa={it.price} />
                 </div>
               </div>
             </Link>

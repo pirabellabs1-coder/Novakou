@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { Prix } from "@/components/formations/Prix";
 import Image from "next/image";
 import AdaptiveImage from "@/components/formations/AdaptiveImage";
 import { unstable_cache } from "next/cache";
@@ -232,7 +235,7 @@ export async function BestSellers() {
             <div className="flex flex-col gap-3">
               <div>
                 <div className="text-lg md:text-xl font-extrabold text-[#191c1e]">
-                  {item.isFree ? "Gratuit" : `${new Intl.NumberFormat("fr-FR").format(item.priceFcfa)} FCFA`}
+                  <Prix fcfa={item.priceFcfa} gratuitSi={item.isFree} />
                 </div>
               </div>
               <span className="flex items-center justify-center gap-1.5 w-full px-3 py-2.5 rounded-xl text-white text-xs font-bold bg-[#006e2f] group-hover:bg-gradient-to-r group-hover:from-[#006e2f] group-hover:to-[#22c55e] group-hover:shadow-lg transition-all">

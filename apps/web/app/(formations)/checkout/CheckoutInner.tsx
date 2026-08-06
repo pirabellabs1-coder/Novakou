@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePrix } from "@/components/formations/Prix";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { isAllowedBuyerEmail, ALLOWED_BUYER_EMAIL_MESSAGE } from "@/lib/email/allowed-buyer-email";
@@ -55,9 +56,9 @@ type CartItem = {
   thumbnail?: string | null;
 };
 
-function formatFCFA(n: number) {
-  return n.toLocaleString("fr-FR") + " FCFA";
-}
+// Le formateur vit desormais DANS le composant, derive du pays choisi : il
+// couvre d'un coup les douze prix de cet ecran. Le sortir en fonction de module
+// obligeait a ecrire « FCFA » en dur, donc a rater la conversion partout.
 
 // Sépare un numéro complet (« +2250700000000 ») en indicatif + numéro local,
 // en s'appuyant sur les indicatifs connus. Utilisé pour préremplir le champ
@@ -76,6 +77,10 @@ function splitDial(full: string): { dial: string; local: string } {
 }
 
 export default function CheckoutInner() {
+  // Le panier doit afficher la MEME devise que la fiche produit. Un acheteur
+  // qui lit 48 000 GNF puis retrouve 3 000 FCFA au panier ne sait plus ce
+  // qu'on va lui debiter — c'est l'ecran ou ce doute coute le plus cher.
+  const formatFCFA = usePrix();
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
