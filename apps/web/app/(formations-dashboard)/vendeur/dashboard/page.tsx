@@ -502,12 +502,16 @@ export default function VendeurDashboard() {
 
         {/* ── 4 KPI (maquette : revenus / ventes / visiteurs / objectif) ── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 mb-4">
+          {/* Total depuis la création de la boutique, plus le mois en cours.
+              Un vendeur qui a peu vendu ce mois-ci voyait un chiffre décourageant
+              en tête de son tableau de bord, alors que son cumul raconte
+              l'inverse. Pas d'écart « vs mois préc. » ici : comparer un total
+              cumulé au mois précédent n'a aucun sens — il ne peut que monter. */}
           <StKpi
-            label="Revenus du mois"
-            value={isLoading ? "…" : formatFCFA(d?.current?.revenue ?? d?.kpis.netRevenue ?? 0)}
+            label="Revenus"
+            value={isLoading ? "…" : formatFCFA(d?.kpis.netRevenue ?? 0)}
             unit="FCFA"
             icon={Wallet}
-            chip={<StDeltaChip pct={deltaPct(d?.current?.revenue, d?.previous?.revenue)} suffix="vs mois préc." />}
           />
           <StKpi
             label="Ventes"

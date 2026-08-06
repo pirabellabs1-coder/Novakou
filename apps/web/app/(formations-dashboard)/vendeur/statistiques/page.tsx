@@ -31,7 +31,7 @@ import {
   ST,
 } from "@/components/stitch";
 
-type Period = "7d" | "30d" | "90d" | "12m" | "all";
+type Period = "today" | "yesterday" | "7d" | "30d" | "12m" | "all";
 
 type StatsData = {
   overview: {
@@ -61,16 +61,34 @@ function formatPct1(n: number) {
   return n.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }
 
-/** Bornes de la période sélectionnée (miroir du calcul de cutoff côté API). */
+/** Minuit LOCAL du jour indiqué (0 = aujourd'hui, -1 = hier). */
+function minuitLocal(decalageJours = 0): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + decalageJours);
+  return d;
+}
+
+/**
+ * Bornes de la période sélectionnée (miroir du calcul de cutoff côté API).
+ *
+ * « Aujourd'hui » et « Hier » se calculent sur le fuseau du VENDEUR, pas en
+ * UTC : Cotonou est à UTC+1, Douala à UTC+1, Kampala à UTC+3 — un vendeur
+ * consultant ses ventes à 00 h 30 aurait vu celles de la veille rangées dans
+ * « aujourd'hui ». Une journée fausse rend l'indicateur inutilisable, et pire,
+ * crédible.
+ */
 function periodRange(period: Period): { start: Date; end: Date } | null {
   const end = new Date();
   switch (period) {
+    case "today":
+      return { start: minuitLocal(0), end };
+    case "yesterday":
+      return { start: minuitLocal(-1), end: minuitLocal(0) };
     case "7d":
       return { start: new Date(Date.now() - 7 * 86400000), end };
     case "30d":
       return { start: new Date(Date.now() - 30 * 86400000), end };
-    case "90d":
-      return { start: new Date(Date.now() - 90 * 86400000), end };
     case "12m":
       return { start: new Date(end.getFullYear(), end.getMonth() - 11, 1), end };
     case "all":
@@ -121,7 +139,7 @@ export default function StatistiquesPage() {
 
   const { data, isLoading } = useQuery<{ data: StatsData | null }>({
     queryKey: ["vendeur-stats", period],
-    queryFn: () => fetch(`/api/formations/vendeur/stats?period=${period}`).then((r) => r.json()),
+    queryFn: () => fetch(`/api/formations/vendeur/stats?period=${period}&tz=${new Date().getTimezoneOffset()}`).then((r) => r.json()),
     staleTime: 30_000,
   });
 
@@ -204,9 +222,10 @@ export default function StatistiquesPage() {
           actions={
             <StTabs
               tabs={[
+                { key: "today", label: "Aujourd'hui" },
+                { key: "yesterday", label: "Hier" },
                 { key: "7d", label: "7 j" },
                 { key: "30d", label: "30 j" },
-                { key: "90d", label: "90 j" },
                 { key: "12m", label: "1 an" },
               ]}
               active={period}

@@ -10,7 +10,7 @@ import { PLATFORM_COMMISSION_RATE } from "@/lib/formations/constants";
 // Single source of truth (10% — see lib/formations/constants.ts)
 const PLATFORM_FEE = PLATFORM_COMMISSION_RATE;
 
-type Period = "7d" | "30d" | "90d" | "3m" | "6m" | "12m" | "all";
+type Period = "today" | "yesterday" | "7d" | "30d" | "90d" | "3m" | "6m" | "12m" | "all";
 
 export async function GET(request: Request) {
   try {
@@ -29,10 +29,30 @@ export async function GET(request: Request) {
 
     // ── Compute cutoff date for the period ──
     const now = new Date();
+    // Le serveur tourne en UTC, le vendeur non : Cotonou est a UTC+1, Kampala
+    // a UTC+3. Sans le decalage du navigateur, « aujourd'hui » commencerait a
+    // minuit UTC et un vendeur consultant ses ventes en soiree verrait un jour
+    // faux. On borne le decalage : une valeur aberrante venue du client ne doit
+    // pas pouvoir deplacer la fenetre de plusieurs jours.
+    const tzBrut = Number(searchParams.get("tz"));
+    const tzMin = Number.isFinite(tzBrut) ? Math.max(-840, Math.min(840, tzBrut)) : 0;
+    /** Minuit LOCAL du vendeur, exprime en instant absolu. */
+    const minuitLocal = (decalageJours = 0) => {
+      const local = new Date(Date.now() - tzMin * 60_000);
+      local.setUTCHours(0, 0, 0, 0);
+      local.setUTCDate(local.getUTCDate() + decalageJours);
+      return new Date(local.getTime() + tzMin * 60_000);
+    };
+
+    // Borne de FIN. « Hier » sans elle incluait aujourd'hui : le filtre aurait
+    // affiche deux jours en pretendant n'en montrer qu'un.
+    let until: Date | null = null;
     let cutoff: Date | null = null;
     let days = 30;
     let monthsBack = 6;
     switch (period) {
+      case "today":     days = 1; cutoff = minuitLocal(0); break;
+      case "yesterday": days = 1; cutoff = minuitLocal(-1); until = minuitLocal(0); break;
       case "7d":  days = 7;  cutoff = new Date(Date.now() - 7  * 86400000); break;
       case "30d": days = 30; cutoff = new Date(Date.now() - 30 * 86400000); break;
       case "90d": days = 90; cutoff = new Date(Date.now() - 90 * 86400000); break;
@@ -150,7 +170,8 @@ export async function GET(request: Request) {
       ),
     ].filter((t) => !t.refunded);
 
-    const inPeriod = (t: Txn) => (cutoff ? t.createdAt >= cutoff : true);
+    const inPeriod = (t: Txn) =>
+      (cutoff ? t.createdAt >= cutoff : true) && (until ? t.createdAt < until : true);
     const periodTxns = allTxns.filter(inPeriod);
 
     // ── Overview ──

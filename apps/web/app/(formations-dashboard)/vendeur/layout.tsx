@@ -267,6 +267,23 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
+        {/* Voir la boutique — le vendeur passait par « Mes boutiques » puis un
+            second clic pour simplement regarder sa vitrine. Ouvre dans un
+            nouvel onglet : il compare son rendu public sans perdre le tableau
+            de bord ou le formulaire en cours de saisie. */}
+        {activeShop?.slug && (
+          <a
+            href={`/${activeShop.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Voir la boutique publique"
+            className="hidden sm:inline-flex items-center gap-2 flex-shrink-0 px-3.5 py-2 rounded-2xl text-sm font-semibold text-slate-700 border border-slate-200 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+          >
+            <Store size={17} />
+            <span className="hidden lg:inline">Voir la boutique</span>
+          </a>
+        )}
+
         <div className="flex-1 md:hidden" />
 
         {/* Right : notif + avatar 2 lignes (style KAZA) */}
