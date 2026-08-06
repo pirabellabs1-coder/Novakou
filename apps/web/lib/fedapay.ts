@@ -203,7 +203,15 @@ export function classifyFedapayError(
   ) {
     return {
       category: "not_available",
-      userMessage: "FedaPay n'est pas autorisé à effectuer ce versement (compte ou fonction de décaissement non activée).",
+      // Ce refus n'est PAS une panne : le compte fonctionne, mais FedaPay n'a
+      // pas encore ouvert le décaissement dessus. Le dire explicitement evite
+      // de chercher une erreur technique la ou il n'y en a pas — et donne
+      // l'action a mener, qui n'est pas de notre cote.
+      userMessage:
+        "FedaPay n'a pas encore activé le décaissement sur votre compte. " +
+        "Ce n'est pas une panne : demandez-leur l'activation des versements " +
+        "(support ou votre gestionnaire de compte). Le retrait pourra être " +
+        "relancé ensuite, ou réglé manuellement d'ici là.",
     };
   }
   if (lower.includes("invalid") || lower.includes("validation") || lower.includes("phone") || lower.includes("mode")) {
