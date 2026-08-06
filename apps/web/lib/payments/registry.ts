@@ -120,14 +120,20 @@ export const PROVIDERS: ProviderMeta[] = [
     // Agregateur Mobile Money multi-pays. Contrat releve dans leur
     // documentation publique (API v2) : POST /v2/deposits, GET /v2/deposits/{id}.
     //
-    // AUCUN operateur ne lui est encore rattache, et c'est deliberé : PawaPay
-    // expose GET /v2/active-conf, qui renvoie les pays et operateurs REELLEMENT
-    // actives sur notre compte. Leurs codes suivent un motif regulier
-    // (« MTN_MOMO_BEN ») donc tentant a extrapoler — une liste devinee
-    // proposerait a l'acheteur des operateurs que notre contrat ne couvre pas.
+    // Codes releves dans leur documentation officielle (v2/docs/providers),
+    // JAMAIS extrapoles du motif « MTN_MOMO_BEN » — un code invente envoie
+    // l'argent sur le mauvais reseau. Recoupes avec GET /v2/active-conf, qui
+    // dit ce que NOTRE compte couvre reellement.
     //
-    // Sans PAWAPAY_API_TOKEN la passerelle est inactive : la declarer ici ne
-    // change donc rien a ce qui est propose aujourd'hui.
+    // Rattache UNIQUEMENT aux pays dont la devise figure deja dans notre table
+    // de conversion (XOF, XAF, CDF, UGX). PawaPay ouvre neuf pays de plus -
+    // Ghana, Kenya, Malawi, Mozambique, Nigeria, Rwanda, Sierra Leone,
+    // Tanzanie, Zambie - mais leurs devises n'y sont pas : montantAFacturer()
+    // refuserait la vente. C'est le garde-fou qui fonctionne, pas un oubli :
+    // ces pays s'ouvriront quand leurs taux seront poses.
+    //
+    // Priorite 100 (reglee en admin) : PawaPay passe APRES les passerelles
+    // eprouvees. Il sert de secours tant qu'aucun paiement reel ne l'a valide.
     directions: ["collect"],
     collectIntegration: "server",
     envVars: ["PAWAPAY_API_TOKEN"],
@@ -179,6 +185,7 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   mtn_bj: {
     label: "MTN Mobile Money (Bénin)", country: "bj", currency: "XOF", family: "mobile_money",
     collect: {
+      pawapay: { code: "MTN_MOMO_BEN" },
       feexpay: { code: "MTN" },
       fedapay: { code: "mtn_open" },
       kkiapay: { code: "momo", params: { country: "BJ" } },
@@ -191,6 +198,7 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   moov_bj: {
     label: "Moov Money (Bénin)", country: "bj", currency: "XOF", family: "mobile_money",
     collect: {
+      pawapay: { code: "MOOV_BEN" },
       feexpay: { code: "MOOV" },
       fedapay: { code: "moov" },
       kkiapay: { code: "momo", params: { country: "BJ" } },
@@ -219,17 +227,20 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // ────────────────────── Côte d'Ivoire (XOF) ─────────────────────
   orange_ci: {
     label: "Orange Money (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
-    collect: { feexpay: { code: "ORANGE CI" }, kkiapay: { code: "momo", params: { country: "CI" } } },
+    collect: {
+      pawapay: { code: "ORANGE_CIV" }, feexpay: { code: "ORANGE CI" }, kkiapay: { code: "momo", params: { country: "CI" } } },
     payout: { feexpay: { code: "orange_ci" } },
   },
   wave_ci: {
     label: "Wave (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
-    collect: { feexpay: { code: "WAVE CI" }, kkiapay: { code: "momo", params: { country: "CI" } } },
+    collect: {
+      pawapay: { code: "WAVE_CIV" }, feexpay: { code: "WAVE CI" }, kkiapay: { code: "momo", params: { country: "CI" } } },
     payout: { feexpay: { code: "wave_ci" } },
   },
   mtn_ci: {
     label: "MTN Mobile Money (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
     collect: {
+      pawapay: { code: "MTN_MOMO_CIV" },
       feexpay: { code: "MTN CI" },
       fedapay: { code: "mtn_ci" },
       kkiapay: { code: "momo", params: { country: "CI" } },
@@ -250,18 +261,21 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // ───────────────────────── Sénégal (XOF) ────────────────────────
   orange_sn: {
     label: "Orange Money (Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
-    collect: { feexpay: { code: "ORANGE SN" }, kkiapay: { code: "momo", params: { country: "SN" } } },
+    collect: {
+      pawapay: { code: "ORANGE_SEN" }, feexpay: { code: "ORANGE SN" }, kkiapay: { code: "momo", params: { country: "SN" } } },
     payout: { feexpay: { code: "orange_sn" } },
   },
   wave_sn: {
     label: "Wave (Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
     // « WAVE SN » n'apparaît pas dans le SDK FeexPay ; KkiaPay sert le Sénégal.
-    collect: { kkiapay: { code: "momo", params: { country: "SN" } } },
+    collect: {
+      pawapay: { code: "WAVE_SEN" }, kkiapay: { code: "momo", params: { country: "SN" } } },
     payout: { feexpay: { code: "wave_sn" } },
   },
   freemoney_sn: {
     label: "Free Money (Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
     collect: {
+      pawapay: { code: "FREE_SEN" },
       feexpay: { code: "FREE SN" },
       fedapay: { code: "free_sn" },
       kkiapay: { code: "momo", params: { country: "SN" } },
@@ -326,12 +340,14 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // ─────────────────────── Burkina Faso (XOF) ─────────────────────
   orange_bf: {
     label: "Orange Money (Burkina Faso)", country: "bf", currency: "XOF", family: "mobile_money",
-    collect: { feexpay: { code: "ORANGE BF" } },
+    collect: {
+      pawapay: { code: "ORANGE_BFA" }, feexpay: { code: "ORANGE BF" } },
     payout: {},
   },
   moov_bf: {
     label: "Moov Money (Burkina Faso)", country: "bf", currency: "XOF", family: "mobile_money",
-    collect: { feexpay: { code: "MOOV BF" } },
+    collect: {
+      pawapay: { code: "MOOV_BFA" }, feexpay: { code: "MOOV BF" } },
     payout: {},
   },
 
@@ -361,7 +377,8 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // ─────────────────── Congo Brazzaville (XAF) ────────────────────
   mtn_cg: {
     label: "MTN Mobile Money (Congo)", country: "cg", currency: "XAF", family: "mobile_money",
-    collect: { feexpay: { code: "MTN CG" }, monetbil: { code: "CG_MTNMOBILEMONEY" } },
+    collect: {
+      pawapay: { code: "MTN_MOMO_COG" }, feexpay: { code: "MTN CG" }, monetbil: { code: "CG_MTNMOBILEMONEY" } },
     payout: {},
   },
 
@@ -379,12 +396,14 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // le lui dira, puisqu'il n'affiche que les moyens réellement servis.
   orange_cm: {
     label: "Orange Money (Cameroun)", country: "cm", currency: "XAF", family: "mobile_money",
-    collect: { monetbil: { code: "CM_ORANGEMONEY" } },
+    collect: {
+      pawapay: { code: "ORANGE_CMR" }, monetbil: { code: "CM_ORANGEMONEY" } },
     payout: {},
   },
   mtn_cm: {
     label: "MTN Mobile Money (Cameroun)", country: "cm", currency: "XAF", family: "mobile_money",
-    collect: { monetbil: { code: "CM_MTNMOBILEMONEY" } },
+    collect: {
+      pawapay: { code: "MTN_MOMO_CMR" }, monetbil: { code: "CM_MTNMOBILEMONEY" } },
     payout: {},
   },
   eu_cm: {
@@ -398,7 +417,8 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // jusqu'ici invendable ; le Gabon n'existait pas du tout chez nous.
   airtel_cg: {
     label: "Airtel Money (Congo)", country: "cg", currency: "XAF", family: "mobile_money",
-    collect: { monetbil: { code: "CG_AIRTELMONEY" } },
+    collect: {
+      pawapay: { code: "AIRTEL_COG" }, monetbil: { code: "CG_AIRTELMONEY" } },
     payout: {},
   },
   moov_ga: {
@@ -410,7 +430,8 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // compte. Code relevé par le fondateur sur sa fiche opérateur Monetbil.
   airtel_ga: {
     label: "Airtel Money (Gabon)", country: "ga", currency: "XAF", family: "mobile_money",
-    collect: { monetbil: { code: "GA_AIRTELMONEY" } },
+    collect: {
+      pawapay: { code: "AIRTEL_GAB" }, monetbil: { code: "GA_AIRTELMONEY" } },
     payout: {},
   },
 
@@ -435,12 +456,14 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   },
   orange_cd: {
     label: "Orange Money (RD Congo)", country: "cd", currency: "CDF", family: "mobile_money",
-    collect: { monetbil: { code: "CD_ORANGEMONEY" } },
+    collect: {
+      pawapay: { code: "ORANGE_COD" }, monetbil: { code: "CD_ORANGEMONEY" } },
     payout: {},
   },
   airtel_cd: {
     label: "Airtel Money (RD Congo)", country: "cd", currency: "CDF", family: "mobile_money",
-    collect: { monetbil: { code: "CD_AIRTELMONEY" } },
+    collect: {
+      pawapay: { code: "AIRTEL_COD" }, monetbil: { code: "CD_AIRTELMONEY" } },
     payout: {},
   },
   africell_cd: {
@@ -450,12 +473,14 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   },
   airtel_ug: {
     label: "Airtel Money (Ouganda)", country: "ug", currency: "UGX", family: "mobile_money",
-    collect: { monetbil: { code: "UG_AIRTELMONEY" } },
+    collect: {
+      pawapay: { code: "AIRTEL_OAPI_UGA" }, monetbil: { code: "UG_AIRTELMONEY" } },
     payout: {},
   },
   mtn_ug: {
     label: "MTN Mobile Money (Ouganda)", country: "ug", currency: "UGX", family: "mobile_money",
-    collect: { monetbil: { code: "UG_MTNMOBILEMONEY" } },
+    collect: {
+      pawapay: { code: "MTN_MOMO_UGA" }, monetbil: { code: "UG_MTNMOBILEMONEY" } },
     payout: {},
   },
   mtn_lr: {
