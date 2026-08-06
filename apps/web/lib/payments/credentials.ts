@@ -29,6 +29,10 @@ const ENV_KEYS: Record<ProviderId, Record<string, string>> = {
     secretKey: "IPAYMONEY_SECRET_KEY",
     webhookSecret: "IPAYMONEY_WEBHOOK_SECRET",
   },
+  // PawaPay : un seul jeton porteur (Bearer). Sans cette entrée,
+  // hasCredentials() renvoie toujours faux — la liste des champs attendus
+  // serait vide — et le formulaire admin n'afficherait rien à remplir.
+  pawapay: { apiToken: "PAWAPAY_API_TOKEN" },
 };
 
 type Entry = { creds: Record<string, string>; sandbox: boolean; at: number };

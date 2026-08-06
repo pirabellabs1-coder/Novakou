@@ -67,6 +67,43 @@ async function probeFeexpay(creds: Record<string, string>): Promise<Probe> {
   return { ok: collectOk && payoutOk, httpStatus: lastStatus, detail: results.join(" ") };
 }
 
+/**
+ * Sonde PawaPay : /v2/active-conf.
+ *
+ * Choix deliberé — c'est une LECTURE SEULE qui, en plus de valider le jeton,
+ * renvoie les pays et operateurs reellement actives sur le compte. Un test qui
+ * dit « ca marche » sans dire ce qu'on peut encaisser n'apprend presque rien.
+ */
+async function probePawapay(creds: Record<string, string>): Promise<Probe> {
+  const jeton = creds.apiToken;
+  if (!jeton) return { ok: false, httpStatus: null, detail: "Jeton API manquant." };
+  const { isSandbox } = await import("@/lib/payments/credentials");
+  const base = (await isSandbox("pawapay"))
+    ? "https://api.sandbox.pawapay.io"
+    : "https://api.pawapay.io";
+  try {
+    const res = await payoutFetch(`${base}/v2/active-conf`, {
+      method: "GET",
+      headers: { Accept: "application/json", Authorization: `Bearer ${jeton}` },
+    });
+    const texte = (await res.text()).slice(0, 4000);
+    let resume = texte.slice(0, 300);
+    if (res.ok) {
+      try {
+        const j = JSON.parse(texte) as { countries?: Array<{ country?: string; providers?: unknown[] }> };
+        const pays = (j.countries ?? []).map((c) => c.country).filter(Boolean);
+        const ops = (j.countries ?? []).reduce((n, c) => n + (c.providers?.length ?? 0), 0);
+        resume = `${pays.length} pays, ${ops} operateurs actives : ${pays.join(", ")}`;
+      } catch {
+        // Reponse illisible : on garde le texte brut, il servira au diagnostic.
+      }
+    }
+    return { ok: res.ok, httpStatus: res.status, detail: resume };
+  } catch (e) {
+    return { ok: false, httpStatus: null, detail: e instanceof Error ? e.message : "Injoignable" };
+  }
+}
+
 async function probeIpaymoney(creds: Record<string, string>): Promise<Probe> {
   const key = creds.secretKey;
   if (!key) return { ok: false, httpStatus: null, detail: "Clé secrète manquante." };
@@ -210,6 +247,7 @@ export async function POST(req: NextRequest) {
     provider === "feexpay" ? await probeFeexpay(creds)
     : provider === "kkiapay" ? await probeKkiapay(creds)
     : provider === "ipaymoney" ? await probeIpaymoney(creds)
+    : provider === "pawapay" ? await probePawapay(creds)
     : await probeFedapay(creds);
 
   return NextResponse.json({

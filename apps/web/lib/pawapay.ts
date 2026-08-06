@@ -24,26 +24,36 @@
 // la vente est « réussie ».
 
 import crypto from "crypto";
+import { credential, isSandbox } from "@/lib/payments/credentials";
 
 const BASE_PROD = "https://api.pawapay.io";
 const BASE_SANDBOX = "https://api.sandbox.pawapay.io";
 
-/** Sandbox tant que PAWAPAY_ENV n'est pas explicitement « production ». */
-function baseUrl() {
-  return (process.env.PAWAPAY_ENV ?? "").toLowerCase() === "production" ? BASE_PROD : BASE_SANDBOX;
+/**
+ * Le jeton et le mode viennent de l'ADMIN (chiffrés en base), avec repli sur
+ * l'environnement — comme toutes les autres passerelles. Les lire ici depuis
+ * process.env uniquement aurait oblige a un redeploiement a chaque rotation de
+ * jeton, et rendu le reglage admin mensonger.
+ */
+async function config() {
+  const [jeton, bacASable] = await Promise.all([
+    credential("pawapay", "apiToken"),
+    isSandbox("pawapay"),
+  ]);
+  if (!jeton) throw new Error("Jeton PawaPay absent (admin ou PAWAPAY_API_TOKEN)");
+  return { jeton, base: bacASable ? BASE_SANDBOX : BASE_PROD };
 }
 
-function token() {
-  const t = process.env.PAWAPAY_API_TOKEN;
-  if (!t) throw new Error("PAWAPAY_API_TOKEN absent : encaissement PawaPay impossible.");
-  return t;
+export function isPawapayConfigured(): Promise<boolean> {
+  return credential("pawapay", "apiToken").then((v) => Boolean(v));
 }
 
 async function appel<T>(chemin: string, init?: RequestInit): Promise<T> {
-  const r = await fetch(`${baseUrl()}${chemin}`, {
+  const { jeton, base } = await config();
+  const r = await fetch(`${base}${chemin}`, {
     ...init,
     headers: {
-      Authorization: `Bearer ${token()}`,
+      Authorization: `Bearer ${jeton}`,
       "Content-Type": "application/json",
       ...(init?.headers ?? {}),
     },

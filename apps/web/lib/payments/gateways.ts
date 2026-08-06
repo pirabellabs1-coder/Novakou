@@ -43,6 +43,10 @@ export const CREDENTIAL_FIELDS: Record<ProviderId, Array<{ key: string; label: s
     // de chaque webhook : c'est elle qui prouve que l'appel vient bien de lui.
     { key: "webhookSecret", label: "Secret du webhook", secret: true },
   ],
+  // Un seul jeton porteur. Pas de secret de rappel ici : la sûreté du point
+  // d'entrée PawaPay ne repose pas sur un secret partagé mais sur le fait
+  // qu'on ne croit jamais le statut annoncé — on le redemande.
+  pawapay: [{ key: "apiToken", label: "Jeton API", secret: true }],
 };
 
 export type GatewayRow = {
