@@ -47,6 +47,9 @@ const navItems: NavItem[] = [
   { icon: Users, label: "Utilisateurs", href: "/admin/utilisateurs" },
   { icon: Receipt, label: "Transactions", href: "/admin/transactions" },
   { icon: Plug, label: "Passerelles de paiement", href: "/admin/passerelles" },
+  // Sans cette entree la page existe mais n'est atteignable qu'en tapant son
+  // adresse : une page admin qu'on ne trouve pas n'est pas une page.
+  { icon: Plug, label: "Couverture passerelles", href: "/admin/passerelles/couverture" },
   { icon: Banknote, label: "Retraits vendeurs", href: "/admin/retraits-vendeurs" },
   { icon: Banknote, label: "Retraits affiliés", href: "/admin/affiliate-withdrawals" },
   { icon: Landmark, label: "Retraits plateforme", href: "/admin/retraits" },
