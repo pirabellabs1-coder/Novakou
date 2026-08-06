@@ -91,6 +91,40 @@ const DEVISE_PAR_PAYS: Record<string, CodeDevise> = {
   RW: "RWF", SL: "SLE", TZ: "TZS", ZM: "ZMW",
 };
 
+/**
+ * Applique des taux venus de l'ADMIN par-dessus les valeurs du code.
+ *
+ * On MUTE la table plutôt que de rendre asynchrones `convertirDepuisFcfa` et
+ * `montantAFacturer` : elles sont appelées de façon synchrone dans les
+ * composants client (vitrine, fiches produit) et sur le chemin critique d'un
+ * paiement. Les rendre asynchrones aurait touché chaque affichage de prix du
+ * site pour un gain nul.
+ *
+ * Les valeurs du code restent le DÉFAUT : base injoignable ou taux absent, on
+ * continue d'afficher et d'encaisser avec elles. Un prix ne doit jamais
+ * dépendre de la disponibilité d'une table de configuration.
+ *
+ * Une valeur non finie ou négative est IGNORÉE, pas appliquée : une faute de
+ * frappe en admin ne doit pas pouvoir mettre tous les prix d'un pays à zéro.
+ */
+export function appliquerTaux(taux: Record<string, number> | null | undefined): void {
+  if (!taux) return;
+  for (const [code, valeur] of Object.entries(taux)) {
+    const devise = (DEVISES as Record<string, Devise | undefined>)[code.trim().toUpperCase()];
+    if (!devise) continue;
+    // La parité XOF/XAF est un régime de change, pas un réglage : la laisser
+    // modifier ferait diverger deux devises qui sont la même par construction.
+    if (devise.pourUnFcfa === 1 && (code === "XOF" || code === "XAF")) continue;
+    if (!Number.isFinite(valeur) || valeur <= 0) continue;
+    devise.pourUnFcfa = valeur;
+  }
+}
+
+/** Taux courants, pour les afficher en admin ou les servir au navigateur. */
+export function tauxCourants(): Record<string, number> {
+  return Object.fromEntries(Object.values(DEVISES).map((d) => [d.code, d.pourUnFcfa]));
+}
+
 /** Devise à afficher pour ce pays, FCFA par défaut. */
 export function deviseDuPays(pays: string | null | undefined): Devise {
   const code = DEVISE_PAR_PAYS[(pays ?? "").trim().toUpperCase()];

@@ -6,6 +6,9 @@ import { IS_DEV } from "@/lib/env";
 import { resolveCollectProviders, activeProviders } from "@/lib/payments/gateways";
 import { resolveOperatorCode, getProvider, getOperator, countryFromPhone, currencyForOperator, type ProviderId } from "@/lib/payments/registry";
 import { montantAFacturer } from "@/lib/currency/rates";
+// Les taux modifies en admin doivent s'appliquer AU PAIEMENT, sinon on debite
+// l'acheteur avec une valeur du code que quelqu'un a justement corrigee.
+import { chargerTaux } from "@/lib/currency/taux-store";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
 import { computeCheckoutDiscount } from "@/lib/formations/checkout-discount";
 import { isAllowedBuyerEmail, ALLOWED_BUYER_EMAIL_MESSAGE } from "@/lib/email/allowed-buyer-email";
@@ -674,6 +677,9 @@ export async function POST(request: Request) {
           // d'envoi à l'aveugle.
           let aFacturer: { montant: number; devise: string };
           try {
+            // Taux modifies en admin : sans cette lecture on debiterait avec la
+            // valeur du code, que quelqu'un a justement corrigee.
+            await chargerTaux();
             aFacturer = montantAFacturer(Math.round(totalAmount), currencyForOperator(chosenOperator));
           } catch (err) {
             await failAttempt(
@@ -717,6 +723,9 @@ export async function POST(request: Request) {
           // poche, sans la moindre erreur visible.
           let aFacturer: { montant: number; devise: string };
           try {
+            // Taux modifies en admin : sans cette lecture on debiterait avec la
+            // valeur du code, que quelqu'un a justement corrigee.
+            await chargerTaux();
             aFacturer = montantAFacturer(Math.round(totalAmount), currencyForOperator(chosenOperator));
           } catch (err) {
             await failAttempt(

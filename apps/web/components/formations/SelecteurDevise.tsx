@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { CountryFlag } from "@/components/formations/CountryFlag";
-import { PAYS_AFFICHAGE, deviseDuPays } from "@/lib/currency/rates";
+import { PAYS_AFFICHAGE, deviseDuPays, appliquerTaux } from "@/lib/currency/rates";
 
 /**
  * Sélecteur de pays dans l'en-tête d'une boutique.
@@ -40,6 +40,20 @@ export function useDeviseAffichage() {
   useEffect(() => {
     const relire = () => setDevise(deviseDuPays(paysAffichageCourant()));
     relire();
+    // Taux modifies en admin : sans cette lecture, le visiteur verrait un prix
+    // calcule avec la valeur du code et en paierait un autre au moment de
+    // valider — la meilleure facon de le perdre au dernier ecran.
+    fetch("/api/formations/public/taux")
+      .then((r) => r.json())
+      .then((j) => {
+        if (j?.data?.taux) {
+          appliquerTaux(j.data.taux);
+          relire();
+        }
+      })
+      .catch(() => {
+        // Taux indisponibles : ceux du code font foi, l'affichage reste juste.
+      });
     window.addEventListener(EVENEMENT_DEVISE, relire);
     // Un autre onglet a pu changer le choix : le localStorage nous en informe.
     window.addEventListener("storage", relire);

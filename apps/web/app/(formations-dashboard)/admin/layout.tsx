@@ -50,6 +50,7 @@ const navItems: NavItem[] = [
   // Sans cette entree la page existe mais n'est atteignable qu'en tapant son
   // adresse : une page admin qu'on ne trouve pas n'est pas une page.
   { icon: Plug, label: "Couverture passerelles", href: "/admin/passerelles/couverture" },
+  { icon: Plug, label: "Taux de change", href: "/admin/taux" },
   { icon: Banknote, label: "Retraits vendeurs", href: "/admin/retraits-vendeurs" },
   { icon: Banknote, label: "Retraits affiliés", href: "/admin/affiliate-withdrawals" },
   { icon: Landmark, label: "Retraits plateforme", href: "/admin/retraits" },
