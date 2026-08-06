@@ -53,6 +53,15 @@ export async function PATCH(req: Request, { params }: Params) {
     legalCountry?: string | null;
     aboutText?: string | null;
     font?: string | null;
+    // Identite PUBLIQUE de la boutique (distincte des champs legaux).
+    contactEmail?: string | null;
+    whatsapp?: string | null;
+    websiteUrl?: string | null;
+    socialFacebook?: string | null;
+    socialInstagram?: string | null;
+    socialLinkedin?: string | null;
+    socialYoutube?: string | null;
+    showSalesCount?: boolean;
   };
   try {
     body = await req.json();
@@ -96,6 +105,23 @@ export async function PATCH(req: Request, { params }: Params) {
   if ("legalEmail" in body) data.legalEmail = trimOrNull(body.legalEmail, 120);
   if ("legalCountry" in body) data.legalCountry = trimOrNull(body.legalCountry, 60);
   if ("aboutText" in body) data.aboutText = trimOrNull(body.aboutText, 4000);
+
+  // ── Identite publique ────────────────────────────────────────────────────
+  if ("contactEmail" in body) data.contactEmail = trimOrNull(body.contactEmail, 120);
+  if ("websiteUrl" in body) data.websiteUrl = trimOrNull(body.websiteUrl, 200);
+  if ("socialFacebook" in body) data.socialFacebook = trimOrNull(body.socialFacebook, 200);
+  if ("socialInstagram" in body) data.socialInstagram = trimOrNull(body.socialInstagram, 200);
+  if ("socialLinkedin" in body) data.socialLinkedin = trimOrNull(body.socialLinkedin, 200);
+  if ("socialYoutube" in body) data.socialYoutube = trimOrNull(body.socialYoutube, 200);
+  if ("whatsapp" in body) {
+    // On garde les chiffres et un « + » de tete. Un numero saisi « 229 01 02 03 »
+    // doit produire un lien wa.me valide : laisser passer les espaces donnerait
+    // un bouton qui s'ouvre sur une erreur WhatsApp, pire qu'un bouton absent.
+    const brut = trimOrNull(body.whatsapp, 32);
+    const chiffres = brut ? brut.replace(/[^\d]/g, "") : null;
+    data.whatsapp = chiffres && chiffres.length >= 8 ? chiffres : null;
+  }
+  if ("showSalesCount" in body) data.showSalesCount = body.showSalesCount === true;
   if ("font" in body) {
     const f = trimOrNull(body.font, 40);
     data.font = f && (SHOP_FONTS as readonly string[]).includes(f) ? f : null;

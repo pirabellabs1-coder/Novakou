@@ -24,6 +24,14 @@ interface Shop {
   legalAddress: string | null;
   legalPhone: string | null;
   legalEmail: string | null;
+  contactEmail: string | null;
+  whatsapp: string | null;
+  websiteUrl: string | null;
+  socialFacebook: string | null;
+  socialInstagram: string | null;
+  socialLinkedin: string | null;
+  socialYoutube: string | null;
+  showSalesCount: boolean;
   legalCountry: string | null;
   font: string | null;
 }
@@ -41,6 +49,14 @@ export default function VendorShopDetailPage() {
   const [legalAddress, setLegalAddress] = useState("");
   const [legalPhone, setLegalPhone] = useState("");
   const [legalEmail, setLegalEmail] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [websiteUrl, setWebsiteUrl] = useState("");
+  const [socialFacebook, setSocialFacebook] = useState("");
+  const [socialInstagram, setSocialInstagram] = useState("");
+  const [socialLinkedin, setSocialLinkedin] = useState("");
+  const [socialYoutube, setSocialYoutube] = useState("");
+  const [showSalesCount, setShowSalesCount] = useState(false);
   const [legalCountry, setLegalCountry] = useState("");
   const [font, setFont] = useState("");
   const [saving, setSaving] = useState(false);
@@ -60,6 +76,14 @@ export default function VendorShopDetailPage() {
       setLegalAddress(json.data.legalAddress ?? "");
       setLegalPhone(json.data.legalPhone ?? "");
       setLegalEmail(json.data.legalEmail ?? "");
+      setContactEmail(json.data.contactEmail ?? "");
+      setWhatsapp(json.data.whatsapp ?? "");
+      setWebsiteUrl(json.data.websiteUrl ?? "");
+      setSocialFacebook(json.data.socialFacebook ?? "");
+      setSocialInstagram(json.data.socialInstagram ?? "");
+      setSocialLinkedin(json.data.socialLinkedin ?? "");
+      setSocialYoutube(json.data.socialYoutube ?? "");
+      setShowSalesCount(json.data.showSalesCount === true);
       setLegalCountry(json.data.legalCountry ?? "");
       setFont(json.data.font ?? "");
     } catch (e) {
@@ -103,6 +127,14 @@ export default function VendorShopDetailPage() {
           legalAddress: legalAddress || null,
           legalPhone: legalPhone || null,
           legalEmail: legalEmail || null,
+          contactEmail: contactEmail || null,
+          whatsapp: whatsapp || null,
+          websiteUrl: websiteUrl || null,
+          socialFacebook: socialFacebook || null,
+          socialInstagram: socialInstagram || null,
+          socialLinkedin: socialLinkedin || null,
+          socialYoutube: socialYoutube || null,
+          showSalesCount,
           legalCountry: legalCountry || null,
         }),
       });
@@ -434,6 +466,69 @@ export default function VendorShopDetailPage() {
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10" />
               </div>
             </div>
+          </div>
+
+          {/* ── Identite publique de la boutique ─────────────────────────────
+              Ces informations s'affichent sur la vitrine et servent a joindre
+              le vendeur. Elles remplacent le profil PERSONNEL : le site met en
+              avant une boutique, pas une personne. Distinctes des champs legaux
+              ci-dessus — un e-mail de facturation n'est pas celui qu'on donne a
+              un acheteur. */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-5 md:p-6">
+            <h2 className="text-base font-extrabold text-[#191c1e]">Contact et reseaux</h2>
+            <p className="text-xs text-[#5c647a] mt-1">
+              Affiches sur votre boutique et dans le bloc « Contactez-nous » de chaque fiche produit.
+              Laissez vide ce que vous ne souhaitez pas montrer.
+            </p>
+            <div className="grid md:grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="block text-xs font-bold text-[#5c647a] mb-1">E-mail de contact</label>
+                <input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder="contact@maboutique.com" maxLength={120}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[#5c647a] mb-1">WhatsApp</label>
+                <input type="tel" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="+229 01 02 03 04" maxLength={32}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[#5c647a] mb-1">Site web (optionnel)</label>
+                <input type="url" value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} placeholder="https://…" maxLength={200}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[#5c647a] mb-1">Facebook</label>
+                <input type="url" value={socialFacebook} onChange={(e) => setSocialFacebook(e.target.value)} placeholder="https://facebook.com/…" maxLength={200}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[#5c647a] mb-1">Instagram</label>
+                <input type="url" value={socialInstagram} onChange={(e) => setSocialInstagram(e.target.value)} placeholder="https://instagram.com/…" maxLength={200}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[#5c647a] mb-1">LinkedIn</label>
+                <input type="url" value={socialLinkedin} onChange={(e) => setSocialLinkedin(e.target.value)} placeholder="https://linkedin.com/…" maxLength={200}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[#5c647a] mb-1">YouTube</label>
+                <input type="url" value={socialYoutube} onChange={(e) => setSocialYoutube(e.target.value)} placeholder="https://youtube.com/@…" maxLength={200}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10" />
+              </div>
+            </div>
+
+            <label className="flex items-start gap-3 mt-5 pt-4 border-t border-gray-100 cursor-pointer">
+              <input type="checkbox" checked={showSalesCount} onChange={(e) => setShowSalesCount(e.target.checked)}
+                className="mt-0.5 w-4 h-4 accent-[#006e2f]" />
+              <span>
+                <span className="block text-sm font-bold text-[#191c1e]">Afficher le nombre de ventes</span>
+                <span className="block text-xs text-[#5c647a] mt-0.5">
+                  Desactive par defaut. « 0 vente » sous un produit decourage l'achat bien plus
+                  qu'un chiffre eleve ne le motive — activez-le quand vos ventes vous servent d'argument.
+                </span>
+              </span>
+            </label>
           </div>
 
           <div className="flex justify-end pt-2">
