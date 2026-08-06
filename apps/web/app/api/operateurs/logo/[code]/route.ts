@@ -46,9 +46,46 @@ async function urlDuLogo(code: string): Promise<string | null> {
   return cache[code] ?? null;
 }
 
-export async function GET(_req: Request, { params }: { params: Promise<{ code: string }> }) {
-  const { code } = await params;
-  const url = await urlDuLogo(code.trim().toLowerCase());
+/**
+ * Fichiers deposes par nous dans public/operateurs/. Ils ont la PRIORITE sur
+ * le CDN du fournisseur : c'est ce qui permet de couvrir les operateurs que
+ * PawaPay ne sert pas (Express Union, Celtiis, Coris, Zamani, Djamo...) et de
+ * cesser de dependre d'un tiers pour ceux qu'il sert.
+ *
+ * Deposer « public/operateurs/celtiis_bj.png » suffit : aucun code a toucher.
+ */
+const EXTENSIONS = ["svg", "png", "webp"];
+
+async function fichierLocal(code: string, origine: string): Promise<Response | null> {
+  for (const ext of EXTENSIONS) {
+    try {
+      const r = await fetch(`${origine}/operateurs/${code}.${ext}`, { cache: "no-store" });
+      if (r.ok) return r;
+    } catch {
+      // Fichier absent : on essaie l'extension suivante, puis le CDN.
+    }
+  }
+  return null;
+}
+
+export async function GET(req: Request, { params }: { params: Promise<{ code: string }> }) {
+  const { code: brut } = await params;
+  const code = brut.trim().toLowerCase();
+
+  // 1) Le notre d'abord.
+  const origine = new URL(req.url).origin;
+  const local = await fichierLocal(code, origine);
+  if (local) {
+    return new NextResponse(await local.arrayBuffer(), {
+      headers: {
+        "Content-Type": local.headers.get("content-type") ?? "image/png",
+        "Cache-Control": "public, max-age=604800, stale-while-revalidate=2592000",
+      },
+    });
+  }
+
+  // 2) Sinon celui du fournisseur.
+  const url = await urlDuLogo(code);
   if (!url) return new NextResponse(null, { status: 404 });
 
   try {
