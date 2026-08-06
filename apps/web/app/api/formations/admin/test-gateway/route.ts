@@ -86,14 +86,37 @@ async function probePawapay(creds: Record<string, string>): Promise<Probe> {
       method: "GET",
       headers: { Accept: "application/json", Authorization: `Bearer ${jeton}` },
     });
-    const texte = (await res.text()).slice(0, 4000);
+    // NE PAS tronquer avant d'analyser : leur reponse depasse largement
+    // quelques milliers de caracteres (logos, libelles traduits, plafonds), et
+    // la couper d'abord faisait echouer l'analyse — le test retombait alors sur
+    // du JSON brut illisible en pretendant que la reponse etait inexploitable.
+    const texte = await res.text();
     let resume = texte.slice(0, 300);
     if (res.ok) {
       try {
-        const j = JSON.parse(texte) as { countries?: Array<{ country?: string; providers?: unknown[] }> };
-        const pays = (j.countries ?? []).map((c) => c.country).filter(Boolean);
-        const ops = (j.countries ?? []).reduce((n, c) => n + (c.providers?.length ?? 0), 0);
-        resume = `${pays.length} pays, ${ops} operateurs actives : ${pays.join(", ")}`;
+        // Leur reponse complete pese plusieurs milliers de lignes (logos,
+        // libelles traduits, plafonds...). On n'en garde que ce qui sert a
+        // declarer la couverture : pays, code operateur, devise.
+        type Conf = {
+          countries?: Array<{
+            country?: string;
+            providers?: Array<{
+              provider?: string;
+              currencies?: Array<{ currency?: string }>;
+            }>;
+          }>;
+        };
+        const j = JSON.parse(texte) as Conf;
+        const pays = j.countries ?? [];
+        const lignes: string[] = [];
+        for (const c of pays) {
+          for (const op of c.providers ?? []) {
+            const dev = (op.currencies ?? []).map((x) => x.currency).filter(Boolean).join("/");
+            if (c.country && op.provider) lignes.push(`${c.country} ${op.provider} ${dev}`);
+          }
+        }
+        const sautDeLigne = String.fromCharCode(10);
+        resume = `${pays.length} pays, ${lignes.length} operateurs` + sautDeLigne + lignes.sort().join(sautDeLigne);
       } catch {
         // Reponse illisible : on garde le texte brut, il servira au diagnostic.
       }
