@@ -357,20 +357,11 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
 
               <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e] leading-tight">{product.title}</h1>
 
-              {/* Infos produit (ventes + date) — sans identité créateur : la
-                  boutique du vendeur suffit comme identité. */}
-              <div className="flex items-center gap-3 flex-wrap text-xs text-[#5c647a] mt-4">
-                {product.salesCount > 0 && (
-                  <span>
-                    <span className="font-semibold text-[#191c1e]">{fmt(product.salesCount)}</span>
-                    {" "}vente{product.salesCount !== 1 ? "s" : ""}
-                  </span>
-                )}
-                {product.salesCount > 0 && <span className="text-zinc-300">·</span>}
-                <span>
-                  Ajouté le {new Date(product.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
-                </span>
-              </div>
+              {/* Ni nombre de ventes, ni date d'ajout (demande fondateur).
+                  La date desservait les catalogues : un bon produit publié il
+                  y a deux ans paraissait périmé, alors que la date d'ajout ne
+                  dit rien de sa valeur pour l'acheteur. Le nombre de ventes
+                  est désormais masqué par défaut, ici comme sur les cartes. */}
 
               {/* Stats — note affichée uniquement si le produit a déjà des avis
                   (pas de « Nouveau » ni de second compteur de ventes en doublon) */}
