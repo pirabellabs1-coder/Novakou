@@ -26,6 +26,32 @@ export function paysAffichageCourant(): string {
   return window.localStorage.getItem(CLE_MEMOIRE) || "BJ";
 }
 
+/**
+ * Devise d'affichage courante, qui se met à jour quand le visiteur change de
+ * pays — sans rechargement, sinon il perdrait sa position dans la page.
+ *
+ * Renvoie le FCFA au premier rendu : le serveur ne connaît pas le choix du
+ * visiteur, et servir un HTML différent de celui du navigateur casserait
+ * l'hydratation.
+ */
+export function useDeviseAffichage() {
+  const [devise, setDevise] = useState(() => deviseDuPays(null));
+
+  useEffect(() => {
+    const relire = () => setDevise(deviseDuPays(paysAffichageCourant()));
+    relire();
+    window.addEventListener(EVENEMENT_DEVISE, relire);
+    // Un autre onglet a pu changer le choix : le localStorage nous en informe.
+    window.addEventListener("storage", relire);
+    return () => {
+      window.removeEventListener(EVENEMENT_DEVISE, relire);
+      window.removeEventListener("storage", relire);
+    };
+  }, []);
+
+  return devise;
+}
+
 export function SelecteurDevise({ tone = "light" }: { tone?: "light" | "dark" }) {
   const [pays, setPays] = useState<string>("BJ");
   const [ouvert, setOuvert] = useState(false);

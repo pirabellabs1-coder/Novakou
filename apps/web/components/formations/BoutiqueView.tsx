@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useDeviseAffichage } from "@/components/formations/SelecteurDevise";
+import { formaterPrix } from "@/lib/currency/rates";
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { shopFontStack } from "@/lib/formations/shop-fonts";
@@ -40,9 +42,9 @@ interface Owner {
   themeColor?: string | null;
 }
 
-function fmtFCFA(n: number) {
-  return new Intl.NumberFormat("fr-FR").format(Math.round(n)) + " FCFA";
-}
+// Les prix sont STOCKÉS en FCFA et le vendeur touche ce montant-là. La devise
+// n'est qu'une aide à la lecture : un visiteur guinéen qui lit « 5 000 FCFA »
+// ne sait pas ce que ça lui coûte, et il repart.
 
 export default function BoutiqueView({
   owner,
@@ -63,6 +65,8 @@ export default function BoutiqueView({
   shopSlug?: string;
   font?: string | null;
 }) {
+  const deviseAffichage = useDeviseAffichage();
+  const fmtPrix = (n: number) => formaterPrix(n, deviseAffichage);
   const all = useMemo(
     () => [...formations, ...products, ...bundles, ...subscriptionPlans],
     [formations, products, bundles, subscriptionPlans],
@@ -598,7 +602,7 @@ export default function BoutiqueView({
                         <div className="flex items-baseline justify-between mb-3 gap-2">
                           <div className="flex items-baseline gap-2 flex-wrap">
                             <span className="text-lg font-extrabold" style={{ color: themeColor }}>
-                              {item.isFree || item.price === 0 ? "Gratuit" : fmtFCFA(item.price)}
+                              {item.isFree || item.price === 0 ? "Gratuit" : fmtPrix(item.price)}
                             </span>
                             {item.kind === "subscription" && (
                               <span className="text-[10px] font-semibold text-slate-500">
@@ -607,7 +611,7 @@ export default function BoutiqueView({
                             )}
                             {item.kind === "bundle" && item.originalPrice && item.originalPrice > item.price && (
                               <span className="text-[11px] text-slate-400 line-through">
-                                {fmtFCFA(item.originalPrice)}
+                                {fmtPrix(item.originalPrice)}
                               </span>
                             )}
                           </div>
