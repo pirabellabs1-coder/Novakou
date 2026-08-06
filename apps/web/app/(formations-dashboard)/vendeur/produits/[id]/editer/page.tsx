@@ -1,10 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { RichTextEditor } from "@/components/formations/RichTextEditor";
+// Charge a la demande — meme raison que sur la page de creation : dix modules
+// TipTap analyses des l'ouverture, sur un assistant que beaucoup de vendeurs
+// remplissent depuis un telephone modeste.
+const RichTextEditor = dynamic(
+  () => import("@/components/formations/RichTextEditor").then((m) => m.RichTextEditor),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[220px] rounded-xl border border-gray-200 bg-slate-50 animate-pulse" />
+    ),
+  },
+);
 import { ImageUploader } from "@/components/formations/ImageUploader";
 import { MultiFileUploader, type ProductFile } from "@/components/formations/MultiFileUploader";
 import { confirmAction } from "@/store/confirm";

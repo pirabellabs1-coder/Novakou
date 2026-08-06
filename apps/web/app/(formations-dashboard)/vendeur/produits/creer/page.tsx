@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import {
@@ -41,7 +42,22 @@ import {
   Timer,
   Share2,
 } from "lucide-react";
-import { RichTextEditor } from "@/components/formations/RichTextEditor";
+// CHARGE A LA DEMANDE. L'editeur enrichi tire dix modules TipTap et ne sert
+// qu'a l'etape 2, mais il etait charge des l'ouverture de la page — un poids
+// mort a analyser pour un telephone modeste, avant meme que le vendeur n'ait
+// choisi son type de produit.
+//
+// ssr: false : cet editeur manipule le DOM, il n'a rien a faire dans le rendu
+// serveur, et l'en exclure allege aussi le HTML envoye.
+const RichTextEditor = dynamic(
+  () => import("@/components/formations/RichTextEditor").then((m) => m.RichTextEditor),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[220px] rounded-xl border border-gray-200 bg-slate-50 animate-pulse" />
+    ),
+  },
+);
 import { ImageUploader } from "@/components/formations/ImageUploader";
 import { MultiFileUploader, type ProductFile } from "@/components/formations/MultiFileUploader";
 import {
