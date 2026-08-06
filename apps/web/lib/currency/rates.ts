@@ -23,7 +23,8 @@ export const DEVISE_REFERENCE = "XOF" as const;
 
 export type CodeDevise =
   | "XOF" | "XAF" | "GNF" | "CDF" | "UGX" | "LRD"
-  | "GHS" | "KES" | "MWK" | "MZN" | "NGN" | "RWF" | "SLE" | "TZS" | "ZMW";
+  | "GHS" | "KES" | "MWK" | "MZN" | "NGN" | "RWF" | "SLE" | "TZS" | "ZMW"
+  | "ETB" | "LSL";
 
 export type Devise = {
   code: CodeDevise;
@@ -68,6 +69,8 @@ export const DEVISES: Record<CodeDevise, Devise> = {
   SLE: { code: "SLE", symbole: "Le", pourUnFcfa: 0.0434, arrondi: 1 },
   TZS: { code: "TZS", symbole: "TSh", pourUnFcfa: 4.612, arrondi: 100 },
   ZMW: { code: "ZMW", symbole: "ZK", pourUnFcfa: 0.0336, arrondi: 1 },
+  ETB: { code: "ETB", symbole: "Br", pourUnFcfa: 0.286, arrondi: 5 },
+  LSL: { code: "LSL", symbole: "M", pourUnFcfa: 0.0287, arrondi: 1 },
 };
 
 /**
@@ -88,7 +91,7 @@ const DEVISE_PAR_PAYS: Record<string, CodeDevise> = {
   GN: "GNF", CD: "CDF", UG: "UGX", LR: "LRD",
   // Ouverts par PawaPay
   GH: "GHS", KE: "KES", MW: "MWK", MZ: "MZN", NG: "NGN",
-  RW: "RWF", SL: "SLE", TZ: "TZS", ZM: "ZMW",
+  RW: "RWF", SL: "SLE", TZ: "TZS", ZM: "ZMW", ET: "ETB", LS: "LSL",
 };
 
 /**
@@ -241,4 +244,6 @@ export const PAYS_AFFICHAGE: Array<{ code: string; nom: string }> = [
   { code: "MW", nom: "Malawi" },
   { code: "MZ", nom: "Mozambique" },
   { code: "SL", nom: "Sierra Leone" },
+  { code: "ET", nom: "Éthiopie" },
+  { code: "LS", nom: "Lesotho" },
 ];

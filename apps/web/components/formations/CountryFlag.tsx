@@ -241,6 +241,23 @@ const FLAGS: Record<string, React.ReactNode> = {
   ),
   // Sierra Leone — vert, blanc, bleu horizontaux.
   sl: <Horizontal colors={["#1EB53A", "#FFFFFF", "#0072C6"]} />,
+  // Éthiopie — vert/jaune/rouge + disque bleu à étoile jaune.
+  et: (
+    <>
+      <Horizontal colors={["#078930", "#FCDD09", "#DA121A"]} />
+      <circle cx="12" cy="8" r="4" fill="#0F47AF" />
+      <Star cx={12} cy={8} r={2.6} fill="#FCDD09" />
+    </>
+  ),
+  // Lesotho — bleu/blanc/vert, avec le chapeau mokorotlo stylisé au centre.
+  ls: (
+    <>
+      <rect x="0" y="0" width="24" height="4.6" fill="#00209F" />
+      <rect x="0" y="4.6" width="24" height="6.8" fill="#FFFFFF" />
+      <rect x="0" y="11.4" width="24" height="4.6" fill="#009543" />
+      <polygon points="12,4.6 14.6,10.4 9.4,10.4" fill="#000000" />
+    </>
+  ),
 };
 
 /**

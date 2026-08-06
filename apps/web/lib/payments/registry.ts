@@ -234,7 +234,7 @@ export const OPERATORS: Record<string, OperatorEntry> = {
       pawapay: { code: "WAVE_SEN" } },
     payout: { feexpay: { code: "wave_sn" } } },
   freemoney_sn: {
-    label: "Free Money (Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
+    label: "YAS (ex-Free Money, Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
     collect: {
       pawapay: { code: "FREE_SEN" },
       feexpay: { code: "FREE SN" },
@@ -436,11 +436,11 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     collect: { pawapay: { code: "MTN_MOMO_GHA" } },
     payout: { pawapay: { code: "MTN_MOMO_GHA" } } },
   airteltigo_gh: {
-    label: "AirtelTigo (Ghana)", country: "gh", currency: "GHS", family: "mobile_money",
+    label: "AT (ex-AirtelTigo, Ghana)", country: "gh", currency: "GHS", family: "mobile_money",
     collect: { pawapay: { code: "AIRTELTIGO_GHA" } },
     payout: { pawapay: { code: "AIRTELTIGO_GHA" } } },
   vodafone_gh: {
-    label: "Vodafone Cash (Ghana)", country: "gh", currency: "GHS", family: "mobile_money",
+    label: "Telecel (ex-Vodafone, Ghana)", country: "gh", currency: "GHS", family: "mobile_money",
     collect: { pawapay: { code: "VODAFONE_GHA" } },
     payout: { pawapay: { code: "VODAFONE_GHA" } } },
   mtn_ng: {
@@ -464,7 +464,7 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     collect: { pawapay: { code: "AIRTEL_TZA" } },
     payout: { pawapay: { code: "AIRTEL_TZA" } } },
   tigo_tz: {
-    label: "Tigo Pesa (Tanzanie)", country: "tz", currency: "TZS", family: "mobile_money",
+    label: "YAS (ex-Tigo, Tanzanie)", country: "tz", currency: "TZS", family: "mobile_money",
     collect: { pawapay: { code: "TIGO_TZA" } },
     payout: { pawapay: { code: "TIGO_TZA" } } },
   halotel_tz: {
@@ -510,7 +510,21 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   orange_sl: {
     label: "Orange Money (Sierra Leone)", country: "sl", currency: "SLE", family: "mobile_money",
     collect: { pawapay: { code: "ORANGE_SLE" } },
-    payout: { pawapay: { code: "ORANGE_SLE" } } } };
+    payout: { pawapay: { code: "ORANGE_SLE" } } } ,
+  // ───── Éthiopie et Lesotho (PawaPay) ─────────────────────────────────────
+  // Encaissement ET versement : leur page tarifs les donne pris en charge dans
+  // les deux sens, comme tous leurs opérateurs sauf Orange Burkina.
+  // « Ethio telecom » figure sur cette page mais son code n'y est pas : on ne
+  // l'inscrit pas tant qu'on ne l'a pas lu.
+  mpesa_et: {
+    label: "M-Pesa (Éthiopie)", country: "et", currency: "ETB", family: "mobile_money",
+    collect: { pawapay: { code: "MPESA_ETH" } },
+    payout: { pawapay: { code: "MPESA_ETH" } } },
+  mpesa_ls: {
+    label: "M-Pesa (Lesotho)", country: "ls", currency: "LSL", family: "mobile_money",
+    collect: { pawapay: { code: "MPESA_LSO" } },
+    payout: { pawapay: { code: "MPESA_LSO" } } }
+};
 
 // ─────────────────────────── Lecture du registre ───────────────────────────
 
