@@ -560,7 +560,7 @@ export default function AffiliationPage() {
                 }`}
               >
                 {copied ? <Check size={16} /> : <Copy size={16} />}
-                {copied ? "Copié !" : "Copier"}
+                <span translate="no">{copied ? "Copié !" : "Copier"}</span>
               </button>
             </div>
           </div>

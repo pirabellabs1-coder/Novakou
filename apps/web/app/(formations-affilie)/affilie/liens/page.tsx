@@ -305,7 +305,7 @@ export default function LiensPage() {
                             }`}
                           >
                             <span className="material-symbols-outlined text-[13px]">{isCopied ? "check" : "content_copy"}</span>
-                            {isCopied ? "Copié !" : "Copier"}
+                            <span translate="no">{isCopied ? "Copié !" : "Copier"}</span>
                           </button>
                           <button
                             onClick={() => setQrLinkOpen(link)}

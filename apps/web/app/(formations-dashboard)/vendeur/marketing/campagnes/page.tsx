@@ -368,7 +368,7 @@ export default function CampagnesPage() {
                   }`}
                 >
                   {copied === c.id ? <Check size={14} /> : <Copy size={14} />}
-                  {copied === c.id ? "Copié !" : "Copier"}
+                  <span translate="no">{copied === c.id ? "Copié !" : "Copier"}</span>
                 </button>
               </div>
 

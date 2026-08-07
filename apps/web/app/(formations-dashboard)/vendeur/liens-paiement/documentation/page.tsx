@@ -31,7 +31,7 @@ function CodeBlock({ code, lang }: { code: string; lang?: string }) {
         onClick={() => { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 1600); }}
         className="absolute top-2 right-2 inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white/10 text-gray-300 text-[11px] font-semibold hover:bg-white/20 transition-colors"
       >
-        {copied ? <Check size={12} /> : <Copy size={12} />}{copied ? "Copié" : "Copier"}
+        {copied ? <Check size={12} /> : <Copy size={12} />}<span translate="no">{copied ? "Copié" : "Copier"}</span>
       </button>
       <pre className="bg-[#0d1117] text-[#e6edf3] text-[12px] leading-relaxed p-4 overflow-x-auto whitespace-pre">{code}</pre>
     </div>

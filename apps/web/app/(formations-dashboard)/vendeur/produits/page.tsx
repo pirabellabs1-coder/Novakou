@@ -570,7 +570,18 @@ export default function ProduitsPage() {
                         onClick={() => copyText(row.url, ck)}
                         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#006e2f]/10 text-[#006e2f] text-[11px] font-bold hover:bg-[#006e2f]/15 transition-colors"
                       >
-                        {copiedKey === ck ? <Check size={12} /> : <Copy size={12} />}{copiedKey === ck ? "Copié" : "Copier"}
+                        {copiedKey === ck ? <Check size={12} /> : <Copy size={12} />}
+                        {/* « Copier le lien » et non « Copier ».
+                            « Copier » seul est AUSSI un nom anglais — la
+                            machine a photocopier. Chrome sur Android le lisait
+                            comme tel et le « traduisait » en « Photocopieuse ».
+                            Le vendeur ne reconnaissait plus le bouton.
+                            translate="no" en second garde-fou : ces libelles
+                            sont deja en francais, ils n'ont jamais a etre
+                            traduits. */}
+                        <span translate="no">
+                          {copiedKey === ck ? "Copié" : "Copier le lien"}
+                        </span>
                       </button>
                     </div>
                     <p className="text-[11px] mt-0.5" style={{ color: ST.textMuted }}>{row.desc}</p>

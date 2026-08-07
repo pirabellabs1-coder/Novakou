@@ -1011,7 +1011,7 @@ function CopyButton({ text }: { text: string }) {
       className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-emerald-400 transition-colors"
     >
       {copied ? <Check size={14} /> : <Copy size={14} />}
-      {copied ? "Copié" : "Copier"}
+      <span translate="no">{copied ? "Copié" : "Copier"}</span>
     </button>
   );
 }
