@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Loader2, ShieldCheck, ExternalLink, ChevronDown, Check } from "lucide-react";
 import { COUNTRIES } from "@/lib/countries";
 import { checkNationalNumber } from "@/lib/payments/phone-rules";
+import { detecterPaysAffichage, paysAffichageCourant } from "@/components/formations/SelecteurDevise";
 import { OperatorLogo } from "@/components/formations/OperatorLogo";
 import { CountryFlag, NovakouLogo } from "@/components/formations/CountryFlag";
 
@@ -139,7 +140,17 @@ export function UnifiedPaymentScreen({
     }
     fetch(direction === "payout" ? "/api/formations/payout-options" : "/api/formations/public/payment-options")
       .then((r) => r.json())
-      .then((j) => setCountries(j.data?.countries ?? []))
+      .then(async (j) => {
+        const liste: Array<{ code: string; operators: number }> = j.data?.countries ?? [];
+        setCountries(liste);
+        // Pré-sélection : le pays du visiteur (choisi dans le sélecteur de
+        // devise, sinon détecté par l'IP), s'il est réellement servi. Un
+        // Ivoirien n'a plus à chercher son pays dans la liste — et s'il en a
+        // déjà désigné un (prop ou geste), on n'y touche pas.
+        await detecterPaysAffichage().catch(() => null);
+        const defaut = paysAffichageCourant().toLowerCase();
+        if (liste.some((c) => c.code === defaut)) setCountry((prev) => prev || defaut);
+      })
       .catch(() => setCountries([]));
   }, [demoData, direction]);
 

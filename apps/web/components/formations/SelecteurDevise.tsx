@@ -20,10 +20,44 @@ const CLE_MEMOIRE = "novakou:pays-affichage";
 /** Prévient le reste de la page qu'il faut réafficher les prix. */
 export const EVENEMENT_DEVISE = "novakou:devise-changee";
 
+// ─── Pays détecté par la géolocalisation IP ─────────────────────────────────
+//
+// Tant que le visiteur n'a rien CHOISI, le défaut n'est plus « Bénin pour
+// tout le monde » : on demande son pays au serveur (en-tête posé par
+// l'infrastructure à partir de l'IP) et c'est lui qui s'affiche — un Ivoirien
+// voit la Côte d'Ivoire, un Guinéen la Guinée et ses prix en GNF.
+//
+// Le choix explicite (localStorage) garde TOUJOURS la priorité : la détection
+// n'écrit rien, elle ne sert que de défaut. Elle n'est faite qu'une fois par
+// chargement de page, et partagée entre tous les composants qui l'attendent.
+let paysDetecte: string | null = null;
+let detectionEnCours: Promise<string | null> | null = null;
+
+export function detecterPaysAffichage(): Promise<string | null> {
+  if (typeof window === "undefined") return Promise.resolve(null);
+  if (detectionEnCours) return detectionEnCours;
+  detectionEnCours = fetch("/api/formations/public/geo")
+    .then((r) => r.json())
+    .then((j) => {
+      const code = typeof j?.data?.country === "string" ? j.data.country.toUpperCase() : null;
+      // Un pays hors de notre liste (visiteur en France, VPN…) ne change rien :
+      // le FCFA par défaut reste le plus lisible pour notre marché.
+      if (code && PAYS_AFFICHAGE.some((p) => p.code === code)) {
+        paysDetecte = code;
+        // Les prix sont déjà rendus avec le défaut : on prévient la page,
+        // comme quand le visiteur change de pays à la main.
+        window.dispatchEvent(new CustomEvent(EVENEMENT_DEVISE, { detail: code }));
+      }
+      return paysDetecte;
+    })
+    .catch(() => null);
+  return detectionEnCours;
+}
+
 /** Pays d'affichage courant, lisible par n'importe quel composant. */
 export function paysAffichageCourant(): string {
   if (typeof window === "undefined") return "BJ";
-  return window.localStorage.getItem(CLE_MEMOIRE) || "BJ";
+  return window.localStorage.getItem(CLE_MEMOIRE) || paysDetecte || "BJ";
 }
 
 /**
@@ -40,6 +74,9 @@ export function useDeviseAffichage() {
   useEffect(() => {
     const relire = () => setDevise(deviseDuPays(paysAffichageCourant()));
     relire();
+    // Visiteur sans choix mémorisé : son pays détecté devient le défaut.
+    // La détection prévient elle-même la page via EVENEMENT_DEVISE.
+    if (!window.localStorage.getItem(CLE_MEMOIRE)) void detecterPaysAffichage();
     // Taux modifies en admin : sans cette lecture, le visiteur verrait un prix
     // calcule avec la valeur du code et en paierait un autre au moment de
     // valider — la meilleure facon de le perdre au dernier ecran.
@@ -73,7 +110,19 @@ export function SelecteurDevise({ tone = "light" }: { tone?: "light" | "dark" })
 
   // Le rendu serveur ne connaît pas le choix du visiteur : on le lit APRÈS
   // l'affichage, sinon le HTML servi et celui du navigateur divergent.
-  useEffect(() => setPays(paysAffichageCourant()), []);
+  useEffect(() => {
+    const relire = () => setPays(paysAffichageCourant());
+    relire();
+    // Pas de choix mémorisé : le pays détecté par l'IP devient le défaut, et
+    // le drapeau du bouton doit suivre quand la détection aboutit.
+    if (!window.localStorage.getItem(CLE_MEMOIRE)) void detecterPaysAffichage();
+    window.addEventListener(EVENEMENT_DEVISE, relire);
+    window.addEventListener("storage", relire);
+    return () => {
+      window.removeEventListener(EVENEMENT_DEVISE, relire);
+      window.removeEventListener("storage", relire);
+    };
+  }, []);
 
   useEffect(() => {
     if (!ouvert) return;
