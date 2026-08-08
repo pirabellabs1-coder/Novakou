@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Loader2, ShieldCheck, ExternalLink, ChevronDown, Check } from "lucide-react";
 import { COUNTRIES } from "@/lib/countries";
+import { checkNationalNumber } from "@/lib/payments/phone-rules";
 import { OperatorLogo } from "@/components/formations/OperatorLogo";
 import { CountryFlag, NovakouLogo } from "@/components/formations/CountryFlag";
 
@@ -170,12 +171,27 @@ export function UnifiedPaymentScreen({
   const needsPhone = current?.family === "mobile_money";
   const countryMeta = COUNTRIES.find((c) => c.code.toLowerCase() === country);
   const dial = countryMeta?.dial ?? "";
-  const canPay = Boolean(current) && (!needsPhone || phone.replace(/\D/g, "").length >= 8) && !submitting;
+
+  // Longueur du numéro vérifiée PAYS PAR PAYS, avant tout appel serveur. Le
+  // 2026-08-08, un acheteur a choisi « Sénégal » avec son numéro ivoirien à
+  // 10 chiffres : la passerelle a répondu « MSISDN too long » après l'échec.
+  // Ici on refuse AVANT, avec un message qui dit quoi corriger — et l'erreur
+  // ne s'affiche qu'une fois le numéro trop long, jamais pendant la frappe.
+  const phoneCheck = needsPhone ? checkNationalNumber(country, phone) : null;
+  const phoneError = phoneCheck && !phoneCheck.ok ? phoneCheck.error : "";
+  const phoneOk = !needsPhone || Boolean(phoneCheck?.ok);
+  const canPay = Boolean(current) && phoneOk && !submitting;
 
   // Sélection complète, telle qu'elle serait envoyée. Null tant qu'il manque
   // quelque chose — c'est ce qui permet à la page hôte de désactiver son bouton.
-  const selection = current && (!needsPhone || phone.replace(/\D/g, "").length >= 8)
-    ? { operator: current.code, phone: needsPhone ? dial.replace(/\D/g, "") + phone.replace(/\D/g, "") : undefined, hosted: current.hosted }
+  // Le numéro part NORMALISÉ (zéro de composition retiré : « 0712… » au Kenya
+  // devient 712…), sinon la passerelle reçoit un chiffre de trop.
+  const selection = current && phoneOk
+    ? {
+        operator: current.code,
+        phone: needsPhone && phoneCheck?.ok ? dial.replace(/\D/g, "") + phoneCheck.national : undefined,
+        hosted: current.hosted,
+      }
     : null;
   const selRef = useRef<string>("");
   useEffect(() => {
@@ -325,7 +341,12 @@ export function UnifiedPaymentScreen({
               <label className="block text-[15px] font-extrabold text-[#191c1e] mb-2.5">
                 Numéro de téléphone <span className="text-rose-500">*</span>
               </label>
-              <div className="flex items-center rounded-2xl border-2 border-gray-200 bg-white focus-within:border-[#006e2f] transition-colors overflow-hidden">
+              {/* Un style en ligne écraserait aussi le vert du focus : on ne
+                  force le rouge que lorsqu'il y a réellement une erreur. */}
+              <div
+                className="flex items-center rounded-2xl border-2 border-gray-200 bg-white focus-within:border-[#006e2f] transition-colors overflow-hidden"
+                style={phoneError ? { borderColor: "#fda4af" } : undefined}
+              >
                 <span className="flex items-center gap-2 pl-4 pr-3 py-3.5 text-[15px] font-bold text-[#5c647a] border-r border-gray-200 flex-shrink-0">
                   <CountryFlag code={country} />
                   {dial}
@@ -339,11 +360,15 @@ export function UnifiedPaymentScreen({
                   className="flex-1 min-w-0 px-4 py-3.5 text-[15px] font-semibold outline-none"
                 />
               </div>
-              <p className="text-[12px] font-medium text-[#98a1b3] mt-2">
-                {direction === "payout"
-                  ? "L'argent sera envoyé sur ce numéro. Vérifiez-le : un versement parti ne se rattrape pas."
-                  : "Vous recevrez une demande de confirmation sur ce numéro."}
-              </p>
+              {phoneError ? (
+                <p className="text-[12px] font-semibold text-rose-600 mt-2">{phoneError}</p>
+              ) : (
+                <p className="text-[12px] font-medium text-[#98a1b3] mt-2">
+                  {direction === "payout"
+                    ? "L'argent sera envoyé sur ce numéro. Vérifiez-le : un versement parti ne se rattrape pas."
+                    : "Vous recevrez une demande de confirmation sur ce numéro."}
+                </p>
+              )}
             </div>
           )}
 

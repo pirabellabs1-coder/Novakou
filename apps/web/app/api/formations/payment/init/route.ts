@@ -415,7 +415,7 @@ export async function POST(request: Request) {
     const last = rest.join(" ") || "User";
 
     // Phone number from body — required for Mobile Money methods
-    const phoneRaw: string | undefined = body.phone?.toString().replace(/\s/g, "") || undefined;
+    let phoneRaw: string | undefined = body.phone?.toString().replace(/\s/g, "") || undefined;
 
     // Identifier le vendeur principal (1er produit/formation de la commande).
     // Multi-vendeur : on trace sur le 1er ; le reste pourra etre attribue a la
@@ -546,6 +546,26 @@ export async function POST(request: Request) {
         },
         { status: 400 },
       );
+    }
+
+    // ── Longueur du numéro : refuser AVANT d'appeler une passerelle ────────
+    //
+    // Même règle que l'écran (lib/payments/phone-rules) — l'écran peut être
+    // contourné (autre client, ancienne page), le serveur est le vrai barrage.
+    // Sans elle, le numéro partait tel quel et la passerelle répondait après
+    // l'échec par un « MSISDN too long » brut (constaté le 2026-08-08 : numéro
+    // ivoirien saisi sous l'indicatif sénégalais). Au passage on NORMALISE :
+    // un zéro de composition nationale (« 0712… » au Kenya) est retiré, c'est
+    // le numéro corrigé qui part en passerelle.
+    const opMeta = getOperator(chosenOperator);
+    if (opMeta?.family === "mobile_money" && phoneRaw) {
+      const { checkInternationalNumber } = await import("@/lib/payments/phone-rules");
+      const verif = checkInternationalNumber(opMeta.country, phoneRaw);
+      if (!verif.ok) {
+        await failAttempt(`Numéro invalide : ${verif.error}`, "invalid_phone");
+        return NextResponse.json({ error: verif.error, code: "INVALID_PHONE" }, { status: 400 });
+      }
+      phoneRaw = verif.intl;
     }
 
     // ── Passerelle à fenêtre (KkiaPay) ───────────────────────────────────
