@@ -650,7 +650,26 @@ export async function POST(request: Request) {
             customId: internalRef,
             firstName: first || "Client",
             email: userEmail || undefined,
+            merchantDomain: appUrl,
           });
+          // Réseaux à PAGE DE CONFIRMATION (Orange CI, Moov CI, Wave CI,
+          // Orange/Moov BF, Free/Orange SN) : pas de push téléphone — FeexPay
+          // rend une payment_url où l'acheteur confirme. L'envoyer sur notre
+          // page « Confirmez sur votre téléphone » le condamnait à attendre une
+          // demande qui n'arrive jamais : tous les paiements Orange CI du
+          // 2026-08-08 ont expiré ainsi. La livraison reste garantie par le
+          // webhook et le cron de rapprochement, quel que soit son retour.
+          if (r.paymentUrl) {
+            await prisma.checkoutAttempt
+              .update({
+                where: { id: attempt.id },
+                data: { providerRef: r.reference, metadata: { ...providerMetadata, paymentProvider: candidate.provider } as never },
+              })
+              .catch(() => null);
+            return NextResponse.json({
+              data: { checkout_url: r.paymentUrl, provider: candidate.provider, internalRef, attemptId: attempt.id },
+            });
+          }
           directRef = r.reference;
         } else if (candidate.provider === "fedapay") {
           const { initCollect } = await import("@/lib/fedapay");

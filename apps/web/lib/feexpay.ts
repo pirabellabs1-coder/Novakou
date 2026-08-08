@@ -263,11 +263,27 @@ export type FeexpayCollectParams = {
   customId: string;
   firstName?: string;
   email?: string;
+  /**
+   * Origine de notre site (ex. https://novakou.com). Le SDK officiel l'envoie
+   * (`merchant_domain`) pour TOUS les paiements ; il sert de point de retour
+   * aux réseaux à page de confirmation (Orange CI, Wave CI…).
+   */
+  merchantDomain?: string;
 };
 
 export type FeexpayCollectResult = {
   reference: string;
   status: "success" | "failed" | "pending";
+  /**
+   * Page de confirmation du RÉSEAU, quand le paiement ne se confirme pas par
+   * un push téléphone. Relevé dans le SDK officiel : pour ORANGE CI, MOOV CI,
+   * WAVE CI, ORANGE BF, MOOV BF, FREE SN et ORANGE SN, la réponse porte une
+   * `payment_url` que le navigateur DOIT ouvrir — l'acheteur y confirme son
+   * paiement. L'ignorer, c'est le laisser attendre indéfiniment une demande
+   * qui n'arrivera jamais sur son téléphone (constaté en production le
+   * 2026-08-08 : tous les paiements Orange CI expiraient après ~2 h).
+   */
+  paymentUrl: string | null;
   raw: unknown;
 };
 
@@ -310,6 +326,9 @@ export async function initCollect(params: FeexpayCollectParams): Promise<Feexpay
     first_name: params.firstName || "Client",
     email: params.email || "",
     otp: "",
+    // Le SDK officiel joint l'origine du marchand à chaque paiement ; les
+    // réseaux à page de confirmation s'en servent comme point de retour.
+    ...(params.merchantDomain ? { merchant_domain: params.merchantDomain } : {}),
   };
 
   const res = await payoutFetch(`${FEEXPAY_COLLECT_BASE}/api/transactions/requesttopay/integration`, {
@@ -328,6 +347,7 @@ export async function initCollect(params: FeexpayCollectParams): Promise<Feexpay
     status?: string;
     message?: string;
     code?: string;
+    payment_url?: string;
   };
 
   const reference = json.reference || json.transaction_id;
@@ -336,7 +356,17 @@ export async function initCollect(params: FeexpayCollectParams): Promise<Feexpay
     throw new Error(parts.join(" — ") || "FeexPay collect init failed");
   }
 
-  return { reference, status: normalizeFeexpayStatus(json.status ?? "PENDING"), raw: json };
+  return {
+    reference,
+    status: normalizeFeexpayStatus(json.status ?? "PENDING"),
+    // Seules les URL http(s) sont suivies : on n'envoie jamais l'acheteur sur
+    // une valeur inattendue renvoyée par un tiers.
+    paymentUrl:
+      typeof json.payment_url === "string" && /^https?:\/\//i.test(json.payment_url)
+        ? json.payment_url
+        : null,
+    raw: json,
+  };
 }
 
 /** Statut d'un encaissement FeexPay. À appeler depuis le webhook pour re-vérifier. */
