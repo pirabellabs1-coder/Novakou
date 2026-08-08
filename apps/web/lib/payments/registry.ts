@@ -203,8 +203,17 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     payout: { feexpay: { code: "orange_ci" } } },
   wave_ci: {
     label: "Wave (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
-    collect: {
-      pawapay: { code: "WAVE_CIV" }, feexpay: { code: "WAVE CI" } },
+    // ENCAISSEMENT FERMÉ (constat production 2026-08-08, 3 ventes perdues) :
+    // les codes sont justes mais NOS COMPTES ne sont pas ouverts à Wave CI.
+    //   - feexpay { code: "WAVE CI" }   → HTTP 400 « Wave aggregated merchant
+    //     not configured for this merchant » : demander à FeexPay d'activer le
+    //     marchand agrégé Wave sur la boutique.
+    //   - pawapay { code: "WAVE_CIV" }  → HTTP 403 DEPOSITS_NOT_ALLOWED :
+    //     demander à PawaPay d'ouvrir les dépôts WAVE_CIV sur le compte.
+    // Tant que l'un des deux n'a pas confirmé, on ne PROPOSE pas Wave CI :
+    // chaque affichage était un échec garanti au moment de payer. Rétablir la
+    // route correspondante ici dès que le fournisseur a ouvert l'accès.
+    collect: {},
     payout: { feexpay: { code: "wave_ci" } } },
   mtn_ci: {
     label: "MTN Mobile Money (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
