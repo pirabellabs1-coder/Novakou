@@ -329,26 +329,24 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     payout: { pawapay: { code: "MTN_MOMO_COG" } } },
 
   // ──────────────────────── Cameroun (XAF) ────────────────────────
-  // Monetbil ouvre enfin l'Afrique centrale à l'encaissement.
+  // Orange et MTN passent par PAWAPAY SEUL (décision fondateur 2026-08-08).
+  // Monetbil retiré de ces deux routes : ses demandes étaient ACCEPTÉES (une
+  // référence revenait, la vente passait « en attente ») mais la demande de
+  // confirmation n'arrivait JAMAIS sur le téléphone — deux ventes MTN CM
+  // restées suspendues le 2026-08-08. Un échec silencieux qui fait patienter
+  // l'acheteur pour rien est pire qu'un refus net.
+  // Ses codes, si Monetbil redevient fiable un jour : CM_ORANGEMONEY,
+  // CM_MTNMOBILEMONEY.
   //
-  // Comme iPay, elle route elle-même vers le bon opérateur à partir du NUMÉRO :
-  // le code natif « mobile » est donc le même pour Orange et MTN, et c'est le
-  // fournisseur qui tranche. Déclarer des codes par réseau ici serait inventer
-  // une distinction que leur API ne fait pas.
-  //
-  // VERSEMENT vide à dessein : leur API n'expose aucun endpoint de
-  // décaissement (onze variantes testées, toutes en 404). Un vendeur
-  // camerounais peut donc VENDRE, pas encore retirer — et l'écran de retrait
-  // le lui dira, puisqu'il n'affiche que les moyens réellement servis.
+  // ⚠️ Tant que le compte PawaPay n'a pas les dépôts ORANGE_CMR/MTN_MOMO_CMR
+  // activés (dashboard), le Cameroun refuse avec un message clair.
   orange_cm: {
     label: "Orange Money (Cameroun)", country: "cm", currency: "XAF", family: "mobile_money",
-    collect: {
-      pawapay: { code: "ORANGE_CMR" }, monetbil: { code: "CM_ORANGEMONEY" } },
+    collect: { pawapay: { code: "ORANGE_CMR" } },
     payout: { pawapay: { code: "ORANGE_CMR" } } },
   mtn_cm: {
     label: "MTN Mobile Money (Cameroun)", country: "cm", currency: "XAF", family: "mobile_money",
-    collect: {
-      pawapay: { code: "MTN_MOMO_CMR" }, monetbil: { code: "CM_MTNMOBILEMONEY" } },
+    collect: { pawapay: { code: "MTN_MOMO_CMR" } },
     payout: { pawapay: { code: "MTN_MOMO_CMR" } } },
   eu_cm: {
     label: "Express Union (Cameroun)", country: "cm", currency: "XAF", family: "mobile_money",
