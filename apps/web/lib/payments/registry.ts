@@ -239,8 +239,11 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     payout: { feexpay: { code: "orange_sn" } } },
   wave_sn: {
     label: "Wave (Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
-    collect: {
-      pawapay: { code: "WAVE_SEN" } },
+    // ENCAISSEMENT FERMÉ (dashboard PawaPay vérifié le 2026-08-08) : Wave ne
+    // figure PAS parmi les opérateurs du compte au Sénégal (Free et Orange
+    // seulement). La route pawapay { code: "WAVE_SEN" } partait donc en
+    // DEPOSITS_NOT_ALLOWED. Rétablir quand Wave apparaît dans Wallets → Senegal.
+    collect: {},
     payout: { feexpay: { code: "wave_sn" } } },
   freemoney_sn: {
     label: "YAS (ex-Free Money, Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
@@ -292,16 +295,18 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     payout: {} },
 
   // ─────────────────────── Burkina Faso (XOF) ─────────────────────
+  // Dashboard PawaPay vérifié le 2026-08-08 : le Burkina n'est PAS sur le
+  // compte. Routes pawapay (ORANGE_BFA / MOOV_BFA) retirées — encaissement via
+  // FeexPay seul, versement fermé jusqu'à l'ajout du pays par PawaPay
+  // (demande envoyée le 2026-08-08).
   orange_bf: {
     label: "Orange Money (Burkina Faso)", country: "bf", currency: "XOF", family: "mobile_money",
-    collect: {
-      pawapay: { code: "ORANGE_BFA" }, feexpay: { code: "ORANGE BF" } },
-    payout: { pawapay: { code: "ORANGE_BFA" } } },
+    collect: { feexpay: { code: "ORANGE BF" } },
+    payout: {} },
   moov_bf: {
     label: "Moov Money (Burkina Faso)", country: "bf", currency: "XOF", family: "mobile_money",
-    collect: {
-      pawapay: { code: "MOOV_BFA" }, feexpay: { code: "MOOV BF" } },
-    payout: { pawapay: { code: "MOOV_BFA" } } },
+    collect: { feexpay: { code: "MOOV BF" } },
+    payout: {} },
 
   // ────────────────────────── Niger (XOF) ─────────────────────────
   airtel_ne: {
@@ -338,12 +343,15 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // Ses codes, si Monetbil redevient fiable un jour : CM_ORANGEMONEY,
   // CM_MTNMOBILEMONEY.
   //
-  // ⚠️ Tant que le compte PawaPay n'a pas les dépôts ORANGE_CMR/MTN_MOMO_CMR
-  // activés (dashboard), le Cameroun refuse avec un message clair.
+  // Dashboard PawaPay vérifié le 2026-08-08 : au Cameroun, le compte n'a que
+  // MTN. Orange Cameroun n'y figure pas — sa route pawapay { code:
+  // "ORANGE_CMR" } partait en DEPOSITS_NOT_ALLOWED. Fermé (collect ET payout)
+  // jusqu'à ce qu'Orange apparaisse dans Wallets → Cameroon ; demande
+  // d'activation envoyée à PawaPay le 2026-08-08.
   orange_cm: {
     label: "Orange Money (Cameroun)", country: "cm", currency: "XAF", family: "mobile_money",
-    collect: { pawapay: { code: "ORANGE_CMR" } },
-    payout: { pawapay: { code: "ORANGE_CMR" } } },
+    collect: {},
+    payout: {} },
   mtn_cm: {
     label: "MTN Mobile Money (Cameroun)", country: "cm", currency: "XAF", family: "mobile_money",
     collect: { pawapay: { code: "MTN_MOMO_CMR" } },
@@ -434,50 +442,55 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     payout: {} },
 
   // ───── Ouverts par PawaPay (hors zone franc) ─────────────────────────────
-  // Codes relevés dans leur documentation officielle (v2/docs/providers), et
-  // recoupés avec /v2/active-conf. Chaque devise a son taux dans la table de
-  // conversion : sans lui, montantAFacturer() refuserait la vente — c'est ce
-  // qui a tenu ces pays fermés jusqu'ici.
+  // Codes relevés dans leur documentation officielle (v2/docs/providers).
+  //
+  // ⚠️ COUVERTURE RÉELLE DU COMPTE vérifiée dans le dashboard PawaPay le
+  // 2026-08-08 (Wallets → Active providers) : seuls Bénin, Cameroun (MTN),
+  // Côte d'Ivoire (MTN+Orange), RDC, Gabon, Kenya, Congo-B., Rwanda, Sénégal
+  // (Free+Orange), Sierra Leone, Ouganda et Zambie sont SUR le compte.
+  // Ghana, Nigeria, Tanzanie, Malawi, Mozambique, Éthiopie et Lesotho n'y
+  // sont PAS : leurs routes (ci-dessous, gardées en commentaire) partaient en
+  // DEPOSITS_NOT_ALLOWED — échec garanti à chaque vente. Demande d'ajout
+  // envoyée à PawaPay le 2026-08-08 ; rouvrir chaque pays quand il apparaît
+  // dans Wallets.
+  //   Ghana      : mtn_gh MTN_MOMO_GHA · airteltigo_gh AIRTELTIGO_GHA · vodafone_gh VODAFONE_GHA
+  //   Nigeria    : mtn_ng MTN_MOMO_NGA · airtel_ng AIRTEL_NGA
+  //   Tanzanie   : vodacom_tz VODACOM_TZA · airtel_tz AIRTEL_TZA · tigo_tz TIGO_TZA · halotel_tz HALOTEL_TZA
+  //   Malawi     : airtel_mw AIRTEL_MWI · tnm_mw TNM_MWI
+  //   Mozambique : vodacom_mz VODACOM_MOZ · movitel_mz MOVITEL_MOZ
+  //   Éthiopie   : mpesa_et MPESA_ETH
+  //   Lesotho    : mpesa_ls MPESA_LSO
   mtn_gh: {
     label: "MTN Mobile Money (Ghana)", country: "gh", currency: "GHS", family: "mobile_money",
-    collect: { pawapay: { code: "MTN_MOMO_GHA" } },
-    payout: { pawapay: { code: "MTN_MOMO_GHA" } } },
+    collect: {}, payout: {} },
   airteltigo_gh: {
     label: "AT (ex-AirtelTigo, Ghana)", country: "gh", currency: "GHS", family: "mobile_money",
-    collect: { pawapay: { code: "AIRTELTIGO_GHA" } },
-    payout: { pawapay: { code: "AIRTELTIGO_GHA" } } },
+    collect: {}, payout: {} },
   vodafone_gh: {
     label: "Telecel (ex-Vodafone, Ghana)", country: "gh", currency: "GHS", family: "mobile_money",
-    collect: { pawapay: { code: "VODAFONE_GHA" } },
-    payout: { pawapay: { code: "VODAFONE_GHA" } } },
+    collect: {}, payout: {} },
   mtn_ng: {
     label: "MTN Mobile Money (Nigeria)", country: "ng", currency: "NGN", family: "mobile_money",
-    collect: { pawapay: { code: "MTN_MOMO_NGA" } },
-    payout: { pawapay: { code: "MTN_MOMO_NGA" } } },
+    collect: {}, payout: {} },
   airtel_ng: {
     label: "Airtel Money (Nigeria)", country: "ng", currency: "NGN", family: "mobile_money",
-    collect: { pawapay: { code: "AIRTEL_NGA" } },
-    payout: { pawapay: { code: "AIRTEL_NGA" } } },
+    collect: {}, payout: {} },
   mpesa_ke: {
     label: "M-Pesa (Kenya)", country: "ke", currency: "KES", family: "mobile_money",
     collect: { pawapay: { code: "MPESA_KEN" } },
     payout: { pawapay: { code: "MPESA_KEN" } } },
   vodacom_tz: {
     label: "Vodacom M-Pesa (Tanzanie)", country: "tz", currency: "TZS", family: "mobile_money",
-    collect: { pawapay: { code: "VODACOM_TZA" } },
-    payout: { pawapay: { code: "VODACOM_TZA" } } },
+    collect: {}, payout: {} },
   airtel_tz: {
     label: "Airtel Money (Tanzanie)", country: "tz", currency: "TZS", family: "mobile_money",
-    collect: { pawapay: { code: "AIRTEL_TZA" } },
-    payout: { pawapay: { code: "AIRTEL_TZA" } } },
+    collect: {}, payout: {} },
   tigo_tz: {
     label: "YAS (ex-Tigo, Tanzanie)", country: "tz", currency: "TZS", family: "mobile_money",
-    collect: { pawapay: { code: "TIGO_TZA" } },
-    payout: { pawapay: { code: "TIGO_TZA" } } },
+    collect: {}, payout: {} },
   halotel_tz: {
     label: "Halopesa (Tanzanie)", country: "tz", currency: "TZS", family: "mobile_money",
-    collect: { pawapay: { code: "HALOTEL_TZA" } },
-    payout: { pawapay: { code: "HALOTEL_TZA" } } },
+    collect: {}, payout: {} },
   mtn_rw: {
     label: "MTN Mobile Money (Rwanda)", country: "rw", currency: "RWF", family: "mobile_money",
     collect: { pawapay: { code: "MTN_MOMO_RWA" } },
@@ -500,37 +513,29 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     payout: { pawapay: { code: "ZAMTEL_ZMB" } } },
   airtel_mw: {
     label: "Airtel Money (Malawi)", country: "mw", currency: "MWK", family: "mobile_money",
-    collect: { pawapay: { code: "AIRTEL_MWI" } },
-    payout: { pawapay: { code: "AIRTEL_MWI" } } },
+    collect: {}, payout: {} },
   tnm_mw: {
     label: "TNM Mpamba (Malawi)", country: "mw", currency: "MWK", family: "mobile_money",
-    collect: { pawapay: { code: "TNM_MWI" } },
-    payout: { pawapay: { code: "TNM_MWI" } } },
+    collect: {}, payout: {} },
   vodacom_mz: {
     label: "M-Pesa (Mozambique)", country: "mz", currency: "MZN", family: "mobile_money",
-    collect: { pawapay: { code: "VODACOM_MOZ" } },
-    payout: { pawapay: { code: "VODACOM_MOZ" } } },
+    collect: {}, payout: {} },
   movitel_mz: {
     label: "Movitel (Mozambique)", country: "mz", currency: "MZN", family: "mobile_money",
-    collect: { pawapay: { code: "MOVITEL_MOZ" } },
-    payout: { pawapay: { code: "MOVITEL_MOZ" } } },
+    collect: {}, payout: {} },
   orange_sl: {
     label: "Orange Money (Sierra Leone)", country: "sl", currency: "SLE", family: "mobile_money",
     collect: { pawapay: { code: "ORANGE_SLE" } },
     payout: { pawapay: { code: "ORANGE_SLE" } } } ,
-  // ───── Éthiopie et Lesotho (PawaPay) ─────────────────────────────────────
-  // Encaissement ET versement : leur page tarifs les donne pris en charge dans
-  // les deux sens, comme tous leurs opérateurs sauf Orange Burkina.
-  // « Ethio telecom » figure sur cette page mais son code n'y est pas : on ne
-  // l'inscrit pas tant qu'on ne l'a pas lu.
+  // ───── Éthiopie et Lesotho ───────────────────────────────────────────────
+  // Absents du compte PawaPay (dashboard vérifié 2026-08-08) — voir le bloc
+  // « couverture réelle » plus haut. Codes en attente : MPESA_ETH, MPESA_LSO.
   mpesa_et: {
     label: "M-Pesa (Éthiopie)", country: "et", currency: "ETB", family: "mobile_money",
-    collect: { pawapay: { code: "MPESA_ETH" } },
-    payout: { pawapay: { code: "MPESA_ETH" } } },
+    collect: {}, payout: {} },
   mpesa_ls: {
     label: "M-Pesa (Lesotho)", country: "ls", currency: "LSL", family: "mobile_money",
-    collect: { pawapay: { code: "MPESA_LSO" } },
-    payout: { pawapay: { code: "MPESA_LSO" } } }
+    collect: {}, payout: {} }
 };
 
 // ─────────────────────────── Lecture du registre ───────────────────────────
