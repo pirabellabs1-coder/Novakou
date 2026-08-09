@@ -279,7 +279,12 @@ export default function AdminProduitsPage() {
                   {products.map((p) => (
                     <tr key={p.id} className="transition-colors hover:bg-[#f7faf8]">
                       <td className="px-5 py-4" style={{ borderTop: `1px solid ${ST.divider}` }}>
-                        <div className="flex items-center gap-3 min-w-0">
+                        {/* max-w OBLIGATOIRE : dans une cellule de tableau
+                            auto-dimensionnée, `truncate` ne contraint rien —
+                            un titre long élargissait la colonne jusqu'à
+                            pousser Statut et Actions HORS ÉCRAN. L'admin ne
+                            voyait plus les boutons Valider/Refuser. */}
+                        <div className="flex items-center gap-3 min-w-0 max-w-[300px] xl:max-w-[420px]">
                           <div
                             className="w-12 h-12 rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center"
                             style={{ background: ST.divider }}

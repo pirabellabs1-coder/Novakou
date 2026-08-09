@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -81,6 +81,23 @@ type BadgeCounts = { reports: number; comments: number; withdrawals: number };
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Repli du menu SUR ORDINATEUR (demande fondateur) : le hamburger ne servait
+  // qu'au mobile, impossible de fermer le menu sur grand écran pour élargir
+  // les tableaux (produits, transactions…). Le choix est mémorisé.
+  const [menuReplie, setMenuReplie] = useState(false);
+  useEffect(() => {
+    setMenuReplie(window.localStorage.getItem("novakou:admin-menu-replie") === "1");
+  }, []);
+  const basculerMenu = () => {
+    if (window.matchMedia("(min-width: 768px)").matches) {
+      setMenuReplie((v) => {
+        window.localStorage.setItem("novakou:admin-menu-replie", v ? "0" : "1");
+        return !v;
+      });
+    } else {
+      setSidebarOpen((v) => !v);
+    }
+  };
   const { data: session } = useSession();
 
   const displayName = session?.user?.name ?? "Super Admin";
@@ -129,11 +146,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
       {/* Top Navbar */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[#e4eae6] h-16 flex items-center px-4 md:px-6 gap-4">
-        {/* Hamburger (mobile) */}
+        {/* Ouvrir / fermer le menu — mobile ET ordinateur */}
         <button
-          className="md:hidden p-2 rounded-lg hover:bg-gray-100 text-[#13241b]"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          aria-label="Toggle sidebar"
+          className="p-2 rounded-lg hover:bg-gray-100 text-[#13241b]"
+          onClick={basculerMenu}
+          aria-label="Ouvrir ou fermer le menu"
+          title="Ouvrir / fermer le menu"
         >
           <Menu size={22} />
         </button>
@@ -209,8 +227,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Left Sidebar */}
       <aside
         className={`fixed top-0 left-0 bottom-0 z-40 w-64 bg-white border-r border-[#e4eae6] pt-16 flex flex-col transition-transform duration-300 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        }`}
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } ${menuReplie ? "md:-translate-x-full" : "md:translate-x-0"}`}
       >
         {/* Admin info */}
         <div className="px-5 py-4 border-b border-[#e4eae6]">
@@ -326,7 +344,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Main content */}
-      <main className="md:ml-64 pt-16 min-h-screen">{children}</main>
+      <main
+        className={`pt-16 min-h-screen transition-[margin] duration-300 ${menuReplie ? "" : "md:ml-64"}`}
+      >
+        {children}
+      </main>
     </div>
   );
 }
