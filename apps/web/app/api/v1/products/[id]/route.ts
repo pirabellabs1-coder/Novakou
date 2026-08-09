@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { verifyApiKey } from "@/lib/api/verify-key";
 import { apiError, apiSuccess } from "@/lib/api/v1-helpers";
 import { DigitalProductType } from "@prisma/client";
+import { decisionPublication } from "@/lib/formations/publication-gate";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -57,7 +58,44 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     const { title, description, price, originalPrice, status, thumbnail } =
       body as Record<string, unknown>;
 
+    // ── GARDE DE STATUT + RÈGLES DE PUBLICATION (mêmes que le dashboard) ──
+    // Sans elle, l'API permettait PATCH { status: "ACTIF" } sans aucun
+    // contrôle — le contournement parfait de toute la validation.
+    const statutDemande = typeof status === "string" ? status : undefined;
+    if (statutDemande && !["BROUILLON", "ACTIF", "ARCHIVE"].includes(statutDemande)) {
+      return apiError("INVALID_PARAMS", "Statut non autorisé.", 400);
+    }
+
     if (found.kind === "formation") {
+      const existing = await prisma.formation.findUnique({
+        where: { id: found.id },
+        select: {
+          status: true, title: true, description: true, price: true, thumbnail: true,
+          instructeur: { select: { userId: true } },
+        },
+      });
+      if (!existing) return apiError("NOT_FOUND", "Produit introuvable", 404);
+      if (existing.status === "EN_ATTENTE" && statutDemande === "ACTIF") {
+        return apiError("FORBIDDEN", "Produit en cours de validation par l'équipe.", 403);
+      }
+      const publication = statutDemande === "ACTIF" && existing.status !== "ACTIF";
+      const seraVisible = statutDemande === "ACTIF" || (statutDemande === undefined && existing.status === "ACTIF");
+      let statutFinal = statutDemande;
+      if (seraVisible) {
+        const decision = await decisionPublication({
+          userId: existing.instructeur?.userId ?? "",
+          titre: typeof title === "string" ? title : existing.title,
+          description: description !== undefined ? (typeof description === "string" ? description : null) : existing.description,
+          prix: typeof price === "number" ? price : existing.price,
+          vignetteUrl: thumbnail !== undefined ? (typeof thumbnail === "string" ? thumbnail : null) : existing.thumbnail,
+          banniereUrl: null,
+          exigerBanniere: false,
+        });
+        if (!decision.ok) {
+          return apiError(decision.httpStatus === 403 ? "FORBIDDEN" : "INVALID_PARAMS", decision.error, decision.httpStatus);
+        }
+        if (publication) statutFinal = decision.statut;
+      }
       const updated = await prisma.formation.update({
         where: { id: found.id },
         data: {
@@ -76,7 +114,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
                 : null
               : undefined,
           isFree: typeof price === "number" ? price === 0 : undefined,
-          status: isFormationStatus(status) ? status : undefined,
+          status: isFormationStatus(statutFinal) ? statutFinal : undefined,
           thumbnail:
             thumbnail !== undefined
               ? typeof thumbnail === "string"
@@ -142,6 +180,42 @@ export async function PATCH(request: NextRequest, { params }: Params) {
             : null
           : undefined;
 
+    const existingP = await prisma.digitalProduct.findUnique({
+      where: { id: found.id },
+      select: {
+        status: true, title: true, description: true, price: true, thumbnail: true, banner: true,
+        instructeur: { select: { userId: true } },
+      },
+    });
+    if (!existingP) return apiError("NOT_FOUND", "Produit introuvable", 404);
+    if (existingP.status === "EN_ATTENTE" && statutDemande === "ACTIF") {
+      return apiError("FORBIDDEN", "Produit en cours de validation par l'équipe.", 403);
+    }
+    const publicationP = statutDemande === "ACTIF" && existingP.status !== "ACTIF";
+    const seraVisibleP = statutDemande === "ACTIF" || (statutDemande === undefined && existingP.status === "ACTIF");
+    let statutFinalP = statutDemande;
+    if (seraVisibleP) {
+      // L'API n'expose qu'une image (`thumbnail`, stockée en bannière) : on
+      // l'accepte pour les deux rôles plutôt que d'exiger un champ inexistant.
+      const imageEffective =
+        thumbnail !== undefined
+          ? (typeof thumbnail === "string" ? thumbnail : null)
+          : (existingP.thumbnail || existingP.banner);
+      const decision = await decisionPublication({
+        userId: existingP.instructeur?.userId ?? "",
+        titre: typeof title === "string" ? title : existingP.title,
+        description: description !== undefined ? (typeof description === "string" ? description : null) : existingP.description,
+        prix: typeof price === "number" ? price : existingP.price,
+        vignetteUrl: imageEffective,
+        banniereUrl: imageEffective,
+        exigerBanniere: true,
+      });
+      if (!decision.ok) {
+        return apiError(decision.httpStatus === 403 ? "FORBIDDEN" : "INVALID_PARAMS", decision.error, decision.httpStatus);
+      }
+      if (publicationP) statutFinalP = decision.statut;
+    }
+
     const updated = await prisma.digitalProduct.update({
       where: { id: found.id },
       data: {
@@ -160,7 +234,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
               : null
             : undefined,
         isFree: typeof price === "number" ? price === 0 : undefined,
-        status: isDigitalStatus(status) ? status : undefined,
+        status: isDigitalStatus(statutFinalP) ? statutFinalP : undefined,
         banner:
           thumbnail !== undefined
             ? typeof thumbnail === "string"

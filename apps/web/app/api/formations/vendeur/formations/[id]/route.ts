@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { revalidatePublicCatalog } from "@/lib/formations/revalidate-public";
+import { decisionPublication, notifierMiseEnAttente } from "@/lib/formations/publication-gate";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -104,12 +105,62 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       }
     }
 
+    // ── GARDE DE TRANSITION DE STATUT ────────────────────────────────────
+    // Même règle que les produits : le vendeur choisit brouillon, publication
+    // ou archive — jamais EN_ATTENTE, et il ne sort pas seul de la file de
+    // validation.
+    const statutDemande = typeof body.status === "string" ? body.status : undefined;
+    if (statutDemande && !["BROUILLON", "ACTIF", "ARCHIVE"].includes(statutDemande)) {
+      return NextResponse.json({ error: "Statut non autorisé." }, { status: 400 });
+    }
+    if (existing.status === "EN_ATTENTE" && statutDemande === "ACTIF") {
+      return NextResponse.json(
+        {
+          error:
+            "Cette formation est en cours de validation par l'équipe. Elle sera mise en ligne dès son approbation — vous pouvez la repasser en brouillon pour la modifier.",
+          code: "EN_VALIDATION",
+        },
+        { status: 400 },
+      );
+    }
+
+    // ── RÈGLES DE PUBLICATION (les formations n'en avaient AUCUNE) ───────
+    // Mêmes règles que les produits, bannière exclue (pas de champ). Les
+    // signaux (KYC, prix…) ne jouent qu'à la PUBLICATION, pas sur l'édition
+    // d'une formation déjà en ligne.
+    const publication = statutDemande === "ACTIF" && existing.status !== "ACTIF";
+    const seraVisible = statutDemande === "ACTIF" || (statutDemande === undefined && existing.status === "ACTIF");
+    let statutFinal: string | undefined = statutDemande;
+    if (seraVisible) {
+      const decision = await decisionPublication({
+        userId: ctx.userId,
+        titre: body.title !== undefined ? body.title : existing.title,
+        description: body.description !== undefined ? body.description : existing.description,
+        prix: effectivePrice,
+        vignetteUrl: body.thumbnail !== undefined ? body.thumbnail : existing.thumbnail,
+        banniereUrl: null,
+        exigerBanniere: false,
+      });
+      if (!decision.ok) {
+        return NextResponse.json(
+          {
+            error: decision.error,
+            code: decision.httpStatus === 403 ? "VENDEUR_SUSPENDU" : "FICHE_INCOMPLETE",
+            problemes: decision.problemes ?? [],
+          },
+          { status: decision.httpStatus },
+        );
+      }
+      if (publication) statutFinal = decision.statut;
+    }
+
     // V2.2 — publishedAt: stamp lors du passage à ACTIF (si pas déjà set), null sur retour BROUILLON.
+    // Un passage en EN_ATTENTE ne date rien : la mise en ligne sera l'approbation.
     let publishedAtVal: Date | null | undefined;
-    if (body.status !== undefined && body.status !== existing.status) {
-      if (body.status === "ACTIF") {
+    if (statutFinal !== undefined && statutFinal !== existing.status) {
+      if (statutFinal === "ACTIF") {
         publishedAtVal = existing.publishedAt ?? new Date();
-      } else if (body.status === "BROUILLON") {
+      } else if (statutFinal === "BROUILLON") {
         publishedAtVal = null;
       }
     }
@@ -124,15 +175,19 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         price: priceVal,
         originalPrice: originalPriceVal,
         isFree: incomingIsFree,
-        status: body.status ?? undefined,
+        status: (statutFinal as never) ?? undefined,
         publishedAt: publishedAtVal,
         hiddenFromMarketplace: typeof body.hiddenFromMarketplace === "boolean" ? body.hiddenFromMarketplace : undefined,
       },
     });
 
+    if (publication && updated.status === "EN_ATTENTE") {
+      await notifierMiseEnAttente({ userId: ctx.userId, titre: updated.title });
+    }
+
     // Édition (prix, titre, statut…) → rafraîchir les pages publiques en cache.
     revalidatePublicCatalog();
-    return NextResponse.json({ data: updated });
+    return NextResponse.json({ data: { ...updated, enAttente: updated.status === "EN_ATTENTE" } });
   } catch (err) {
     console.error("[formations/[id] PATCH]", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

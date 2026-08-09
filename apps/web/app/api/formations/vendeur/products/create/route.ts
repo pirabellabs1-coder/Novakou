@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifierFiche } from "@/lib/formations/product-quality";
+import { decisionPublication, notifierMiseEnAttente } from "@/lib/formations/publication-gate";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
@@ -120,36 +120,41 @@ export async function POST(request: Request) {
       );
     }
 
-    // ── QUALITÉ DE LA FICHE ───────────────────────────────────────────────
-    // Titre trop court, description vide, image déformée : une boutique se
-    // juge en trois secondes, et le vendeur ne voit pas le problème parce que
-    // sur SON écran ça passe. On refuse à la source plutôt que de laisser une
-    // fiche bâclée représenter la plateforme.
-    // Les controles de PUBLICATION ne s'appliquent qu'a une publication.
+    // ── RÈGLES DE VALIDATION (document fondateur, août 2026) ─────────────
+    // Les contrôles ne s'appliquent qu'à une PUBLICATION : un brouillon peut
+    // rester incomplet, c'est le propre d'un brouillon.
     //
     // Un vendeur signalait avoir perdu ses e-books : son image etait refusee,
     // donc rien n'etait cree, donc rien n'apparaissait dans « Brouillons ».
     // Il croyait son travail perdu. C'est la validation qui doit empecher la
     // MISE EN LIGNE, jamais l'enregistrement — sinon on punit exactement celui
     // qui prend le temps de bien faire.
-    const problemes = publish
-      ? await verifierFiche({
-          titre: title,
-          description,
-          prix: priceNum,
-          vignetteUrl: thumbnail,
-          banniereUrl: banner,
-        })
-      : [];
-    if (problemes.length > 0) {
-      return NextResponse.json(
-        {
-          error: problemes.map((x) => x.message).join(" "),
-          code: "FICHE_INCOMPLETE",
-          problemes,
-        },
-        { status: 400 },
-      );
+    //
+    // Régime hybride : fiche non conforme → refus net ; fiche conforme mais
+    // signal (prix > 500 000, KYC absent…) → EN_ATTENTE de validation admin ;
+    // sinon → ACTIF immédiatement.
+    let statutPublication: "ACTIF" | "EN_ATTENTE" = "ACTIF";
+    if (publish) {
+      const decision = await decisionPublication({
+        userId,
+        titre: title,
+        description,
+        prix: priceNum,
+        vignetteUrl: kind === "product" ? (thumbnail || banner) : thumbnail,
+        banniereUrl: kind === "product" ? (banner || thumbnail) : null,
+        exigerBanniere: kind === "product",
+      });
+      if (!decision.ok) {
+        return NextResponse.json(
+          {
+            error: decision.error,
+            code: decision.httpStatus === 403 ? "VENDEUR_SUSPENDU" : "FICHE_INCOMPLETE",
+            problemes: decision.problemes ?? [],
+          },
+          { status: decision.httpStatus },
+        );
+      }
+      statutPublication = decision.statut;
     }
 
     // V2.3 — originalPrice (prix barré) doit être > price si fourni
@@ -201,9 +206,10 @@ export async function POST(request: Request) {
           affiliateEnabled: affEnabled,
           affiliateCommissionPct: affPct,
           duration: totalDuration,
-          status: publish ? "ACTIF" : "BROUILLON",
-          // V2.2 — stamp publishedAt when going live (null when staying as draft)
-          publishedAt: publish ? new Date() : null,
+          status: publish ? statutPublication : "BROUILLON",
+          // V2.2 — stamp publishedAt when going live (null for draft AND for
+          // EN_ATTENTE : la date de mise en ligne sera celle de l'approbation)
+          publishedAt: publish && statutPublication === "ACTIF" ? new Date() : null,
           instructeurId: profile.id,
           shopId: activeShopId,
           sections: validModules.length > 0 ? {
@@ -234,12 +240,17 @@ export async function POST(request: Request) {
         include: { sections: { include: { lessons: true } } },
       });
 
+      if (formation.status === "EN_ATTENTE") {
+        await notifierMiseEnAttente({ userId, titre: formation.title });
+      }
+
       return NextResponse.json({
         data: {
           id: formation.id,
           slug: formation.slug,
           kind: "formation",
           status: formation.status,
+          enAttente: formation.status === "EN_ATTENTE",
           modules: formation.sections.length,
           lessons: formation.sections.reduce((s, m) => s + m.lessons.length, 0),
         },
@@ -300,15 +311,25 @@ export async function POST(request: Request) {
           ...(salesEndAtVal && !Number.isNaN(salesEndAtVal.getTime()) ? { salesEndAt: salesEndAtVal } : {}),
           ...(maxBuyersVal ? { maxBuyers: maxBuyersVal } : {}),
           hiddenFromMarketplace: hiddenVal,
-          status: publish ? "ACTIF" : "BROUILLON",
+          status: publish ? statutPublication : "BROUILLON",
           instructeurId: profile.id,
           shopId: activeShopId,
           ...(filesToCreate.length > 0 ? { files: { create: filesToCreate } } : {}),
         },
       });
 
+      if (product.status === "EN_ATTENTE") {
+        await notifierMiseEnAttente({ userId, titre: product.title });
+      }
+
       return NextResponse.json({
-        data: { id: product.id, slug: product.slug, kind: "product", status: product.status },
+        data: {
+          id: product.id,
+          slug: product.slug,
+          kind: "product",
+          status: product.status,
+          enAttente: product.status === "EN_ATTENTE",
+        },
       });
     }
 

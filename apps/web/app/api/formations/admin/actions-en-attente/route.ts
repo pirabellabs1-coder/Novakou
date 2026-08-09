@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
   // faire disparaître TOUS les badges du menu.
   const compter = async (fn: () => Promise<number>) => fn().catch(() => 0);
 
-  const [kyc, retraitsVendeurs, retraitsAffilies, retraitsPlateforme, suppressions] =
+  const [kyc, retraitsVendeurs, retraitsAffilies, retraitsPlateforme, suppressions, produits, formations] =
     await Promise.all([
       compter(() => prisma.kycRequest.count({ where: { status: "EN_ATTENTE" } })),
       compter(() => prisma.instructorWithdrawal.count({ where: { status: "EN_ATTENTE" } })),
@@ -38,6 +38,10 @@ export async function GET(request: NextRequest) {
       compter(() =>
         prisma.accountDeletionRequest.count({ where: { status: "AWAITING_REVIEW" } }),
       ),
+      // Produits soumis à validation (régime hybride 2026-08-08) : chacun est
+      // une vente que le vendeur attend — le badge doit le dire.
+      compter(() => prisma.digitalProduct.count({ where: { status: "EN_ATTENTE" } })),
+      compter(() => prisma.formation.count({ where: { status: "EN_ATTENTE" } })),
     ]);
 
   const parPage: Record<string, number> = {
@@ -46,6 +50,7 @@ export async function GET(request: NextRequest) {
     "/admin/affiliate-withdrawals": retraitsAffilies,
     "/admin/retraits": retraitsPlateforme,
     "/admin/suppressions": suppressions,
+    "/admin/produits": produits + formations,
   };
 
   return NextResponse.json({

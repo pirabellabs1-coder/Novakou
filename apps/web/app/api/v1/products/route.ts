@@ -13,6 +13,7 @@ import {
   FormationStatus,
 } from "@prisma/client";
 import { slugify } from "@/lib/formations/slugs";
+import { decisionPublication, notifierMiseEnAttente } from "@/lib/formations/publication-gate";
 
 /**
  * GET /api/v1/products
@@ -275,6 +276,38 @@ export async function POST(request: NextRequest) {
     const slug = await uniqueSlug(title as string, kind);
     const shouldPublish = publish === true;
 
+    // ── RÈGLES DE PUBLICATION — les mêmes que l'assistant de création ─────
+    // L'API publique était le guichet le moins contrôlé : titre de 2
+    // caractères et publication immédiate. Même juge pour tous les chemins
+    // (refus automatique si non conforme, EN_ATTENTE si signal de validation
+    // manuelle — prix > 500 000, vendeur sans KYC…).
+    let statutPublication: "ACTIF" | "EN_ATTENTE" = "ACTIF";
+    let vendeurUserId: string | null = null;
+    if (shouldPublish) {
+      const profil = await prisma.instructeurProfile.findUnique({
+        where: { id: ctx.instructeurId },
+        select: { userId: true },
+      });
+      vendeurUserId = profil?.userId ?? null;
+      const decision = await decisionPublication({
+        userId: vendeurUserId ?? "",
+        titre: title as string,
+        description: typeof description === "string" ? description : null,
+        prix: price as number,
+        vignetteUrl: typeof thumbnail === "string" ? thumbnail : null,
+        banniereUrl: kind === "product" && typeof thumbnail === "string" ? thumbnail : null,
+        exigerBanniere: kind === "product",
+      });
+      if (!decision.ok) {
+        return apiError(
+          decision.httpStatus === 403 ? "FORBIDDEN" : "INVALID_PARAMS",
+          decision.error,
+          decision.httpStatus,
+        );
+      }
+      statutPublication = decision.statut;
+    }
+
     // Rattache le produit à la boutique PRIMAIRE du vendeur (même ordre que le
     // dashboard : isPrimary puis ancienneté). SANS ça, shopId reste null et le
     // produit — bien que public — n'apparaît PAS dans la liste du vendeur, qui
@@ -301,7 +334,7 @@ export async function POST(request: NextRequest) {
           originalPrice:
             typeof originalPrice === "number" ? originalPrice : null,
           isFree: (price as number) === 0,
-          status: shouldPublish ? "ACTIF" : "BROUILLON",
+          status: shouldPublish ? statutPublication : "BROUILLON",
           instructeurId: ctx.instructeurId,
           shopId,
         },
@@ -314,6 +347,9 @@ export async function POST(request: NextRequest) {
           createdAt: true,
         },
       });
+      if (created.status === "EN_ATTENTE" && vendeurUserId) {
+        await notifierMiseEnAttente({ userId: vendeurUserId, titre: created.title });
+      }
       return apiSuccess({ ...created, kind: "formation" }, undefined, 201);
     }
 
@@ -366,7 +402,7 @@ export async function POST(request: NextRequest) {
         price: price as number,
         originalPrice: typeof originalPrice === "number" ? originalPrice : null,
         isFree: (price as number) === 0,
-        status: shouldPublish ? "ACTIF" : "BROUILLON",
+        status: shouldPublish ? statutPublication : "BROUILLON",
         instructeurId: ctx.instructeurId,
         shopId,
         ...(filesToCreate.length > 0 ? { files: { create: filesToCreate } } : {}),
@@ -378,6 +414,9 @@ export async function POST(request: NextRequest) {
         },
       },
     });
+    if (created.status === "EN_ATTENTE" && vendeurUserId) {
+      await notifierMiseEnAttente({ userId: vendeurUserId, titre: created.title });
+    }
     return apiSuccess(
       {
         id: created.id,

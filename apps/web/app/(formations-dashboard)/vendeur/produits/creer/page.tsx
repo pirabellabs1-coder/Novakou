@@ -10,6 +10,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
+import { useToastStore } from "@/store/toast";
 import {
   ArrowLeft,
   ArrowRight,
@@ -319,6 +320,16 @@ export default function CreerProduitPage() {
       // Wipe every saved field for this form once the product was created
       // server-side, otherwise the next visit would resurrect the draft.
       clearDrafts(DRAFT_PREFIX);
+      // Publication partie en VALIDATION (régime hybride) : le dire tout de
+      // suite, sinon le vendeur croit son produit en ligne et le cherche.
+      if (res.data?.enAttente) {
+        useToastStore
+          .getState()
+          .addToast(
+            "info",
+            "Produit soumis : il sera vérifié par l'équipe avant sa mise en ligne. Vous serez notifié.",
+          );
+      }
       router.push("/vendeur/produits");
     },
     onError: () => {

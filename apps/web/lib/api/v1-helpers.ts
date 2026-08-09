@@ -14,6 +14,8 @@ export type ApiErrorCode =
   | "INVALID_PARAMS"
   | "NOT_FOUND"
   | "RATE_LIMITED"
+  // Action comprise mais interdite (compte suspendu, produit en validation…).
+  | "FORBIDDEN"
   | "SERVER_ERROR";
 
 export function apiError(

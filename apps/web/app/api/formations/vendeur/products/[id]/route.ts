@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifierFiche } from "@/lib/formations/product-quality";
+import { decisionPublication, notifierMiseEnAttente } from "@/lib/formations/publication-gate";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
@@ -120,11 +120,25 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       }
     }
 
-    // V2.2 — publishedAt management
-    // Stamp it the first time the product becomes ACTIF; null it on return to BROUILLON.
-    // DigitalProduct has no publishedAt column in the schema, so we don't write one — but
-    // we still gate the status transition behind the same logic (no-op).
-    void body.status;
+    // ── GARDE DE TRANSITION DE STATUT ────────────────────────────────────
+    // Le vendeur ne choisit qu'entre brouillon, publication et archive. Il ne
+    // peut PAS s'attribuer EN_ATTENTE ni sortir lui-même de la file de
+    // validation : avant cette garde, un PATCH { status: "ACTIF" } suffisait à
+    // court-circuiter toute modération.
+    const statutDemande = typeof body.status === "string" ? body.status : undefined;
+    if (statutDemande && !["BROUILLON", "ACTIF", "ARCHIVE"].includes(statutDemande)) {
+      return NextResponse.json({ error: "Statut non autorisé." }, { status: 400 });
+    }
+    if (existing.status === "EN_ATTENTE" && statutDemande === "ACTIF") {
+      return NextResponse.json(
+        {
+          error:
+            "Ce produit est en cours de validation par l'équipe. Il sera mis en ligne dès son approbation — vous pouvez le repasser en brouillon pour le modifier.",
+          code: "EN_VALIDATION",
+        },
+        { status: 400 },
+      );
+    }
 
     // Files: replace-all if `files` array is provided. Each item: { name, url, size?, mimeType? }.
     // We delete existing rows and recreate to keep the order in sync with the array index.
@@ -158,20 +172,38 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           ? (body.fileUrl ? normalizeStorageUrlForDb(body.fileUrl) : null)
           : undefined;
 
-    // Mêmes règles qu'à la création — sinon on pourrait publier une fiche
-    // correcte puis la vider par une modification.
-    const problemes = await verifierFiche({
-      titre: body.title !== undefined ? body.title : existing.title,
-      description: body.description !== undefined ? body.description : existing.description,
-      prix: effectivePrice,
-      vignetteUrl: body.thumbnail !== undefined ? body.thumbnail : existing.thumbnail,
-      banniereUrl: body.banner !== undefined ? body.banner : existing.banner,
-    });
-    if (problemes.length > 0) {
-      return NextResponse.json(
-        { error: problemes.map((x) => x.message).join(" "), code: "FICHE_INCOMPLETE", problemes },
-        { status: 400 },
-      );
+    // ── RÈGLES DE PUBLICATION (mêmes qu'à la création) ───────────────────
+    // Elles ne s'appliquent que si le produit SERA visible : publication
+    // demandée, ou produit déjà en ligne qu'on modifie (sinon on pourrait
+    // publier une fiche correcte puis la vider). Un brouillon reste libre.
+    //
+    // Les SIGNAUX (KYC, prix > 500 000…) ne jouent qu'au moment de PUBLIER :
+    // renvoyer en file d'attente un produit déjà en ligne à chaque correction
+    // de virgule le ferait disparaître de la marketplace sans raison.
+    const publication = statutDemande === "ACTIF" && existing.status !== "ACTIF";
+    const seraVisible = statutDemande === "ACTIF" || (statutDemande === undefined && existing.status === "ACTIF");
+    let statutFinal: string | undefined = statutDemande;
+    if (seraVisible) {
+      const decision = await decisionPublication({
+        userId: ctx.userId,
+        titre: body.title !== undefined ? body.title : existing.title,
+        description: body.description !== undefined ? body.description : existing.description,
+        prix: effectivePrice,
+        vignetteUrl: body.thumbnail !== undefined ? body.thumbnail : existing.thumbnail,
+        banniereUrl: body.banner !== undefined ? body.banner : existing.banner,
+        exigerBanniere: true,
+      });
+      if (!decision.ok) {
+        return NextResponse.json(
+          {
+            error: decision.error,
+            code: decision.httpStatus === 403 ? "VENDEUR_SUSPENDU" : "FICHE_INCOMPLETE",
+            problemes: decision.problemes ?? [],
+          },
+          { status: decision.httpStatus },
+        );
+      }
+      if (publication) statutFinal = decision.statut;
     }
 
     const updated = await prisma.digitalProduct.update({
@@ -186,7 +218,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         originalPrice: originalPriceVal,
         productType: body.productType ?? undefined,
         tags: Array.isArray(body.tags) ? body.tags : undefined,
-        status: body.status ?? undefined,
+        status: (statutFinal as never) ?? undefined,
         fileUrl: fileUrlSync,
         hiddenFromMarketplace: typeof body.hiddenFromMarketplace === "boolean" ? body.hiddenFromMarketplace : undefined,
         affiliateEnabled: typeof body.affiliateEnabled === "boolean" ? body.affiliateEnabled : undefined,
@@ -240,8 +272,17 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       ),
     ]);
 
+    if (publication && updated.status === "EN_ATTENTE") {
+      await notifierMiseEnAttente({ userId: ctx.userId, titre: updated.title });
+    }
+
     return NextResponse.json({
-      data: { ...updated, fileUrl: respFileUrl ?? updated.fileUrl, files: respFiles },
+      data: {
+        ...updated,
+        fileUrl: respFileUrl ?? updated.fileUrl,
+        files: respFiles,
+        enAttente: updated.status === "EN_ATTENTE",
+      },
     });
   } catch (err) {
     console.error("[vendeur/products/[id] PATCH]", err);

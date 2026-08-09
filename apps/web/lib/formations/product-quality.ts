@@ -19,8 +19,35 @@ export const MIN_TITRE = 10;
 /** Longueur minimale d'une description : deux phrases, pas un mot. */
 export const MIN_DESCRIPTION = 80;
 
-/** Prix plancher d'un produit payant, en FCFA. Zéro reste autorisé (gratuit). */
-export const PRIX_MINIMUM = 100;
+/**
+ * Prix plancher d'un produit payant, en FCFA. Zéro reste autorisé (gratuit).
+ * Règle fondateur (document de validation, août 2026) : 1 000 FCFA minimum —
+ * en dessous, entre les frais de passerelle et l'image de la marketplace, la
+ * vente ne profite à personne.
+ */
+export const PRIX_MINIMUM = 1000;
+
+/**
+ * Au-delà de ce prix, le produit n'est plus publié automatiquement : il part
+ * en validation manuelle (règle fondateur). Un prix à six chiffres sur un
+ * contenu creux est le premier signal d'arnaque qu'un acheteur rencontre.
+ */
+export const PRIX_VALIDATION_MANUELLE = 500_000;
+
+/**
+ * Promesses interdites dans un titre ou une description (règle fondateur :
+ * « DEVENEZ MILLIONNAIRE EN 24H », revenus garantis, faux témoignages…).
+ * Liste volontairement CONSERVATRICE : chaque motif doit viser une promesse
+ * mensongère sans ambiguïté — un faux positif bloque un vendeur honnête.
+ */
+const PROMESSES_INTERDITES: Array<{ motif: RegExp; libelle: string }> = [
+  { motif: /millionnaire\s+en\s+\d+\s*(h|heures?|jours?|semaines?)/i, libelle: "« millionnaire en X heures/jours »" },
+  { motif: /revenus?\s+garantis?/i, libelle: "« revenus garantis »" },
+  { motif: /gains?\s+garantis?/i, libelle: "« gains garantis »" },
+  { motif: /argent\s+facile\s+et\s+rapide/i, libelle: "« argent facile et rapide »" },
+  { motif: /devenez\s+riche\s+(en\s+\d+|rapidement|sans\s+effort)/i, libelle: "« devenez riche rapidement »" },
+  { motif: /\bsans\s+aucun\s+effort\b.{0,40}\b(gagn|riche|revenu)/i, libelle: "promesse de gains sans effort" },
+];
 
 /**
  * Dimensions attendues, telles que le rendu les utilise :
@@ -152,6 +179,36 @@ export async function verifierFiche(p: {
     });
   }
 
+  // ── TOUT EN MAJUSCULES : interdit (règle fondateur) ────────────────────────
+  // Un titre qui crie fait fuir l'acheteur et dégrade toute la marketplace.
+  // On ne compte que les lettres : chiffres et ponctuation n'entrent pas en jeu.
+  const lettres = titre.replace(/[^\p{L}]/gu, "");
+  if (lettres.length >= 8) {
+    const majuscules = lettres.replace(/[^\p{Lu}]/gu, "");
+    if (majuscules.length / lettres.length > 0.8) {
+      out.push({
+        champ: "titre",
+        message:
+          "Le titre est écrit tout en majuscules. Écrivez-le normalement " +
+          "(« Guide complet du e-commerce », pas « GUIDE COMPLET DU E-COMMERCE »).",
+      });
+    }
+  }
+
+  // ── PROMESSES MENSONGÈRES : interdites (règle fondateur) ───────────────────
+  const texteComplet = `${titre} ${(p.description ?? "").replace(/<[^>]*>/g, " ")}`;
+  for (const { motif, libelle } of PROMESSES_INTERDITES) {
+    if (motif.test(texteComplet)) {
+      out.push({
+        champ: "titre",
+        message:
+          `Le texte contient une promesse interdite (${libelle}). ` +
+          "Les promesses de gains garantis sont refusées : décrivez ce que le produit apprend, pas ce qu'il rapporterait.",
+      });
+      break; // Un seul message suffit — inutile d'empiler les variantes.
+    }
+  }
+
   // La description peut être du texte riche : on compte les caractères
   // VISIBLES, sinon un document vide plein de balises passerait le contrôle.
   const description = (p.description ?? "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
@@ -182,5 +239,70 @@ export async function verifierFiche(p: {
     out.push({ champ: "banniere", message: messageFormat("bannière", banniere, BANNIERE) });
   }
 
+  return out;
+}
+
+/**
+ * Exigences supplémentaires À LA PUBLICATION (règle fondateur : un produit
+ * incomplet est refusé automatiquement). Un brouillon peut rester incomplet —
+ * c'est le propre d'un brouillon — mais rien ne part en marketplace sans ses
+ * images : une carte sans vignette est un trou dans la grille.
+ */
+export function problemesPublication(p: {
+  vignetteUrl?: string | null;
+  banniereUrl?: string | null;
+  /** Les formations n'ont pas de champ bannière : ne pas l'exiger pour elles. */
+  exigerBanniere?: boolean;
+}): ProblemeFiche[] {
+  const out: ProblemeFiche[] = [];
+  if (!p.vignetteUrl?.trim()) {
+    out.push({
+      champ: "vignette",
+      message: `Une vignette est obligatoire pour publier (carrée, au moins ${VIGNETTE.largeur}×${VIGNETTE.hauteur} px). C'est elle que voit l'acheteur dans la marketplace.`,
+    });
+  }
+  if (p.exigerBanniere && !p.banniereUrl?.trim()) {
+    out.push({
+      champ: "banniere",
+      message: `Une bannière de couverture est obligatoire pour publier (16/9, au moins ${BANNIERE.largeur}×${BANNIERE.hauteur} px). Elle ouvre la page du produit.`,
+    });
+  }
+  return out;
+}
+
+export type SignalValidation = { code: string; message: string };
+
+/**
+ * Signaux qui envoient une publication en VALIDATION MANUELLE (EN_ATTENTE)
+ * plutôt qu'en ligne directe — régime hybride décidé par le fondateur le
+ * 2026-08-08 : les règles automatiques bloquent net, les cas douteux passent
+ * par l'admin, le reste se publie sans friction.
+ *
+ * Un signal n'est PAS un refus : le produit est complet et conforme, mais un
+ * humain doit le regarder avant qu'il représente la plateforme.
+ */
+export function signauxValidationManuelle(p: {
+  prix?: number | null;
+  /** Niveau KYC du vendeur (3 = identité vérifiée). */
+  kycNiveau?: number | null;
+  emailVerifie?: boolean;
+}): SignalValidation[] {
+  const out: SignalValidation[] = [];
+  const prix = typeof p.prix === "number" ? p.prix : 0;
+  if (prix > PRIX_VALIDATION_MANUELLE) {
+    out.push({
+      code: "prix_eleve",
+      message: `Prix de ${new Intl.NumberFormat("fr-FR").format(Math.round(prix))} FCFA — au-delà de ${new Intl.NumberFormat("fr-FR").format(PRIX_VALIDATION_MANUELLE)} FCFA, une validation manuelle est requise.`,
+    });
+  }
+  if ((p.kycNiveau ?? 1) < 3) {
+    out.push({
+      code: "kyc_non_verifie",
+      message: `Identité du vendeur non vérifiée (KYC niveau ${p.kycNiveau ?? 1}/3).`,
+    });
+  }
+  if (p.emailVerifie === false) {
+    out.push({ code: "email_non_confirme", message: "E-mail du vendeur non confirmé." });
+  }
   return out;
 }

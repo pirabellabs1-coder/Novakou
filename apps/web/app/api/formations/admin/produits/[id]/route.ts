@@ -6,6 +6,26 @@ import { createAuditLog } from "@/lib/admin/audit";
 import { createNotification } from "@/lib/notifications/service";
 import { revalidatePublicCatalog } from "@/lib/formations/revalidate-public";
 
+/** Le vendeur apprend la décision par notification — pas en rechargeant sa liste. */
+async function notifierVendeur(
+  userId: string | null | undefined,
+  titre: string,
+  action: string,
+  reason: string | null,
+): Promise<void> {
+  if (!userId || (action !== "approve" && action !== "reject")) return;
+  await createNotification({
+    userId,
+    type: "system",
+    title: action === "approve" ? "Produit approuvé ✔" : "Produit refusé",
+    message:
+      action === "approve"
+        ? `« ${titre} » a été approuvé : il est en ligne sur la marketplace.`
+        : `« ${titre} » a été refusé.${reason ? ` Motif : ${reason}.` : ""} Corrigez-le puis soumettez-le à nouveau.`,
+    link: "/vendeur/produits",
+  }).catch(() => null);
+}
+
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
@@ -23,9 +43,23 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     const actorId = (session.user as { id?: string }).id;
 
+    // Le MOTIF de refus est écrit sur le produit (refuseReason), pas seulement
+    // dans le journal d'audit : c'est lui que le vendeur lit à l'édition.
+    // Avant, l'écran vendeur affichait un refus… sans jamais dire pourquoi.
     if (kind === "formation") {
+      // FormationStatus n'a pas REFUSE : un refus archive, avec le motif.
       const newStatus = action === "approve" ? "ACTIF" as const : "ARCHIVE" as const;
-      await prisma.formation.update({ where: { id }, data: { status: newStatus } });
+      const f = await prisma.formation.update({
+        where: { id },
+        data: {
+          status: newStatus,
+          refuseReason: action === "reject" ? (reason || "Non conforme aux règles de la marketplace.") : null,
+          // L'approbation d'une soumission EST sa mise en ligne.
+          ...(action === "approve" ? { publishedAt: new Date() } : {}),
+        },
+        select: { title: true, instructeur: { select: { user: { select: { id: true } } } } },
+      });
+      await notifierVendeur(f.instructeur?.user?.id, f.title, action, reason);
 
       if (actorId && (action === "approve" || action === "reject")) {
         await createAuditLog({
@@ -38,7 +72,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       }
     } else if (kind === "product") {
       const newStatus = action === "approve" ? "ACTIF" as const : action === "reject" ? "REFUSE" as const : "ARCHIVE" as const;
-      await prisma.digitalProduct.update({ where: { id }, data: { status: newStatus } });
+      const p = await prisma.digitalProduct.update({
+        where: { id },
+        data: {
+          status: newStatus,
+          refuseReason: action === "reject" ? (reason || "Non conforme aux règles de la marketplace.") : null,
+        },
+        select: { title: true, instructeur: { select: { user: { select: { id: true } } } } },
+      });
+      await notifierVendeur(p.instructeur?.user?.id, p.title, action, reason);
 
       if (actorId && (action === "approve" || action === "reject")) {
         await createAuditLog({
