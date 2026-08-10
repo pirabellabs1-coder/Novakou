@@ -320,6 +320,26 @@ export default function CreerProduitPage() {
       // Wipe every saved field for this form once the product was created
       // server-side, otherwise the next visit would resurrect the draft.
       clearDrafts(DRAFT_PREFIX);
+      // Publication REFUSÉE mais travail conservé en brouillon (retour vendeur
+      // AFRIGAGNE : ses ebooks refusés disparaissaient — il croyait tout
+      // perdu). On l'amène directement sur la page d'édition, problèmes en main.
+      if (res.data?.publicationRefusee) {
+        const detail = Array.isArray(res.data.problemes)
+          ? res.data.problemes.map((p: { message: string }) => p.message).join(" ")
+          : "";
+        useToastStore
+          .getState()
+          .addToast(
+            "warning",
+            `Publication refusée — votre travail est enregistré en brouillon. ${detail}`.trim(),
+          );
+        router.push(
+          res.data.kind === "formation"
+            ? `/vendeur/cours/${res.data.id}/editer`
+            : `/vendeur/produits/${res.data.id}/editer`,
+        );
+        return;
+      }
       // Publication partie en VALIDATION (régime hybride) : le dire tout de
       // suite, sinon le vendeur croit son produit en ligne et le cherche.
       if (res.data?.enAttente) {

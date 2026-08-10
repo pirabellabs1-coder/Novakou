@@ -130,10 +130,14 @@ export async function POST(request: Request) {
     // MISE EN LIGNE, jamais l'enregistrement — sinon on punit exactement celui
     // qui prend le temps de bien faire.
     //
-    // Régime hybride : fiche non conforme → refus net ; fiche conforme mais
-    // signal (prix > 500 000, KYC absent…) → EN_ATTENTE de validation admin ;
-    // sinon → ACTIF immédiatement.
-    let statutPublication: "ACTIF" | "EN_ATTENTE" = "ACTIF";
+    // Régime hybride : fiche non conforme → la publication est refusée MAIS le
+    // travail est ENREGISTRÉ EN BROUILLON (retour vendeur AFRIGAGNE, 2026-08 :
+    // ses ebooks refusés pour l'image n'apparaissaient nulle part — il croyait
+    // tout perdu et recommençait, sans jamais retrouver son travail) ; fiche
+    // conforme mais signal (prix > 500 000, KYC absent…) → EN_ATTENTE de
+    // validation admin ; sinon → ACTIF immédiatement.
+    let statutPublication: "ACTIF" | "EN_ATTENTE" | "BROUILLON" = "ACTIF";
+    let problemesRefus: Array<{ champ: string; message: string }> | null = null;
     if (publish) {
       const decision = await decisionPublication({
         userId,
@@ -145,16 +149,19 @@ export async function POST(request: Request) {
         exigerBanniere: kind === "product",
       });
       if (!decision.ok) {
-        return NextResponse.json(
-          {
-            error: decision.error,
-            code: decision.httpStatus === 403 ? "VENDEUR_SUSPENDU" : "FICHE_INCOMPLETE",
-            problemes: decision.problemes ?? [],
-          },
-          { status: decision.httpStatus },
-        );
+        // Compte suspendu : là, on ne crée RIEN — ce n'est pas un problème de
+        // fiche que le vendeur pourrait corriger.
+        if (decision.httpStatus === 403) {
+          return NextResponse.json(
+            { error: decision.error, code: "VENDEUR_SUSPENDU" },
+            { status: 403 },
+          );
+        }
+        problemesRefus = decision.problemes ?? [{ champ: "fiche", message: decision.error }];
+        statutPublication = "BROUILLON";
+      } else {
+        statutPublication = decision.statut;
       }
-      statutPublication = decision.statut;
     }
 
     // V2.3 — originalPrice (prix barré) doit être > price si fourni
@@ -251,6 +258,10 @@ export async function POST(request: Request) {
           kind: "formation",
           status: formation.status,
           enAttente: formation.status === "EN_ATTENTE",
+          // Publication refusée mais travail CONSERVÉ : le client doit amener
+          // le vendeur sur la page d'édition du brouillon, problèmes en main.
+          publicationRefusee: problemesRefus !== null,
+          problemes: problemesRefus ?? [],
           modules: formation.sections.length,
           lessons: formation.sections.reduce((s, m) => s + m.lessons.length, 0),
         },
@@ -329,6 +340,8 @@ export async function POST(request: Request) {
           kind: "product",
           status: product.status,
           enAttente: product.status === "EN_ATTENTE",
+          publicationRefusee: problemesRefus !== null,
+          problemes: problemesRefus ?? [],
         },
       });
     }
