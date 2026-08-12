@@ -132,7 +132,13 @@ export async function initCollect(params: {
 /** Consulte l'état réel d'un encaissement auprès de Monetbil. */
 export async function checkCollectStatus(
   reference: string,
-): Promise<{ status: MonetbilStatus; amount: number | null; raw: unknown }> {
+): Promise<{
+  status: MonetbilStatus;
+  amount: number | null;
+  raw: unknown;
+  failureCode?: string | null;
+  failureMessage?: string | null;
+}> {
   const service = await getServiceKey();
   const res = await payoutFetch(`${MONETBIL_API_BASE}/payment/v1/checkPayment`, {
     method: "POST",
@@ -140,7 +146,12 @@ export async function checkCollectStatus(
     body: JSON.stringify({ service, paymentId: reference }),
   });
   const json = (await res.json().catch(() => ({}))) as {
-    transaction?: { status?: number | string; amount?: number | string };
+    transaction?: {
+      status?: number | string;
+      amount?: number | string;
+      message?: string;
+      error?: string;
+    };
     status?: number | string;
     amount?: number | string;
     message?: string;
@@ -160,10 +171,17 @@ export async function checkCollectStatus(
     );
   }
 
+  // Motif réel, quand Monetbil en joint un : sans lui, un refus « solde
+  // insuffisant » et un refus « code expiré » sont indiscernables.
+  const motif =
+    (json.transaction?.message ?? json.transaction?.error ?? json.message ?? "") || null;
+
   return {
     status,
     amount: brut == null ? null : Math.round(Number(brut)),
     raw: json,
+    failureCode: status === "failed" ? String(tx.status ?? "") || null : null,
+    failureMessage: status === "failed" ? motif : null,
   };
 }
 

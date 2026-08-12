@@ -423,7 +423,13 @@ export function normalizeFedapayTransactionStatus(s: string | undefined | null):
 /** Statut d'un ENCAISSEMENT. GET /v1/transactions/{id}. */
 export async function checkCollectStatus(
   transactionId: string,
-): Promise<{ status: "success" | "failed" | "pending"; amount: number | null; raw: unknown }> {
+): Promise<{
+  status: "success" | "failed" | "pending";
+  amount: number | null;
+  raw: unknown;
+  failureCode?: string | null;
+  failureMessage?: string | null;
+}> {
   const base = getBaseUrl();
   const res = await payoutFetch(`${base}/transactions/${encodeURIComponent(transactionId)}`, {
     method: "GET",
@@ -440,6 +446,9 @@ export async function checkCollectStatus(
   const tx = (json["v1/transaction"] ?? json.transaction ?? json) as {
     status?: string;
     amount?: number | string;
+    /** FedaPay joint le motif du refus sous ces clés quand il en a un. */
+    last_error_code?: string;
+    last_error_message?: string;
   };
   const amount = Number(tx.amount);
 
@@ -455,9 +464,12 @@ export async function checkCollectStatus(
     );
   }
 
+  const status = normalizeFedapayTransactionStatus(tx.status);
   return {
-    status: normalizeFedapayTransactionStatus(tx.status),
+    status,
     amount: Number.isFinite(amount) ? amount : null,
     raw: json,
+    failureCode: status === "failed" ? tx.last_error_code ?? null : null,
+    failureMessage: status === "failed" ? tx.last_error_message ?? null : null,
   };
 }

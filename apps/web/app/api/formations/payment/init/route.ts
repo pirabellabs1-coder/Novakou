@@ -776,6 +776,26 @@ export async function POST(request: Request) {
               { status: 503 },
             );
           }
+          // ── L'OPÉRATEUR ACCEPTE-T-IL SEULEMENT UNE DEMANDE POUSSÉE ? ──────
+          //
+          // PawaPay déclare, opérateur par opérateur, COMMENT l'acheteur
+          // autorise le débit. Nous n'implémentons que la demande poussée sur
+          // le téléphone (« PROVIDER_AUTH »). Pour les deux autres familles —
+          // code à usage unique à générer d'abord (« PREAUTH »), ou page de
+          // l'opérateur (« REDIRECT_AUTH ») — notre demande ne peut pas
+          // aboutir : elle partait quand même, et l'acheteur restait devant
+          // « Confirmez sur votre téléphone » jusqu'à expiration, sans jamais
+          // rien recevoir. On passe à la passerelle suivante, qui sait
+          // peut-être encaisser cet opérateur autrement.
+          const { authTypeDepot } = await import("@/lib/pawapay");
+          const modeAuth = await authTypeDepot(candidate.code).catch(() => null);
+          if (modeAuth && modeAuth !== "PROVIDER_AUTH") {
+            failures.push(
+              `pawapay : « ${candidate.code} » exige ${modeAuth === "PREAUTH" ? "un code à usage unique" : "une page opérateur"} (non pris en charge)`,
+            );
+            continue;
+          }
+
           const { initCollect } = await import("@/lib/pawapay");
           const r = await initCollect({
             // Code natif PawaPay (« MTN_MOMO_BEN »…), pris au registre.
@@ -863,6 +883,23 @@ export async function POST(request: Request) {
             detail,
           },
           { status: 502 },
+        );
+      }
+      // Aucune passerelle n'est TOMBÉE : aucune ne sait encaisser cet opérateur
+      // dans un mode que nous implémentons. « Réessayez dans un instant » serait
+      // un mensonge — réessayer donnera exactement le même résultat, indéfiniment.
+      const modeNonPrisEnCharge =
+        failures.length > 0 && failures.every((f) => f.includes("non pris en charge"));
+      if (modeNonPrisEnCharge) {
+        await failAttempt(detail, "auth_mode_unsupported");
+        return NextResponse.json(
+          {
+            error:
+              "Ce moyen de paiement n'est pas disponible pour le moment. Choisissez-en un autre — votre commande est conservée.",
+            code: "NO_GATEWAY",
+            detail,
+          },
+          { status: 400 },
         );
       }
       await failAttempt(detail, "all_gateways_failed");

@@ -28,6 +28,15 @@ function AttenteInner() {
 
   const [state, setState] = useState<"pending" | "success" | "failed" | "timeout">("pending");
   const [delivered, setDelivered] = useState(true);
+  // Motif de l'échec, tel que la passerelle l'a donné puis traduit côté serveur.
+  // Sans lui, un solde insuffisant, un plafond atteint et une panne opérateur
+  // s'affichaient tous « refusé ou annulé » : l'acheteur ne savait pas quoi
+  // corriger, donc il ne réessayait pas.
+  const [echec, setEchec] = useState<{ titre: string; explication: string }>({
+    titre: "Paiement non abouti",
+    explication:
+      "La demande n'a pas été validée. Aucun montant n'a été débité — vous pouvez réessayer.",
+  });
   const startedAt = useRef(Date.now());
 
   // ÉVÉNEMENT D'ACHAT. Cette page redirigeait directement vers l'espace
@@ -39,7 +48,18 @@ function AttenteInner() {
   const [achatMontant, setAchatMontant] = useState(0);
 
   useEffect(() => {
-    if (!ref || !provider || !pid) { setState("failed"); return; }
+    // Page ouverte sans référence de paiement (lien tronqué, retour arrière,
+    // favori) : ce n'est PAS un refus de l'opérateur. L'annoncer comme tel
+    // faisait croire à un échec bancaire là où il n'y avait aucune demande.
+    if (!ref || !provider || !pid) {
+      setEchec({
+        titre: "Paiement introuvable",
+        explication:
+          "Ce lien ne correspond à aucune demande de paiement en cours. Reprenez votre commande depuis la boutique.",
+      });
+      setState("failed");
+      return;
+    }
     let stopped = false;
 
     async function poll() {
@@ -93,7 +113,13 @@ function AttenteInner() {
           setTimeout(() => router.push("/apprenant/mes-produits"), 4000);
           return;
         }
-        if (s === "failed") { setState("failed"); return; }
+        if (s === "failed") {
+          if (j?.data?.titre) {
+            setEchec({ titre: j.data.titre, explication: j.data.explication ?? "" });
+          }
+          setState("failed");
+          return;
+        }
       } catch {
         // Erreur réseau : on retente, le paiement peut être en cours.
       }
@@ -156,10 +182,8 @@ function AttenteInner() {
             <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mx-auto">
               <XCircle size={30} className="text-rose-600" />
             </div>
-            <h1 className="text-[21px] font-extrabold text-[#191c1e] mt-5">Paiement non abouti</h1>
-            <p className="text-[15px] text-[#5c647a] mt-2">
-              La demande a été refusée ou annulée. Aucun montant n&apos;a été débité.
-            </p>
+            <h1 className="text-[21px] font-extrabold text-[#191c1e] mt-5">{echec.titre}</h1>
+            <p className="text-[15px] text-[#5c647a] mt-2 leading-relaxed">{echec.explication}</p>
             <button
               onClick={() => router.back()}
               className="mt-6 px-5 py-3 rounded-xl text-white text-[14px] font-extrabold"

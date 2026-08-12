@@ -145,7 +145,13 @@ export async function initCollect(params: IpaymoneyCollectParams): Promise<Ipaym
 export async function checkCollectStatus(
   reference: string,
   paymentType?: string,
-): Promise<{ status: IpaymoneyStatus; amount: number | null; raw: unknown }> {
+): Promise<{
+  status: IpaymoneyStatus;
+  amount: number | null;
+  raw: unknown;
+  failureCode?: string | null;
+  failureMessage?: string | null;
+}> {
   const [key, sandbox] = await Promise.all([getSecretKey(), isSandbox("ipaymoney")]);
   const res = await payoutFetch(`${IPAY_API_BASE}/api/v1/payments/${encodeURIComponent(reference)}`, {
     method: "GET",
@@ -164,6 +170,8 @@ export async function checkCollectStatus(
     status?: string;
     amount?: number | string;
     message?: string;
+    error_code?: string;
+    reason?: string;
   };
   if (!res.ok) {
     // Un 4xx est une erreur PERMANENTE : la requête est mal formée ou la
@@ -199,10 +207,13 @@ export async function checkCollectStatus(
     );
   }
 
+  const status = normalizeIpaymoneyStatus(json.status);
   return {
-    status: normalizeIpaymoneyStatus(json.status),
+    status,
     amount: Number.isFinite(amount) ? amount : null,
     raw: json,
+    failureCode: status === "failed" ? json.error_code ?? null : null,
+    failureMessage: status === "failed" ? json.reason ?? json.message ?? null : null,
   };
 }
 

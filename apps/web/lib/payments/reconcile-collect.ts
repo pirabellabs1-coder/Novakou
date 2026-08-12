@@ -43,6 +43,14 @@ export type CollectReconcileOutcome = {
   attemptId?: string;
   reason?: string;
   /**
+   * Motif RÉEL d'un échec, tel que la passerelle le donne (« solde
+   * insuffisant », « plafond atteint »…). Il est conservé en base et transmis
+   * à l'acheteur en clair : sans lui, tout échec se résume à « refusé ou
+   * annulé » et personne ne sait quoi corriger.
+   */
+  failureCode?: string | null;
+  failureMessage?: string | null;
+  /**
    * Ce qui a été livré, quand ça vient d'être fait. Sert à déclencher
    * l'événement d'achat des pixels vendeurs : sans montant ni liste de
    * produits, aucune régie publicitaire ne peut mesurer la vente.
@@ -57,7 +65,15 @@ export type CollectReconcileOutcome = {
 /** Fournisseurs qui savent encaisser en direct et répondre sur un statut. */
 const STATUS_CHECKERS: Record<
   string,
-  (ref: string, code?: string) => Promise<{ status: "success" | "failed" | "pending"; amount?: number | null }>
+  (
+    ref: string,
+    code?: string,
+  ) => Promise<{
+    status: "success" | "failed" | "pending";
+    amount?: number | null;
+    failureCode?: string | null;
+    failureMessage?: string | null;
+  }>
 > = {
   feexpay: async (ref) => {
     const { checkCollectStatus } = await import("@/lib/feexpay");
@@ -117,7 +133,17 @@ export async function reconcileCollectAttempt(attempt: AttemptRow): Promise<Coll
     return { matched: true, status: "success", delivered: true, attemptId: attempt.id };
   }
   if (attempt.status === "FAILED") {
-    return { matched: true, status: "failed", delivered: false, attemptId: attempt.id };
+    // Le motif enregistré au moment du refus : la page d'attente le réaffiche
+    // à l'identique si l'acheteur recharge, au lieu de retomber sur un texte
+    // générique qui ne lui apprend rien.
+    return {
+      matched: true,
+      status: "failed",
+      delivered: false,
+      attemptId: attempt.id,
+      failureCode: attempt.failureCode,
+      failureMessage: attempt.failureReason,
+    };
   }
   // Une tentative « abandonnée » qu'on reprend redevient une tentative en
   // cours : sinon le cron d'abandon et celui de réconciliation se la
@@ -176,9 +202,13 @@ export async function reconcileCollectAttempt(attempt: AttemptRow): Promise<Coll
   let status: "success" | "failed" | "pending";
   let montantFournisseur: number | null = null;
   let montantFournisseurFcfa: number | null = null;
+  let failureCode: string | null = null;
+  let failureMessage: string | null = null;
   try {
     const rep = await checker(providerRef, codeRoute);
     status = rep.status;
+    failureCode = rep.failureCode ?? null;
+    failureMessage = rep.failureMessage ?? null;
     montantFournisseur = typeof rep.amount === "number" && rep.amount > 0 ? rep.amount : null;
     // La passerelle annonce dans SA devise. Le garde-fou de livraison, lui,
     // raisonne en FCFA : sans ce retour, un paiement libérien de 1 550 LRD
@@ -215,13 +245,32 @@ export async function reconcileCollectAttempt(attempt: AttemptRow): Promise<Coll
   }
 
   if (status === "failed") {
+    // MOTIF RÉEL D'ABORD. On écrivait « Paiement refusé ou annulé par
+    // l'acheteur » pour TOUS les refus — y compris un solde insuffisant, un
+    // plafond atteint ou une panne opérateur. Le diagnostic était donc faux la
+    // plupart du temps, et il accusait l'acheteur d'un refus qu'il n'avait
+    // souvent pas fait.
+    const motif =
+      [failureCode, failureMessage].filter(Boolean).join(" — ") ||
+      "Refus sans motif transmis par la passerelle";
     await prisma.checkoutAttempt
       .update({
         where: { id: attempt.id },
-        data: { status: "FAILED", failureReason: "Paiement refusé ou annulé par l'acheteur" },
+        data: {
+          status: "FAILED",
+          failureReason: motif.slice(0, 500),
+          failureCode: (failureCode ?? "provider_failed").slice(0, 100),
+        },
       })
       .catch(() => null);
-    return { matched: true, status: "failed", delivered: false, attemptId: attempt.id };
+    return {
+      matched: true,
+      status: "failed",
+      delivered: false,
+      attemptId: attempt.id,
+      failureCode,
+      failureMessage,
+    };
   }
 
   // ── Paiement confirmé : livrer ────────────────────────────────────────────

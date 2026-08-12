@@ -53,7 +53,14 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ data: { status: "pending", transient: r.status === "unknown" } });
     }
     if (r.status === "failed") {
-      return NextResponse.json({ data: { status: "failed" } });
+      // Le motif est TRADUIT ici, pas renvoyé brut : l'acheteur doit lire
+      // « solde insuffisant », pas « PAYER_LIMIT_REACHED ». Le code technique
+      // reste en base pour le diagnostic vendeur/admin.
+      const { messageEchecAcheteur } = await import("@/lib/payments/echec-messages");
+      const motif = messageEchecAcheteur(r.failureCode, r.failureMessage);
+      return NextResponse.json({
+        data: { status: "failed", titre: motif.titre, explication: motif.explication },
+      });
     }
 
     // Succès : on renvoie de quoi déclencher l'ÉVÉNEMENT D'ACHAT côté pixels.

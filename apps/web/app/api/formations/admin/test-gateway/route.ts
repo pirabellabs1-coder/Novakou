@@ -102,21 +102,42 @@ async function probePawapay(creds: Record<string, string>): Promise<Probe> {
             country?: string;
             providers?: Array<{
               provider?: string;
-              currencies?: Array<{ currency?: string }>;
+              currencies?: Array<{
+                currency?: string;
+                operationTypes?: { DEPOSIT?: { authType?: string } };
+              }>;
             }>;
           }>;
         };
         const j = JSON.parse(texte) as Conf;
         const pays = j.countries ?? [];
         const lignes: string[] = [];
+        let encaissables = 0;
         for (const c of pays) {
           for (const op of c.providers ?? []) {
             const dev = (op.currencies ?? []).map((x) => x.currency).filter(Boolean).join("/");
-            if (c.country && op.provider) lignes.push(`${c.country} ${op.provider} ${dev}`);
+            // MODE D'AUTORISATION. Un opérateur present dans la couverture
+            // n'est pas pour autant encaissable par nous : nous n'implementons
+            // que la demande poussee sur le telephone (PROVIDER_AUTH). Sans
+            // cette colonne, un operateur en PREAUTH ou REDIRECT_AUTH passait
+            // pour disponible, et chaque vente partait vers un echec certain.
+            const auth = op.currencies?.[0]?.operationTypes?.DEPOSIT?.authType ?? "?";
+            const utilisable = auth === "PROVIDER_AUTH";
+            if (utilisable) encaissables += 1;
+            if (c.country && op.provider) {
+              lignes.push(
+                `${utilisable ? "OK " : "NON"} ${c.country} ${op.provider} ${dev} [${auth}]`,
+              );
+            }
           }
         }
         const sautDeLigne = String.fromCharCode(10);
-        resume = `${pays.length} pays, ${lignes.length} operateurs` + sautDeLigne + lignes.sort().join(sautDeLigne);
+        resume =
+          `${pays.length} pays, ${lignes.length} operateurs — ${encaissables} encaissables par nous ` +
+          `(demande poussee). Les lignes « NON » exigent un code a usage unique ou une page operateur : ` +
+          `elles sont refusees a la commande au lieu de partir vers un echec certain.` +
+          sautDeLigne +
+          lignes.sort().join(sautDeLigne);
       } catch {
         // Reponse illisible : on garde le texte brut, il servira au diagnostic.
       }

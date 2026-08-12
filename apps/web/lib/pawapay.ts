@@ -83,6 +83,19 @@ export type PawapayOperateur = {
   devise: string;
   /** Logo officiel héberg é par PawaPay, s'ils en fournissent un. */
   logo?: string;
+  /**
+   * COMMENT L'ACHETEUR AUTORISE LE DÉBIT, pour cet opérateur précis :
+   *   PROVIDER_AUTH → demande poussée sur son téléphone, il saisit son code ;
+   *   PREAUTH       → il doit D'ABORD générer un code à usage unique chez son
+   *                   opérateur, et ce code doit accompagner notre demande ;
+   *   REDIRECT_AUTH → il doit être envoyé sur une page de l'opérateur.
+   *
+   * Nous n'implémentons que le premier. Ignorer ce champ — ce que faisait ce
+   * module — revenait à envoyer une demande vouée à échouer aux opérateurs des
+   * deux autres familles : l'acheteur regardait « Confirmez sur votre
+   * téléphone » sans jamais rien recevoir, jusqu'à expiration.
+   */
+  authDepot: "PROVIDER_AUTH" | "PREAUTH" | "REDIRECT_AUTH" | null;
 };
 
 /**
@@ -98,7 +111,10 @@ export async function activeConfiguration(): Promise<PawapayOperateur[]> {
       providers?: Array<{
         provider?: string;
         logo?: string;
-        currencies?: Array<{ currency?: string }>;
+        currencies?: Array<{
+          currency?: string;
+          operationTypes?: { DEPOSIT?: { authType?: string } };
+        }>;
       }>;
     }>;
   };
@@ -107,12 +123,48 @@ export async function activeConfiguration(): Promise<PawapayOperateur[]> {
   for (const p of rep.countries ?? []) {
     for (const op of p.providers ?? []) {
       const devise = op.currencies?.[0]?.currency;
+      const auth = op.currencies?.[0]?.operationTypes?.DEPOSIT?.authType;
       if (p.country && op.provider && devise) {
-        out.push({ provider: op.provider, pays: p.country, devise, logo: op.logo });
+        out.push({
+          provider: op.provider,
+          pays: p.country,
+          devise,
+          logo: op.logo,
+          authDepot:
+            auth === "PROVIDER_AUTH" || auth === "PREAUTH" || auth === "REDIRECT_AUTH"
+              ? auth
+              : null,
+        });
       }
     }
   }
   return out;
+}
+
+/**
+ * Mode d'autorisation du dépôt pour UN opérateur, tel que PawaPay le déclare
+ * pour NOTRE compte.
+ *
+ * Cache court : c'est sur le chemin critique d'un paiement, et cette
+ * configuration ne change qu'au rythme des ouvertures d'opérateurs.
+ */
+let confCache: { at: number; parCode: Map<string, PawapayOperateur["authDepot"]> } | null = null;
+const CONF_TTL_MS = 10 * 60 * 1000;
+
+export async function authTypeDepot(
+  providerCode: string,
+): Promise<PawapayOperateur["authDepot"]> {
+  if (!confCache || Date.now() - confCache.at > CONF_TTL_MS) {
+    const conf = await activeConfiguration();
+    confCache = {
+      at: Date.now(),
+      parCode: new Map(conf.map((o) => [o.provider.toUpperCase(), o.authDepot])),
+    };
+  }
+  // Opérateur absent de la configuration : on ne renvoie pas « PROVIDER_AUTH »
+  // par défaut. Un inconnu doit rester inconnu, sinon on rétablit exactement le
+  // pari que ce module cherche à supprimer.
+  return confCache.parCode.get(providerCode.toUpperCase()) ?? null;
 }
 
 // ─── Encaissement ──────────────────────────────────────────────────────────
@@ -182,10 +234,22 @@ export async function initCollect(params: {
  */
 export async function checkCollectStatus(
   reference: string,
-): Promise<{ status: PawapayStatut; amount: number | null; currency: string | null }> {
+): Promise<{
+  status: PawapayStatut;
+  amount: number | null;
+  currency: string | null;
+  /** Code d'échec du fournisseur (« PAYER_LIMIT_REACHED »…), quand il en donne un. */
+  failureCode?: string | null;
+  failureMessage?: string | null;
+}> {
   type Rep = {
     status?: "FOUND" | "NOT_FOUND";
-    data?: { status?: string; amount?: string; currency?: string };
+    data?: {
+      status?: string;
+      amount?: string;
+      currency?: string;
+      failureReason?: { failureCode?: string; failureMessage?: string };
+    };
   };
   const rep = await appel<Rep>(`/v2/deposits/${encodeURIComponent(reference)}`);
 
@@ -205,7 +269,18 @@ export async function checkCollectStatus(
     case "COMPLETED":
       return { status: "success", amount: montant, currency: rep.data.currency ?? null };
     case "FAILED":
-      return { status: "failed", amount: montant, currency: rep.data.currency ?? null };
+      // MOTIF RÉEL. PawaPay dit POURQUOI un dépôt échoue (solde insuffisant,
+      // plafond atteint, demande non validée à temps…). On le jetait : chaque
+      // échec devenait « refusé ou annulé par l'acheteur », le même texte pour
+      // dix causes différentes — donc impossible à diagnostiquer, et un
+      // acheteur incapable de savoir quoi corriger pour réessayer.
+      return {
+        status: "failed",
+        amount: montant,
+        currency: rep.data.currency ?? null,
+        failureCode: rep.data.failureReason?.failureCode ?? null,
+        failureMessage: rep.data.failureReason?.failureMessage ?? null,
+      };
     default:
       return { status: "pending", amount: montant, currency: rep.data.currency ?? null };
   }

@@ -372,7 +372,12 @@ export async function initCollect(params: FeexpayCollectParams): Promise<Feexpay
 /** Statut d'un encaissement FeexPay. À appeler depuis le webhook pour re-vérifier. */
 export async function checkCollectStatus(
   reference: string,
-): Promise<{ status: "success" | "failed" | "pending"; raw: unknown }> {
+): Promise<{
+  status: "success" | "failed" | "pending";
+  raw: unknown;
+  failureCode?: string | null;
+  failureMessage?: string | null;
+}> {
   // ⚠️ La clé est INDISPENSABLE ici. Cet appel partait sans `Authorization`,
   // alors que l'initiation du paiement l'envoie bien. Résultat : la demande
   // arrivait sur le téléphone de l'acheteur, il confirmait — et nous ne
@@ -396,9 +401,22 @@ export async function checkCollectStatus(
       headers: { Accept: "application/json", Authorization: `Bearer ${apiKey}` },
     },
   );
-  const json = (await res.json().catch(() => ({}))) as { status?: string; message?: string };
+  const json = (await res.json().catch(() => ({}))) as {
+    status?: string;
+    message?: string;
+    reason?: string;
+    error_code?: string;
+  };
   if (!res.ok || !json.status) {
     throw new Error(json.message || `FeexPay collect status failed (HTTP ${res.status})`);
   }
-  return { status: normalizeFeexpayStatus(json.status), raw: json };
+  const status = normalizeFeexpayStatus(json.status);
+  return {
+    status,
+    raw: json,
+    // Motif réel de l'échec quand FeexPay en donne un — sans lui, tous les
+    // refus se ressemblent et aucun ne peut être corrigé par l'acheteur.
+    failureCode: status === "failed" ? json.error_code ?? null : null,
+    failureMessage: status === "failed" ? json.reason ?? json.message ?? null : null,
+  };
 }
