@@ -29,6 +29,7 @@
     { "path": "/api/cron/collect-reconcile",             "schedule": "*/5 * * * *" },
     { "path": "/api/cron/alerte-ventes-bloquees",        "schedule": "*/15 * * * *" },
     { "path": "/api/cron/qualite-fiches",                "schedule": "0 9 * * *" },
+    { "path": "/api/cron/audit-livraisons",              "schedule": "0 4 * * *" },
     { "path": "/api/marketing/sequences/process",        "schedule": "0 7 * * *" },
     { "path": "/api/cron/automation-scheduled",          "schedule": "*/15 * * * *" }
   ],

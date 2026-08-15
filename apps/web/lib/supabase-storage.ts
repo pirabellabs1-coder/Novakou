@@ -159,6 +159,48 @@ export async function getSignedUrl(
   return null;
 }
 
+/**
+ * L'objet existe-t-il vraiment dans le bucket ?
+ *
+ * `getSignedUrl` renvoie `null` aussi bien pour un fichier absent que pour un
+ * réseau qui tombe — deux causes que rien ne distinguait. La surveillance des
+ * livraisons aurait donc annoncé « produit non livrable » à la première coupure
+ * réseau, sur des fichiers parfaitement intacts. Une alerte qui se trompe finit
+ * ignorée, et le jour où elle a raison, personne ne la lit.
+ *
+ * D'où trois réponses, jamais deux :
+ *   • "present"     → l'objet est là ;
+ *   • "absent"      → Supabase répond explicitement 404 : il n'existe plus ;
+ *   • "indetermine" → on n'a pas pu savoir (réseau, jeton, service). Ne JAMAIS
+ *                     en conclure une anomalie.
+ */
+export async function probeStorageObject(
+  bucket: StorageBucket,
+  path: string,
+): Promise<"present" | "absent" | "indetermine"> {
+  if (!supabase) return "indetermine";
+  try {
+    const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, 60);
+    if (!error && data?.signedUrl) return "present";
+    const code = String(
+      (error as { statusCode?: string | number; status?: number } | null)?.statusCode ??
+        (error as { status?: number } | null)?.status ??
+        "",
+    );
+    if (code === "404" || code === "400") {
+      // Supabase répond 400 avec statusCode « 404 » sur un objet inconnu :
+      // c'est le seul cas où l'absence est certaine.
+      return String((error as { statusCode?: string | number } | null)?.statusCode) === "404"
+        ? "absent"
+        : "indetermine";
+    }
+    return "indetermine";
+  } catch {
+    // Exception réseau : surtout ne rien conclure.
+    return "indetermine";
+  }
+}
+
 function cleanBucketPath(bucket: StorageBucket, value: string): string {
   return value.replace(/^\/+/, "").replace(new RegExp(`^${bucket}/`), "");
 }
