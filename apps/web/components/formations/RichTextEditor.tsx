@@ -14,9 +14,8 @@ import { Color } from "@tiptap/extension-color";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { Highlight } from "@tiptap/extension-highlight";
 import { useRef, useState, useCallback, useEffect } from "react";
-import Script from "next/script";
 import { useToastStore } from "@/store/toast";
-import { extractPuterText } from "@/lib/puter-ai";
+import { chatIA } from "@/lib/ai/client";
 import { markdownToHtml } from "@/lib/sanitize-html";
 
 // ─── Détection Markdown ─────────────────────────────────────────────────────
@@ -48,15 +47,6 @@ function prepareInitialValue(value: string): string {
   return value;
 }
 
-declare global {
-  interface Window {
-    puter?: {
-      ai: {
-        chat: (prompt: string, options?: { model?: string; temperature?: number; max_tokens?: number }) => Promise<{ message?: { content: string } } | string>;
-      };
-    };
-  }
-}
 
 type Props = {
   value: string;
@@ -169,20 +159,8 @@ export function RichTextEditor({
   const [highlightOpen, setHighlightOpen] = useState(false);
 
   // AI enhancement state
-  const [puterReady, setPuterReady] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiPreview, setAiPreview] = useState<string | null>(null);
-
-  // Puter SDK readiness polling
-  useEffect(() => {
-    const check = () => {
-      if (window.puter) { setPuterReady(true); return true; }
-      return false;
-    };
-    if (check()) return;
-    const interval = setInterval(() => { if (check()) clearInterval(interval); }, 500);
-    return () => clearInterval(interval);
-  }, []);
 
   // Ref stable vers l'éditeur — nécessaire dans handlePaste (défini une seule
   // fois à la création, le `editor` du closure y serait null).
@@ -256,7 +234,7 @@ export function RichTextEditor({
   }, [editor, value]);
 
   const handleAiEnhance = useCallback(async () => {
-    if (!editor || !puterReady || aiLoading) return;
+    if (!editor || aiLoading) return;
     const currentHtml = editor.getHTML();
     const textContent = editor.getText().trim();
     if (!textContent || textContent.length < 20) {
@@ -283,16 +261,7 @@ IMPORTANT :
 
       const prompt = `${systemPrompt}\n\n--- DESCRIPTION ACTUELLE ---\n${currentHtml}\n--- FIN ---\n\nRetourne le HTML amélioré :`;
 
-      const res = await window.puter!.ai.chat(prompt, {
-        model: "claude-sonnet-4-6",
-        temperature: 0.7,
-        max_tokens: 2000,
-      });
-
-      // Use the shared helper — Puter returns Anthropic content blocks
-      // (`message.content[0].text`) which the previous code wasn't unpacking,
-      // making every successful call land in the catch with a TypeError.
-      const result = extractPuterText(res as never);
+      const result = await chatIA(prompt, { usage: "redaction" });
       if (!result) throw new Error("Réponse vide");
 
       // Clean: remove ```html wrapping if present
@@ -305,11 +274,16 @@ IMPORTANT :
       setAiPreview(cleaned);
     } catch (err) {
       console.error("[AI Enhance]", err);
-      useToastStore.getState().addToast("error", "Service IA temporairement indisponible. Réessayez dans quelques instants.");
+      // Le serveur explique déjà pourquoi (quota du jour, assistant coupé) :
+      // reprendre son message évite d'accuser une panne inexistante.
+      const raison = err instanceof Error && err.message
+        ? err.message
+        : "Service IA temporairement indisponible. Réessayez dans quelques instants.";
+      useToastStore.getState().addToast("error", raison);
     } finally {
       setAiLoading(false);
     }
-  }, [editor, puterReady, aiLoading]);
+  }, [editor, aiLoading]);
 
   const applyAiResult = useCallback(() => {
     if (!editor || !aiPreview) return;
@@ -429,7 +403,6 @@ IMPORTANT :
 
   return (
     <div className="border border-zinc-200 bg-white">
-      <Script src="https://js.puter.com/v2/" strategy="afterInteractive" />
       <style dangerouslySetInnerHTML={{ __html: rteStyles }} />
       {/* Toolbar */}
       <div className="flex items-center flex-wrap gap-px border-b border-zinc-200 bg-[#f9f9f9] px-2 py-1.5">
@@ -626,8 +599,8 @@ IMPORTANT :
         <button
           type="button"
           onClick={handleAiEnhance}
-          disabled={aiLoading || !puterReady}
-          title={puterReady ? "Améliorer avec l'IA" : "Chargement de l'IA…"}
+          disabled={aiLoading}
+          title="Améliorer avec l'IA"
           className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold transition-all ${
             aiLoading
               ? "bg-violet-100 text-violet-500 animate-pulse"

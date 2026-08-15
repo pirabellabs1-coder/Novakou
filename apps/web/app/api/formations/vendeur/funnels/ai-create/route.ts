@@ -10,7 +10,7 @@ import { getActiveShopId } from "@/lib/formations/active-shop";
 /**
  * POST /api/formations/vendeur/funnels/ai-create
  *
- * Cree un funnel complet a partir d'un JSON genere par l'IA (Claude via Puter.js).
+ * Cree un funnel complet a partir d'un JSON genere par l'IA (via /api/ai/chat).
  *
  * Body: {
  *   name: string,

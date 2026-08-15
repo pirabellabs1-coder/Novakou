@@ -1,34 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import Script from "next/script";
 import { type LucideIcon, BrainCircuit, MessagesSquare, FileText, Bug, Brain, Send, Loader2, RefreshCw, Mail } from "lucide-react";
-
-// ─── Typage Puter ──────────────────────────────────────────────
-type PuterContentBlock = { type?: string; text?: string };
-type PuterChatResponse = {
-  message: { content: string | PuterContentBlock[] };
-};
-declare global {
-  interface Window {
-    puter?: {
-      ai: {
-        chat: (
-          prompt: string,
-          options?: { model?: string; temperature?: number; max_tokens?: number; stream?: boolean },
-        ) => Promise<PuterChatResponse>;
-      };
-    };
-  }
-}
-function extractText(res: PuterChatResponse): string {
-  const c = res.message?.content;
-  if (typeof c === "string") return c;
-  if (Array.isArray(c)) {
-    return c.map((b) => (b && typeof b.text === "string" ? b.text : "")).join("");
-  }
-  return "";
-}
+import { chatIA } from "@/lib/ai/client";
 
 // ─── Mini Markdown ─────────────────────────────────────────────
 function md(text: string): React.ReactNode[] {
@@ -75,37 +49,23 @@ type Tab = "copilot" | "report" | "bug" | "coach";
 type ChatMessage = { role: "user" | "assistant"; content: string };
 type VendorItem = { id: string; name: string; email: string; totalEarned: number; status: string };
 
-// ─── Helper : call Claude ──────────────────────────────────────
+// ─── Helper : appel du modèle, via NOTRE serveur ───────────────
+// La clé reste côté serveur et l'usage est compté : un écran d'admin coûte
+// aussi cher qu'un écran public quand une boucle s'y installe.
 async function claudeChat(prompt: string, options?: { temperature?: number; max_tokens?: number }): Promise<string> {
-  if (!window.puter) throw new Error("Puter.js non chargé");
-  const res = await window.puter.ai.chat(prompt, {
-    model: "claude-sonnet-4-6",
+  return chatIA(prompt, {
+    usage: "copilote",
     temperature: options?.temperature ?? 0.3,
-    max_tokens: options?.max_tokens ?? 4000,
+    maxTokens: options?.max_tokens ?? 4000,
   });
-  return extractText(res);
 }
 
 // ─── Page ──────────────────────────────────────────────────────
 export default function AIAssistantPage() {
   const [tab, setTab] = useState<Tab>("copilot");
-  const [puterReady, setPuterReady] = useState(false);
-
-  useEffect(() => {
-    const check = () => {
-      if (typeof window !== "undefined" && window.puter) { setPuterReady(true); return true; }
-      return false;
-    };
-    if (!check()) {
-      const i = setInterval(() => { if (check()) clearInterval(i); }, 300);
-      return () => clearInterval(i);
-    }
-  }, []);
 
   return (
     <div className="p-5 md:p-8 max-w-6xl mx-auto">
-      <Script src="https://js.puter.com/v2/" strategy="afterInteractive" />
-
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-3">
@@ -118,8 +78,6 @@ export default function AIAssistantPage() {
           </div>
         </div>
         <div className="flex items-center gap-1.5 text-[11px]">
-          <span className={`w-1.5 h-1.5 rounded-full ${puterReady ? "bg-emerald-500" : "bg-amber-500 animate-pulse"}`} />
-          <span className="text-[#5c647a]">{puterReady ? "SDK IA prêt · Claude Sonnet 4.6 via Puter" : "Chargement du SDK IA…"}</span>
         </div>
       </div>
 
@@ -147,16 +105,16 @@ export default function AIAssistantPage() {
         })}
       </div>
 
-      {tab === "copilot" && <CopilotTab puterReady={puterReady} />}
-      {tab === "report" && <ReportTab puterReady={puterReady} />}
-      {tab === "bug" && <BugTab puterReady={puterReady} />}
-      {tab === "coach" && <CoachTab puterReady={puterReady} />}
+      {tab === "copilot" && <CopilotTab />}
+      {tab === "report" && <ReportTab />}
+      {tab === "bug" && <BugTab />}
+      {tab === "coach" && <CoachTab />}
     </div>
   );
 }
 
 // ─── TAB 1 : COPILOT (chat) ────────────────────────────────────
-function CopilotTab({ puterReady }: { puterReady: boolean }) {
+function CopilotTab() {
   const [snapshot, setSnapshot] = useState<Record<string, unknown> | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: "assistant", content: "Bonjour ! Je suis votre copilot Novakou. Je connais les stats en temps réel de la plateforme. Posez-moi n'importe quelle question :\n\n- Combien de vendeurs actifs ?\n- Résumé des ventes aujourd'hui\n- Y a-t-il des retraits en attente ?\n- Quels sont les top vendeurs ce mois ?" },
@@ -171,7 +129,7 @@ function CopilotTab({ puterReady }: { puterReady: boolean }) {
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   async function send() {
-    if (!input.trim() || sending || !puterReady || !snapshot) return;
+    if (!input.trim() || sending || !snapshot) return;
     const userMsg = input.trim();
     setInput("");
     setMessages(prev => [...prev, { role: "user", content: userMsg }]);
@@ -226,12 +184,12 @@ Reponds maintenant en francais.`;
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") send(); }}
           placeholder={snapshot ? "Posez votre question…" : "Chargement…"}
-          disabled={!snapshot || !puterReady || sending}
+          disabled={!snapshot || sending}
           className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm disabled:bg-gray-50"
         />
         <button
           onClick={send}
-          disabled={!input.trim() || sending || !puterReady || !snapshot}
+          disabled={!input.trim() || sending || !snapshot}
           className="px-4 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-40 inline-flex items-center gap-2"
           style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
         >
@@ -244,7 +202,7 @@ Reponds maintenant en francais.`;
 }
 
 // ─── TAB 2 : RAPPORT QUOTIDIEN ─────────────────────────────────
-function ReportTab({ puterReady }: { puterReady: boolean }) {
+function ReportTab() {
   const [snapshot, setSnapshot] = useState<Record<string, unknown> | null>(null);
   const [report, setReport] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -254,7 +212,7 @@ function ReportTab({ puterReady }: { puterReady: boolean }) {
   }, []);
 
   async function generate() {
-    if (!snapshot || !puterReady) return;
+    if (!snapshot) return;
     setLoading(true);
     setReport(null);
 
@@ -310,11 +268,11 @@ REGLES :
   }
 
   useEffect(() => {
-    if (snapshot && puterReady && !report && !loading) {
+    if (snapshot && !report && !loading) {
       generate();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [snapshot, puterReady]);
+  }, [snapshot]);
 
   return (
     <div className="space-y-4">
@@ -322,7 +280,7 @@ REGLES :
         <p className="text-sm text-[#5c647a]">Rapport généré automatiquement à partir des données temps réel.</p>
         <button
           onClick={generate}
-          disabled={loading || !snapshot || !puterReady}
+          disabled={loading || !snapshot}
           className="px-4 py-2 rounded-xl bg-[#006e2f] text-white text-xs font-bold disabled:opacity-50 inline-flex items-center gap-2"
         >
           {loading ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
@@ -353,14 +311,14 @@ REGLES :
 }
 
 // ─── TAB 3 : BUG ANALYZER ──────────────────────────────────────
-function BugTab({ puterReady }: { puterReady: boolean }) {
+function BugTab() {
   const [errorLog, setErrorLog] = useState("");
   const [context, setContext] = useState("");
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function analyze() {
-    if (!errorLog.trim() || !puterReady) return;
+    if (!errorLog.trim()) return;
     setLoading(true);
     setAnalysis(null);
 
@@ -439,7 +397,7 @@ REGLES STRICTES :
 
         <button
           onClick={analyze}
-          disabled={!errorLog.trim() || loading || !puterReady}
+          disabled={!errorLog.trim() || loading}
           className="w-full py-2.5 rounded-xl bg-rose-600 text-white text-sm font-bold disabled:opacity-50 inline-flex items-center justify-center gap-2"
         >
           {loading ? <>
@@ -480,7 +438,7 @@ function extractMessageDraft(report: string): string | null {
   return msg || null;
 }
 
-function CoachTab({ puterReady }: { puterReady: boolean }) {
+function CoachTab() {
   const [vendors, setVendors] = useState<VendorItem[]>([]);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<VendorItem | null>(null);
@@ -510,7 +468,7 @@ function CoachTab({ puterReady }: { puterReady: boolean }) {
       if (!res.ok) throw new Error(j.error ?? "Erreur");
       setVendorData(j.data);
       // Auto-generate coaching
-      if (puterReady) {
+      {
         const prompt = `Tu es un coach expert en ventes digitales, specialise dans le marche africain francophone. L'admin de Novakou veut comprendre ce vendeur et l'aider a progresser.
 
 Analyse les donnees du vendeur ci-dessous et fournis un rapport Markdown :

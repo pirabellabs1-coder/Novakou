@@ -1,35 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import Script from "next/script";
-
-// ─── Types Puter ───────────────────────────────────────────────
-type PuterContentBlock = { type?: string; text?: string };
-type PuterChatResponse = {
-  message: { content: string | PuterContentBlock[] };
-};
-declare global {
-  interface Window {
-    puter?: {
-      ai: {
-        chat: (
-          prompt: string,
-          options?: { model?: string; temperature?: number; max_tokens?: number; stream?: boolean },
-        ) => Promise<PuterChatResponse>;
-      };
-    };
-  }
-}
-function extractText(res: PuterChatResponse): string {
-  const c = res.message?.content;
-  if (typeof c === "string") return c;
-  if (Array.isArray(c)) {
-    return c
-      .map((b) => (b && typeof b === "object" && typeof b.text === "string" ? b.text : ""))
-      .join("");
-  }
-  return "";
-}
+import { chatIA } from "@/lib/ai/client";
 
 // ─── Mini parser Markdown pour le chat ─────────────────────────
 // Gere : **gras**, *italique*, `code`, [lien](url), listes simples
@@ -143,8 +115,9 @@ export default function AISupportWidget({ instructeurId, shopSlug, pageContext }
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const [puterReady, setPuterReady] = useState(false);
-  const [puterFailed, setPuterFailed] = useState(false);
+  // L'IA passe par notre serveur : il n'y a plus de SDK à charger dans le
+  // navigateur, donc plus rien à attendre avant de pouvoir écrire.
+  const [iaIndisponible, setIaIndisponible] = useState(false);
   const [fallbackName, setFallbackName] = useState("");
   const [fallbackEmail, setFallbackEmail] = useState("");
   const [fallbackMessage, setFallbackMessage] = useState("");
@@ -152,25 +125,9 @@ export default function AISupportWidget({ instructeurId, shopSlug, pageContext }
   const [inquiryError, setInquiryError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Check Puter availability + timeout 15s pour detecter un blocage du CDN
-  useEffect(() => {
-    const check = () => {
-      if (typeof window !== "undefined" && window.puter) {
-        setPuterReady(true);
-        return true;
-      }
-      return false;
-    };
-    if (check()) return;
-    const interval = setInterval(() => { if (check()) clearInterval(interval); }, 300);
-    const timeout = setTimeout(() => {
-      if (typeof window !== "undefined" && !window.puter) {
-        clearInterval(interval);
-        setPuterFailed(true);
-      }
-    }, 15_000);
-    return () => { clearInterval(interval); clearTimeout(timeout); };
-  }, []);
+  // Plus rien à attendre : l'IA répond par notre serveur. Le widget était
+  // auparavant inutilisable tant qu'un SDK externe n'avait pas fini de se
+  // charger — et définitivement muet si un bloqueur de publicité l'empêchait.
 
   // Fetch vendor config
   useEffect(() => {
@@ -203,12 +160,6 @@ export default function AISupportWidget({ instructeurId, shopSlug, pageContext }
 
   async function send() {
     if (!input.trim() || sending || !config) return;
-
-    if (!puterReady || !window.puter) {
-      // Fallback: open the inquiry form
-      setInquiryError("L'IA n'est pas disponible. Laissez vos coordonnées et le vendeur vous recontactera.");
-      return;
-    }
 
     const userMessage = input.trim();
     setInput("");
@@ -246,17 +197,17 @@ REGLES STRICTES :
       .join("\n")}\n\nAssistant:`;
 
     try {
-      const response = await window.puter.ai.chat(fullPrompt, {
-        model: "claude-sonnet-4-6",
-        temperature: 0.5,
-        max_tokens: 500,
-      });
-      const text = extractText(response).trim();
+      const text = (await chatIA(fullPrompt, { usage: "support" })).trim();
       setMessages((prev) => [...prev, { role: "assistant", content: text || "Désolé, je n'ai pas compris. Pouvez-vous reformuler ?" }]);
     } catch (e) {
+      // Message déjà rédigé par le serveur (quota atteint, assistant coupé) :
+      // on le montre tel quel plutôt qu'un « problème technique » qui n'aide
+      // personne — et on ouvre le repli formulaire.
+      const raison = e instanceof Error && e.message ? e.message : "";
+      setIaIndisponible(true);
       setMessages((prev) => [...prev, {
         role: "assistant",
-        content: `Désolé, je rencontre un problème technique. Vous pouvez contacter directement ${config.vendorName} via le formulaire ci-dessous.`,
+        content: `${raison || "Désolé, je rencontre un problème technique."} Vous pouvez contacter directement ${config.vendorName} via le formulaire ci-dessous.`,
       }]);
       console.error("[AISupportWidget]", e);
     } finally {
@@ -293,7 +244,6 @@ REGLES STRICTES :
 
   return (
     <>
-      <Script src="https://js.puter.com/v2/" strategy="afterInteractive" />
 
       {/* Bubble button (fermé) */}
       {!open && (
@@ -371,7 +321,7 @@ REGLES STRICTES :
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Fallback form (si erreur Puter) */}
+          {/* Repli formulaire (si l'IA ne peut pas répondre) */}
           {inquiryError && !fallbackSent && (
             <div className="p-3 bg-amber-50 border-t border-amber-200 space-y-2">
               <p className="text-xs text-amber-800 font-semibold">📨 Laissez un message au vendeur</p>
@@ -421,13 +371,13 @@ REGLES STRICTES :
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-                placeholder={puterReady ? "Posez votre question…" : "Chargement de l'IA…"}
-                disabled={!puterReady || sending}
+                placeholder={iaIndisponible ? "Assistant indisponible" : "Posez votre question…"}
+                disabled={iaIndisponible || sending}
                 className="flex-1 px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm disabled:bg-gray-50"
               />
               <button
                 onClick={send}
-                disabled={!input.trim() || sending || !puterReady}
+                disabled={!input.trim() || sending || iaIndisponible}
                 className="w-10 h-10 rounded-xl text-white flex items-center justify-center disabled:opacity-40"
                 style={{ backgroundColor: config.color }}
               >

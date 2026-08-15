@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Script from "next/script";
 import {
   Sparkles,
   Copy,
@@ -12,7 +11,7 @@ import {
   Plus,
   Wand2,
 } from "lucide-react";
-import { usePuterReady } from "@/hooks";
+import { chatIA } from "@/lib/ai/client";
 import {
   StCard,
   StPageHeader,
@@ -22,22 +21,6 @@ import {
   StTextarea,
   ST,
 } from "@/components/stitch";
-
-type PuterContentBlock = { type?: string; text?: string };
-type PuterChatResponse = {
-  message: { content: string | PuterContentBlock[] };
-};
-
-function extractText(res: PuterChatResponse): string {
-  const c = res.message?.content;
-  if (typeof c === "string") return c;
-  if (Array.isArray(c)) {
-    return c
-      .map((block) => (block && typeof block === "object" && typeof block.text === "string" ? block.text : ""))
-      .join("");
-  }
-  return "";
-}
 
 type Generated = {
   title: string;
@@ -80,7 +63,6 @@ export default function AIStudioPage() {
   const [loading, setLoading] = useState(false);
   const [generated, setGenerated] = useState<Generated | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { ready: puterReady, failed: puterFailed, retry: puterRetry, retryNonce: puterRetryNonce } = usePuterReady();
 
   const SYSTEM_PROMPT = `Tu es un copywriter expert specialise dans la vente de formations et produits digitaux pour les createurs africains francophones (Senegal, Cote d'Ivoire, Benin, Cameroun, Mali, Togo...).
 
@@ -103,10 +85,6 @@ Reponds UNIQUEMENT avec le JSON, pas de texte avant ou apres.`;
       setError("Décrivez le sujet de votre produit en 1 phrase minimum");
       return;
     }
-    if (!puterReady || !window.puter) {
-      setError("Puter.js n'est pas encore chargé. Attendez 2 secondes et réessayez.");
-      return;
-    }
     setError(null);
     setLoading(true);
     setGenerated(null);
@@ -124,12 +102,7 @@ Langue : Francais.
 ${SYSTEM_PROMPT}`;
 
     try {
-      const response = await window.puter.ai.chat(userPrompt, {
-        model: "claude-sonnet-4-6",
-        temperature: 0.7,
-        max_tokens: 4000,
-      });
-      const text = extractText(response);
+      const text = await chatIA(userPrompt, { usage: "studio" });
 
       let jsonText = text.trim();
       const jsonMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
@@ -161,8 +134,6 @@ ${SYSTEM_PROMPT}`;
 
   return (
     <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
-      <Script key={`puter-${puterRetryNonce}`} src="https://js.puter.com/v2/" strategy="afterInteractive" />
-
       <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto">
         <StPageHeader
           title="AI Studio — Générez votre page de vente"
@@ -238,42 +209,15 @@ ${SYSTEM_PROMPT}`;
 
                 <StButton
                   onClick={generate}
-                  disabled={loading || !topic.trim() || !puterReady}
-                  icon={loading || !puterReady ? Loader2 : puterFailed ? AlertCircle : Wand2}
+                  disabled={loading || !topic.trim()}
+                  icon={loading ? Loader2 : Wand2}
                   className="w-full"
                 >
-                  {loading
-                    ? "Claude travaille (30-60s)…"
-                    : puterFailed
-                      ? "SDK IA inaccessible"
-                      : !puterReady
-                        ? "Chargement du SDK IA…"
-                        : "Générer avec l'IA"}
+                  {loading ? "L'IA travaille (30-60s)…" : "Générer avec l'IA"}
                 </StButton>
 
-                <div className="flex items-center justify-center gap-1.5 text-[10.5px] font-semibold" style={{ color: ST.textSecondary }}>
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full ${puterReady ? "" : puterFailed ? "" : "animate-pulse"}`}
-                    style={{ background: puterReady ? ST.greenBright : puterFailed ? ST.roseText : "#f59e0b" }}
-                  />
-                  <span>
-                    {puterReady ? "SDK IA prêt · Claude Sonnet 4.6"
-                      : puterFailed ? "SDK IA inaccessible"
-                      : "Chargement du SDK IA…"}
-                  </span>
-                  {puterFailed && (
-                    <button onClick={puterRetry} className="ml-1 px-1.5 py-0.5 rounded-full text-white text-[9px] font-extrabold" style={{ background: ST.green }}>
-                      Réessayer
-                    </button>
-                  )}
-                </div>
-                {puterFailed && (
-                  <div className="mt-1 rounded-lg p-2.5 text-[10px] leading-snug" style={{ background: ST.amberSoft, border: "1px solid #f3e2bd", color: "#633806" }}>
-                    Impossible de charger l&apos;IA. Vérifiez votre connexion et désactivez bloqueurs/VPN/antivirus pour <code className="font-mono px-1 rounded" style={{ background: "#fbeec9" }}>js.puter.com</code>.
-                  </div>
-                )}
                 <p className="text-[10px] font-semibold text-center" style={{ color: ST.textMuted }}>
-                  Propulsé par Anthropic Claude via Puter · compte Puter requis la 1ère fois.
+                  Génération limitée par jour pour garder le service disponible pour tous.
                 </p>
               </div>
             </StCard>

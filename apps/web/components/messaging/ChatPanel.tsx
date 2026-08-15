@@ -4,7 +4,6 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, DragEvent } from "react";
-import Script from "next/script";
 import { cn } from "@/lib/utils";
 import { MessageBubble } from "./MessageBubble";
 import { VoiceRecorder } from "./voice/VoiceRecorder";
@@ -13,17 +12,7 @@ import { OfferBubble } from "./OfferBubble";
 import { InlineOfferForm } from "./InlineOfferForm";
 import type { UnifiedConversation, MessageContentType } from "@/store/messaging";
 import { useToastStore } from "@/store/toast";
-import { extractPuterText } from "@/lib/puter-ai";
-
-declare global {
-  interface Window {
-    puter?: {
-      ai: {
-        chat: (prompt: string, options?: { model?: string; temperature?: number; max_tokens?: number }) => Promise<{ message?: { content: string } } | string>;
-      };
-    };
-  }
-}
+import { chatIA } from "@/lib/ai/client";
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
 const ALLOWED_EXTENSIONS = [
@@ -144,7 +133,6 @@ export function ChatPanel({
   const [uploadProgress, setUploadProgress] = useState<{ fileName: string; progress: number } | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const uploadAbortRef = useRef<AbortController | null>(null);
-  const [puterReady, setPuterReady] = useState(false);
   const [aiSuggesting, setAiSuggesting] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -193,16 +181,8 @@ export function ChatPanel({
     }
   }, [uploadError]);
 
-  // Puter SDK readiness
-  useEffect(() => {
-    const check = () => { if (window.puter) { setPuterReady(true); return true; } return false; };
-    if (check()) return;
-    const interval = setInterval(() => { if (check()) clearInterval(interval); }, 500);
-    return () => clearInterval(interval);
-  }, []);
-
   const handleAiSuggest = useCallback(async () => {
-    if (!conversation || !puterReady || aiSuggesting) return;
+    if (!conversation || aiSuggesting) return;
     const msgs = (conversation.messages || []).slice(-10);
     if (msgs.length === 0) {
       useToastStore.getState().addToast("error", "Aucun message pour contexte");
@@ -225,26 +205,19 @@ Suggère une réponse professionnelle, courtoise et utile que le vendeur pourrai
 
 Retourne UNIQUEMENT le texte de la réponse suggérée, sans guillemets ni explication.`;
 
-      const res = await window.puter!.ai.chat(prompt, {
-        model: "claude-sonnet-4-6",
-        temperature: 0.7,
-        max_tokens: 300,
-      });
-
-      // Puter returns Anthropic content blocks (message.content[0].text) — the
-      // previous shape `res.message.content` was the array, not the string,
-      // so .trim() threw and the suggestion silently died.
-      const result = extractPuterText(res as never);
+      const result = await chatIA(prompt, { usage: "redaction", maxTokens: 300 });
       if (result) {
         setInput(result.trim());
       }
     } catch (err) {
       console.error("[AI Suggest]", err);
-      useToastStore.getState().addToast("error", "IA indisponible. Réessayez.");
+      // Message déjà rédigé par le serveur (quota atteint, assistant coupé).
+      const raison = err instanceof Error && err.message ? err.message : "IA indisponible. Réessayez.";
+      useToastStore.getState().addToast("error", raison);
     } finally {
       setAiSuggesting(false);
     }
-  }, [conversation, puterReady, aiSuggesting]);
+  }, [conversation, aiSuggesting]);
 
   function handleSend() {
     if (!input.trim()) return;
@@ -552,8 +525,6 @@ Retourne UNIQUEMENT le texte de la réponse suggérée, sans guillemets ni expli
         </div>
       )}
 
-      <Script src="https://js.puter.com/v2/" strategy="afterInteractive" />
-
       {/* Input bar */}
       <div className="border-t border-border-dark p-2 md:p-4 flex-shrink-0 bg-background-dark/80 backdrop-blur-sm">
         <div className="flex gap-1.5 md:gap-3 items-end">
@@ -574,7 +545,7 @@ Retourne UNIQUEMENT le texte de la réponse suggérée, sans guillemets ni expli
           {/* AI Suggestion button */}
           <button
             onClick={handleAiSuggest}
-            disabled={aiSuggesting || !puterReady}
+            disabled={aiSuggesting}
             className={cn(
               "p-2 md:p-2.5 rounded-lg transition-colors flex-shrink-0",
               aiSuggesting

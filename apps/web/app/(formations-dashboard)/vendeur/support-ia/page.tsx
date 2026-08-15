@@ -109,7 +109,7 @@ export default function SupportAIPage() {
           <div>
             <h1 className="text-2xl md:text-3xl font-extrabold text-[#13241b]">Support client IA</h1>
             <p className="text-sm text-[#5c647a]">
-              Un chatbot intelligent sur votre boutique, qui répond aux questions de vos clients 24/7 — propulsé par Claude Sonnet 4.6 via Puter.js.
+              Un chatbot intelligent sur votre boutique, qui répond aux questions de vos clients 24/7 — propulsé par l'IA de Novakou.
             </p>
           </div>
         </div>

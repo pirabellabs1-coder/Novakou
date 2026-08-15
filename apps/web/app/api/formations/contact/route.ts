@@ -1,3 +1,4 @@
+import { chatIAOuNull } from "@/lib/ai/openrouter";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
@@ -34,9 +35,6 @@ async function generateAiReply(params: {
   subject: string;
   message: string;
 }): Promise<{ reply: string; model: string } | null> {
-  const anthropicKey = process.env.ANTHROPIC_API_KEY;
-  const openaiKey = process.env.OPENAI_API_KEY;
-
   const systemPrompt = `Tu es l'assistant support officiel de Novakou — la plateforme africaine francophone de formations, produits digitaux, mentorat et affiliation.
 
 Ta mission: répondre AVEC EMPATHIE et UTILITÉ au message d'un visiteur.
@@ -54,66 +52,19 @@ Règles strictes:
 
   const userPrompt = `Message reçu (sujet: ${params.subject || "général"}) de ${params.name}:\n\n${params.message}`;
 
-  // Prefer Anthropic if available
-  if (anthropicKey) {
-    try {
-      const r = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-api-key": anthropicKey,
-          "anthropic-version": "2023-06-01",
-        },
-        body: JSON.stringify({
-          model: "claude-opus-4-7",
-          max_tokens: 800,
-          system: systemPrompt,
-          messages: [{ role: "user", content: userPrompt }],
-        }),
-      });
-      if (r.ok) {
-        const j = await r.json();
-        const reply =
-          (j.content?.[0]?.text as string | undefined) ?? "";
-        if (reply) return { reply, model: "claude-opus-4-7" };
-      } else {
-        console.warn("[contact AI] anthropic failed", r.status, await r.text().catch(() => ""));
-      }
-    } catch (e) {
-      console.warn("[contact AI] anthropic exception", e);
-    }
-  }
-
-  if (openaiKey) {
-    try {
-      const r = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          authorization: `Bearer ${openaiKey}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          temperature: 0.4,
-          max_tokens: 800,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt },
-          ],
-        }),
-      });
-      if (r.ok) {
-        const j = await r.json();
-        const reply =
-          (j.choices?.[0]?.message?.content as string | undefined) ?? "";
-        if (reply) return { reply, model: "gpt-4o-mini" };
-      } else {
-        console.warn("[contact AI] openai failed", r.status, await r.text().catch(() => ""));
-      }
-    } catch (e) {
-      console.warn("[contact AI] openai exception", e);
-    }
-  }
+  // Fournisseur unique du site : OpenRouter. Ce bloc empilait Anthropic puis
+  // OpenAI en direct, avec deux clés, deux formats de réponse et deux modèles
+  // codés en dur — donc deux façons de tomber en panne pour une seule réponse
+  // à écrire.
+  const r = await chatIAOuNull({
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+    ],
+    temperature: 0.4,
+    maxTokens: 800,
+  });
+  if (r) return { reply: r.texte, model: r.modele };
 
   return null;
 }

@@ -12,7 +12,7 @@ function splitTerms(raw: unknown): string[] {
 
 /**
  * 4 agents en mode RÈGLES (sans IA). Sûrs et autonomes côté serveur.
- * L'IA (Groq/Gemini/OpenAI ou Puter côté admin) viendra enrichir les
+ * L'IA (OpenRouter, fournisseur unique du site) viendra enrichir les
  * réponses/analyses dans une 2e itération.
  */
 

@@ -74,7 +74,12 @@ export async function POST(
     }
     const audioBlob = await audioResponse.blob();
 
-    // Call OpenAI Whisper API for transcription
+    // ── SEUL ENDROIT DU SITE QUI N'EST PAS SUR OPENROUTER ──────────────────
+    // Tout le reste de l'IA passe par OpenRouter (décision fondateur
+    // 2026-08-12), mais OpenRouter n'expose que la complétion de discussion :
+    // aucun point d'entrée audio. La transcription d'un message vocal reste
+    // donc chez Whisper. C'est délibéré, pas un oubli de migration — si cette
+    // clé disparaît, seuls les messages vocaux perdent leur transcription.
     const openaiKey = process.env.OPENAI_API_KEY;
     if (!openaiKey) {
       return NextResponse.json({ error: "Service de transcription non configure" }, { status: 503 });

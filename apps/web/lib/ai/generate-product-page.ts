@@ -1,7 +1,7 @@
 /**
  * Generateur IA pour les pages produit Novakou.
  *
- * Utilise OpenAI GPT-4o-mini (rapide + bon marche) pour generer :
+ * Passe par OpenRouter (fournisseur unique du site) pour generer :
  *   - title accrocheur
  *   - shortDesc (1-2 lignes pour le catalog)
  *   - description (texte long pour la page produit, format Markdown)
@@ -9,10 +9,11 @@
  *   - targetAudience (1-2 lignes)
  *   - faq (5 questions/reponses)
  *
- * Si OPENAI_API_KEY manque, throw une erreur explicite.
+ * Sans cle OpenRouter, on rend une page de DEMONSTRATION plutot qu'une erreur :
+ * l'ecran vendeur reste utilisable et montre a quoi ressemble le resultat.
  */
 
-const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
+import { chatIA, estOpenRouterConfigure } from "@/lib/ai/openrouter";
 
 export interface GenerateInput {
   // Contexte minimum requis
@@ -58,11 +59,11 @@ Tu generes TOUJOURS en JSON valide strict, avec ces champs EXACTS :
 JAMAIS de texte avant ou apres le JSON. Juste le JSON.`;
 
 /**
- * DEMO MODE : si OPENAI_API_KEY absent ou invalide (commence par sk-abcdef
- * ou autre placeholder), on retourne un contenu template realiste adapte au
- * topic entre. Permet de tester l'UI sans budget OpenAI.
+ * DEMONSTRATION : sans cle OpenRouter, on rend un contenu type, adapte au
+ * sujet saisi. L'ecran reste utilisable et montre le resultat attendu, au
+ * lieu d'afficher une erreur technique au vendeur.
  *
- * Quand le vendeur ajoute une vraie cle, le demo mode desactive automatiquement.
+ * Des qu'une cle est presente, la vraie generation reprend automatiquement.
  */
 function generateDemoPage(input: GenerateInput): GeneratedPage {
   const isFormation = input.productType === "formation";
@@ -131,14 +132,8 @@ Quelques heures de votre temps + un abonnement mobile money. En retour : une com
 }
 
 export async function generateProductPage(input: GenerateInput): Promise<GeneratedPage> {
-  const apiKey = process.env.OPENAI_API_KEY;
-
-  // DEMO MODE : cle manquante ou placeholder evident
-  const isDemoKey = !apiKey ||
-    apiKey.includes("abcdef") ||
-    apiKey === "sk-xxxxxxxx" ||
-    apiKey.length < 20;
-  if (isDemoKey) {
+  // DEMONSTRATION : sans cle, on montre un exemple plutot qu'une erreur.
+  if (!estOpenRouterConfigure()) {
     // Simule un delai IA (2s) pour que l'UI affiche le spinner normalement
     await new Promise((resolve) => setTimeout(resolve, 2000));
     return generateDemoPage(input);
@@ -159,43 +154,26 @@ Langue : ${language === "fr" ? "Francais" : "English"}
 
 Genere le JSON complet.`;
 
-  const res = await fetch(OPENAI_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: userPrompt },
-      ],
-      temperature: 0.7,
-      response_format: { type: "json_object" },
-      max_tokens: 3000,
-    }),
+  const r = await chatIA({
+    messages: [
+      { role: "system", content: SYSTEM_PROMPT },
+      { role: "user", content: userPrompt },
+    ],
+    temperature: 0.7,
+    maxTokens: 3000,
+    json: true,
   });
-
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`OpenAI API error ${res.status}: ${errText.slice(0, 300)}`);
-  }
-
-  const json = await res.json();
-  const content = json?.choices?.[0]?.message?.content;
-  if (!content) throw new Error("Reponse OpenAI vide");
 
   let parsed: GeneratedPage;
   try {
-    parsed = JSON.parse(content);
+    parsed = JSON.parse(r.texte);
   } catch (e) {
-    throw new Error(`JSON invalide de OpenAI : ${(e as Error).message}`);
+    throw new Error(`Reponse IA illisible (JSON invalide) : ${(e as Error).message}`);
   }
 
   // Validation minimale
   if (!parsed.title || !parsed.description || !Array.isArray(parsed.learnPoints)) {
-    throw new Error("JSON OpenAI incomplet (champs manquants)");
+    throw new Error("Reponse IA incomplete (champs manquants)");
   }
 
   return parsed;

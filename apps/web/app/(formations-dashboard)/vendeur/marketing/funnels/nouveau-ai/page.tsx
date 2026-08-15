@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Script from "next/script";
 import { useRouter } from "next/navigation";
 import {
   ChevronRight,
@@ -14,34 +13,7 @@ import {
   RefreshCw,
   Rocket,
 } from "lucide-react";
-
-// ─── Typage Puter ──────────────────────────────────────────────
-type PuterContentBlock = { type?: string; text?: string };
-type PuterChatResponse = {
-  message: { content: string | PuterContentBlock[] };
-};
-declare global {
-  interface Window {
-    puter?: {
-      ai: {
-        chat: (
-          prompt: string,
-          options?: { model?: string; temperature?: number; max_tokens?: number; stream?: boolean },
-        ) => Promise<PuterChatResponse>;
-      };
-    };
-  }
-}
-function extractText(res: PuterChatResponse): string {
-  const c = res.message?.content;
-  if (typeof c === "string") return c;
-  if (Array.isArray(c)) {
-    return c
-      .map((block) => (block && typeof block === "object" && typeof block.text === "string" ? block.text : ""))
-      .join("");
-  }
-  return "";
-}
+import { chatIA } from "@/lib/ai/client";
 
 // ─── Types Funnel generes ──────────────────────────────────────
 type FunnelBlock = { id?: string; type: string; data: Record<string, unknown> };
@@ -168,7 +140,6 @@ export default function AIFunnelBuilderPage() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generated, setGenerated] = useState<GeneratedFunnel | null>(null);
-  const [puterReady, setPuterReady] = useState(false);
 
   // Load catalog
   useEffect(() => {
@@ -177,21 +148,6 @@ export default function AIFunnelBuilderPage() {
       .then((j) => setCatalog(j.data ?? []))
       .catch(() => {})
       .finally(() => setCatalogLoading(false));
-  }, []);
-
-  // Check Puter availability
-  useEffect(() => {
-    const check = () => {
-      if (typeof window !== "undefined" && window.puter) {
-        setPuterReady(true);
-        return true;
-      }
-      return false;
-    };
-    if (!check()) {
-      const interval = setInterval(() => { if (check()) clearInterval(interval); }, 300);
-      return () => clearInterval(interval);
-    }
   }, []);
 
   function handleCatalogSelect(value: string) {
@@ -208,10 +164,6 @@ export default function AIFunnelBuilderPage() {
   async function generate() {
     if (!product.trim()) {
       setError("Décrivez votre produit en 1 phrase minimum");
-      return;
-    }
-    if (!puterReady || !window.puter) {
-      setError("Le SDK IA n'est pas encore chargé, réessayez dans 2 secondes.");
       return;
     }
     setError(null);
@@ -236,12 +188,7 @@ Le tunnel doit convertir un visiteur froid en acheteur, puis en client VIP grace
 ${SYSTEM_PROMPT}`;
 
     try {
-      const response = await window.puter.ai.chat(userPrompt, {
-        model: "claude-sonnet-4-6",
-        temperature: 0.7,
-        max_tokens: 6000,
-      });
-      const text = extractText(response);
+      const text = await chatIA(userPrompt, { usage: "tunnel" });
 
       let jsonText = text.trim();
       const jsonMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
@@ -299,7 +246,6 @@ ${SYSTEM_PROMPT}`;
 
   return (
     <div className="p-5 md:p-8 max-w-6xl mx-auto">
-      <Script src="https://js.puter.com/v2/" strategy="afterInteractive" />
 
       {/* Header */}
       <div className="mb-6">
@@ -437,19 +383,14 @@ ${SYSTEM_PROMPT}`;
 
             <button
               onClick={generate}
-              disabled={loading || !product.trim() || !puterReady || creating}
+              disabled={loading || !product.trim() || creating}
               className="w-full py-3 rounded-xl text-white text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2"
               style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
             >
               {loading ? (
                 <>
                   <Loader2 size={18} className="animate-spin" />
-                  Claude construit votre tunnel…
-                </>
-              ) : !puterReady ? (
-                <>
-                  <Loader2 size={18} className="animate-spin" />
-                  Chargement du SDK IA…
+                  L&apos;IA construit votre tunnel…
                 </>
               ) : (
                 <>
@@ -459,12 +400,8 @@ ${SYSTEM_PROMPT}`;
               )}
             </button>
 
-            <div className="flex items-center justify-center gap-1.5 text-[10px] text-[#5c647a]">
-              <span className={`w-1.5 h-1.5 rounded-full ${puterReady ? "bg-emerald-500" : "bg-amber-500 animate-pulse"}`} />
-              <span>{puterReady ? "SDK IA prêt · Claude Sonnet 4.6" : "Chargement du SDK IA…"}</span>
-            </div>
             <p className="text-[10px] text-[#5c647a] text-center">
-              Propulsé par Claude via Puter · compte Puter requis la 1ère fois.
+              Nombre de générations limité par jour, pour garder le service disponible pour tous.
             </p>
           </div>
         </div>
