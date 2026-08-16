@@ -1,4 +1,19 @@
-"use client";
+// ⚠️ CE COMPOSANT EST UN COMPOSANT SERVEUR. NE PAS Y METTRE « use client ».
+//
+// Il est `async`, interroge Prisma et met en cache avec `unstable_cache` :
+// autant de choses qui n'existent que sur le serveur. La directive « use client »
+// y a séjourné du 2026-08-06 au 2026-08-16, ajoutée par erreur en même temps que
+// le composant <Prix> — un composant serveur peut rendre un composant client,
+// l'inverse n'a jamais été nécessaire.
+//
+// Ce que ça provoquait : React appelait la fonction côté navigateur, recevait
+// une PROMESSE au lieu de JSX, et tentait de la dérouler à chaque rendu. Boucle
+// infinie — plus de 6 000 erreurs « suspended by an uncached promise » — et
+// surtout HYDRATATION JAMAIS TERMINÉE. Conséquence visible : la barre de
+// navigation restait figée sur son état de chargement, donc les boutons
+// « Connexion » et « Inscription » ne s'affichaient jamais sur l'accueil.
+//
+// Un composant qui `await` en base ne doit pas être marqué client.
 
 import Link from "next/link";
 import { Prix } from "@/components/formations/Prix";
