@@ -30,9 +30,14 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: "pnpm dev --filter=@freelancehigh/web",
+    // ⚠️ Cette commande était « pnpm dev --filter=… » : ordre d'arguments
+    // invalide pour pnpm, et aucun port imposé — le serveur ne démarrait
+    // JAMAIS, donc la suite entière (151 tests) était inexécutable partout.
+    // Découvert le 2026-08-16 en voulant la lancer. On démarre Next
+    // directement, sur le port que `baseURL` attend.
+    command: "npx next dev -p 3450",
     url: "http://localhost:3450",
     reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
+    timeout: 180_000,
   },
 });
