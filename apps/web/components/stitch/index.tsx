@@ -162,7 +162,7 @@ export function StButton({
   const base = `inline-flex items-center justify-center font-extrabold transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 active:scale-[0.98] ${sizes} ${className}`;
 
   let styleProps: React.CSSProperties = {};
-  let variantClass = "";
+  const variantClass = "";
   switch (variant) {
     case "primary":
       styleProps = { background: ST.gradient, color: "#fff" };

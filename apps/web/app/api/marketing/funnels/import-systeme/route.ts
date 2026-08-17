@@ -502,7 +502,12 @@ function extractPage(html: string, baseUrl: URL, vars: CssVars): ImportedBlock[]
       const inner = extractLinear(sec, baseUrl, ctx, vars);
       if (!inner.length) continue;
       // Fond effectif (section + descendants : image/overlay souvent sur un enfant)
-      let { color: bgColor, image: bgImage, darkOverlay } = deepBackground(sec, baseUrl, vars);
+      // Seul bgColor bouge : il peut etre force plus bas pour garantir le
+      // contraste du texte. Les deux autres ne changent jamais — les separer
+      // dit laquelle des trois valeurs est reellement variable.
+      const fond = deepBackground(sec, baseUrl, vars);
+      const { image: bgImage, darkOverlay } = fond;
+      let bgColor = fond.color;
       const secText = usableColor(styleOf(sec)["color"], vars);
 
       // ── Filet de sécurité CONTRASTE : jamais de texte invisible ──
