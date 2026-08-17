@@ -91,7 +91,7 @@ export function BlocContact({
             Une question sur ce produit&nbsp;?
           </h2>
           <p className="text-[13px] text-[#5c647a] mt-0.5">
-            Écrivez au vendeur, il vous répond directement.
+            Contactez-nous, nous répondons rapidement.
           </p>
         </div>
       </div>
@@ -159,7 +159,7 @@ export function BlocContact({
 
       {mail && (
         <p className="text-[12px] text-[#5c647a] mt-3.5 break-all">
-          Ou copiez notre adresse&nbsp;:{" "}
+          Ou écrivez-nous à{" "}
           <a href={`mailto:${mail}`} className="font-semibold underline underline-offset-2" style={{ color: couleur }}>
             {mail}
           </a>
