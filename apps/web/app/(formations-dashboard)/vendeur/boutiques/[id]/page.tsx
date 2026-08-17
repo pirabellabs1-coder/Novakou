@@ -24,8 +24,6 @@ interface Shop {
   legalAddress: string | null;
   legalPhone: string | null;
   legalEmail: string | null;
-  contactEmail: string | null;
-  whatsapp: string | null;
   websiteUrl: string | null;
   socialFacebook: string | null;
   socialInstagram: string | null;
@@ -49,8 +47,6 @@ export default function VendorShopDetailPage() {
   const [legalAddress, setLegalAddress] = useState("");
   const [legalPhone, setLegalPhone] = useState("");
   const [legalEmail, setLegalEmail] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [socialFacebook, setSocialFacebook] = useState("");
   const [socialInstagram, setSocialInstagram] = useState("");
@@ -76,8 +72,6 @@ export default function VendorShopDetailPage() {
       setLegalAddress(json.data.legalAddress ?? "");
       setLegalPhone(json.data.legalPhone ?? "");
       setLegalEmail(json.data.legalEmail ?? "");
-      setContactEmail(json.data.contactEmail ?? "");
-      setWhatsapp(json.data.whatsapp ?? "");
       setWebsiteUrl(json.data.websiteUrl ?? "");
       setSocialFacebook(json.data.socialFacebook ?? "");
       setSocialInstagram(json.data.socialInstagram ?? "");
@@ -127,8 +121,6 @@ export default function VendorShopDetailPage() {
           legalAddress: legalAddress || null,
           legalPhone: legalPhone || null,
           legalEmail: legalEmail || null,
-          contactEmail: contactEmail || null,
-          whatsapp: whatsapp || null,
           websiteUrl: websiteUrl || null,
           socialFacebook: socialFacebook || null,
           socialInstagram: socialInstagram || null,
@@ -437,7 +429,9 @@ export default function VendorShopDetailPage() {
           <div className="pt-6 mt-2 border-t border-gray-100">
             <p className="text-sm font-extrabold text-[#191c1e]">Informations légales</p>
             <p className="text-xs text-[#5c647a] mt-1 mb-4">
-              Servent à générer automatiquement vos pages « Mentions légales », « Contact », « À propos »… Laissez vide pour utiliser les infos de votre compte.
+              Vos coordonnées officielles. Elles génèrent vos pages « Mentions légales », « Contact »,
+              « À propos », et alimentent le bloc « Contactez-nous » de chaque fiche produit —
+              une seule saisie, pas deux. Laissez vide pour utiliser les infos de votre compte.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
@@ -456,41 +450,38 @@ export default function VendorShopDetailPage() {
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-[#5c647a] mb-1">Téléphone</label>
-                <input type="tel" value={legalPhone} onChange={(e) => setLegalPhone(e.target.value)} placeholder="+229 …" maxLength={40}
+                <label className="block text-xs font-bold text-[#5c647a] mb-1">WhatsApp</label>
+                <input type="tel" value={legalPhone} onChange={(e) => setLegalPhone(e.target.value)} placeholder="+225 07 00 00 00 00" maxLength={40}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10" />
+                <p className="text-[11px] text-[#5c647a] mt-1">
+                  Indicatif compris. Devient le bouton WhatsApp de vos fiches produit.
+                </p>
               </div>
               <div>
                 <label className="block text-xs font-bold text-[#5c647a] mb-1">E-mail de contact</label>
                 <input type="email" value={legalEmail} onChange={(e) => setLegalEmail(e.target.value)} placeholder="contact@…" maxLength={120}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10" />
+                <p className="text-[11px] text-[#5c647a] mt-1">
+                  Devient le bouton E-mail de vos fiches produit.
+                </p>
               </div>
             </div>
           </div>
 
-          {/* ── Identite publique de la boutique ─────────────────────────────
-              Ces informations s'affichent sur la vitrine et servent a joindre
-              le vendeur. Elles remplacent le profil PERSONNEL : le site met en
-              avant une boutique, pas une personne. Distinctes des champs legaux
-              ci-dessus — un e-mail de facturation n'est pas celui qu'on donne a
-              un acheteur. */}
+          {/* ── Presence en ligne de la boutique ─────────────────────────────
+              Uniquement les liens : site web et reseaux sociaux. Les moyens de
+              CONTACT (e-mail, WhatsApp) vivent desormais dans les informations
+              legales ci-dessus. Ils y etaient dupliques — le vendeur saisissait
+              deux fois les memes coordonnees, et le bloc « Contactez-nous »
+              restait invisible tant qu'il n'avait pas rempli la seconde copie. */}
           <div className="bg-white rounded-2xl border border-gray-100 p-5 md:p-6">
-            <h2 className="text-base font-extrabold text-[#191c1e]">Contact et reseaux</h2>
+            <h2 className="text-base font-extrabold text-[#191c1e]">Présence en ligne</h2>
             <p className="text-xs text-[#5c647a] mt-1">
-              Affiches sur votre boutique et dans le bloc « Contactez-nous » de chaque fiche produit.
-              Laissez vide ce que vous ne souhaitez pas montrer.
+              Vos liens publics, affichés sur votre boutique. Laissez vide ce que vous ne
+              souhaitez pas montrer. Vos e-mail et WhatsApp se règlent au-dessus,
+              dans « Informations légales ».
             </p>
             <div className="grid md:grid-cols-2 gap-4 mt-4">
-              <div>
-                <label className="block text-xs font-bold text-[#5c647a] mb-1">E-mail de contact</label>
-                <input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder="contact@maboutique.com" maxLength={120}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-[#5c647a] mb-1">WhatsApp</label>
-                <input type="tel" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="+229 01 02 03 04" maxLength={32}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10" />
-              </div>
               <div>
                 <label className="block text-xs font-bold text-[#5c647a] mb-1">Site web (optionnel)</label>
                 <input type="url" value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} placeholder="https://…" maxLength={200}
