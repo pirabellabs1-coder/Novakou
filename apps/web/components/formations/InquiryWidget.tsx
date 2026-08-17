@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface Props {
   formationId?: string;
@@ -26,6 +26,17 @@ export function InquiryWidget({ formationId, productId, productTitle, vendorName
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Ouverture depuis l'exterieur. Le bloc « Contactez-nous » en fin de
+  // description emet cet evenement : il n'a pas a connaitre notre etat interne,
+  // et l'acheteur qui hesite en bas de page n'a pas a remonter jusqu'a la
+  // colonne d'achat pour poser sa question. C'est le meme formulaire, pas un
+  // second canal a maintenir.
+  useEffect(() => {
+    const ouvrir = () => setOpen(true);
+    window.addEventListener("novakou:ouvrir-chat", ouvrir);
+    return () => window.removeEventListener("novakou:ouvrir-chat", ouvrir);
+  }, []);
 
   async function submit() {
     if (!name || !email || !subject || !message) {

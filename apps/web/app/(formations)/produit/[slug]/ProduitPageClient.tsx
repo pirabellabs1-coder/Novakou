@@ -664,6 +664,10 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
           nomBoutique={product.shop?.name}
           titreProduit={product.title}
           themeColor={product.shop?.themeColor}
+          // Le formulaire est monté plus haut, sans condition : on peut donc
+          // toujours proposer de l'ouvrir. C'est ce qui garantit un chemin vers
+          // le vendeur même quand la boutique n'a ni e-mail ni WhatsApp.
+          chatDisponible
         />
 
         {/* Recommandations « Vous aimerez aussi » (v2 Phase 2) */}

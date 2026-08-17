@@ -16,7 +16,12 @@ type Props = {
   /** Titre du produit, pour que le vendeur sache de quoi on parle. */
   titreProduit?: string | null;
   themeColor?: string | null;
-  /** Un widget de discussion est-il actif sur la page ? */
+  /**
+   * Le formulaire « Une question ? » (InquiryWidget) est-il monté sur la page ?
+   * Si oui, on propose un bouton qui l'ouvre. C'est le SEUL canal qui aboutisse
+   * quand la boutique n'a renseigné ni e-mail ni WhatsApp — sans lui, l'acheteur
+   * arrivé en bas de page n'aurait aucun moyen de poser sa question.
+   */
   chatDisponible?: boolean;
 };
 
@@ -92,7 +97,7 @@ export function BlocContact({
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-bold text-[#191c1e] border border-[#e3e8ea] hover:bg-slate-50 transition-colors"
           >
             <span className="material-symbols-outlined text-[17px]">chat</span>
-            Discuter
+            Écrire un message
           </button>
         )}
       </div>

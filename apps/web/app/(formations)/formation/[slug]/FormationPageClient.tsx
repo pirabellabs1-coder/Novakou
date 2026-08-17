@@ -44,6 +44,7 @@ import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
 import { RelatedProducts } from "@/components/formations/RelatedProducts";
 import ReviewsCarousel from "@/components/formations/ReviewsCarousel";
 import { InquiryWidget } from "@/components/formations/InquiryWidget";
+import { BlocContact } from "@/components/formations/BlocContact";
 import AISupportWidget from "@/components/formations/AISupportWidget";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -111,7 +112,7 @@ interface Formation {
   instructeur: Vendeur;
   sections: Section[];
   reviews: Review[];
-  shop: { slug: string; name: string; legalName: string | null; font: string | null; themeColor: string | null; logoUrl?: string | null } | null;
+  shop: { slug: string; name: string; legalName: string | null; font: string | null; themeColor: string | null; logoUrl?: string | null; contactEmail?: string | null; whatsapp?: string | null } | null;
   createdAt: string;
 }
 
@@ -734,6 +735,19 @@ export default function FormationPageClient({ slug }: { slug: string }) {
             <ReviewsCarousel reviews={formation.reviews} themeColor={formation.shop?.themeColor ?? "#006e2f"} />
           </div>
         )}
+
+        {/* Contact : l'acheteur vient de finir la description, il hesite, et
+            c'est la qu'une question sans reponse le fait partir. Apres les
+            recommandations, on le lui offrirait une fois deja parti ailleurs.
+            Meme placement que la fiche produit — les deux pages se lisent pareil. */}
+        <BlocContact
+          contactEmail={formation.shop?.contactEmail}
+          whatsapp={formation.shop?.whatsapp}
+          nomBoutique={formation.shop?.name}
+          titreProduit={formation.title}
+          themeColor={formation.shop?.themeColor}
+          chatDisponible
+        />
 
         {/* Recommandations « Vous aimerez aussi » (v2 Phase 2) */}
         <div className="mt-6">

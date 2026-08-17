@@ -26,7 +26,7 @@ export async function GET(_req: Request, { params }: Params) {
           },
         },
         category: { select: { id: true, slug: true, name: true } },
-        shop: { select: { slug: true, name: true, legalName: true, font: true, themeColor: true, logoUrl: true } },
+        shop: { select: { slug: true, name: true, legalName: true, font: true, themeColor: true, logoUrl: true, contactEmail: true, whatsapp: true } },
         sections: {
           orderBy: { order: "asc" },
           include: {
@@ -108,6 +108,11 @@ export async function GET(_req: Request, { params }: Params) {
             font: formation.shop.font,
             themeColor: formation.shop.themeColor,
             logoUrl: formation.shop.logoUrl,
+            // Alimentent le bloc « Contactez-nous ». Rien d'autre de la
+            // boutique n'est exposé : ce sont les seuls champs destinés au
+            // public, les champs légaux restent aux pages qui les exigent.
+            contactEmail: formation.shop.contactEmail,
+            whatsapp: formation.shop.whatsapp,
           }
         : null,
       instructeur: {
