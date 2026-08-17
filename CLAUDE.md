@@ -1,21 +1,41 @@
-# CLAUDE.md — FreelanceHigh Workflow Framework
+# CLAUDE.md — Novakou Workflow Framework
 
-> *Framework de workflow avancé pour FreelanceHigh, adapté du système de Boris Cherny (créateur de Claude Code)*
-> **Projet :** FreelanceHigh — Marketplace freelance Afrique francophone  
-> **Fondateur :** Lissanon Gildas  
-> **Statut MVP :** Phase zéro → Implémentation (61 maquettes HTML existantes)  
-> **Slogan :** "La plateforme freelance qui élève votre carrière au plus haut niveau"
+> *Framework de workflow avancé pour Novakou, adapté du système de Boris Cherny (créateur de Claude Code)*
+> **Produit :** Novakou — plateforme de vente de formations et de produits numériques (Afrique francophone + diaspora)
+> **Positionnement :** l'équivalent francophone/africain de Gumroad, Systeme.io ou Kajabi
+> **Statut :** MVP en production — espaces vendeur, apprenant, affilié et admin opérationnels
+
+---
+
+## ⚠️ NOTE DE LECTURE — HÉRITAGE « FreelanceHigh »
+
+Ce dépôt s'est d'abord appelé **FreelanceHigh** (marketplace de services freelance). Le produit
+a pivoté vers **Novakou** (vente de formations et de produits numériques). Le renommage n'est
+pas terminé, et cela se voit dans le code :
+
+| Où | État actuel |
+|---|---|
+| `package.json` (racine et `apps/web`) | encore `freelancehigh` / `@freelancehigh/web` |
+| `.env.example` | `NEXT_PUBLIC_APP_NAME="FreelanceHigh"` (variable **plus lue** par le code) |
+| Code applicatif | « Novakou » domine largement (~439 fichiers contre ~68) |
+| `PRD.md`, `ARCHITECTURE.md`, `TECH_STACK_RAPPORT.md` | décrivent **FreelanceHigh**, pas le produit livré |
+
+**Conséquence pratique :** les noms de packages pnpm restent `@freelancehigh/*` — c'est normal,
+ne pas « corriger » au passage. En revanche, tout contenu visible par l'utilisateur dit **Novakou**.
+
+Les rôles marketplace (`FREELANCE`, `CLIENT`, `AGENCE`) existent toujours dans le schéma Prisma
+et cohabitent avec les rôles formations. Le code marketplace n'est pas mort : il est en sommeil.
 
 ---
 
 ## 📋 TABLE DES MATIÈRES
-1. [Initialisation de Session — Contexte FreelanceHigh](#initialisation-de-session)
+1. [Initialisation de Session](#initialisation-de-session)
 2. [Framework de Workflow Avancé](#framework-de-workflow-avancé)
 3. [Principes Fondamentaux](#principes-fondamentaux)
 4. [Systèmes de Gestion](#systèmes-de-gestion)
 5. [Patterns de Résolution](#patterns-de-résolution)
 6. [Métriques et Validation](#métriques-et-validation)
-7. [Contexte Projet FreelanceHigh](#contexte-projet-freelancehigh)
+7. [Contexte Projet Novakou](#contexte-projet-novakou)
 8. [Commandes & Config](#commandes--config)
 
 ---
@@ -32,7 +52,7 @@ ORDRE STRICT:
 ```
 
 ### Phase 2: État Mental
-- [ ] Vérifier le état cognitif (contexte propre, pas de pollution)
+- [ ] Vérifier l'état cognitif (contexte propre, pas de pollution)
 - [ ] Identifier les défis précédents (anti-patterns)
 - [ ] Établir les invariants pour cette session
 - [ ] Fixer le scope — **jamais** dépasser la session courante
@@ -107,6 +127,11 @@ Agent Principal (direction, synthèse, validation)
 - **Scope**: Une tâche, une responsabilité
 - **Output**: Résultat + logs de décisions
 - **Feedback**: Remonter blocages immédiatement
+
+> ⚠️ **Piège vérifié en conditions réelles :** un sous-agent chargé d'explorer le code peut
+> recopier la documentation obsolète au lieu de lire les sources. Toujours exiger de lui
+> qu'il **cite le fichier** de chaque affirmation, et recouper les conclusions sensibles
+> (stack, versions, dépendances) contre `package.json` avant de les écrire quelque part.
 
 ---
 
@@ -199,6 +224,9 @@ Créer une section tasks/anti_patterns.md:
 
 ✗ "Le test doit passer"
 ✓ "Exécuté: test passe avec logs concrets"
+
+✗ "La doc dit que le backend est Fastify"
+✓ "Vérifié dans package.json: pas de Fastify, tout est en routes Next.js"
 ```
 
 ### Élégance Exigée
@@ -390,158 +418,485 @@ Performance:
 
 ---
 
-## 🎯 CONTEXTE PROJET FREELANCEHIGH
+## 🎯 CONTEXTE PROJET NOVAKOU
 
-### Architecture technique (immuable)
+### Ce que fait le produit
+
+Novakou permet à un créateur (formateur, coach, designer) de **vendre des formations vidéo
+et des produits numériques** à une audience africaine francophone, encaissée principalement
+en **Mobile Money** et en **FCFA**.
+
+Le créateur ouvre une boutique, y publie ses formations et produits, encaisse, et retire ses
+gains. Des affiliés peuvent promouvoir ses produits contre commission. Les acheteurs suivent
+leurs formations, obtiennent des certificats et discutent avec les formateurs.
+
+### Architecture technique RÉELLE
+
 ```
-Monorepo pnpm + Turborepo
-├── apps/web           → Next.js 14 App Router (SSR + RSC)
-├── apps/api           → Fastify + tRPC + Socket.io + BullMQ
-├── packages/db        → Prisma ORM (Supabase Postgres 15+)
-├── packages/ui        → shadcn/ui + Tailwind + React Email
+Monorepo pnpm 9.15.9 + Turborepo
+├── apps/web           → Next.js 15.5.12 App Router — TOUTE l'application
+├── packages/db        → Prisma 5 (schema + 42 migrations + seeds)
+├── packages/ui        → Composants React partagés
 ├── packages/types     → Types TypeScript partagés
-└── packages/config    → ESLint, TypeScript configs
+└── packages/config    → ESLint + TypeScript configs
 ```
+
+> **⚠️ IL N'Y A PAS DE `apps/api`.** Tout le backend vit dans les *route handlers* de
+> Next.js sous `apps/web/app/api/**`. Ni Fastify, ni tRPC, ni Socket.io, ni BullMQ, ni
+> ioredis ne sont installés. Ne pas en introduire sans décision explicite du fondateur.
+> Les traitements récurrents passent par `apps/web/app/api/cron/**` (protégés par `CRON_SECRET`).
 
 ### Stack validée — NE PAS SUBSTITUER
 
 #### Frontend
-| Outil | Rôle | Non-négociable |
+| Outil | Version | Rôle |
 |---|---|---|
-| **Next.js 14** | Framework SSR/RSC | App Router seulement |
-| **TypeScript** | Typage | Partout — pas de `any` |
-| **Tailwind CSS** | Styles | Classes `rtl:` dès le MVP |
-| **shadcn/ui** | Composants UI | Vérifier avant d'en créer nouveau |
-| **Zustand** | État UI local | Devise, langue, modales |
-| **TanStack Query v5** | État serveur | Requêtes API, cache |
-| **next-intl** | i18n | FR principal, EN, AR, ES, PT |
+| **Next.js** | 15.5.12 | App Router + route handlers. `next dev --turbopack` |
+| **React** | 19 | Server Components par défaut |
+| **TypeScript** | strict | Pas de `any` |
+| **Tailwind CSS** | 3.4 | Styles |
+| **Zustand** | 5 | État UI local (devise, langue, modales) |
+| **TanStack Query** | 5 | État serveur (requêtes, cache) |
+| **next-intl** | 3 | i18n — `apps/web/messages/*.json` |
 
-#### Backend
-| Outil | Rôle | Non-négociable |
+#### Backend & données
+| Outil | Version | Rôle |
 |---|---|---|
-| **Fastify** | Framework HTTP | WebSocket + uploads longs |
-| **tRPC v11** | API RPC typée | Sur Fastify, pas Routes serveur |
-| **Socket.io** | Temps réel | Redis adapter dès le jour 1 |
-| **BullMQ** | Jobs async | Redis broker, retries intégrés |
-| **Prisma 5** | ORM | Source de vérité DB |
+| **Route handlers Next.js** | — | Toute l'API, sous `apps/web/app/api/**` |
+| **NextAuth** | 4.24 | Authentification (voir ci-dessous) |
+| **Prisma** | 5 | ORM — `packages/db/prisma/schema.prisma` = source de vérité |
+| **Supabase** | — | Postgres + **Storage uniquement** (PAS Supabase Auth) |
+| **Upstash Redis** | REST | Cache / rate-limit (`UPSTASH_REDIS_REST_*`) |
 
-#### Infrastructure
-| Service | Région | Rôle | Non-négociable |
-|---|---|---|---|
-| **Supabase** | eu-central-1 | Postgres + Auth + Storage + Realtime | RLS sur toutes tables |
-| **Stripe Connect** | International | Paiements cartes, SEPA, PayPal, Apple/Google Pay | Pas de substitution |
-| **CinetPay** | 17 pays AF | Mobile Money (Orange, Wave, MTN) | Fallback Flutterwave V1 |
-| **Cloudinary** | Global | Images publiques (avatars, portfolio) | Stockage privé = Supabase |
-| **Redis (Upstash)** | eu-central-1 | Sessions, cache, rate-limit, broker | Upstash MVP → Railway V2+ |
-| **Vercel** | Edge CDN + Johannesburg | Frontend hosting | Railway si besoins Postgres |
-
-### Variables d'environnement critiques
-```bash
-# JAMAIS exposer côté client — serveur uniquement
-STRIPE_SECRET_KEY=
-CINETPAY_API_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-OPENAI_API_KEY=
-RESEND_API_KEY=
-
-# Public ok (préfixés NEXT_PUBLIC_)
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
-```
-
-### 4 rôles à implémenter
-| Rôle | KYC Min | Commission | Limites |
-|---|---|---|---|
-| **Freelance** | Niveau 3 | 20% (gratuit) → 8% (Agence) | Retrait après 48h escrow |
-| **Client** | Niveau 2 | N/A | Paiements Stripe/CinetPay |
-| **Agence** | Niveau 3 | 8% | Équipe + CRM + sous-marché |
-| **Admin** | Système | 0% | Modération, KYC, litiges, analytics |
-
-### 6 espaces distincts
-```
-FreelanceHigh
-├── 🌐 Public      → / | /explorer | /services/[slug] | /blog | /tarifs
-├── 🔐 Auth        → /inscription | /connexion | /onboarding | /2fa
-├── 👨‍💻 Freelance    → /dashboard | /services | /commandes | /finances | /certifications
-├── 💼 Client      → /client/dashboard | /client/projets | /client/recherche-ia
-├── 🏢 Agence      → /agence/dashboard | /agence/equipe | /agence/crm
-└── ⚙️  Admin       → /admin/dashboard | /admin/kyc | /admin/litiges
-```
-
-### Maquettes existantes (61 fichiers HTML)
-```
-/mnt/c/FreelanceHigh/
-├── afriquefreelance_landing_page_1/        ← Landing
-├── freelancer_dashboard_overview/          ← Dashboard freelance
-├── tableau_de_bord_client/                 ← Dashboard client
-├── admin_dashboard_global_stats/           ← Dashboard admin
-├── marketplace_service_explorer_1-12/      ← 12 variantes marketplace
-├── messagerie_temps_r_el_int_gr_e_1-2/    ← Messagerie temps réel
-└── ...
-```
-
-**RÈGLE IMPÉRATIVE** : Avant de développer une page, **consulter la maquette correspondante** — la maquette a priorité sur toute spec textuelle.
-
-### KYC — 4 niveaux (claims JWT)
-```
-Niveau 1 : Email vérifié       → Accès de base
-Niveau 2 : Téléphone +2FA      → Envoyer offres, commander
-Niveau 3 : Pièce d'identité    → Retirer fonds, publier services
-Niveau 4 : Vérif professionnelle → Badge Elite, limites relevées
-```
-
-### Flux escrow (critique)
-```
-Client paie
-  ↓ Fonds bloqués (Stripe hold OU wallet escrow_status = 'held')
-  ↓ Commande livrée + validée
-  ↓ Fonds libérés dans wallet freelance
-  ↓ Retrait : Stripe Payout (international) OU CinetPay Mobile Money
-
-Litige?
-  ↓ escrow_status = 'disputed'
-  ↓ Fonds gelés jusqu'à verdict admin
-```
-
-### Recherche — évolution par version
-```
-MVP–V1  : Postgres FTS (pg_trgm + tsvector + GIN index) — $0
-V2      : Meilisearch sur Railway (~$15/mois) — sync BullMQ
-V3      : pgvector + OpenAI embeddings — recherche sémantique hybride
-```
-
-### Temps réel — architecture hybride
-```
-Socket.io (Fastify)    → Chat, typing, présence, messagerie agence
-Supabase Realtime      → Statuts commandes, dashboard admin
-Redis adapter (jour 1) → Scalabilité horizontale
-```
-
-### Risques identifiés & mitigations
-| Risque | Mitigation |
+#### Services externes
+| Service | Rôle |
 |---|---|
-| CinetPay instable | Retry BullMQ + Flutterwave fallback (V1) |
-| Stripe indisponible en AF | CinetPay Mobile Money retrait principal local |
-| Coût OpenAI (V3) | Rate-limit par tier ; `gpt-4o-mini` défaut |
-| RTL arabe mal géré | Classes `rtl:` Tailwind dès les premiers composants |
-| Socket.io non-scalable | Redis adapter configuré jour 1 |
+| **OpenRouter** | Point d'entrée **unique** de l'IA |
+| **Resend** | Emails transactionnels |
+| **Cloudinary** | Images publiques |
+| **Sentry** | Suivi des erreurs |
+| **Vercel** | Hébergement |
+| **Meta / TikTok CAPI** | Tracking conversions côté serveur |
 
-### Roadmap (20 mois)
-| Version | Mois | Objectif |
-|---|---|---|
-| **MVP** | 1–3 | Vendre, acheter, encaisser. 3 rôles fonctionnels. |
-| **V1** | 4–6 | Marketplace + matching + multi-devises + Mobile Money |
-| **V2** | 7–10 | Messagerie temps réel + KYC complet + badges + rétention |
-| **V3** | 11–15 | IA (contrats, certifications, recherche sémantique) |
-| **V4** | 16–20 | PWA + Web3/crypto + API publique + affiliation |
+### Authentification — NextAuth, pas Supabase Auth
+
+Config : `apps/web/lib/auth/config.ts`. Session **JWT** (30 jours d'inactivité max, rotation
+quotidienne).
+
+| Provider | Détail |
+|---|---|
+| **Credentials** | Email + mot de passe (≥10 car., 1 maj., 1 min., 1 chiffre). Rate-limit 15 min. |
+| **Buyer OTP** | Code à 6 chiffres, valide 10 min — crée un compte « léger » pour un acheteur invité |
+| **Google OAuth** | Actif seulement si `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` |
+| **LinkedIn OAuth** | Actif seulement si `LINKEDIN_CLIENT_ID` + `LINKEDIN_CLIENT_SECRET` |
+
+**2FA (TOTP, `otplib`)** — `apps/web/app/api/auth/setup-2fa/route.ts`.
+Obligatoire et non contournable pour les comptes **ADMIN**. Le flux repose sur une preuve
+serveur `twoFactorVerifiedAt` consommée une seule fois ; le middleware bloque les dashboards
+tant que le JWT porte `tfaPending`.
+
+> 🔴 **Dette connue :** `User.twoFactorSecret` est stocké **en clair** en base
+> (`packages/db/prisma/schema.prisma`). À chiffrer.
+
+### Rôles — trois couches distinctes
+
+**1. Rôles marketplace** — `UserRole` dans `schema.prisma` (héritage FreelanceHigh, toujours actifs) :
+`FREELANCE`, `CLIENT`, `AGENCE`, `ADMIN`. Défaut à l'inscription OAuth/invité : `CLIENT`.
+
+**2. Rôles formations** — `User.formationsRole`, c'est ce qui pilote le produit actuel :
+`apprenant`, `instructeur`, `mentor`, `affilie`.
+
+**3. Sous-rôles admin** — `apps/web/lib/admin-permissions.ts` :
+`super_admin` (défaut), `moderateur`, `validateur_kyc`, `analyste`, `support`, `financier`.
+
+### KYC — 4 niveaux
+
+Garde : `apps/web/lib/auth/kyc-guard.ts`. Route : `apps/web/app/api/formations/kyc/route.ts`.
+
+```
+Niveau 1 : aucun contrôle          → parcourir, créer un profil
+Niveau 2 : identité vérifiée       → publier un service/formation, retirer des fonds
+Niveau 3 : KYC complet             → débloque les actions de niveau 2
+Niveau 4 : certification pro       → badge Elite, limites relevées (exige le niveau 2 validé)
+```
+
+- **Recto + verso + selfie sont obligatoires** pour toute demande.
+- Exempt de KYC : `CLIENT` uniquement. Soumis au KYC : `FREELANCE`, `AGENCE`, `INSTRUCTEUR`.
+- Statuts : `EN_ATTENTE` → `APPROUVE` | `REFUSE` (avec motif). Table `KycRequest`.
+- Les pièces sont stockées dans **Supabase Storage**.
+
+### Les espaces de l'application
+
+```
+apps/web/app/
+├── (formations)              → 🌐 Public : /, /explorer, /formation/[slug], /produit/[slug],
+│                                /checkout, /academie, /guides/[slug] (blog SEO),
+│                                /bundle/[slug], /abonnement/[id], /aide/**, pages légales,
+│                                /connexion, /inscription, /2fa
+├── (formations-dashboard)/vendeur    → 🏪 Créateur : dashboard, formations, produits,
+│                                boutiques (multi-domaines), commandes, finances, retraits,
+│                                statistiques, automatisations, emails, avis, parcours,
+│                                ai-studio, ai-coach, api-keys, parametres
+├── (formations-dashboard)/apprenant  → 🎓 Acheteur : mes-formations, mes-produits, bundles,
+│                                abonnements, certificats, progression, panier, depenses,
+│                                mentorat, communaute, messages
+├── (formations-dashboard)/admin      → ⚙️ Plateforme : utilisateurs, formations, produits,
+│                                transactions, retraits, kyc, tickets, commissions,
+│                                signalements, passerelles, taux, configuration, audit,
+│                                analytics-funnel, emails, notifications, ai-assistant
+├── (formations-affilie)/affilie      → 🤝 Affilié : dashboard, liens, commissions, retraits,
+│                                performances, parametres
+├── (paylink)/payer/[slug]    → 💳 Lien de paiement public (sans compte)
+├── boutique/[slug]           → 🛍️ Vitrine boutique (+ /by-domain/[host] pour domaine custom)
+├── f/[slug]                  → 🎯 Tunnel de vente (funnel) personnalisé
+├── a/[code]                  → 📣 Vitrine publique d'un affilié (tracking commission)
+├── acheteur, backoffice/[slug], admin-login/**  → portails de connexion dédiés
+├── invitation/[code], payment/attente, maintenance
+└── api/**                    → TOUT le backend (route handlers)
+```
+
+**Connexion admin** : `/admin-login/formations/[token]`, protégée par un token d'URL validé
+côté serveur, puis email + mot de passe + TOTP.
+
+### Paiements — registre unique de passerelles
+
+Fichier maître : **`apps/web/lib/payments/registry.ts`** (~712 lignes, abondamment commenté).
+Le lire avant toute intervention sur les paiements.
+
+Le registre décrit, pour chaque opérateur Mobile Money, **qui sait encaisser** (`collect`) et
+**qui sait reverser** (`payout`), avec le code natif de chaque fournisseur. ~44 opérateurs
+couverts sur une vingtaine de pays.
+
+| Passerelle | id | collect | payout | Variables |
+|---|---|---|---|---|
+| **FeexPay** | `feexpay` | ✓ | ✓ | `FEEXPAY_API_KEY`, `FEEXPAY_SHOP_ID` |
+| **FedaPay** | `fedapay` | ✓ | ✓ | `FEDAPAY_SECRET_KEY` |
+| **PawaPay** | `pawapay` | ✓ | ✓ | `PAWAPAY_API_TOKEN` |
+| **Monetbil** | `monetbil` | ✓ | ✗ | `MONETBIL_SERVICE_KEY` |
+| **iPay Money** | `ipaymoney` | ✓ | ✗ | `IPAYMONEY_SECRET_KEY`, `IPAYMONEY_WEBHOOK_SECRET` |
+
+**Hors registre**, mais présents dans le code : **Stripe** (cartes), **Kkiapay** (widget de
+checkout, cf. `CheckoutInner.tsx`, `PayerClient.tsx`), **CinetPay** et **PayGenius**
+(routes + webhooks dédiés). Ne pas supposer qu'une passerelle du registre couvre ces cas.
+
+#### 🔴 Règles absolues sur les paiements — argent réel
+
+```
+1. Moneroo est RETIRÉ — décision fondateur, définitive. Ne le réintroduire nulle part :
+   ni passerelle, ni route, ni repli silencieux.
+2. N'inscrire QUE des codes opérateur CONFIRMÉS par la doc du fournisseur.
+   Pas de code = fournisseur SAUTÉ pour cet opérateur. On ne devine JAMAIS un routage :
+   un code inventé envoie l'argent sur le mauvais réseau.
+3. Un opérateur qu'aucune passerelle branchée ne couvre n'est PAS proposé —
+   plutôt que renvoyé discrètement vers un tiers.
+4. Les credentials en base sont chiffrés via PAYMENT_CREDENTIALS_KEY.
+```
+
+### IA — OpenRouter, point d'entrée unique
+
+- **Passerelle :** `apps/web/lib/ai/openrouter.ts` — fonctions `chatIA()` / `chatIAOuNull()`
+- **Modèle par défaut :** `anthropic/claude-sonnet-5`, surchargeable par `OPENROUTER_MODEL`
+- **Quotas :** `apps/web/lib/ai/usages.ts` — 7 usages déclarés (`support`, `recherche`,
+  `studio`, `tunnel`, `copilote`, `agent`, `redaction`). Modèle, température et `maxTokens`
+  sont **imposés côté serveur** ; le navigateur ne choisit que l'usage.
+  Plafond global : `AI_PLAFOND_QUOTIDIEN` (défaut 3000).
+- **Seule exception :** la transcription vocale appelle Whisper directement chez OpenAI
+  (`OPENAI_API_KEY`), OpenRouter n'exposant pas d'endpoint audio. C'est **volontaire**.
+- `GROQ_API_KEY` / `GEMINI_API_KEY` sont des reliquats acceptés mais **plus appelés**.
+
+---
+
+## 🔧 COMMANDES NOVAKOU
+
+> Toutes vérifiées dans les `package.json` du dépôt. **Si une commande n'est pas listée ici,
+> elle n'existe pas** — ne pas l'inventer.
+
+```bash
+# ═══════════════════════════════════════════════════════════════
+# DÉVELOPPEMENT (racine — Turborepo)
+# ═══════════════════════════════════════════════════════════════
+pnpm dev                                  # turbo run dev
+pnpm dev -F @freelancehigh/web            # front seul (next dev --turbopack)
+
+# ═══════════════════════════════════════════════════════════════
+# QUALITÉ — les 3 commandes du garde-fou
+# ═══════════════════════════════════════════════════════════════
+pnpm lint                                 # next lint
+pnpm typecheck                            # tsc --noEmit
+pnpm build                                # next build
+
+# ═══════════════════════════════════════════════════════════════
+# TESTS — Playwright uniquement
+# ═══════════════════════════════════════════════════════════════
+pnpm -F @freelancehigh/web test:e2e       # 23 specs, apps/web/tests/
+pnpm -F @freelancehigh/web test:e2e:ui    # mode interactif
+
+# ═══════════════════════════════════════════════════════════════
+# BASE DE DONNÉES (packages/db)
+# ═══════════════════════════════════════════════════════════════
+pnpm -F @freelancehigh/db migrate:dev     # nouvelle migration locale
+pnpm -F @freelancehigh/db migrate:deploy  # appliquer en prod
+pnpm -F @freelancehigh/db generate        # régénérer le client Prisma
+pnpm -F @freelancehigh/db studio          # Prisma Studio (GUI)
+pnpm -F @freelancehigh/db seed            # seed
+pnpm -F @freelancehigh/db db:push         # sync schéma (DEV uniquement)
+
+# ═══════════════════════════════════════════════════════════════
+# SCRIPTS UTILITAIRES (scripts/ — 38 fichiers)
+# ═══════════════════════════════════════════════════════════════
+pnpm indexnow                             # soumission IndexNow (Bing, Yandex, Naver)
+node scripts/seo-validate.mjs             # valide le JSON-LD (serveur doit tourner)
+node scripts/smoke-test-api.mjs           # smoke test des endpoints
+bash scripts/post-deploy-smoke.sh         # smoke test post-déploiement
+```
+
+### ⚠️ Pièges de commandes
+
+```
+✗ pnpm test          → remonte à `turbo run test`, mais AUCUN package ne définit
+                       de script `test`. La commande ne lance RIEN.
+                       → utiliser pnpm -F @freelancehigh/web test:e2e
+✗ pnpm format        → n'existe pas
+✗ pnpm format:check  → n'existe pas
+✗ pnpm clean         → n'existe pas
+✗ pnpm deps          → n'existe pas
+✗ pnpm dev --filter=api → il n'y a pas d'app `api`
+```
+
+### Tests Playwright — config
+
+`apps/web/playwright.config.ts` : `webServer` démarre `npx next dev -p 3450`
+(baseURL `http://localhost:3450`, 180 s de marge). Trois profils : Desktop Chrome 1280×720,
+Mobile Safari iPhone 13, Tablet 768×1024. En CI : 2 tentatives, 1 worker.
+
+### CI GitHub Actions
+
+| Workflow | Ce qu'il fait |
+|---|---|
+| `.github/workflows/ci.yml` | `lint` → `typecheck` → `build`, puis Playwright (chromium) sur PR et `main`. Rapport HTML archivé 14 j en cas d'échec. |
+| `.github/workflows/seo.yml` | Build + démarrage prod, puis validation Schema.org sur 13 URLs clés (FAQPage, Article, breadcrumb, og:image, titres 25–65 car., descriptions 100–160 car.). **Sort en erreur et bloque le déploiement en cas de régression.** |
+
+**Aucun hook Git actif** — `.git/hooks/` ne contient que des `.sample`. Rien ne vous
+arrêtera automatiquement avant un commit : la checklist ci-dessous est donc à appliquer
+à la main.
+
+### Variables d'environnement
+
+**Créer `.env.local` à la racine — jamais commité.**
+
+> ⚠️ **`.env.example` est très incomplet** : une cinquantaine de variables lues par le code
+> n'y figurent pas (toutes les passerelles de paiement, OpenRouter, Sentry, Upstash, VAPID,
+> Telegram, tokens admin…). Il contient à l'inverse des variables mortes
+> (`NEXT_PUBLIC_APP_NAME`, `STRIPE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_TURN_*`).
+> **Se fier au code, pas à `.env.example`.**
+
+```bash
+# ── BASE DE DONNÉES ──────────────────────────────────────────
+DATABASE_URL=                      # pool Postgres
+DIRECT_URL=                        # connexion directe (migrations)
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=         # ⚠️ SERVEUR UNIQUEMENT
+
+# ── AUTH ─────────────────────────────────────────────────────
+NEXTAUTH_URL=
+NEXTAUTH_SECRET=                   # ⚠️ SERVEUR UNIQUEMENT
+GOOGLE_CLIENT_ID= / GOOGLE_CLIENT_SECRET=
+LINKEDIN_CLIENT_ID= / LINKEDIN_CLIENT_SECRET=
+
+# ── PAIEMENTS ────────────────────────────────────────────────
+FEEXPAY_API_KEY= / FEEXPAY_SHOP_ID=
+FEDAPAY_SECRET_KEY= / FEDAPAY_ENVIRONMENT=
+PAWAPAY_API_TOKEN=
+MONETBIL_SERVICE_KEY= / MONETBIL_PAYOUT_URL=
+IPAYMONEY_SECRET_KEY= / IPAYMONEY_WEBHOOK_SECRET=
+STRIPE_SECRET_KEY= / STRIPE_WEBHOOK_SECRET=
+CINETPAY_API_KEY= / CINETPAY_SITE_ID=
+PAYGENIUS_API_KEY= / PAYGENIUS_API_SECRET= / PAYGENIUS_BASE_URL=
+PAYGENIUS_PAYOUT_WALLET_ID= / PAYGENIUS_WEBHOOK_SECRET=
+PAYMENT_CREDENTIALS_KEY=           # ⚠️ chiffre les credentials en base
+PAYOUT_PROXY_URL= / AUTO_PAYOUT_DELAY_MINUTES=
+
+# ── IA ───────────────────────────────────────────────────────
+OPENROUTER_API_KEY=                # ⚠️ SERVEUR UNIQUEMENT
+OPENROUTER_MODEL=                  # défaut: anthropic/claude-sonnet-5
+AI_PLAFOND_QUOTIDIEN=              # défaut: 3000
+OPENAI_API_KEY=                    # Whisper (transcription) uniquement
+
+# ── EMAIL / MÉDIAS ───────────────────────────────────────────
+RESEND_API_KEY= / RESEND_AUDIENCE_ID= / EMAIL_FROM=
+CLOUDINARY_CLOUD_NAME= / CLOUDINARY_API_KEY= / CLOUDINARY_API_SECRET=
+
+# ── INFRA / OBSERVABILITÉ ────────────────────────────────────
+UPSTASH_REDIS_REST_URL= / UPSTASH_REDIS_REST_TOKEN=
+SENTRY_DSN= / NEXT_PUBLIC_SENTRY_DSN= / SENTRY_AUTH_TOKEN=
+SENTRY_ORG= / SENTRY_PROJECT=
+VAPID_PRIVATE_KEY= / NEXT_PUBLIC_VAPID_PUBLIC_KEY= / VAPID_SUBJECT=
+CRON_SECRET=                       # ⚠️ protège /api/cron/**
+
+# ── ADMIN ────────────────────────────────────────────────────
+ADMIN_EMAIL= / ADMIN_PASSWORD= / ADMIN_NAME= / ADMIN_ACCESS_TOKEN=
+ADMIN_LOGIN_SLUG= / ADMIN_FORMATIONS_TOKEN= / ADMIN_MARKETPLACE_TOKEN=
+
+# ── TRACKING ─────────────────────────────────────────────────
+NEXT_PUBLIC_GA_ID=
+META_PIXEL_ID= / META_CAPI_TOKEN= / META_TEST_EVENT_CODE=
+TIKTOK_PIXEL_ID= / TIKTOK_CAPI_TOKEN=
+
+# ── APP ──────────────────────────────────────────────────────
+NEXT_PUBLIC_APP_URL= / NODE_ENV= / DEV_MODE= / LOG_LEVEL=
+```
+
+### Setup initial
+
+```bash
+npm install -g pnpm@9.15.9
+git clone https://github.com/pirabellabs1-coder/Novakou.git && cd Novakou
+pnpm install                                   # postinstall lance prisma generate
+cp .env.example .env.local                     # PUIS compléter (voir avertissement ci-dessus)
+pnpm -F @freelancehigh/db migrate:dev
+pnpm dev                                       # → http://localhost:3000
+```
+
+---
+
+## 🌍 CONVENTIONS NOVAKOU
+
+### Langue du code
+
+Le code de ce projet est **commenté et nommé en français** (`MODELE_DEFAUT`, `chatIAOuNull`,
+`echec-messages.ts`). Respecter cette convention : un identifiant anglais au milieu détonne.
+Les commentaires expliquent le **pourquoi**, pas le quoi — souvent avec la conséquence
+métier en cas d'erreur. S'en inspirer.
+
+### TypeScript — règles absolues
+
+```typescript
+// ✅ BON
+interface Formation {
+  id: string;
+  titre: string;
+  prix: number;
+  devise: CodeDevise;              // type dédié, pas string
+  statut: 'brouillon' | 'publie' | 'suspendu';
+}
+
+// ❌ MAUVAIS
+const formation: any = { ... };    // jamais de any
+const statut: string = 'publie';   // trop permissif
+```
+
+### État — Zustand vs TanStack Query
+
+```typescript
+// ✅ Zustand — état UI local
+const { devise, setDevise } = useCurrencyStore();
+
+// ✅ TanStack Query — état serveur
+const { data: formations, isLoading } = useFormations({ boutiqueId });
+
+// ❌ MAUVAIS
+const [formations, setFormations] = useState([]);   // pas pour de la donnée serveur
+```
+
+### Server Components par défaut
+
+React 19 + App Router : un composant est **serveur** sauf mention contraire.
+N'ajouter `"use client"` que si le composant utilise réellement un hook d'état, un
+gestionnaire d'événement ou une API navigateur.
+
+> 📌 **Régression déjà survenue** : un `"use client"` posé par erreur sur un composant serveur
+> de la page d'accueil avait fait disparaître les boutons Connexion et Inscription.
+
+### Sécurité — clés jamais côté client
+
+```typescript
+// ❌ JAMAIS
+export const CLE = 'sk_live_...';                    // exposé au monde
+
+// ✅ Route handler (apps/web/app/api/**)
+export async function POST(req: Request) {
+  const cle = process.env.FEEXPAY_API_KEY;           // serveur, sûr
+}
+```
+
+Toute variable préfixée `NEXT_PUBLIC_` **part dans le navigateur**. Aucun secret ne doit
+porter ce préfixe.
+
+### i18n
+
+Traductions dans `apps/web/messages/*.json` (`fr`, `en`). Ne pas coder de texte en dur dans
+les composants destinés à l'utilisateur.
+
+### Prisma — source de vérité
+
+`packages/db/prisma/schema.prisma` définit tout. Après modification :
+`migrate:dev` en local, puis `generate`. Ne jamais éditer une migration déjà appliquée.
+
+### Maquettes HTML
+
+Le dépôt contient une soixantaine de dossiers de maquettes HTML à la racine
+(`marketplace_service_explorer_1..12`, `tableau_de_bord_client`, `identit_visuelle_et_design_system`…).
+
+> ⚠️ Elles datent en grande partie de l'époque **FreelanceHigh**. Elles restent utiles comme
+> référence visuelle et pour le design system, mais elles **ne font plus autorité** sur les
+> écrans Novakou (vendeur, apprenant, affilié). En cas de doute sur un écran existant,
+> **le code en production fait foi, pas la maquette**.
+>
+> L'ancien chemin documenté `/mnt/c/FreelanceHigh/` n'existe pas : les maquettes sont
+> à la racine du dépôt.
+
+---
+
+## ✅ CHECKLIST PRÉ-COMMIT
+
+```markdown
+- [ ] `pnpm typecheck`                          → aucune erreur
+- [ ] `pnpm lint`                               → aucune erreur
+- [ ] `pnpm build`                              → passe (la CI le refera)
+- [ ] `pnpm -F @freelancehigh/web test:e2e`     → si le changement touche un parcours testé
+      ⚠️ NE PAS utiliser `pnpm test` : ne lance rien
+- [ ] Aucun secret en dur (grep les clés, vérifier qu'aucun secret n'est en NEXT_PUBLIC_)
+- [ ] Migration Prisma générée et commitée si le schéma a changé
+- [ ] Pas de `"use client"` ajouté sans raison réelle
+- [ ] Textes utilisateur passés par next-intl, pas codés en dur
+- [ ] Paiements touchés → codes opérateur confirmés par la doc du fournisseur, jamais devinés
+- [ ] SEO touché (titres, meta, JSON-LD) → `node scripts/seo-validate.mjs` (le workflow SEO bloque sinon)
+```
+
+---
+
+## 🚨 RÈGLES D'OR NOVAKOU
+
+```
+1. JAMAIS de clé API côté client            → serveur uniquement, jamais NEXT_PUBLIC_
+2. JAMAIS deviner un code opérateur         → doc fournisseur ou on s'abstient (argent réel)
+3. JAMAIS réintroduire Moneroo               → décision fondateur, définitive
+4. JAMAIS de `any` TypeScript                → types stricts partout
+5. JAMAIS contourner 2FA/KYC                 → obligatoires, admin non négociable
+6. JAMAIS introduire Fastify/tRPC/Socket.io  → tout passe par les route handlers Next.js
+7. JAMAIS se fier à .env.example             → le code est la référence
+8. JAMAIS `pnpm test`                        → ne lance rien ; c'est `test:e2e`
+```
+
+```
+1. JAMAIS supposer → Toujours vérifier
+2. JAMAIS forcer → Si bloqué, re-planifier
+3. JAMAIS laisser un hack → Reconstruire proprement
+4. JAMAIS marquer ✅ sans preuve → Tests/logs/validation
+5. JAMAIS oublier une leçon → tasks/lessons.md
+6. JAMAIS interrompre → Une question avant, pas pendant
+7. JAMAIS sur-ingénieriser → Assez bon est assez bon
+```
 
 ---
 
 ## 📚 STRUCTURE DE FICHIERS (Par Défaut)
 
 ```
+CLAUDE.md                  ← Ce fichier (RACINE du dépôt)
+AGENTS.md                  ← Jumeau pour Codex — GARDER SYNCHRONISÉ
 .claude/
-├── CLAUDE.md              ← Ce fichier
 ├── tasks/
 │   ├── todo.md            ← État actuel + plan
 │   ├── lessons.md         ← Apprentissages cumulatifs
@@ -557,6 +912,21 @@ Redis adapter (jour 1) → Scalabilité horizontale
     ├── system_arch.md
     └── setup_guide.md
 ```
+
+> **`CLAUDE.md` et `AGENTS.md` sont des jumeaux** : contenu identique, seuls le titre et
+> la mention de l'outil diffèrent. Toute modification de l'un doit être reportée sur l'autre,
+> sinon Claude Code et Codex travaillent sur des consignes divergentes.
+
+### Documentation du dépôt — fiabilité
+
+| Fichier | Fiabilité |
+|---|---|
+| `CLAUDE.md` / `AGENTS.md` | ✅ à jour (ce document) |
+| `V2_ROADMAP.md` | 🟡 le plus récent des docs produit |
+| `RAPPORT_FINAL_NOVAKOU.md` | 🟡 parle bien de Novakou |
+| `PRD.md`, `ARCHITECTURE.md`, `TECH_STACK_RAPPORT.md`, `DOCUMENTATION.md` | 🔴 décrivent **FreelanceHigh** — architecture Fastify/tRPC jamais construite. Contexte historique uniquement. |
+
+**En cas de contradiction entre un document et le code : le code gagne.**
 
 ---
 
@@ -590,458 +960,50 @@ Redis adapter (jour 1) → Scalabilité horizontale
 
 ---
 
-## 🔧 COMMANDES FREELANCEHIGH
-
-```bash
-# ═══════════════════════════════════════════════════════════════
-# DÉVELOPPEMENT
-# ═══════════════════════════════════════════════════════════════
-
-# Lancer tout le monorepo (Turborepo)
-pnpm dev
-
-# Développement sélectif
-pnpm dev --filter=web                # Frontend seulement
-pnpm dev --filter=api                # Backend seulement
-pnpm dev --filter=web --filter=api   # Frontend + Backend
-
-# ═══════════════════════════════════════════════════════════════
-# BUILD & DEPLOY
-# ═══════════════════════════════════════════════════════════════
-
-pnpm build                           # Build complet Turborepo
-pnpm build --filter=web              # Build frontend seulement
-
-# ═══════════════════════════════════════════════════════════════
-# BASE DE DONNÉES (packages/db)
-# ═══════════════════════════════════════════════════════════════
-
-pnpm --filter=db migrate:dev         # Nouvelle migration locale
-pnpm --filter=db migrate:deploy      # Appliquer migrations prod
-pnpm --filter=db generate            # Régénérer Prisma client
-pnpm --filter=db studio              # Prisma Studio (GUI)
-pnpm --filter=db seed                # Seed données test
-
-# ═══════════════════════════════════════════════════════════════
-# QUALITÉ CODE
-# ═══════════════════════════════════════════════════════════════
-
-pnpm lint                            # ESLint partout
-pnpm typecheck                       # TypeScript check complet
-pnpm format                          # Prettier format
-pnpm format:check                    # Vérifier format sans appliquer
-
-# ═══════════════════════════════════════════════════════════════
-# TESTS
-# ═══════════════════════════════════════════════════════════════
-
-pnpm test                            # Tests unitaires
-pnpm test:watch                      # Mode watch
-pnpm test:e2e                        # Tests Playwright
-pnpm test:e2e:ui                     # Playwright UI mode
-
-# ═══════════════════════════════════════════════════════════════
-# UTILITAIRES
-# ═══════════════════════════════════════════════════════════════
-
-pnpm clean                           # Nettoyer node_modules + builds
-pnpm deps                            # Checker les dépendances obsolètes
-```
-
-### Variables d'environnement à setup
-
-**Créer à la racine :** `.env.local` (jamais dans Git)
-
-```bash
-# ═════════════════════════════════════════════════════════════
-# SUPABASE (Auth + DB + Storage + Realtime)
-# ═════════════════════════════════════════════════════════════
-NEXT_PUBLIC_SUPABASE_URL=https://[project].supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_ROLE_KEY=eyJ...  # ⚠️  SERVEUR UNIQUEMENT
-
-# ═════════════════════════════════════════════════════════════
-# REDIS (Upstash MVP → Railway V2+)
-# ═════════════════════════════════════════════════════════════
-REDIS_URL=redis://[user]:[password]@[host]:[port]
-
-# ═════════════════════════════════════════════════════════════
-# STRIPE (Paiements internationaux)
-# ═════════════════════════════════════════════════════════════
-STRIPE_SECRET_KEY=sk_... # ⚠️  SERVEUR UNIQUEMENT
-STRIPE_WEBHOOK_SECRET=whsec_...
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_...
-
-# ═════════════════════════════════════════════════════════════
-# CINETPAY (Mobile Money 17 pays AF)
-# ═════════════════════════════════════════════════════════════
-CINETPAY_API_KEY=... # ⚠️  SERVEUR UNIQUEMENT
-CINETPAY_SITE_ID=...
-
-# ═════════════════════════════════════════════════════════════
-# OPENAI (Contrats, certifications, recherche sémantique V3+)
-# ═════════════════════════════════════════════════════════════
-OPENAI_API_KEY=sk-... # ⚠️  SERVEUR UNIQUEMENT
-
-# ═════════════════════════════════════════════════════════════
-# RESEND (23 templates emails transactionnels)
-# ═════════════════════════════════════════════════════════════
-RESEND_API_KEY=re_... # ⚠️  SERVEUR UNIQUEMENT
-
-# ═════════════════════════════════════════════════════════════
-# CLOUDINARY (Images publiques — avatars, portfolio)
-# ═════════════════════════════════════════════════════════════
-CLOUDINARY_URL=cloudinary://[key]:[secret]@[cloud]
-
-# ═════════════════════════════════════════════════════════════
-# TWILIO / AFRICA'S TALKING (SMS 2FA, alertes sécurité)
-# ═════════════════════════════════════════════════════════════
-TWILIO_ACCOUNT_SID=...
-TWILIO_AUTH_TOKEN=...
-
-# ═════════════════════════════════════════════════════════════
-# MONITORING & ANALYTICS
-# ═════════════════════════════════════════════════════════════
-SENTRY_DSN=...
-NEXT_PUBLIC_SENTRY_DSN=...
-NEXT_PUBLIC_POSTHOG_KEY=...
-
-# ═════════════════════════════════════════════════════════════
-# ENVIRONNEMENT
-# ═════════════════════════════════════════════════════════════
-NODE_ENV=development  # development | staging | production
-API_URL=http://localhost:3001
-```
-
-### Setup initial (première fois)
-
-```bash
-# 1. Installer pnpm (si besoin)
-npm install -g pnpm@latest
-
-# 2. Clone le repo
-git clone [repo-url] freelancehigh && cd freelancehigh
-
-# 3. Installer dépendances
-pnpm install
-
-# 4. Copier .env.local et remplir (voir au-dessus)
-cp .env.example .env.local
-# → Éditer .env.local avec vos clés
-
-# 5. Setup DB locale
-pnpm --filter=db migrate:dev
-
-# 6. Lancer l'app
-pnpm dev
-
-# 7. Accès
-# Frontend: http://localhost:3000
-# Backend:  http://localhost:3001
-# Prisma Studio: http://localhost:5555
-```
-
----
-
-## 🌍 CONVENTIONS FREELANCEHIGH
-
-### TypeScript — Règles absolues
-
-```typescript
-// ✅ BON
-interface User {
-  id: string;
-  email: string;
-  kycLevel: KYCLevel; // Enum typé
-  role: 'freelance' | 'client' | 'agence' | 'admin';
-}
-
-// ❌ MAUVAIS
-const user: any = { ... };  // Jamais de any
-const role: string = 'freelance';  // Types primitifs pas assez spécifiques
-```
-
-### État — Zustand vs React Query
-
-```typescript
-// ✅ Zustand — UI state local
-const { currency, setCurrency, language, setLanguage } = useCurrencyStore();
-
-// ✅ React Query — Server state
-const { data: services, isLoading } = useServices({ freelanceId });
-
-// ❌ MAUVAIS
-const [services, setServices] = useState([]);  // Pas pour data serveur!
-const [currency] = useQuery({ ... });  // Pas pour UI state local!
-```
-
-### i18n RTL — Dès le MVP
-
-```tsx
-// ✅ Classes Tailwind rtl: jour 1
-<div className="ml-4 rtl:ml-0 rtl:mr-4">
-  Contenu responsif RTL
-</div>
-
-// ✅ Layout HTML
-<html lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'}>
-```
-
-### Composants shadcn/ui
-
-```bash
-# Avant de créer un nouveau composant :
-# 1. Vérifier shadcn/ui library (boutons, modales, inputs, etc.)
-pnpm dlx shadcn-ui@latest add button   # Ajouter composant existant
-
-# 2. Customiser dans packages/ui/components/
-# 3. Réutiliser dans apps/web
-```
-
-### Sécurité API — Clés jamais côté client
-
-```typescript
-// ❌ JAMAIS CÔTÉ CLIENT
-export const STRIPE_KEY = 'sk_live_...';  // ⚠️  Exposé au monde!
-
-// ✅ Server Action Next.js
-'use server';
-export async function chargeCard(formData) {
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY); // Sûr
-  // ...
-}
-
-// ✅ Route API (apps/api)
-router.post('/stripe/charge', async (req, res) => {
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-  // ...
-});
-```
-
-### Emails — React Email templates
-
-```typescript
-// packages/ui/emails/WelcomeEmail.tsx
-import { Html, Body, Text } from '@react-email/components';
-
-export default function WelcomeEmail({ locale, userName }) {
-  return (
-    <Html dir={locale === 'ar' ? 'rtl' : 'ltr'}>
-      <Body>
-        <Text>{locale === 'fr' ? `Bienvenue ${userName}!` : `Welcome ${userName}!`}</Text>
-      </Body>
-    </Html>
-  );
-}
-```
-
-### Prisma — Source de vérité
-
-```prisma
-// schema.prisma définit TOUT
-model Service {
-  id        String   @id @default(cuid())
-  title     String
-  freelance Freelance @relation(fields: [freelanceId], references: [id])
-  freelanceId String
-  searchVector String? @db.Unsupported("tsvector")  // FTS Postgres
-}
-
-// Types générés automatiquement dans Prisma Client
-```
-
-### Maquettes — Non-négociable
-
-```
-Avant de coder une page :
-1. Localiser maquette dans /mnt/c/FreelanceHigh/[espace]/
-2. Reproduire structure, hiérarchie, espacements EXACTEMENT
-3. En cas de doute : la maquette a priorité
-```
-
----
-
-## ✅ CHECKLIST PRÉ-COMMIT
-
-```markdown
-## Avant chaque commit
-
-- [ ] Code compilé sans erreur : `pnpm typecheck`
-- [ ] Linting OK : `pnpm lint`
-- [ ] Pas de secrets en dur (grep `.env` + API keys)
-- [ ] Tests passent : `pnpm test`
-- [ ] Migrations Prisma documentées
-- [ ] Composants shadcn/ui réutilisés (pas de doublon)
-- [ ] Maquettes respectées pour UI
-- [ ] RLS Supabase activé si table exposée
-- [ ] Variables d'env non exposées côté client
-```
-
----
-
-## 🚨 RÈGLES D'OR FREELANCEHIGH
-
-```
-1. JAMAIS clé API côté client                  → Variables d'env serveur
-2. JAMAIS manipuler escrow directement côté client → Toujours via API
-3. JAMAIS inventer un composant                → Vérifier shadcn/ui d'abord
-4. JAMAIS modifier maquette sans validation   → La maquette = vérité
-5. JAMAIS de any TypeScript                   → Types stricts partout
-6. JAMAIS skip 2FA/KYC                        → Sécurité d'abord
-7. JAMAIS oublier RTL                         → Classes rtl: jour 1
-```
-
----
-
-```
-1. JAMAIS supposer → Toujours vérifier
-2. JAMAIS forcer → Si bloqué, re-planifier
-3. JAMAIS laisser un hack → Reconstruire proprement
-4. JAMAIS marquer ✅ sans preuve → Tests/logs/validation
-5. JAMAIS oublier une leçon → tasks/lessons.md
-6. JAMAIS interrompre → Une question avant, pas pendant
-7. JAMAIS sur-ingénieriser → Assez bon est assez bon
-```
-
----
-
 ## 📝 TEMPLATE: NOUVELLE SESSION
 
 ```markdown
-# Session du [DATE]
-
-## État Initial
-- Tâche principale: [X]
-- Dépendances bloquantes: [Oui/Non]
-- Leçons appliquées: [Lesquelles]
-
-## Exécution
-- Phase 1: [Résultat] - Status: [✅/🔄/❌]
-- Phase 2: [Résultat] - Status: [✅/🔄/❌]
-
-## Blocages
-- [Blocage]: [Cause] - Action: [Escalade/Re-plan]
-
-## Apprentissages
-- [Nouvelle leçon]
-
-## Prochaine Session
-- [ ] Tâche: [X]
-- [ ] Prérequis: [Y]
-```
-
----
-
----
-
-## 📝 TEMPLATE: NOUVELLE SESSION FREELANCEHIGH
-
-```markdown
-# Session du [DATE] — FreelanceHigh MVP
+# Session du [DATE] — Novakou
 
 ## État Initial
 - **Tâche principale**: [Fonctionnalité clé]
-- **Espace concerné**: [Public|Auth|Freelance|Client|Agence|Admin]
-- **Maquette de référence**: [Lien fichier HTML]
-- **Complexité**: [Triviale|Simple|Modérée|Complexe]
-- **Dépendances bloquantes**: [API tiers? Migrations DB? Authentification?]
+- **Espace concerné**: [Public | Vendeur | Apprenant | Affilié | Admin | Paiements | IA]
+- **Complexité**: [Triviale | Simple | Modérée | Complexe]
+- **Dépendances bloquantes**: [Passerelle tierce ? Migration Prisma ? Auth ?]
 - **Leçons appliquées**: [Lesquelles de tasks/lessons.md]
 
 ## Exécution
 ### Phase 1: [Description]
 - **Résultat attendu**: [Spécifique, mesurable]
-- **Dépendances**: [Étapes précédentes]
 - **Implémentation**:
-  - [ ] Frontend composant/page
-  - [ ] API route/tRPC procédure
-  - [ ] Migration Prisma si DB changée
-  - [ ] Tests
+  - [ ] Page / composant (Server Component par défaut)
+  - [ ] Route handler sous app/api/**
+  - [ ] Migration Prisma si le schéma change
+  - [ ] Traductions dans messages/*.json
+  - [ ] Test Playwright si parcours critique
 - **Status**: [✅ Done | 🔄 In Progress | ❌ Failed]
-- **Leçons**: [Obstacles rencontrés]
-
-### Phase 2: [Description]
-- [Même format]
 
 ## Blocages
-- **[Blocage]**: [Description] — **Cause**: [Analyse] — **Action**: [Escalade/Re-plan/Résolution]
+- **[Blocage]**: [Description] — **Cause**: [Analyse] — **Action**: [Escalade/Re-plan]
 
 ## Validation Finale
-- [ ] Code compilé : `pnpm typecheck`
-- [ ] Linting : `pnpm lint`
-- [ ] Maquette respectée : [Vérif visuelle]
-- [ ] Tests passent : `pnpm test`
-- [ ] Variables d'env correctes (pas de secrets exposés)
-- [ ] Migrations Prisma appliquées
-- [ ] RLS activé sur tables sensibles
-- [ ] RTL classes ajoutées (ml- → rtl:mr-, etc.)
+- [ ] `pnpm typecheck`
+- [ ] `pnpm lint`
+- [ ] `pnpm build`
+- [ ] `pnpm -F @freelancehigh/web test:e2e` (si parcours touché)
+- [ ] Aucun secret exposé, aucun NEXT_PUBLIC_ sensible
+- [ ] Migrations Prisma commitées
+- [ ] SEO validé si meta/JSON-LD touchés
 
 ## Apprentissages
 - [Nouvelle leçon] — Format: [Date] | Ce qui a mal tourné | Règle pour l'éviter
 
 ## Prochaine Session
 - [ ] Tâche: [X]
-- [ ] Maquette prep: [Localiser HTML]
 - [ ] Prérequis: [Y]
 ```
 
 ---
 
-## 📊 STRUCTURE RECOMMANDÉE (tasks/)
-
-```
-.claude/
-├── CLAUDE.md                    ← Ce fichier
-├── tasks/
-│   ├── todo.md                  ← État des sprints (MVP phases)
-│   ├── lessons.md               ← Erreurs + règles cumulées
-│   ├── context.md               ← Stack technique (copie @ARCHITECTURE.md)
-│   ├── anti_patterns.md         ← Pièges récurrents FreelanceHigh
-│   ├── maquettes_checklist.md   ← Cartographie des 61 maquettes HTML
-│   └── metrics.md               ← Performance, coût, temps
-├── decisions/
-│   └── [date]_[decision].md     ← Décisions techniques (ex: JWT custom claims)
-├── logs/
-│   └── [date]_session_[num].md  ← Résumé de chaque session
-└── reference/
-    ├── @PRD.md                  ← Copie du Product Requirements Document
-    ├── @ARCHITECTURE.md         ← Copie du doc architecture
-    ├── @API_TIERS.md            ← Stripe, CinetPay, OpenAI, Resend, etc.
-    └── @MAQUETTES_URLS.md       ← URLs/chemins vers chaque maquette HTML
-```
-
----
-
-## 🎯 PRIORITÉS PENDANT LE MVP
-
-```
-MUST (Jour 1–3)
-├── Setup monorepo + env locals
-├── Auth (Supabase) + 2FA basique
-├── Dashboard freelance (CRUD services)
-├── Dashboard client (explorer + commander)
-└── Escrow (Stripe) premier paiement
-
-SHOULD (Semaine 1–2)
-├── Mobile Money CinetPay
-├── Messagerie simple (pas temps réel)
-├── KYC niveaux 2–3
-└── Notifications email (Resend)
-
-COULD (Semaine 2–3)
-├── Recherche FTS avancée
-├── Temps réel Socket.io
-├── IA contrats (OpenAI)
-└── Analytics dashboard admin
-
-WON'T (MVP = scope fixe)
-├── PWA mobile (V4)
-├── Web3/crypto (V4)
-├── Matching IA (V3)
-└── API publique (V4)
-```
-
----
-
-*Dernière mise à jour: 2026*  
-*FreelanceHigh MVP — Framework adapté aux principes de Boris Cherny*  
-*Documentation complète : [@PRD.md](./PRD.md) | [@ARCHITECTURE.md](./ARCHITECTURE.md)*
+*Dernière mise à jour : 2026-08-17 — réécriture du contexte projet d'après le code réel*
+*Documentation à jour : ce fichier. Les autres docs produit décrivent l'ancien projet FreelanceHigh.*
