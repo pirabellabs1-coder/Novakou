@@ -67,9 +67,38 @@ async function appel<T>(chemin: string, init?: RequestInit): Promise<T> {
     // Réponse non-JSON : on garde le texte brut pour le diagnostic.
   }
   if (!r.ok) {
+    // Un REFUS EXPLICITE n'est pas une panne. Sur un dépôt ou un versement,
+    // PawaPay répond HTTP 400 avec `status: "REJECTED"` et un motif précis —
+    // c'est une réponse complète, qui dit noir sur blanc que RIEN n'a été créé.
+    // La traiter comme une erreur inconnue faisait classer le versement
+    // « ambigu » : l'orchestrateur s'arrêtait net par crainte d'un double
+    // paiement, alors qu'il n'y avait aucun paiement du tout — et le retrait
+    // restait bloqué au lieu de basculer sur la passerelle suivante.
+    const refus = corps as { status?: string } | null;
+    if (r.status === 400 && refus && typeof refus === "object" && refus.status === "REJECTED") {
+      return corps as T;
+    }
     throw new Error(`PawaPay ${chemin} → HTTP ${r.status} : ${texte.slice(0, 300)}`);
   }
   return corps as T;
+}
+
+/**
+ * Libellé vu par le bénéficiaire sur son téléphone, au format qu'exige
+ * PawaPay : lettres non accentuées, chiffres et espaces uniquement, 22
+ * caractères au plus. « Retrait Novakou - Moov Money » était refusé pour son
+ * tiret — un versement entier bloqué par un caractère de ponctuation.
+ */
+export function libellePawapay(texte: string, defaut = "Novakou"): string {
+  const propre = texte
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "") // accents (diacritiques combinants)
+    .replace(/[^A-Za-z0-9 ]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 22)
+    .trim();
+  return propre.length >= 4 ? propre : defaut;
 }
 
 // ─── Couverture réelle du compte ───────────────────────────────────────────
@@ -211,7 +240,7 @@ export async function initCollect(params: {
       currency: params.currency,
       clientReferenceId: params.paymentRef,
       ...(params.customerMessage
-        ? { customerMessage: params.customerMessage.slice(0, 22) }
+        ? { customerMessage: libellePawapay(params.customerMessage) }
         : {}),
     }),
   });
@@ -329,7 +358,7 @@ export async function initPayout(params: {
       currency: params.currency,
       clientReferenceId: params.payoutRef,
       ...(params.customerMessage
-        ? { customerMessage: params.customerMessage.slice(0, 22) }
+        ? { customerMessage: libellePawapay(params.customerMessage) }
         : {}),
     }),
   });
@@ -338,7 +367,9 @@ export async function initPayout(params: {
   return {
     reference: rep.payoutId ?? payoutId,
     accepted,
-    reason: accepted ? undefined : rep.failureReason?.failureMessage ?? rep.status,
+    reason: accepted
+      ? undefined
+      : [rep.failureReason?.failureCode, rep.failureReason?.failureMessage].filter(Boolean).join(" — ") || rep.status,
   };
 }
 

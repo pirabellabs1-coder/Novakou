@@ -182,10 +182,16 @@ const ADAPTATEURS: Record<PayoutProviderId, AdaptateurVersement> = {
       const r = routeFor(code, "pawapay", "payout");
       return r ? { provider: r.code, code } : null;
     },
-    classer: (msg: string) => ({
-      category: "provider_failed" as const,
-      userMessage: `PawaPay : ${msg}`,
-    }),
+    // Un versement REFUSÉ par PawaPay (statut REJECTED, HTTP 400 avec motif)
+    // n'a créé aucun mouvement : basculer est sans danger. Seules les erreurs
+    // sans réponse exploitable (réseau, 5xx, délai) restent ambiguës.
+    classer: (msg: string) => {
+      const refusExplicite = /REJECTED|INVALID_PARAMETER|PAYOUTS_NOT_ALLOWED|RECIPIENT_NOT_FOUND|AMOUNT_TOO|INVALID_/i.test(msg);
+      return {
+        category: (refusExplicite ? "validation" : "provider_failed") as "validation" | "provider_failed",
+        userMessage: `PawaPay : ${msg}`,
+      };
+    },
     envoyer: async ({ input, route, motif }) => {
       const { provider, code } = route as { provider: string; code: string };
       const { initPayout } = await import("@/lib/pawapay");
