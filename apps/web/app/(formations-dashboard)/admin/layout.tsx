@@ -46,6 +46,12 @@ const navItems: NavItem[] = [
   { icon: Package, label: "Produits", href: "/admin/produits" },
   { icon: Users, label: "Utilisateurs", href: "/admin/utilisateurs" },
   { icon: Receipt, label: "Transactions", href: "/admin/transactions" },
+  // Trésorerie : soldes réels chez les passerelles + journal de tous les
+  // mouvements (encaissements et versements), avec la passerelle de chacun.
+  { icon: Landmark, label: "Trésorerie", href: "/admin/tresorerie" },
+  // Une seule vue sur l'argent : soldes réels chez chaque passerelle, et tous
+  // les mouvements avec la passerelle qui les a portés — pour la comptabilité.
+  { icon: Landmark, label: "Trésorerie", href: "/admin/tresorerie" },
   { icon: Plug, label: "Passerelles de paiement", href: "/admin/passerelles" },
   // Sans cette entree la page existe mais n'est atteignable qu'en tapant son
   // adresse : une page admin qu'on ne trouve pas n'est pas une page.

@@ -468,3 +468,29 @@ export async function checkCollectStatus(
     failureMessage: status === "failed" ? tx.last_error_message ?? null : null,
   };
 }
+
+// ─── Soldes du compte ──────────────────────────────────────────────────────
+//
+// Contrat vérifié dans leur spécification OpenAPI (fedapay/docs) :
+//   GET /v1/balances → [{ id, amount, mode, account_id, updated_at }]
+// Un solde par MODE (mtn_open, moov, togocel, card…). C'est ce que FedaPay
+// détient réellement pour nous, pas un calcul de notre côté.
+
+export type SoldeFedapay = { mode: string; solde: number; majLe: string | null };
+
+export async function soldesCompte(): Promise<SoldeFedapay[]> {
+  const base = getBaseUrl();
+  const res = await fetch(`${base}/balances`, { method: "GET", headers: await authHeaders() });
+  const json = (await res.json().catch(() => null)) as unknown;
+  if (!res.ok) {
+    throw new Error(`FedaPay /balances → HTTP ${res.status}`);
+  }
+  // Selon la version, la liste est nue ou enveloppée sous « v1/balances ».
+  const liste = Array.isArray(json)
+    ? json
+    : (json as { "v1/balances"?: unknown[] } | null)?.["v1/balances"] ?? [];
+  return (liste as Array<{ amount?: number; mode?: string; updated_at?: string }>)
+    .filter((b) => b && b.mode)
+    .map((b) => ({ mode: String(b.mode), solde: Number(b.amount ?? 0), majLe: b.updated_at ?? null }));
+}
+

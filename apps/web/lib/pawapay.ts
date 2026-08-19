@@ -400,3 +400,26 @@ export async function checkPayoutStatus(
       return { status: "pending", amount: montant, currency: rep.data.currency ?? null };
   }
 }
+
+// ─── Soldes des portefeuilles ──────────────────────────────────────────────
+//
+// Contrat vérifié dans leur documentation (v2) :
+//   GET /v2/wallet-balances → { balances: [{ country, currency, balance, provider }] }
+// Un portefeuille par pays et devise. C'est l'ARGENT RÉELLEMENT DISPONIBLE
+// chez PawaPay, pas une somme recalculée de notre côté.
+
+export type SoldePawapay = { pays: string; devise: string; solde: number; operateur: string | null };
+
+export async function soldesPortefeuilles(): Promise<SoldePawapay[]> {
+  type Rep = { balances?: Array<{ country?: string; currency?: string; balance?: string | number; provider?: string }> };
+  const rep = await appel<Rep>("/v2/wallet-balances");
+  return (rep.balances ?? [])
+    .filter((b) => b.country && b.currency)
+    .map((b) => ({
+      pays: String(b.country),
+      devise: String(b.currency),
+      solde: Number(b.balance ?? 0),
+      operateur: b.provider ? String(b.provider) : null,
+    }));
+}
+
