@@ -16,7 +16,7 @@
 // Elles restent surchargeables par variable d'environnement, au cas où le
 // fournisseur les ferait évoluer sans prévenir.
 
-import { payoutFetch } from "@/lib/payout/proxy-fetch";
+
 import { credential, hasCredentials, isSandbox } from "@/lib/payments/credentials";
 
 const IPAY_API_BASE = "https://i-pay.money";
@@ -107,7 +107,7 @@ export async function initCollect(params: IpaymoneyCollectParams): Promise<Ipaym
   if (params.msisdn) body.msisdn = params.msisdn.replace(/\D/g, "");
   if (params.customerName) body.customer_name = params.customerName;
 
-  const res = await payoutFetch(`${IPAY_API_BASE}/api/v1/payments`, {
+  const res = await fetch(`${IPAY_API_BASE}/api/v1/payments`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -153,7 +153,7 @@ export async function checkCollectStatus(
   failureMessage?: string | null;
 }> {
   const [key, sandbox] = await Promise.all([getSecretKey(), isSandbox("ipaymoney")]);
-  const res = await payoutFetch(`${IPAY_API_BASE}/api/v1/payments/${encodeURIComponent(reference)}`, {
+  const res = await fetch(`${IPAY_API_BASE}/api/v1/payments/${encodeURIComponent(reference)}`, {
     method: "GET",
     headers: {
       Accept: "application/json",

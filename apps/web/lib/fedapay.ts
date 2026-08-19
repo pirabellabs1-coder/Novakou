@@ -9,7 +9,7 @@
 //   2. PUT  /v1/payouts/start  → le DÉCLENCHE réellement (sinon rien n'est envoyé)
 // puis GET /v1/payouts/{id} pour suivre le statut final (sent / failed).
 
-import { PayoutNeverSentError, codeSysteme, payoutFetch } from "@/lib/payout/proxy-fetch";
+import { PayoutNeverSentError, codeSysteme } from "@/lib/payout/proxy-fetch";
 import { routeFor } from "@/lib/payments/registry";
 import { credential, hasCredentials } from "@/lib/payments/credentials";
 
@@ -97,7 +97,7 @@ export async function initPayout(params: FedapayPayoutInitParams): Promise<Fedap
     },
   };
 
-  const createRes = await payoutFetch(`${base}/payouts`, {
+  const createRes = await fetch(`${base}/payouts`, {
     method: "POST",
     headers,
     body: JSON.stringify(createBody),
@@ -117,7 +117,7 @@ export async function initPayout(params: FedapayPayoutInitParams): Promise<Fedap
   const payoutId = String(created.id);
 
   // 2) Déclencher (sendNow). Sans ce PUT, le payout reste "pending" sans jamais partir.
-  const startRes = await payoutFetch(`${base}/payouts/start`, {
+  const startRes = await fetch(`${base}/payouts/start`, {
     method: "PUT",
     headers,
     body: JSON.stringify({ payouts: [{ id: Number(payoutId) }] }),
@@ -141,12 +141,7 @@ export async function initPayout(params: FedapayPayoutInitParams): Promise<Fedap
 /** Statut d'un payout FedaPay : GET /v1/payouts/{id}. */
 export async function checkPayoutStatus(payoutId: string): Promise<{ status: FedapayPayoutStatus; raw: unknown }> {
   const base = getBaseUrl();
-  // `payoutFetch`, PAS `fetch` : cet appel contournait le proxy à IP fixe et
-  // sortait par l'IP dynamique de Vercel. FedaPay ne filtre pas par IP
-  // aujourd'hui, donc ça passait — mais le jour où elle le fera, la
-  // consultation de statut cesserait de répondre sans que rien ne l'explique,
-  // et les versements resteraient « en attente » pour toujours.
-  const res = await payoutFetch(`${base}/payouts/${encodeURIComponent(payoutId)}`, {
+  const res = await fetch(`${base}/payouts/${encodeURIComponent(payoutId)}`, {
     method: "GET",
     headers: await authHeaders(),
   });
@@ -254,7 +249,7 @@ export function normalizeFedapayStatus(s: FedapayPayoutStatus | string): "succes
 // bancaire hébergée par FedaPay. Aucune donnée de carte ne transite chez nous
 // (périmètre PCI-DSS).
 //
-// Sortie par le proxy à IP fixe, comme le versement.
+// Sortie DIRECTE, sans proxy : FedaPay ne filtre pas par IP.
 
 /**
  * Valeur du champ `mode` attendue par FedaPay, par code opérateur interne.
@@ -310,7 +305,7 @@ export async function initCollect(params: FedapayCollectParams): Promise<Fedapay
   const headers = await authHeaders();
 
   // 1) Créer la transaction.
-  const createRes = await payoutFetch(`${base}/transactions`, {
+  const createRes = await fetch(`${base}/transactions`, {
     method: "POST",
     headers,
     body: JSON.stringify({
@@ -343,7 +338,7 @@ export async function initCollect(params: FedapayCollectParams): Promise<Fedapay
   const txId = String(created.id);
 
   // 2) Générer le jeton de paiement (+ l'URL hébergée).
-  const tokenRes = await payoutFetch(`${base}/transactions/${encodeURIComponent(txId)}/token`, {
+  const tokenRes = await fetch(`${base}/transactions/${encodeURIComponent(txId)}/token`, {
     method: "POST",
     headers,
     body: JSON.stringify({}),
@@ -367,7 +362,7 @@ export async function initCollect(params: FedapayCollectParams): Promise<Fedapay
   // /transactions. La forme précédente renvoyait 404 sur chaque encaissement
   // Mobile Money FedaPay. Le corps ne porte QUE le jeton : le numéro vient du
   // client déjà attaché à la transaction créée à l'étape 1.
-  const sendRes = await payoutFetch(`${base}/${encodeURIComponent(mode)}`, {
+  const sendRes = await fetch(`${base}/${encodeURIComponent(mode)}`, {
     method: "POST",
     headers,
     body: JSON.stringify({ token: tokenJson.token }),
@@ -431,7 +426,7 @@ export async function checkCollectStatus(
   failureMessage?: string | null;
 }> {
   const base = getBaseUrl();
-  const res = await payoutFetch(`${base}/transactions/${encodeURIComponent(transactionId)}`, {
+  const res = await fetch(`${base}/transactions/${encodeURIComponent(transactionId)}`, {
     method: "GET",
     headers: await authHeaders(),
   });

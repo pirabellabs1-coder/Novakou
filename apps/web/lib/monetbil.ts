@@ -1,4 +1,4 @@
-import { payoutFetch } from "@/lib/payout/proxy-fetch";
+
 import { credential, hasCredentials } from "@/lib/payments/credentials";
 
 /**
@@ -93,7 +93,7 @@ export async function initCollect(params: {
   itemName?: string;
 }): Promise<MonetbilCollectResult> {
   const service = await getServiceKey();
-  const res = await payoutFetch(`${MONETBIL_API_BASE}/payment/v1/placePayment`, {
+  const res = await fetch(`${MONETBIL_API_BASE}/payment/v1/placePayment`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({
@@ -140,7 +140,7 @@ export async function checkCollectStatus(
   failureMessage?: string | null;
 }> {
   const service = await getServiceKey();
-  const res = await payoutFetch(`${MONETBIL_API_BASE}/payment/v1/checkPayment`, {
+  const res = await fetch(`${MONETBIL_API_BASE}/payment/v1/checkPayment`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({ service, paymentId: reference }),

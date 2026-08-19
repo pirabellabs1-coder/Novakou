@@ -1,15 +1,21 @@
-// fetch dédié aux appels de VERSEMENT (payout) sortants vers FeexPay / FedaPay.
+// fetch à IP FIXE, réservé aux appels que le fournisseur filtre par IP.
 //
-// Problème : Vercel a des IP de sortie DYNAMIQUES, alors que FeexPay et FedaPay
-// n'autorisent que des IP FIXES whitelistées → « IP not allowed / non autorisée ».
-// Solution : faire sortir ces appels par un PROXY à IP fixe (que l'on whitelist
-// chez les fournisseurs), via la variable d'env PAYOUT_PROXY_URL.
+// Problème : Vercel a des IP de sortie DYNAMIQUES, alors que FeexPay n'autorise
+// que des IP FIXES whitelistées → « IP not allowed ». Solution : faire sortir
+// ces appels par un PROXY à IP fixe (Fixie), via PAYOUT_PROXY_URL.
 //
 //   PAYOUT_PROXY_URL="http://user:pass@proxy-host:port"
 //
-// Inerte tant que la variable n'est pas posée : on retombe sur un fetch normal
-// (IP dynamique Vercel). la passerelle n'utilise PAS ce helper (pas de filtre IP) —
-// ainsi le fournisseur principal ne dépend jamais du proxy.
+// ─── QUI DOIT PASSER PAR ICI : FEEXPAY, ET RIEN D'AUTRE ────────────────────
+// Le proxy est un forfait au NOMBRE de requêtes (2 500/mois). Il servait à
+// TOUT — FedaPay, Monetbil, iPay, et surtout leurs consultations de statut,
+// relancées par le cron toutes les cinq minutes. Résultat le 2026-08-18 :
+// 5 000 requêtes consommées sur 2 500, Fixie refusait, le code retombait « en
+// direct », et FeexPay rejetait l'IP dynamique. Douze versements refusés en
+// douze jours pour un quota mangé par des passerelles qui ne filtrent pas
+// par IP. FedaPay, Monetbil et iPay sortent désormais en direct.
+//
+// Inerte tant que la variable n'est pas posée : fetch normal (IP dynamique).
 
 // ⚠️ On importe le `fetch` d'undici EXPLICITEMENT.
 //
@@ -100,6 +106,29 @@ async function proxyRepond(origine: string): Promise<boolean> {
   }
 }
 
+/**
+ * Prévient l'admin qu'on tourne sans proxy — au plus une fois par heure, pour
+ * que le signal reste lisible quand la panne dure.
+ */
+let derniereAlerteProxy = 0;
+async function alerterProxyHorsService(code: string): Promise<void> {
+  const maintenant = Date.now();
+  if (maintenant - derniereAlerteProxy < 60 * 60 * 1000) return;
+  derniereAlerteProxy = maintenant;
+  try {
+    const { notifyAdmins } = await import("@/lib/admin/notify");
+    await notifyAdmins({
+      title: "Proxy de versement hors service",
+      message:
+        `Le proxy à IP fixe ne répond plus (${code}). Les versements FeexPay sortent par une IP ` +
+        "dynamique et seront refusés. Vérifier le forfait Fixie (quota mensuel), l'hôte et les identifiants.",
+      link: "/admin/passerelles",
+    });
+  } catch {
+    // L'alerte ne doit jamais faire échouer l'appel qu'elle accompagne.
+  }
+}
+
 /** Erreur de versement dont on sait qu'AUCUNE requête n'a atteint le fournisseur. */
 export class PayoutNeverSentError extends Error {
   readonly code: string;
@@ -165,9 +194,15 @@ export async function payoutFetch(url: string, init?: RequestInit): Promise<Resp
     // refuse proprement pour IP non autorisée — un refus explicite, sur lequel
     // l'orchestrateur sait basculer et que l'admin peut lire.
     if (!proxyUrl) throw new PayoutNeverSentError(code, err);
+    // Ce repli SAUVE la requête mais MASQUE la panne : en direct, FeexPay va
+    // refuser l'IP, et l'échec ressemblera à un refus opérateur ordinaire. On
+    // le crie donc fort, et on prévient l'admin — un proxy mort ou un forfait
+    // épuisé bloque TOUS les versements FeexPay tant que personne n'agit.
     console.error(
-      `[payout] proxy à IP fixe injoignable (${code}) — nouvelle tentative en direct vers ${new URL(url).host}`,
+      `[payout] PROXY À IP FIXE HORS SERVICE (${code}) — repli en direct vers ${new URL(url).host}. ` +
+        "Vérifier Fixie : forfait épuisé, identifiants ou hôte. FeexPay refusera l'IP directe.",
     );
+    void alerterProxyHorsService(code);
     try {
       return await fetch(url, init);
     } catch (err2) {
