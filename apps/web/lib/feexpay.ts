@@ -174,12 +174,26 @@ export function classifyFeexpayError(
       userMessage: "Le solde de votre compte FeexPay est insuffisant pour ce virement.",
     };
   }
-  // IP non autorisée / payout non activé → FeexPay indisponible pour ce virement
-  // → l'orchestrateur bascule vers un autre fournisseur (ce n'est pas une erreur
-  // définitive du retrait lui-même).
+  // IP NON AUTORISÉE : ce n'est PAS temporaire. FeexPay n'accepte les versements
+  // que depuis des IP fixes whitelistées ; si l'appel sort par une IP inconnue,
+  // il sera refusé à CHAQUE essai tant que la configuration (proxy à IP fixe ou
+  // whitelist FeexPay) n'est pas corrigée. Le dire « temporaire » a fait
+  // réessayer un vendeur douze fois en douze jours, sur douze IP différentes.
+  // On l'annonce donc pour ce que c'est : une configuration à corriger côté
+  // Novakou, pas une attente côté vendeur.
+  if (lower.includes("ip_not_authorized") || lower.includes("ip not allowed") || lower.includes("ip_not_allowed")) {
+    const ip = msg.match(/\((\d{1,3}(?:\.\d{1,3}){3})\)/)?.[1];
+    return {
+      category: "not_available",
+      userMessage:
+        `FeexPay refuse notre adresse de sortie${ip ? ` (${ip})` : ""} — configuration à corriger côté Novakou ` +
+        "(proxy à IP fixe ou liste blanche FeexPay). Réessayer ne changera rien tant que ce n'est pas fait.",
+    };
+  }
+  // Payout non activé / réseau indisponible → FeexPay ne peut pas servir ce
+  // virement maintenant ; l'orchestrateur bascule vers un autre fournisseur.
   if (
-    lower.includes("ip_not_authorized") || lower.includes("ip not allowed") ||
-    lower.includes("ip_not_allowed") || lower.includes("payout_not_enabled") ||
+    lower.includes("payout_not_enabled") ||
     lower.includes("network_unavailable") || lower.includes("network unavailable")
   ) {
     return {

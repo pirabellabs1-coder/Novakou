@@ -104,7 +104,10 @@ async function probePawapay(creds: Record<string, string>): Promise<Probe> {
               provider?: string;
               currencies?: Array<{
                 currency?: string;
-                operationTypes?: { DEPOSIT?: { authType?: string } };
+                operationTypes?: {
+                  DEPOSIT?: { authType?: string };
+                  PAYOUT?: Record<string, unknown>;
+                };
               }>;
             }>;
           }>;
@@ -121,12 +124,19 @@ async function probePawapay(creds: Record<string, string>): Promise<Probe> {
             // que la demande poussee sur le telephone (PROVIDER_AUTH). Sans
             // cette colonne, un operateur en PREAUTH ou REDIRECT_AUTH passait
             // pour disponible, et chaque vente partait vers un echec certain.
-            const auth = op.currencies?.[0]?.operationTypes?.DEPOSIT?.authType ?? "?";
+            const ops = op.currencies?.[0]?.operationTypes;
+            const auth = ops?.DEPOSIT?.authType ?? "?";
             const utilisable = auth === "PROVIDER_AUTH";
+            // VERSEMENT : la presence de PAYOUT dans la configuration dit si
+            // NOTRE compte peut verser sur cet operateur. C'est ce qui manquait
+            // pour decider, faits a l'appui, quels pays ouvrir au retrait via
+            // PawaPay — le registre en fermait plusieurs (Benin, Cote d'Ivoire)
+            // sans qu'on sache si c'etait un choix ou un oubli.
+            const versement = ops && "PAYOUT" in ops ? "versement:OUI" : "versement:non";
             if (utilisable) encaissables += 1;
             if (c.country && op.provider) {
               lignes.push(
-                `${utilisable ? "OK " : "NON"} ${c.country} ${op.provider} ${dev} [${auth}]`,
+                `${utilisable ? "OK " : "NON"} ${c.country} ${op.provider} ${dev} [${auth}] ${versement}`,
               );
             }
           }

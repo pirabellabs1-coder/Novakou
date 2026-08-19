@@ -112,7 +112,37 @@ function avecTrace(message: string, attempts: PayoutAttempt[]): string {
  */
 const MOTIF_PUBLIC =
   "Un incident technique de notre côté a empêché le versement. Votre solde reste " +
-  "disponible et notre équipe est prévenue — vous pouvez réessayer dans quelques minutes.";
+  "disponible et notre équipe est prévenue. Inutile de relancer tout de suite : " +
+  "nous vous notifierons dès que le versement pourra repartir.";
+
+/**
+ * L'ADMIN EST PRÉVENU À CHAQUE VERSEMENT REFUSÉ.
+ *
+ * Le détail technique était bien enregistré, mais personne n'était averti :
+ * douze retraits d'un même vendeur ont été refusés en douze jours (IP non
+ * autorisée chez FeexPay, pays vide chez FedaPay) sans qu'aucune alerte ne
+ * parte. Le vendeur, lui, lisait « réessayez dans quelques minutes » — et
+ * réessayait. Un versement qui échoue est de l'argent dû qui ne part pas :
+ * c'est le genre de silence qu'on ne peut pas se permettre.
+ */
+async function alerterAdminsVersementRefuse(params: {
+  withdrawalId: string;
+  amount: number;
+  method: string;
+  detail: string;
+  lien: string;
+}) {
+  try {
+    const { notifyAdmins } = await import("@/lib/admin/notify");
+    await notifyAdmins({
+      title: `Versement refusé : ${Math.round(params.amount)} FCFA (${params.method})`,
+      message: params.detail.slice(0, 480),
+      link: params.lien,
+    });
+  } catch (err) {
+    console.error("[payout] alerte admin impossible", err);
+  }
+}
 
 async function notify(userId: string, title: string, message: string, link: string) {
   await prisma.notification
@@ -275,6 +305,13 @@ async function markInstructorRefused(id: string, userId: string, isMentor: boole
     `Votre retrait de ${Math.round(amount)} FCFA n'a pas pu être traité. ${MOTIF_PUBLIC}`,
     isMentor ? "/mentor/finances" : "/wallet",
   );
+  await alerterAdminsVersementRefuse({
+    withdrawalId: id,
+    amount,
+    method: isMentor ? "mentor" : "vendeur",
+    detail: reason,
+    lien: "/admin/retraits-vendeurs",
+  });
 }
 
 /**
@@ -369,6 +406,13 @@ export async function processAffiliateWithdrawalAuto(withdrawalId: string): Prom
       .catch(() => null);
     await prisma.affiliateCommission.updateMany({ where: { withdrawalId: w.id }, data: { withdrawalId: null } });
     await notify(w.userId, "Retrait non abouti", `Votre retrait de ${Math.round(w.amount)} FCFA n'a pas pu être traité. ${MOTIF_PUBLIC}`, "/affilie/retraits");
+    await alerterAdminsVersementRefuse({
+      withdrawalId: w.id,
+      amount: w.amount,
+      method: "affilié",
+      detail: avecTrace(exec.userMessage, exec.attempts),
+      lien: "/admin/retraits",
+    });
     return { status: "REFUSED", reason: exec.userMessage };
   }
 

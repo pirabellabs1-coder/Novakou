@@ -100,15 +100,27 @@ const ADAPTATEURS: Record<PayoutProviderId, AdaptateurVersement> = {
   fedapay: {
     libelle: "FedaPay",
     configure: isFedapayConfigured,
-    route: (m) => m.fedapay ?? null,
+    // Le PAYS voyage avec la route. Il vit au niveau du mapping (`country: "bj"`),
+    // pas dans `m.fedapay` — or c'est la route seule qui arrive à `envoyer`.
+    // Sans cette recopie, `countryIso` valait toujours "" : FedaPay répondait
+    // « phone_number.country doit être rempli(e) » sur CHAQUE versement, et
+    // comme elle est la première passerelle essayée, aucun retrait Bénin/Togo
+    // ne pouvait passer par elle. Le vendeur STAPS Market a vu ce refus le
+    // 2026-08-18 sur 200 F Moov Bénin.
+    route: (m) => (m.fedapay ? { ...m.fedapay, country: m.country } : null),
     classer: classifyFedapayError,
     envoyer: async ({ input, route, currency, motif }) => {
+      const pays = (route as { country?: string }).country ?? "";
+      if (!pays) {
+        // Mieux vaut sauter proprement qu'envoyer une requête qu'on SAIT invalide.
+        throw new Error("pays du bénéficiaire inconnu pour cette route FedaPay");
+      }
       const r = await fedapayInit({
         amount: input.amount,
         currencyIso: currency,
         mode: (route as { mode: string }).mode,
         phoneNumber: `+${input.msisdn}`,
-        countryIso: (route as { country?: string }).country ?? "",
+        countryIso: pays,
         customer: {
           firstname: input.customer.firstName,
           lastname: input.customer.lastName,
