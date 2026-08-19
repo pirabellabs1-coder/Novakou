@@ -9,10 +9,21 @@ pour FeexPay (voir `apps/web/lib/payout/proxy-fetch.ts`).
 
 ## Mise en place — 10 minutes
 
-1. **Louer un serveur** Linux minimal, Ubuntu 22.04/24.04 ou Debian 12.
-   N'importe quel hébergeur avec IP fixe incluse convient — Hetzner (CX22, ~4 €),
-   OVH, Scaleway, DigitalOcean… Choisir une région **Europe de l'Ouest** (proche
-   de FeexPay). Aucune autre option à cocher.
+1. **Obtenir une machine à IP fixe — gratuitement, sans abonnement.**
+   Le logiciel est à nous ; seule l'IP fixe doit venir d'une machine quelque part.
+   Deux offres « gratuites pour toujours » (pas d'essai limité dans le temps) :
+
+   - **Oracle Cloud « Always Free »** — recommandé. Une VM Ubuntu avec IP publique
+     fixe, sans frais, sans limite de durée. Une carte est demandée à l'inscription
+     pour vérifier l'identité, **jamais débitée** sur les ressources Always Free.
+     Créer une instance *VM.Standard.E2.1.Micro* (ou ARM *A1.Flex*), Ubuntu 22.04,
+     région **Paris ou Francfort**, avec « Assign a public IPv4 address » coché.
+     Dans le pare-feu Oracle (*Security List* du VCN), ouvrir le port **8899/TCP**
+     en entrée — le pare-feu de la VM sera réglé par le script.
+   - **Google Cloud « Always Free »** — une VM *e2-micro* gratuite (régions US
+     seulement), IP statique gratuite tant qu'elle est attachée à la VM.
+
+   Une VM à ~4 €/mois (Hetzner, OVH…) marche aussi, mais n'est pas nécessaire.
 
 2. **Se connecter en SSH** en root et lancer :
    ```bash
@@ -33,6 +44,18 @@ pour FeexPay (voir `apps/web/lib/payout/proxy-fetch.ts`).
    répondre `proxyWorks: true` avec l'IP du serveur.
 
 7. **Résilier Fixie** et **supprimer ses deux IP** de la liste FeexPay.
+
+## Coût de fonctionnement
+
+Zéro. Le proxy ne relaie que les appels FeexPay de versement — quelques requêtes
+par retrait. Même une machine minuscule ne s'en apercevra pas.
+
+## Piste pour ne plus avoir de proxy du tout
+
+Écrire au support FeexPay pour demander à **désactiver le filtre IP** sur le
+compte (l'authentification par clé suffit chez la plupart des passerelles — FedaPay,
+PawaPay, Monetbil et iPay ne filtrent pas). S'ils acceptent, `PAYOUT_PROXY_URL`
+se vide et tout ce dossier devient inutile. Ça ne coûte qu'un e-mail.
 
 ## Sécurité — ce qu'il faut savoir
 
