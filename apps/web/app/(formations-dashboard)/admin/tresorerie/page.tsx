@@ -5,9 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   StCard,
   StPageHeader,
-  StKpiCompact,
   StButton,
-  StChip,
   StStatusPill,
   ST,
 } from "@/components/stitch";
@@ -32,18 +30,48 @@ import {
  *   3. Le journal de tous les mouvements, filtrable, exportable en CSV.
  */
 
-type Solde = { passerelle: string; disponible: boolean; lignes: Array<{ libelle: string; devise: string; solde: number }>; note: string | null };
+type Solde = { passerelle: string; disponible: boolean; lignes: Array<{ libelle: string; devise: string; solde: number; soldeFcfa: number }>; totalFcfa: number; note: string | null };
 type Total = { passerelle: string; entrees: number; nbEntrees: number; commission: number; sorties: number; nbSorties: number; sortiesRefusees: number };
 type Mouvement = {
   id: string; date: string; sens: "entree" | "sortie"; type: string; montant: number; devise: string;
   passerelle: string; moyen: string | null; statut: string; reference: string | null; tiers: string | null;
   detail: string | null; commission?: number; partVendeur?: number; partAffilie?: number;
 };
-type Reponse = { periode: { depuis: string; jusqu: string }; soldes: Solde[]; totaux: Total[]; mouvements: Mouvement[]; nbMouvements: number };
+type Reponse = { periode: { depuis: string; jusqu: string }; soldes: Solde[]; soldeTotalFcfa: number; passerellesLues: string[]; totaux: Total[]; mouvements: Mouvement[]; nbMouvements: number };
+
+/** Une couleur stable par passerelle : on la reconnaît avant de lire son nom. */
+const COULEURS: Record<string, { bg: string; fg: string; initiale: string }> = {
+  pawapay: { bg: "#e8f1fd", fg: "#1d4ed8", initiale: "Pw" },
+  feexpay: { bg: "#fdeede", fg: "#c2410c", initiale: "Fx" },
+  fedapay: { bg: "#ece9fb", fg: "#6d28d9", initiale: "Fd" },
+  monetbil: { bg: "#e6f5eb", fg: "#006e2f", initiale: "Mb" },
+  ipaymoney: { bg: "#fdf3df", fg: "#854f0b", initiale: "iP" },
+  kkiapay: { bg: "#e6f5eb", fg: "#0b3b20", initiale: "Kk" },
+  gratuit: { bg: "#eef2ef", fg: "#5d7166", initiale: "0" },
+  manuel: { bg: "#eef2ef", fg: "#5d7166", initiale: "Mn" },
+  "—": { bg: "#fceef2", fg: "#993556", initiale: "✕" },
+};
+function couleur(p: string) {
+  return COULEURS[p] ?? { bg: "#eef2ef", fg: "#5d7166", initiale: p.slice(0, 2).toUpperCase() };
+}
+function Pastille({ p, taille = 28 }: { p: string; taille?: number }) {
+  const c = couleur(p);
+  return (
+    <span
+      className="inline-flex items-center justify-center rounded-[8px] font-extrabold flex-shrink-0"
+      style={{ width: taille, height: taille, background: c.bg, color: c.fg, fontSize: Math.round(taille * 0.4) }}
+      aria-hidden
+    >
+      {c.initiale}
+    </span>
+  );
+}
+const fmtCourt = (n: number) =>
+  new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(Math.round(n));
 
 const NOMS: Record<string, string> = {
   pawapay: "PawaPay", feexpay: "FeexPay", fedapay: "FedaPay", monetbil: "Monetbil", ipaymoney: "iPay Money",
-  kkiapay: "KkiaPay", gratuit: "Gratuit (0 F)", manuel: "Manuel", inconnue: "Inconnue", "—": "Non versé",
+  kkiapay: "KkiaPay", gratuit: "Gratuit (0 F)", manuel: "Manuel", inconnue: "Inconnue", "—": "Aucune",
 };
 const nom = (p: string) => NOMS[p] ?? p;
 
@@ -146,49 +174,73 @@ export default function TresoreriePage() {
         }
       />
 
-      {/* ── 1. Soldes réels chez les passerelles ─────────────────────── */}
-      <section>
-        <h2 className="text-[12px] font-extrabold uppercase tracking-wide mb-2.5" style={{ color: ST.textLabel }}>
-          Soldes réels chez les passerelles
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-          {(data?.soldes ?? ["pawapay", "feexpay", "fedapay", "monetbil"].map((p) => ({ passerelle: p, disponible: false, lignes: [], note: null }))).map((s) => (
-            <StCard key={s.passerelle} className="!p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-[13.5px] font-extrabold" style={{ color: ST.text }}>{nom(s.passerelle)}</div>
-                {s.disponible ? (
-                  <StChip tone="green">lu chez la passerelle</StChip>
-                ) : (
-                  <StChip tone="neutral">non lisible</StChip>
-                )}
+      {/* ── 1. L'argent disponible, MAINTENANT ───────────────────────── */}
+      <StCard className="!p-0 overflow-hidden">
+        <div className="px-5 pt-5 pb-4" style={{ background: "linear-gradient(135deg,#0b3b20,#006e2f)" }}>
+          <div className="text-[11px] font-extrabold uppercase tracking-wider text-white/70">Argent disponible chez nos passerelles</div>
+          <div className="flex items-end gap-3 mt-1">
+            <div className="text-[36px] md:text-[44px] leading-none font-extrabold tabular-nums text-white">
+              {isLoading && !data ? "…" : fmtCourt(data?.soldeTotalFcfa ?? 0)}
+              <span className="text-[16px] ml-2.5 font-bold text-white/80">FCFA</span>
+            </div>
+          </div>
+          <div className="text-[12px] mt-2 text-white/75">
+            {data
+              ? `Somme de ce que ${data.passerellesLues.length} passerelle${data.passerellesLues.length > 1 ? "s" : ""} (${data.passerellesLues.map(nom).join(", ") || "aucune"}) détien${data.passerellesLues.length > 1 ? "nent" : "t"} réellement pour Novakou, lu chez elles à l'instant.`
+              : "Lecture des soldes en cours…"}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x" style={{ borderColor: ST.divider }}>
+          {(data?.soldes ?? []).filter((x) => x.disponible).map((x) => (
+            <div key={x.passerelle} className="px-5 py-4">
+              <div className="flex items-center gap-2.5">
+                <Pastille p={x.passerelle} taille={30} />
+                <div className="min-w-0">
+                  <div className="text-[14px] font-extrabold" style={{ color: ST.text }}>{nom(x.passerelle)}</div>
+                  <div className="text-[11px] font-semibold" style={{ color: ST.textMuted }}>solde lu chez la passerelle</div>
+                </div>
+                <div className="ml-auto text-[22px] font-extrabold tabular-nums whitespace-nowrap" style={{ color: ST.text }}>
+                  {fmtCourt(x.totalFcfa)} <span className="text-[12px] font-bold" style={{ color: ST.textMuted }}>F</span>
+                </div>
               </div>
-              {isLoading && !data ? (
-                <div className="h-8 rounded animate-pulse" style={{ background: ST.divider }} />
-              ) : s.disponible && s.lignes.length > 0 ? (
-                <ul className="space-y-1">
-                  {s.lignes.map((l, i) => (
-                    <li key={i} className="flex items-baseline justify-between gap-2">
-                      <span className="text-[12px] font-semibold truncate" style={{ color: ST.textSecondary }}>{l.libelle}</span>
-                      <span className="text-[16px] font-extrabold tabular-nums" style={{ color: ST.text }}>{fmt(l.solde, l.devise)}</span>
+              {x.lignes.length > 1 || (x.lignes[0] && x.lignes[0].devise !== "XOF") ? (
+                <ul className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                  {x.lignes.map((l, i) => (
+                    <li key={i} className="flex items-baseline justify-between gap-2 text-[12px]">
+                      <span className="font-semibold truncate" style={{ color: ST.textSecondary }}>{l.libelle}</span>
+                      <span className="tabular-nums font-bold whitespace-nowrap" style={{ color: ST.text }}>
+                        {fmtCourt(l.solde)} {l.devise}
+                        {l.devise !== "XOF" && l.devise !== "XAF" && (
+                          <span className="ml-1 font-semibold" style={{ color: ST.textMuted }}>≈ {fmtCourt(l.soldeFcfa)} F</span>
+                        )}
+                      </span>
                     </li>
                   ))}
                 </ul>
-              ) : s.disponible ? (
-                <div className="text-[12.5px] font-semibold" style={{ color: ST.textMuted }}>Aucun portefeuille renvoyé.</div>
-              ) : (
-                <div className="text-[12px] leading-snug flex items-start gap-1.5" style={{ color: ST.textMuted }}>
-                  <AlertTriangle size={13} className="mt-0.5 flex-shrink-0" />
-                  <span>{s.note ?? "non configurée"}</span>
-                </div>
-              )}
-            </StCard>
+              ) : null}
+            </div>
           ))}
+          {!isLoading && (data?.soldes ?? []).filter((x) => x.disponible).length === 0 && (
+            <div className="px-5 py-6 text-[13px] font-semibold md:col-span-2" style={{ color: ST.textMuted }}>
+              Aucune passerelle n'a pu être lue — les cartes ci-dessous indiquent pourquoi.
+            </div>
+          )}
         </div>
-        <p className="text-[11px] mt-2" style={{ color: ST.textFaint }}>
-          Ces chiffres sont demandés aux passerelles au chargement de la page — ce n'est pas un calcul de notre côté.
-          Un solde « non lisible » signifie que la passerelle n'offre pas cette lecture par API : il faut le regarder sur son tableau de bord.
-        </p>
-      </section>
+
+        {(data?.soldes ?? []).some((x) => !x.disponible) && (
+          <div className="px-5 py-3 border-t flex flex-wrap items-center gap-x-5 gap-y-1.5" style={{ borderColor: ST.divider, background: "#fafbfa" }}>
+            <span className="text-[11px] font-extrabold uppercase tracking-wide" style={{ color: ST.textMuted }}>Non lisible par API</span>
+            {(data?.soldes ?? []).filter((x) => !x.disponible).map((x) => (
+              <span key={x.passerelle} className="inline-flex items-center gap-1.5 text-[12px]" title={x.note ?? ""}>
+                <Pastille p={x.passerelle} taille={18} />
+                <span className="font-bold" style={{ color: ST.textSecondary }}>{nom(x.passerelle)}</span>
+                <span style={{ color: ST.textMuted }}>— {x.note?.startsWith("injoignable") ? "injoignable" : x.note?.startsWith("non configur") ? "non configurée" : "à voir sur son tableau de bord"}</span>
+              </span>
+            ))}
+          </div>
+        )}
+      </StCard>
 
       {/* ── 2. Filtres ───────────────────────────────────────────────── */}
       <StCard className="!p-3.5">
@@ -227,19 +279,44 @@ export default function TresoreriePage() {
         </div>
       </StCard>
 
-      {/* ── 3. Synthèse de la période ───────────────────────────────── */}
+      {/* ── 3. Ce qui a bougé sur la période ─────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StKpiCompact icon={ArrowDownLeft} tone="green" label={`Encaissé · ${synthese.nbEntrees} vente${synthese.nbEntrees > 1 ? "s" : ""}`} value={fmt(synthese.entrees)} />
-        <StKpiCompact icon={Percent} tone="blue" label="Commission plateforme" value={fmt(synthese.commission)} />
-        <StKpiCompact icon={ArrowUpRight} tone="amber" label={`Versé · ${synthese.nbSorties} retrait${synthese.nbSorties > 1 ? "s" : ""}`} value={fmt(synthese.sorties)} />
-        <StKpiCompact icon={AlertTriangle} tone={synthese.refus > 0 ? "rose" : "green"} label="Versements refusés" value={String(synthese.refus)} />
+        <StCard className="!p-4">
+          <div className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-wide" style={{ color: ST.green }}>
+            <ArrowDownLeft size={14} /> Entré
+          </div>
+          <div className="text-[24px] font-extrabold tabular-nums mt-1" style={{ color: ST.text }}>+{fmtCourt(synthese.entrees)} <span className="text-[12px]" style={{ color: ST.textMuted }}>F</span></div>
+          <div className="text-[11.5px] font-semibold" style={{ color: ST.textSecondary }}>{synthese.nbEntrees} vente{synthese.nbEntrees > 1 ? "s" : ""} encaissée{synthese.nbEntrees > 1 ? "s" : ""}</div>
+        </StCard>
+        <StCard className="!p-4">
+          <div className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-wide" style={{ color: ST.amberText }}>
+            <ArrowUpRight size={14} /> Sorti
+          </div>
+          <div className="text-[24px] font-extrabold tabular-nums mt-1" style={{ color: ST.text }}>−{fmtCourt(synthese.sorties)} <span className="text-[12px]" style={{ color: ST.textMuted }}>F</span></div>
+          <div className="text-[11.5px] font-semibold" style={{ color: ST.textSecondary }}>{synthese.nbSorties} versement{synthese.nbSorties > 1 ? "s" : ""} effectué{synthese.nbSorties > 1 ? "s" : ""}</div>
+        </StCard>
+        <StCard className="!p-4">
+          <div className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-wide" style={{ color: ST.blueText }}>
+            <Percent size={14} /> Commission Novakou
+          </div>
+          <div className="text-[24px] font-extrabold tabular-nums mt-1" style={{ color: ST.text }}>{fmtCourt(synthese.commission)} <span className="text-[12px]" style={{ color: ST.textMuted }}>F</span></div>
+          <div className="text-[11.5px] font-semibold" style={{ color: ST.textSecondary }}>notre part sur les ventes</div>
+        </StCard>
+        <StCard className="!p-4" >
+          <div className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-wide" style={{ color: synthese.refus > 0 ? ST.roseText : ST.textMuted }}>
+            <AlertTriangle size={14} /> Versements refusés
+          </div>
+          <div className="text-[24px] font-extrabold tabular-nums mt-1" style={{ color: synthese.refus > 0 ? ST.roseText : ST.text }}>{synthese.refus}</div>
+          <div className="text-[11.5px] font-semibold" style={{ color: ST.textSecondary }}>{synthese.refus > 0 ? "à traiter — voir le journal" : "rien à signaler"}</div>
+        </StCard>
       </div>
 
       {/* ── 4. Totaux par passerelle ────────────────────────────────── */}
       <StCard noPadding>
         <div className="px-4 py-3 border-b flex items-center gap-2" style={{ borderColor: ST.divider }}>
           <Landmark size={16} style={{ color: ST.green }} />
-          <h2 className="text-[13.5px] font-extrabold" style={{ color: ST.text }}>Par passerelle, sur la période</h2>
+          <h2 className="text-[13.5px] font-extrabold" style={{ color: ST.text }}>Qui a encaissé quoi, qui a versé quoi</h2>
+          <span className="text-[11.5px] font-semibold ml-1" style={{ color: ST.textMuted }}>— sur la période choisie</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-[13px]">
@@ -257,7 +334,11 @@ export default function TresoreriePage() {
             <tbody>
               {(data?.totaux ?? []).map((t) => (
                 <tr key={t.passerelle} className="border-t" style={{ borderColor: ST.divider }}>
-                  <td className="px-4 py-2.5 font-extrabold" style={{ color: ST.text }}>{nom(t.passerelle)}</td>
+                  <td className="px-4 py-2.5">
+                    <span className="inline-flex items-center gap-2 font-extrabold" style={{ color: ST.text }}>
+                      <Pastille p={t.passerelle} taille={22} />{nom(t.passerelle)}
+                    </span>
+                  </td>
                   <td className="px-4 py-2.5 text-right tabular-nums font-bold" style={{ color: ST.green }}>{t.entrees ? fmt(t.entrees) : "—"}</td>
                   <td className="px-4 py-2.5 text-right tabular-nums" style={{ color: ST.textSecondary }}>{t.nbEntrees || "—"}</td>
                   <td className="px-4 py-2.5 text-right tabular-nums" style={{ color: ST.textSecondary }}>{t.commission ? fmt(t.commission) : "—"}</td>
@@ -278,6 +359,7 @@ export default function TresoreriePage() {
       <StCard noPadding>
         <div className="px-4 py-3 border-b" style={{ borderColor: ST.divider }}>
           <h2 className="text-[13.5px] font-extrabold" style={{ color: ST.text }}>Journal des mouvements</h2>
+          <span className="text-[11.5px] font-semibold ml-1" style={{ color: ST.textMuted }}>— chaque ligne dit par quelle passerelle l'argent est passé</span>
         </div>
         {error ? (
           <div className="p-6 text-center text-[13px] font-semibold" style={{ color: ST.roseText }}>{(error as Error).message}</div>
@@ -314,7 +396,11 @@ export default function TresoreriePage() {
                         <div className="text-[10.5px] font-semibold" style={{ color: ST.textMuted }}>com. {fmt(m.commission)} · vendeur {fmt(m.partVendeur ?? 0)}</div>
                       )}
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap font-bold" style={{ color: ST.text }}>{nom(m.passerelle)}</td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1.5 font-bold" style={{ color: ST.text }}>
+                        <Pastille p={m.passerelle} taille={18} />{nom(m.passerelle)}
+                      </span>
+                    </td>
                     <td className="px-3 py-2 whitespace-nowrap font-mono text-[11.5px]" style={{ color: ST.textSecondary }}>{m.moyen ?? "—"}</td>
                     <td className="px-3 py-2 whitespace-nowrap">
                       {m.statut === "encaisse" ? <StStatusPill status="ACTIF" label="Encaissé" /> : <StStatusPill status={m.statut} />}

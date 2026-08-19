@@ -69,38 +69,69 @@ export async function GET(req: NextRequest) {
   const soldes: Array<{
     passerelle: string;
     disponible: boolean;
-    lignes: Array<{ libelle: string; devise: string; solde: number }>;
+    lignes: Array<{ libelle: string; devise: string; solde: number; soldeFcfa: number }>;
+    /** Somme des lignes, ramenée en FCFA — c'est LE chiffre à lire. */
+    totalFcfa: number;
     note: string | null;
   }> = [];
+
+  // Les portefeuilles PawaPay sont dans la devise de chaque pays : pour
+  // additionner et comparer, tout est ramené en FCFA avec les taux du site.
+  const { montantVersFcfa } = await import("@/lib/currency/rates");
+  const { chargerTaux } = await import("@/lib/currency/taux-store");
+  await chargerTaux().catch(() => null);
+  const enFcfa = (montant: number, devise: string) => {
+    try { return Math.round(montantVersFcfa(montant, devise)); } catch { return devise === "XOF" || devise === "XAF" ? Math.round(montant) : 0; }
+  };
+  const libellePays: Record<string, string> = {
+    BEN: "Bénin", CIV: "Côte d'Ivoire", SEN: "Sénégal", CMR: "Cameroun", COD: "RD Congo", COG: "Congo",
+    GAB: "Gabon", KEN: "Kenya", RWA: "Rwanda", SLE: "Sierra Leone", UGA: "Ouganda", ZMB: "Zambie",
+    TGO: "Togo", BFA: "Burkina Faso", MLI: "Mali", NER: "Niger", GIN: "Guinée", TZA: "Tanzanie", MWI: "Malawi", NGA: "Nigeria", GHA: "Ghana", MOZ: "Mozambique",
+  };
+  const libelleMode: Record<string, string> = {
+    mtn_open: "MTN Bénin", mtn: "MTN", moov: "Moov Bénin", moov_tg: "Moov Togo", togocel: "Togocel", sbin: "Celtiis Bénin",
+    mtn_ci: "MTN Côte d'Ivoire", orange_ci: "Orange Côte d'Ivoire", free_sn: "Free Sénégal", orange_sn: "Orange Sénégal", wave_sn: "Wave Sénégal", card: "Carte bancaire",
+  };
 
   const [pw, fd] = await Promise.allSettled([
     (async () => {
       const { isPawapayConfigured, soldesPortefeuilles } = await import("@/lib/pawapay");
       if (!(await isPawapayConfigured())) return { configure: false, lignes: [] };
       const l = await soldesPortefeuilles();
-      return { configure: true, lignes: l.map((x) => ({ libelle: `${x.pays}${x.operateur ? " · " + x.operateur : ""}`, devise: x.devise, solde: x.solde })) };
+      return {
+        configure: true,
+        lignes: l.map((x) => ({
+          libelle: `${libellePays[x.pays] ?? x.pays}${x.operateur ? " · " + x.operateur : ""}`,
+          devise: x.devise,
+          solde: x.solde,
+          soldeFcfa: enFcfa(x.solde, x.devise),
+        })),
+      };
     })(),
     (async () => {
       const { isFedapayConfigured, soldesCompte } = await import("@/lib/fedapay");
       if (!(await isFedapayConfigured())) return { configure: false, lignes: [] };
       const l = await soldesCompte();
-      return { configure: true, lignes: l.map((x) => ({ libelle: x.mode, devise: "XOF", solde: x.solde })) };
+      return { configure: true, lignes: l.map((x) => ({ libelle: libelleMode[x.mode] ?? x.mode, devise: "XOF", solde: x.solde, soldeFcfa: Math.round(x.solde) })) };
     })(),
   ]);
 
+  const total = (l: Array<{ soldeFcfa: number }>) => l.reduce((a, x) => a + x.soldeFcfa, 0);
   soldes.push(
     pw.status === "fulfilled"
-      ? { passerelle: "pawapay", disponible: pw.value.configure, lignes: pw.value.lignes, note: pw.value.configure ? null : "non configurée" }
-      : { passerelle: "pawapay", disponible: false, lignes: [], note: `injoignable : ${pw.reason instanceof Error ? pw.reason.message : String(pw.reason)}`.slice(0, 160) },
+      ? { passerelle: "pawapay", disponible: pw.value.configure, lignes: pw.value.lignes, totalFcfa: total(pw.value.lignes), note: pw.value.configure ? null : "non configurée" }
+      : { passerelle: "pawapay", disponible: false, lignes: [], totalFcfa: 0, note: `injoignable : ${pw.reason instanceof Error ? pw.reason.message : String(pw.reason)}`.slice(0, 160) },
   );
   soldes.push(
     fd.status === "fulfilled"
-      ? { passerelle: "fedapay", disponible: fd.value.configure, lignes: fd.value.lignes, note: fd.value.configure ? null : "non configurée" }
-      : { passerelle: "fedapay", disponible: false, lignes: [], note: `injoignable : ${fd.reason instanceof Error ? fd.reason.message : String(fd.reason)}`.slice(0, 160) },
+      ? { passerelle: "fedapay", disponible: fd.value.configure, lignes: fd.value.lignes, totalFcfa: total(fd.value.lignes), note: fd.value.configure ? null : "non configurée" }
+      : { passerelle: "fedapay", disponible: false, lignes: [], totalFcfa: 0, note: `injoignable : ${fd.reason instanceof Error ? fd.reason.message : String(fd.reason)}`.slice(0, 160) },
   );
   // Honnêteté sur ce qu'on ne sait pas lire.
-  soldes.push({ passerelle: "feexpay", disponible: false, lignes: [], note: "aucun point d'entrée de solde dans leur API — consulter le tableau de bord FeexPay" });
-  soldes.push({ passerelle: "monetbil", disponible: false, lignes: [], note: "aucun point d'entrée de solde dans leur API — consulter le tableau de bord Monetbil" });
+  soldes.push({ passerelle: "feexpay", disponible: false, lignes: [], totalFcfa: 0, note: "pas de lecture de solde par API — voir le tableau de bord FeexPay" });
+  soldes.push({ passerelle: "monetbil", disponible: false, lignes: [], totalFcfa: 0, note: "pas de lecture de solde par API — voir le tableau de bord Monetbil" });
+  const soldeTotalFcfa = soldes.reduce((a, s) => a + s.totalFcfa, 0);
+  const passerellesLues = soldes.filter((s) => s.disponible).map((s) => s.passerelle);
 
   // ── 2. ENTRÉES : ventes, avec la passerelle retrouvée sur la tentative ──
   const ventes = await prisma.platformRevenue.findMany({
@@ -225,6 +256,8 @@ export async function GET(req: NextRequest) {
     data: {
       periode: { depuis: depuis.toISOString(), jusqu: jusqu.toISOString() },
       soldes,
+      soldeTotalFcfa,
+      passerellesLues,
       totaux: [...parPasserelle.entries()].map(([passerelle, t]) => ({ passerelle, ...t })).sort((a, b) => b.entrees + b.sorties - (a.entrees + a.sorties)),
       mouvements: filtres.slice(0, 1500),
       nbMouvements: filtres.length,
