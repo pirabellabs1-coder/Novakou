@@ -278,6 +278,17 @@ export async function processInstructorWithdrawalAuto(withdrawalId: string): Pro
     },
   });
   await notify(uid, "Retrait en cours", `Votre retrait de ${Math.round(w.amount)} FCFA via ${shortMethodLabel(resolvedMethod)} est en cours de traitement. Vous serez notifié dès réception des fonds.`, link);
+  if (exec.status === "success") {
+    const { alerterAdminsVersementReussi } = await import("@/lib/payout/alerte-admin");
+    await alerterAdminsVersementReussi({
+      amount: w.amount,
+      qui: isMentor ? "mentor" : "vendeur",
+      method: shortMethodLabel(resolvedMethod),
+      provider: exec.provider,
+      providerRef: exec.providerRef,
+      beneficiaire: w.instructeur.user.email,
+    });
+  }
 
   return exec.status === "success"
     ? { status: "PAID", provider: exec.provider, paymentRef: exec.providerRef }

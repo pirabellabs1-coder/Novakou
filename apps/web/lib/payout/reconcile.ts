@@ -14,6 +14,7 @@
 import { prisma } from "@/lib/prisma";
 import { shortMethodLabel } from "@/lib/payments/payout-catalog";
 import { sendWithdrawalPaidEmail, sendWithdrawalFailedEmail } from "@/lib/email/withdrawals";
+import { alerterAdminsVersementReussi } from "@/lib/payout/alerte-admin";
 
 export type ReconcileStatus = "success" | "failed" | "pending";
 
@@ -54,6 +55,14 @@ export async function reconcilePayout(
           },
         }).catch(() => null);
         await sendWithdrawalPaidEmail(w.instructeur.user.email, w.instructeur.user.name, w.amount, shortMethodLabel(w.method), link);
+        await alerterAdminsVersementReussi({
+          amount: w.amount,
+          qui: w.method.endsWith("_mentor") ? "mentor" : "vendeur",
+          method: shortMethodLabel(w.method),
+          provider: providerLabel,
+          providerRef,
+          beneficiaire: w.instructeur.user.email,
+        });
       }
       return { matched: true, kind: "vendor", applied: "TRAITE" };
     }
@@ -112,6 +121,14 @@ export async function reconcilePayout(
           },
         }).catch(() => null);
         await sendWithdrawalPaidEmail(aw.affiliate?.user?.email, aw.affiliate?.user?.name, aw.amount, "Mobile Money", "/affilie/retraits");
+        await alerterAdminsVersementReussi({
+          amount: aw.amount,
+          qui: "affilié",
+          method: "Mobile Money",
+          provider: providerLabel,
+          providerRef,
+          beneficiaire: aw.affiliate?.user?.email ?? null,
+        });
       }
       return { matched: true, kind: "affiliate", applied: "TRAITE" };
     }

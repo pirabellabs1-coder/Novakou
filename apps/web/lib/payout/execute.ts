@@ -42,7 +42,15 @@ export type PayoutProviderId = "feexpay" | "fedapay" | "pawapay" | "monetbil";
 // PawaPay en DERNIER : aucun versement reel ne l'a encore eprouve. Il ne prend
 // donc la main que la ou les deux autres ne savent pas faire — c'est-a-dire
 // partout hors zone franc, ou il est de toute facon le seul.
-const PROVIDER_ORDER: PayoutProviderId[] = ["fedapay", "feexpay", "pawapay", "monetbil"];
+// ORDRE D'ESSAI. Reflète ce que le COMPTE sait faire, pas une préférence :
+//   1. PawaPay — versement activé, aucun filtre IP, aucun proxy : la voie la
+//      plus fiable aujourd'hui (2026-08-18).
+//   2. FeexPay — versement activé, mais dépend du proxy à IP fixe.
+//   3. FedaPay — versement NON activé sur le compte : elle répondra « non
+//      autorisé » tant que ce n'est pas ouvert. La laisser en tête faisait
+//      partir chaque retrait sur un refus certain avant même d'essayer les
+//      passerelles qui marchent.
+const PROVIDER_ORDER: PayoutProviderId[] = ["pawapay", "feexpay", "fedapay", "monetbil"];
 
 export type PayoutExecutionInput = {
   /** Code opérateur interne (le suffixe _mentor est toléré). */

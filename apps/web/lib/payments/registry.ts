@@ -156,6 +156,11 @@ export type OperatorEntry = {
  * Sources des codes :
  *  - feexpay.collect : valeurs du champ `reseau` du SDK React officiel.
  *  - feexpay.payout  : endpoints confirmés (payout/methods-map.ts).
+ *  - pawapay (payout): ouvert sur les opérateurs du COMPTE (Bénin, CI, Sénégal,
+ *                      et zone hors franc). Le compte n'a pas FedaPay en
+ *                      versement (2026-08-18) : PawaPay et FeexPay sont les deux
+ *                      seules voies réelles. Un opérateur non activé chez eux
+ *                      est refusé PROPREMENT avant tout mouvement d'argent.
  *  - fedapay         : SEULS mtn_bj / moov_bj / togocel confirmés ; les autres
  *                      attendent les codes `mode` du tableau de bord FedaPay.
  *
@@ -172,6 +177,7 @@ export const OPERATORS: Record<string, OperatorEntry> = {
       feexpay: { code: "MTN" },
       fedapay: { code: "mtn_open" } },
     payout: {
+      pawapay: { code: "MTN_MOMO_BEN" },
       feexpay: { code: "transfer/global", params: { network: "MTN" } },
       fedapay: { code: "mtn_open" } } },
   moov_bj: {
@@ -181,6 +187,7 @@ export const OPERATORS: Record<string, OperatorEntry> = {
       feexpay: { code: "MOOV" },
       fedapay: { code: "moov" } },
     payout: {
+      pawapay: { code: "MOOV_BEN" },
       feexpay: { code: "transfer/global", params: { network: "MOOV" } },
       fedapay: { code: "moov" } } },
   celtiis_bj: {
@@ -200,7 +207,7 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     label: "Orange Money (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
     collect: {
       pawapay: { code: "ORANGE_CIV" }, feexpay: { code: "ORANGE CI" } },
-    payout: { feexpay: { code: "orange_ci" } } },
+    payout: { pawapay: { code: "ORANGE_CIV" }, feexpay: { code: "orange_ci" } } },
   wave_ci: {
     label: "Wave (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
     // ENCAISSEMENT FERMÉ (constat production 2026-08-08, 3 ventes perdues) :
@@ -221,7 +228,7 @@ export const OPERATORS: Record<string, OperatorEntry> = {
       pawapay: { code: "MTN_MOMO_CIV" },
       feexpay: { code: "MTN CI" },
       fedapay: { code: "mtn_ci" } },
-    payout: { feexpay: { code: "mtn_ci" }, fedapay: { code: "mtn_ci" } } },
+    payout: { pawapay: { code: "MTN_MOMO_CIV" }, feexpay: { code: "mtn_ci" }, fedapay: { code: "mtn_ci" } } },
   moov_ci: {
     label: "Moov Money (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
     collect: { feexpay: { code: "MOOV CI" } },
@@ -236,7 +243,7 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     label: "Orange Money (Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
     collect: {
       pawapay: { code: "ORANGE_SEN" }, feexpay: { code: "ORANGE SN" } },
-    payout: { feexpay: { code: "orange_sn" } } },
+    payout: { pawapay: { code: "ORANGE_SEN" }, feexpay: { code: "orange_sn" } } },
   wave_sn: {
     label: "Wave (Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
     // ENCAISSEMENT FERMÉ (dashboard PawaPay vérifié le 2026-08-08) : Wave ne
@@ -251,7 +258,7 @@ export const OPERATORS: Record<string, OperatorEntry> = {
       pawapay: { code: "FREE_SEN" },
       feexpay: { code: "FREE SN" },
       fedapay: { code: "free_sn" } },
-    payout: { feexpay: { code: "free_sn" }, fedapay: { code: "free_sn" } } },
+    payout: { pawapay: { code: "FREE_SEN" }, feexpay: { code: "free_sn" }, fedapay: { code: "free_sn" } } },
   e_money_sn: {
     label: "E-Money (Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
     collect: {},
