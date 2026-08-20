@@ -182,6 +182,24 @@ export function classifyFedapayError(
     };
   }
   const lower = msg.toLowerCase();
+  // « merchant_reference n'est pas disponible » : un versement portant NOTRE
+  // référence de retrait existe DÉJÀ chez FedaPay — créé par un essai
+  // précédent qui n'a pas été jusqu'au bout (créé mais jamais démarré, ou
+  // démarré sans qu'on ait reçu la réponse). C'est le garde-fou anti-double-
+  // paiement de FedaPay qui parle. Relancer redonnera exactement la même
+  // erreur, indéfiniment ; et basculer sur une autre passerelle risquerait de
+  // payer deux fois si ce versement-là est parti. La seule sortie est humaine :
+  // regarder ce versement dans le tableau de bord FedaPay, puis soit le
+  // démarrer là-bas, soit l'annuler avant de relancer ici.
+  if (lower.includes("merchant_reference")) {
+    return {
+      category: "unknown",
+      userMessage:
+        "Un versement FedaPay existe déjà pour ce retrait (référence déjà utilisée par un essai précédent). " +
+        "Ouvrez le tableau de bord FedaPay : s'il est « pending », annulez-le ou démarrez-le là-bas — puis relancez ici. " +
+        "Ne pas forcer une autre passerelle sans cette vérification : risque de double paiement.",
+    };
+  }
   if (lower.includes("insufficient") || lower.includes("balance") || lower.includes("solde") || lower.includes("fund")) {
     return {
       category: "insufficient_funds",
