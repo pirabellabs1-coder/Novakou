@@ -30,26 +30,18 @@ import { getPayoutMapping, baseMethodCode } from "@/lib/payout/methods-map";
 
 export type PayoutProviderId = "feexpay" | "fedapay" | "pawapay" | "monetbil";
 
-/** Ordre de tentative : le premier configuré ET capable emporte le versement. */
 /**
- * Ordre d'essai des passerelles de VERSEMENT — décision fondateur du
- * 2026-08-04 : FedaPay d'abord, FeexPay en secours.
- *
- * Ne pas confondre avec l'ordre d'ENCAISSEMENT, qui se décide par pays et par
- * opérateur : ici, les deux passerelles servent les mêmes réseaux, c'est donc
- * la fiabilité constatée qui tranche.
+ * ORDRE D'ESSAI — le premier configuré ET capable emporte le versement.
+ * Il reflète l'état CONSTATÉ du compte, pas une préférence :
+ *   1. PawaPay — sans filtre IP ni proxy, mais le versement n'est activé que
+ *      sur une partie des opérateurs (MOOV_BEN refusé le 2026-08-19 :
+ *      PAYOUTS_NOT_ALLOWED). Quand il refuse, il refuse proprement — on passe
+ *      au suivant sans risque.
+ *   2. FeexPay — versement activé, mais dépend du proxy à IP fixe.
+ *   3. FedaPay — VERSE : retrait MTN Bénin de 200 F TRAITÉ le 2026-08-19
+ *      (réf 14960671), une fois le pays du bénéficiaire transmis. Filet
+ *      fiable pour le Bénin et le Togo.
  */
-// PawaPay en DERNIER : aucun versement reel ne l'a encore eprouve. Il ne prend
-// donc la main que la ou les deux autres ne savent pas faire — c'est-a-dire
-// partout hors zone franc, ou il est de toute facon le seul.
-// ORDRE D'ESSAI. Reflète ce que le COMPTE sait faire, pas une préférence :
-//   1. PawaPay — versement activé, aucun filtre IP, aucun proxy : la voie la
-//      plus fiable aujourd'hui (2026-08-18).
-//   2. FeexPay — versement activé, mais dépend du proxy à IP fixe.
-//   3. FedaPay — versement NON activé sur le compte : elle répondra « non
-//      autorisé » tant que ce n'est pas ouvert. La laisser en tête faisait
-//      partir chaque retrait sur un refus certain avant même d'essayer les
-//      passerelles qui marchent.
 const PROVIDER_ORDER: PayoutProviderId[] = ["pawapay", "feexpay", "fedapay", "monetbil"];
 
 export type PayoutExecutionInput = {
