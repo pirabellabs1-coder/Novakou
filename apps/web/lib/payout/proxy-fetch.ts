@@ -6,7 +6,13 @@
 //
 //   PAYOUT_PROXY_URL="http://user:pass@proxy-host:port"
 //
-// ─── QUI DOIT PASSER PAR ICI : FEEXPAY, ET RIEN D'AUTRE ────────────────────
+// ─── QUI DOIT PASSER PAR ICI : LES RETRAITS FEEXPAY, ET RIEN D'AUTRE ───────
+// Périmètre confirmé par FeexPay (2026-08-20) : leur filtre IP ne porte que
+// sur les opérations de RETRAIT. L'encaissement FeexPay sort donc en direct,
+// comme toutes les autres passerelles. Utilisations légitimes de ce module :
+//   - lib/feexpay.ts : initPayout + checkPayoutStatus (les 2 seuls appels) ;
+//   - les diagnostics admin qui testent précisément ce trajet.
+// Toute nouvelle utilisation consomme le forfait du proxy : à justifier.
 // Le proxy est un forfait au NOMBRE de requêtes (2 500/mois). Il servait à
 // TOUT — FedaPay, Monetbil, iPay, et surtout leurs consultations de statut,
 // relancées par le cron toutes les cinq minutes. Résultat le 2026-08-18 :

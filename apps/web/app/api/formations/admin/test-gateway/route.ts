@@ -41,7 +41,8 @@ async function probeFeexpay(creds: Record<string, string>): Promise<Probe> {
   let lastStatus: number | null = null;
 
   try {
-    const res = await payoutFetch(`https://api.feexpay.me/api/shop/${encodeURIComponent(shopId)}`, { method: "GET", headers: auth });
+    // Hôte d'ENCAISSEMENT : pas de filtre IP, donc pas de proxy (facturé à la requête).
+    const res = await fetch(`https://api.feexpay.me/api/shop/${encodeURIComponent(shopId)}`, { method: "GET", headers: auth });
     lastStatus = res.status;
     collectOk = res.ok;
     results.push(
@@ -82,7 +83,8 @@ async function probePawapay(creds: Record<string, string>): Promise<Probe> {
     ? "https://api.sandbox.pawapay.io"
     : "https://api.pawapay.io";
   try {
-    const res = await payoutFetch(`${base}/v2/active-conf`, {
+    // PawaPay ne filtre pas par IP : en direct, le proxy ne sert qu'à FeexPay.
+    const res = await fetch(`${base}/v2/active-conf`, {
       method: "GET",
       headers: { Accept: "application/json", Authorization: `Bearer ${jeton}` },
     });
@@ -169,7 +171,7 @@ async function probeIpaymoney(creds: Record<string, string>): Promise<Probe> {
   try {
     // Lecture d'une référence volontairement inexistante : aucune écriture,
     // et la réponse suffit à savoir si la clé est acceptée.
-    const res = await payoutFetch("https://i-pay.money/api/v1/payments/diagnostic-novakou", {
+    const res = await fetch("https://i-pay.money/api/v1/payments/diagnostic-novakou", {
       method: "GET",
       headers: {
         Accept: "application/json",
@@ -239,7 +241,7 @@ async function probeFedapay(creds: Record<string, string>): Promise<Probe> {
       : "https://api.fedapay.com/v1";
   try {
     // Lecture seule : liste des devises du compte.
-    const res = await payoutFetch(`${base}/currencies`, {
+    const res = await fetch(`${base}/currencies`, {
       method: "GET",
       headers: { Authorization: `Bearer ${key}`, Accept: "application/json" },
     });

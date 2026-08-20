@@ -113,8 +113,10 @@ export async function GET(request: NextRequest) {
   // 1. Le proxy lui-même, via une lecture anodine.
   if (proxyConfigure) {
     sondes.push(
-      await sonder("Proxy à IP fixe → FedaPay", "proxy", () =>
-        payoutFetch("https://api.fedapay.com/v1/currencies", { method: "GET" }),
+      // La cible est l'hôte de VERSEMENT FeexPay : c'est le seul trajet que le
+      // proxy sert encore, donc le seul qui vaille d'être sondé à travers lui.
+      await sonder("Proxy à IP fixe → FeexPay (versement)", "proxy", () =>
+        payoutFetch("https://api-v2.feexpay.me/api/payouts/status/public/diagnostic", { method: "GET" }),
       ),
     );
   }
@@ -123,8 +125,8 @@ export async function GET(request: NextRequest) {
   //    « IP non autorisée » de « clé invalide » de « compte non activé ».
   if (cleFedapay) {
     sondes.push(
-      await sonder("FedaPay authentifié", proxyConfigure ? "proxy" : "direct", () =>
-        payoutFetch("https://api.fedapay.com/v1/currencies", {
+      await sonder("FedaPay authentifié", "direct", () =>
+        fetch("https://api.fedapay.com/v1/currencies", {
           method: "GET",
           headers: { Authorization: `Bearer ${cleFedapay}`, "Content-Type": "application/json" },
         }),
@@ -161,16 +163,16 @@ export async function GET(request: NextRequest) {
   //     répond à cette question sans en créer un.
   if (cleFedapay) {
     sondes.push(
-      await sonder("FedaPay — droit de versement", proxyConfigure ? "proxy" : "direct", () =>
-        payoutFetch("https://api.fedapay.com/v1/payouts?per_page=1", {
+      await sonder("FedaPay — droit de versement", "direct", () =>
+        fetch("https://api.fedapay.com/v1/payouts?per_page=1", {
           method: "GET",
           headers: { Authorization: `Bearer ${cleFedapay}` },
         }),
       ),
     );
     sondes.push(
-      await sonder("FedaPay — solde du compte", proxyConfigure ? "proxy" : "direct", () =>
-        payoutFetch("https://api.fedapay.com/v1/balances", {
+      await sonder("FedaPay — solde du compte", "direct", () =>
+        fetch("https://api.fedapay.com/v1/balances", {
           method: "GET",
           headers: { Authorization: `Bearer ${cleFedapay}` },
         }),
@@ -188,8 +190,9 @@ export async function GET(request: NextRequest) {
   const refDemandee = request.nextUrl.searchParams.get("ref");
   if (refDemandee && cleFeexpay) {
     sondes.push(
-      await sonder(`FeexPay — statut de « ${refDemandee} »`, proxyConfigure ? "proxy" : "direct", () =>
-        payoutFetch(
+      // Statut d'un ENCAISSEMENT : pas de filtre IP, donc en direct.
+      await sonder(`FeexPay — statut de « ${refDemandee} »`, "direct", () =>
+        fetch(
           `https://api-v2.feexpay.me/api/transactions/getrequesttopay/integration/${encodeURIComponent(refDemandee)}`,
           { method: "GET", headers: { Accept: "application/json", Authorization: `Bearer ${cleFeexpay}` } },
         ),
@@ -206,8 +209,8 @@ export async function GET(request: NextRequest) {
   const cleMonetbil = await credential("monetbil", "serviceKey").catch(() => "");
   if (cleMonetbil) {
     sondes.push(
-      await sonder("Monetbil — clé de service", proxyConfigure ? "proxy" : "direct", () =>
-        payoutFetch("https://api.monetbil.com/payment/v1/checkPayment", {
+      await sonder("Monetbil — clé de service", "direct", () =>
+        fetch("https://api.monetbil.com/payment/v1/checkPayment", {
           method: "POST",
           headers: { "Content-Type": "application/json", Accept: "application/json" },
           body: JSON.stringify({ service: cleMonetbil, paymentId: "diagnostic" }),

@@ -238,8 +238,13 @@ export function normalizeFeexpayStatus(s: FeexpayPayoutStatus | string): "succes
 //   POST /api/transactions/requesttopay/integration      → push Mobile Money
 //   GET  /api/transactions/getrequesttopay/integration/{id} → statut
 //
-// L'appel sort par le proxy à IP fixe : FeexPay filtre par IP, et les IP de
-// Vercel sont dynamiques (même contrainte que pour le versement).
+// L'ENCAISSEMENT SORT EN DIRECT, PAS PAR LE PROXY. Le filtre IP de FeexPay ne
+// porte que sur les opérations de RETRAIT — confirmé par leur support
+// (2026-08-20) et par les faits : le 2026-08-08, proxy hors service, un statut
+// d'encaissement a été lu en direct sans refus d'IP. Le proxy est facturé au
+// nombre de requêtes : y faire passer l'encaissement (relancé par le cron
+// toutes les cinq minutes) a déjà épuisé un forfait entier et bloqué douze
+// versements. Seuls les appels /api/payouts/** l'empruntent.
 
 // MÊME hôte que le versement. L'encaissement pointait sur `api.feexpay.me`,
 // qui répond 502 sur TOUTES ses routes : chaque paiement FeexPay échouait donc
@@ -345,7 +350,7 @@ export async function initCollect(params: FeexpayCollectParams): Promise<Feexpay
     ...(params.merchantDomain ? { merchant_domain: params.merchantDomain } : {}),
   };
 
-  const res = await payoutFetch(`${FEEXPAY_COLLECT_BASE}/api/transactions/requesttopay/integration`, {
+  const res = await fetch(`${FEEXPAY_COLLECT_BASE}/api/transactions/requesttopay/integration`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -399,7 +404,8 @@ export async function checkCollectStatus(
   // téléphone » tournait indéfiniment et le produit n'était jamais livré,
   // sans la moindre erreur pour l'expliquer.
   const apiKey = await getApiKey();
-  const res = await payoutFetch(
+  // En direct : la consultation d'un encaissement n'est pas filtrée par IP.
+  const res = await fetch(
     // Chemin de CONSULTATION, différent de celui qui lance le paiement.
     // `/api/transactions/getrequesttopay/integration/{ref}` n'existe pas sur
     // api-v2 : le serveur y répond « Cannot GET », c'est-à-dire aucune route.
