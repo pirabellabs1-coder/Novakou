@@ -18,6 +18,7 @@ import {
   GraduationCap,
   UserCheck,
   Trash2,
+  KeyRound,
   Ban,
   PauseCircle,
   PlayCircle,
@@ -38,6 +39,7 @@ type User = {
   estMentor: boolean;
   estAffilie: boolean;
   estAdmin: boolean;
+  twoFactorEnabled?: boolean;
   instructorStatus: string | null;
   productsCount: number;
   totalEarned: number;
@@ -395,6 +397,27 @@ export default function AdminUtilisateursPage() {
                                   Bannir
                                 </StButton>
                               </>
+                            )}
+                            {u.twoFactorEnabled && !u.estAdmin && (
+                              <StButton
+                                variant="secondary"
+                                size="sm"
+                                icon={KeyRound}
+                                onClick={async () => {
+                                  const ok = await confirmAction({
+                                    title: "Réinitialiser la double authentification ?",
+                                    message: `Le 2FA de ${u.email} sera désactivé : il pourra se reconnecter avec son mot de passe seul, puis le réactiver. À ne faire qu'après avoir vérifié son identité (demande envoyée depuis son adresse e-mail enregistrée). Il sera prévenu par e-mail.`,
+                                    confirmLabel: "Réinitialiser",
+                                    confirmVariant: "danger",
+                                    icon: "key_off",
+                                  });
+                                  if (ok)
+                                    userActionMutation.mutate({ id: u.id, action: "reset_2fa" });
+                                }}
+                                disabled={userActionMutation.isPending}
+                              >
+                                Réinit. 2FA
+                              </StButton>
                             )}
                             <StButton
                               variant="secondary"

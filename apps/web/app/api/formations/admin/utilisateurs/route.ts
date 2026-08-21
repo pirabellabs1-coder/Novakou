@@ -49,6 +49,9 @@ export async function GET(request: Request) {
         image: true,
         role: true,
         status: true,
+        // Nécessaire au bouton « Réinitialiser 2FA » : sans lui, l'écran ne
+        // peut pas savoir sur qui l'action a un sens.
+        twoFactorEnabled: true,
         createdAt: true,
         instructeurProfile: {
           select: {
@@ -91,6 +94,7 @@ export async function GET(request: Request) {
         estAffilie: u.affiliateProfile !== null,
         estClient: u.enrollments.length + u.productPurchases.length > 0,
         estAdmin: u.role === "ADMIN",
+        twoFactorEnabled: u.twoFactorEnabled,
         // Conservé pour ne pas casser un ancien appelant.
         isInstructor: u.instructeurProfile !== null,
         instructorStatus: u.instructeurProfile?.status ?? null,
