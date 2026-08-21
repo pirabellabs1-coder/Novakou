@@ -1,5 +1,12 @@
 import crypto from "crypto";
 
+/**
+ * Préfixe de cloisonnement pour les codes de RÉINITIALISATION 2FA, rangés
+ * dans la même table que l'OTP de connexion acheteur. Sans lui, un code émis
+ * pour l'un des deux usages serait rejouable sur l'autre.
+ */
+export const PREFIXE_2FA_RESET = "2fa-reset:";
+
 // Generate a 6-digit numeric OTP code
 export function generateOTP(): string {
   return crypto.randomInt(100000, 999999).toString();

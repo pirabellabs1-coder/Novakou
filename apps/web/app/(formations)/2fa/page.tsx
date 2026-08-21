@@ -16,6 +16,16 @@ function TwoFaInner() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // ── Récupération en libre-service : téléphone perdu, application effacée ──
+  // Sans cette issue, un utilisateur qui n'a plus son authenticator est
+  // enfermé dehors définitivement (aucun code de secours n'est remis à
+  // l'activation). Il prouve qu'il possède sa boîte mail, le 2FA est coupé,
+  // il se reconnecte au mot de passe et le réactive depuis ses paramètres.
+  const [modeRecup, setModeRecup] = useState<"cache" | "envoi" | "code" | "fait">("cache");
+  const [codeRecup, setCodeRecup] = useState("");
+  const [recupLoading, setRecupLoading] = useState(false);
+  const [recupMessage, setRecupMessage] = useState<string | null>(null);
+
   // Si pas de session : rediriger vers /connexion (ne devrait pas arriver normalement
   // car le middleware bloque /2fa aux non-connectés).
   if (status === "loading") {
@@ -75,6 +85,55 @@ function TwoFaInner() {
   async function handleCancel() {
     // L'utilisateur veut repartir → on vide sa session (elle est tfaPending).
     await signOut({ callbackUrl: "/connexion" });
+  }
+
+  async function demanderCodeRecup() {
+    if (!email) return;
+    setRecupLoading(true);
+    setRecupMessage(null);
+    try {
+      const r = await fetch("/api/auth/2fa-reset/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const j = await r.json();
+      if (!r.ok) {
+        setRecupMessage(j.error ?? "Impossible d'envoyer le code.");
+      } else {
+        setModeRecup("code");
+        setRecupMessage(null);
+      }
+    } catch {
+      setRecupMessage("Erreur réseau. Réessayez.");
+    } finally {
+      setRecupLoading(false);
+    }
+  }
+
+  async function confirmerRecup() {
+    setRecupLoading(true);
+    setRecupMessage(null);
+    try {
+      const r = await fetch("/api/auth/2fa-reset/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, code: codeRecup }),
+      });
+      const j = await r.json();
+      if (!r.ok) {
+        setRecupMessage(j.error ?? "Code incorrect ou expiré.");
+        setRecupLoading(false);
+        return;
+      }
+      setModeRecup("fait");
+      // La session porte encore tfaPending : seule une reconnexion propre
+      // (mot de passe seul, le 2FA étant coupé) donne accès au tableau de bord.
+      setTimeout(() => signOut({ callbackUrl: "/connexion" }), 2500);
+    } catch {
+      setRecupMessage("Erreur réseau. Réessayez.");
+      setRecupLoading(false);
+    }
   }
 
   const email = session?.user?.email ?? "";
@@ -167,6 +226,81 @@ function TwoFaInner() {
               </button>
             </div>
           </form>
+
+          {/* ── Téléphone perdu : récupération par e-mail ─────────────── */}
+          <div className="mt-6 pt-5 border-t border-gray-100">
+            {modeRecup === "cache" && (
+              <button
+                type="button"
+                onClick={() => setModeRecup("envoi")}
+                className="w-full text-center text-xs font-semibold text-[#006e2f] hover:underline"
+              >
+                Vous n&apos;avez plus accès à votre application d&apos;authentification ?
+              </button>
+            )}
+
+            {modeRecup === "envoi" && (
+              <div className="text-center">
+                <p className="text-xs text-[#5c647a] mb-3">
+                  Nous enverrons un code de récupération à <span className="font-mono">{email}</span>.
+                  Il désactivera votre double authentification : vous vous reconnecterez avec votre
+                  mot de passe, puis pourrez la réactiver depuis vos paramètres.
+                </p>
+                {recupMessage && <p className="text-xs text-red-600 font-semibold mb-2">{recupMessage}</p>}
+                <button
+                  type="button"
+                  onClick={demanderCodeRecup}
+                  disabled={recupLoading}
+                  className="px-4 py-2.5 rounded-xl border-2 border-[#006e2f] text-[#006e2f] text-xs font-bold disabled:opacity-50"
+                >
+                  {recupLoading ? "Envoi…" : "M'envoyer le code par e-mail"}
+                </button>
+              </div>
+            )}
+
+            {modeRecup === "code" && (
+              <div className="text-center">
+                <p className="text-xs text-[#5c647a] mb-3">
+                  Code envoyé à <span className="font-mono">{email}</span> — valable 10 minutes.
+                </p>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={codeRecup}
+                  onChange={(e) => setCodeRecup(e.target.value.replace(/\D/g, ""))}
+                  placeholder="Code reçu par e-mail"
+                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-center text-lg font-extrabold tracking-[0.4em] text-[#191c1e] placeholder-gray-300 placeholder:text-sm placeholder:tracking-normal focus:outline-none focus:border-[#006e2f] bg-white"
+                />
+                {recupMessage && <p className="text-xs text-red-600 font-semibold mt-2">{recupMessage}</p>}
+                <button
+                  type="button"
+                  onClick={confirmerRecup}
+                  disabled={recupLoading || codeRecup.length !== 6}
+                  className="mt-3 w-full py-3 rounded-xl text-white text-xs font-bold disabled:opacity-50"
+                  style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+                >
+                  {recupLoading ? "Vérification…" : "Désactiver ma double authentification"}
+                </button>
+                <button
+                  type="button"
+                  onClick={demanderCodeRecup}
+                  disabled={recupLoading}
+                  className="mt-2 text-[11px] text-[#5c647a] hover:underline"
+                >
+                  Renvoyer un code
+                </button>
+              </div>
+            )}
+
+            {modeRecup === "fait" && (
+              <div className="text-center bg-[#f0faf3] border border-[#c9ecd6] rounded-xl px-4 py-3">
+                <p className="text-xs font-bold text-[#006e2f]">
+                  Double authentification désactivée. Reconnectez-vous avec votre mot de passe…
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         <p className="text-center text-[11px] text-[#5c647a] mt-4">
