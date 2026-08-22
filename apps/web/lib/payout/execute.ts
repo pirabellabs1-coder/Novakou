@@ -178,7 +178,17 @@ const ADAPTATEURS: Record<PayoutProviderId, AdaptateurVersement> = {
     // n'a créé aucun mouvement : basculer est sans danger. Seules les erreurs
     // sans réponse exploitable (réseau, 5xx, délai) restent ambiguës.
     classer: (msg: string) => {
-      const refusExplicite = /REJECTED|INVALID_PARAMETER|PAYOUTS_NOT_ALLOWED|RECIPIENT_NOT_FOUND|AMOUNT_TOO|INVALID_/i.test(msg);
+      // « PAYOUTS_NOT_ALLOWED » : le versement n'est pas ACTIVÉ sur cet
+      // opérateur pour notre compte. Ce n'est ni le numéro ni le montant —
+      // le classer « validation » faisait afficher « vérifiez le numéro du
+      // bénéficiaire » à l'admin, qui ne pouvait rien vérifier du tout.
+      if (/PAYOUTS_NOT_ALLOWED/i.test(msg)) {
+        return {
+          category: "not_available" as const,
+          userMessage: "PawaPay : versement non activé sur cet opérateur pour notre compte (à demander à PawaPay).",
+        };
+      }
+      const refusExplicite = /REJECTED|INVALID_PARAMETER|RECIPIENT_NOT_FOUND|AMOUNT_TOO|INVALID_/i.test(msg);
       return {
         category: (refusExplicite ? "validation" : "provider_failed") as "validation" | "provider_failed",
         userMessage: `PawaPay : ${msg}`,

@@ -537,9 +537,16 @@ export default function AdminRetraitsVendeursPage() {
     return typeof d._retryCount === "number" ? d._retryCount : 0;
   }
 
-  function classifyError(msg: string | null): "insufficient_funds" | "validation" | "network" | "unknown" {
+  function classifyError(msg: string | null): "insufficient_funds" | "validation" | "network" | "no_gateway" | "unknown" {
     if (!msg) return "unknown";
     const lower = msg.toLowerCase();
+    // AUCUNE PASSERELLE NE SERT CET OPERATEUR en versement : non active chez
+    // PawaPay, et les autres ne couvrent pas le pays. Ni le numero ni une
+    // relance n'y changeront rien. A tester AVANT « validation » : le message
+    // contient ce mot.
+    const nonActive = lower.includes("payouts_not_allowed") || lower.includes("versement non activ");
+    const autresSautees = !/feexpay:(accepted|rejected)|fedapay:(accepted|rejected)/.test(lower);
+    if (nonActive && autresSautees) return "no_gateway";
     if (lower.includes("insufficient") || lower.includes("balance") || lower.includes("solde")) return "insufficient_funds";
     if (lower.includes("invalid") || lower.includes("validation") || lower.includes("msisdn") || lower.includes("recipient")) return "validation";
     if (lower.includes("timeout") || lower.includes("network") || lower.includes("fetch")) return "network";
@@ -938,7 +945,7 @@ export default function AdminRetraitsVendeursPage() {
                         style={{ borderColor: "#f3cdd9", background: ST.roseSoft }}
                       >
                         <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: ST.roseText }}>
-                          {errCat === "insufficient_funds" ? "Solde passerelle insuffisant" : errCat === "validation" ? "Erreur de validation" : "Motif de refus"}
+                          {errCat === "insufficient_funds" ? "Solde passerelle insuffisant" : errCat === "validation" ? "Erreur de validation" : errCat === "no_gateway" ? "Aucune passerelle pour cet opérateur" : "Motif de refus"}
                         </p>
                         {w.refusedReason && <p className="text-[13px]" style={{ color: ST.roseText }}>{w.refusedReason}</p>}
                         {w.errorMessage && (
@@ -949,6 +956,12 @@ export default function AdminRetraitsVendeursPage() {
                         )}
                         {errCat === "validation" && (
                           <p className="text-[12px] mt-2 font-semibold" style={{ color: ST.amberText }}>Vérifiez le numéro du bénéficiaire avant de relancer.</p>
+                        )}
+                        {errCat === "no_gateway" && (
+                          <p className="text-[12px] mt-2 font-semibold" style={{ color: ST.amberText }}>
+                            Relancer ne changera rien : aucune de nos passerelles ne verse sur ce réseau aujourd&apos;hui.
+                            Payez en <strong>manuel</strong> (bouton ci-contre), et demandez à PawaPay d&apos;activer le versement sur cet opérateur.
+                          </p>
                         )}
                         <div className="flex items-center gap-2 mt-3">
                           {canRetry ? (
