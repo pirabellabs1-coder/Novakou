@@ -29,7 +29,7 @@ const MAX_PER_RUN = 40;
 /** Fenêtre : au-delà, une référence n'est plus interrogeable utilement. */
 const WINDOW_DAYS = 14;
 
-type ProviderId = "feexpay" | "fedapay";
+type ProviderId = "feexpay" | "fedapay" | "pawapay";
 
 /** Statut réel du versement chez le fournisseur, ou null si indéterminable. */
 async function providerStatus(provider: ProviderId, ref: string): Promise<ReconcileStatus | null> {
@@ -38,6 +38,15 @@ async function providerStatus(provider: ProviderId, ref: string): Promise<Reconc
       const { checkPayoutStatus, normalizeFeexpayStatus, isFeexpayConfigured } = await import("@/lib/feexpay");
       if (!(await isFeexpayConfigured())) return null;
       return normalizeFeexpayStatus((await checkPayoutStatus(ref)).status);
+    }
+    if (provider === "pawapay") {
+      // PawaPay manquait ici : un versement ACCEPTÉ chez eux mais dont le
+      // rappel ne nous parvenait pas serait resté EN_ATTENTE pour toujours —
+      // l'argent parti, le vendeur persuadé du contraire. Invisible tant que
+      // PawaPay ne versait pas ; bloquant le jour où il verse.
+      const { checkPayoutStatus, isPawapayConfigured } = await import("@/lib/pawapay");
+      if (!(await isPawapayConfigured())) return null;
+      return (await checkPayoutStatus(ref)).status;
     }
     const { checkPayoutStatus, normalizeFedapayStatus, isFedapayConfigured } = await import("@/lib/fedapay");
     if (!(await isFedapayConfigured())) return null;
@@ -58,7 +67,7 @@ export async function GET(request: NextRequest) {
   const where = {
     status: "EN_ATTENTE",
     paymentRef: { not: null },
-    paymentProvider: { in: ["feexpay", "fedapay"] },
+    paymentProvider: { in: ["feexpay", "fedapay", "pawapay"] },
     createdAt: { gte: since },
   };
 
@@ -102,7 +111,7 @@ export async function GET(request: NextRequest) {
       continue;
     }
 
-    const label = provider === "feexpay" ? "FeexPay" : "FedaPay";
+    const label = provider === "feexpay" ? "FeexPay" : provider === "pawapay" ? "PawaPay" : "FedaPay";
     const r = await reconcilePayout(ref, status, label);
     if (status === "success") paid++;
     else failed++;

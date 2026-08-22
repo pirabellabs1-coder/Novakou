@@ -81,6 +81,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, ignored: true, reason: "no_reference" });
   }
 
+  // ── RAPPEL DE VERSEMENT ─────────────────────────────────────────────────
+  // Un `payoutId` était envoyé au rapprochement des ENCAISSEMENTS, qui ne
+  // cherche que parmi les tentatives d'achat : il ne matchait jamais, et le
+  // retrait restait EN_ATTENTE alors que l'argent était parti. Le statut est
+  // redemandé à PawaPay avant toute écriture — on ne croit pas le corps du
+  // rappel, n'importe qui peut nous en envoyer un.
+  const b = (corps && typeof corps === "object" ? corps : {}) as Record<string, unknown>;
+  const data = (b.data && typeof b.data === "object" ? b.data : {}) as Record<string, unknown>;
+  const payoutId = b.payoutId ?? data.payoutId;
+  if (typeof payoutId === "string" && payoutId) {
+    try {
+      const { checkPayoutStatus } = await import("@/lib/pawapay");
+      const { reconcilePayout } = await import("@/lib/payout/reconcile");
+      const verdict = await checkPayoutStatus(payoutId);
+      if (verdict.status === "pending") {
+        return NextResponse.json({ ok: true, payout: payoutId, status: "pending" });
+      }
+      const r = await reconcilePayout(payoutId, verdict.status, "PawaPay");
+      console.log("[pawapay webhook] versement", { payoutId, status: verdict.status, ...r });
+      return NextResponse.json({ ok: true, payout: payoutId, status: verdict.status, ...r });
+    } catch (err) {
+      // 200 malgré tout : le cron de rapprochement repassera. Rejouer le
+      // rappel en boucle n'apporterait rien de plus.
+      console.error("[pawapay webhook] versement non rapproché", payoutId, err);
+      return NextResponse.json({ ok: true, payout: payoutId, deferred: true });
+    }
+  }
+
   const resultat = await reconcileCollectByRef(reference);
   console.log("[pawapay webhook]", { reference, ...resultat });
   return NextResponse.json({ ok: true, ...resultat });
