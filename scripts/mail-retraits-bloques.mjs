@@ -43,15 +43,15 @@ function html(prenom, n, total) {
   <div style="background:linear-gradient(135deg,#006e2f,#22c55e);padding:28px 36px"><h1 style="color:#fff;font-size:22px;margin:0">Novakou</h1></div>
   <div style="padding:32px 36px;color:#111827;font-size:15px;line-height:1.7">
     <p>Bonjour ${prenom},</p>
-    <p>Nous avons constaté que ${pluriel ? `vos <strong>${n} demandes de retrait</strong>` : "votre <strong>demande de retrait</strong>"}
-    (${fmt(total)} FCFA au total) ${pluriel ? "n’ont" : "n’a"} pas pu aboutir. Nous tenons à vous dire clairement ce qui se passe.</p>
-    <p><strong>Votre argent est en sécurité et reste disponible sur votre solde Novakou.</strong> Le blocage vient d’un réglage entre
-    Novakou et nos partenaires de paiement mobile — pas de votre compte, ni de votre numéro.</p>
-    <p><strong>La résolution est en cours.</strong> Notre équipe travaille avec les opérateurs concernés pour rétablir les versements
-    automatiques. Dès que votre versement pourra repartir, nous vous préviendrons par e-mail et vous n’aurez rien à refaire.</p>
-    <p>D’ici là, inutile de relancer votre demande : cela ne l’accélérera pas. Si vous avez besoin de ces fonds de façon urgente,
-    répondez simplement à ce message et nous organiserons un versement manuel.</p>
-    <p>Merci pour votre confiance et votre patience.</p>
+    <p>${pluriel ? `Vos <strong>${n} demandes de retrait</strong>` : "Votre <strong>demande de retrait</strong>"}
+    (${fmt(total)} FCFA) ${pluriel ? "n’ont" : "n’a"} pas pu aboutir, et nous tenons d’abord à <strong>vous présenter nos excuses</strong>.</p>
+    <p>Nous préférons être transparents avec vous : <strong>les retraits sur la plateforme ne sont pas encore stables pour le moment.</strong>
+    Nous sommes en train de régler ce problème avec nos partenaires de paiement mobile, et la résolution est en cours.</p>
+    <p>Rassurez-vous : <strong>votre argent est en sécurité</strong> et reste intégralement disponible sur votre solde Novakou.
+    Rien n’a été perdu.</p>
+    <p><strong>Dès que ce sera résolu, nous reviendrons vers vous très rapidement</strong> pour que votre retrait soit effectué.
+    Vous n’aurez rien à refaire de votre côté.</p>
+    <p>Nous sommes sincèrement désolés pour la gêne occasionnée, et nous vous remercions de votre patience et de votre confiance.</p>
     <p style="margin-top:24px">— L’équipe Novakou</p>
   </div>
   <div style="padding:16px 36px;background:#f9fafb;border-top:1px solid #e5e7eb;color:#9ca3af;font-size:11px">© 2026 Novakou — Édité par Pirabel Labs</div>
@@ -73,7 +73,7 @@ for (const [email, g] of dest) {
     body: JSON.stringify({
       from: FROM,
       to: [email],
-      subject: "Votre retrait Novakou : la résolution est en cours",
+      subject: "Votre retrait Novakou : nos excuses, la résolution est en cours",
       html: html(prenom, g.n, g.total),
     }),
   });
