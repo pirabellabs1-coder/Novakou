@@ -37,7 +37,8 @@ type Mouvement = {
   passerelle: string; moyen: string | null; statut: string; reference: string | null; tiers: string | null;
   detail: string | null; commission?: number; partVendeur?: number; partAffilie?: number;
 };
-type Reponse = { periode: { depuis: string; jusqu: string }; soldes: Solde[]; soldeTotalFcfa: number; passerellesLues: string[]; totaux: Total[]; mouvements: Mouvement[]; nbMouvements: number };
+type Stabilite = { operateur: string; demandes: number; verses: number; refuses: number; attente: number; tauxSucces: number; delaiMoyenH: number | null; via: string | null };
+type Reponse = { periode: { depuis: string; jusqu: string }; soldes: Solde[]; soldeTotalFcfa: number; passerellesLues: string[]; totaux: Total[]; stabilite?: Stabilite[]; mouvements: Mouvement[]; nbMouvements: number };
 
 /** Une couleur stable par passerelle : on la reconnaît avant de lire son nom. */
 const COULEURS: Record<string, { bg: string; fg: string; initiale: string }> = {
@@ -354,6 +355,45 @@ export default function TresoreriePage() {
           </table>
         </div>
       </StCard>
+
+      {/* ── 4b. Stabilité des retraits ─────────────────────────────── */}
+      {(data?.stabilite ?? []).length > 0 && (
+        <StCard noPadding>
+          <div className="px-4 py-3 border-b flex items-center gap-2" style={{ borderColor: ST.divider }}>
+            <ArrowUpRight size={16} style={{ color: ST.amberText }} />
+            <h2 className="text-[13.5px] font-extrabold" style={{ color: ST.text }}>Stabilité des retraits</h2>
+            <span className="text-[11.5px] font-semibold ml-1" style={{ color: ST.textMuted }}>— objectif : 100 % versés sous 24 h</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-[13px]">
+              <thead>
+                <tr style={{ background: "#fafbfa", color: ST.textLabel }}>
+                  {["Opérateur", "Demandés", "Versés", "Refusés", "En attente", "Taux", "Délai moyen", "Versé via"].map((h, i) => (
+                    <th key={h} className={`px-4 py-2.5 font-extrabold text-[11px] uppercase tracking-wide ${i === 0 || i === 7 ? "text-left" : "text-right"}`}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {(data?.stabilite ?? []).map((s) => {
+                  const couleurTaux = s.tauxSucces >= 90 ? ST.green : s.tauxSucces >= 50 ? ST.amberText : ST.roseText;
+                  return (
+                    <tr key={s.operateur} className="border-t" style={{ borderColor: ST.divider }}>
+                      <td className="px-4 py-2.5 font-mono font-bold" style={{ color: ST.text }}>{s.operateur}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums" style={{ color: ST.textSecondary }}>{s.demandes}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums font-bold" style={{ color: ST.green }}>{s.verses}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums" style={{ color: s.refuses ? ST.roseText : ST.textMuted }}>{s.refuses || "—"}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums" style={{ color: s.attente ? ST.amberText : ST.textMuted }}>{s.attente || "—"}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums font-extrabold" style={{ color: couleurTaux }}>{s.tauxSucces} %</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums" style={{ color: s.delaiMoyenH != null && s.delaiMoyenH > 24 ? ST.roseText : ST.textSecondary }}>{s.delaiMoyenH == null ? "—" : s.delaiMoyenH < 1 ? "< 1 h" : `${s.delaiMoyenH} h`}</td>
+                      <td className="px-4 py-2.5 text-[12px]" style={{ color: ST.textSecondary }}>{s.via ?? "—"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </StCard>
+      )}
 
       {/* ── 5. Journal des mouvements ───────────────────────────────── */}
       <StCard noPadding>

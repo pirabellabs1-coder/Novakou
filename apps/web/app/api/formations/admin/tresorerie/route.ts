@@ -252,9 +252,42 @@ export async function GET(req: NextRequest) {
     parPasserelle.set(k, g);
   }
 
+  // ── 5. STABILITÉ DES RETRAITS : mesurer au lieu de supposer ─────────────
+  // Par opérateur : combien demandés, combien versés, délai moyen jusqu'au
+  // versement, et par quelle passerelle. C'est l'indicateur de sortie du
+  // plan de stabilisation — « 100 % traités sous 24 h » se lit ici.
+  const retraits = [...rv, ...ra];
+  const parOperateur = new Map<string, { demandes: number; verses: number; refuses: number; attente: number; delaisH: number[]; via: Map<string, number> }>();
+  for (const w of retraits) {
+    const op = w.method.replace(/_mentor$/, "");
+    const g = parOperateur.get(op) ?? { demandes: 0, verses: 0, refuses: 0, attente: 0, delaisH: [] as number[], via: new Map<string, number>() };
+    g.demandes += 1;
+    if (w.status === "TRAITE") {
+      g.verses += 1;
+      if (w.processedAt) g.delaisH.push((w.processedAt.getTime() - w.createdAt.getTime()) / 3600_000);
+      const v = w.paymentProvider ?? "manuel";
+      g.via.set(v, (g.via.get(v) ?? 0) + 1);
+    } else if (w.status === "REFUSE") g.refuses += 1;
+    else g.attente += 1;
+    parOperateur.set(op, g);
+  }
+  const stabilite = [...parOperateur.entries()]
+    .map(([operateur, g]) => ({
+      operateur,
+      demandes: g.demandes,
+      verses: g.verses,
+      refuses: g.refuses,
+      attente: g.attente,
+      tauxSucces: g.demandes ? Math.round((g.verses / g.demandes) * 100) : 0,
+      delaiMoyenH: g.delaisH.length ? Math.round((g.delaisH.reduce((x, y) => x + y, 0) / g.delaisH.length) * 10) / 10 : null,
+      via: [...g.via.entries()].map(([passerelle, n]) => `${passerelle} ×${n}`).join(", ") || null,
+    }))
+    .sort((x, y) => y.demandes - x.demandes);
+
   return NextResponse.json({
     data: {
       periode: { depuis: depuis.toISOString(), jusqu: jusqu.toISOString() },
+      stabilite,
       soldes,
       soldeTotalFcfa,
       passerellesLues,
