@@ -26,6 +26,7 @@
     { "path": "/api/cron/approve-affiliate-commissions", "schedule": "0 3 * * *" },
     { "path": "/api/cron/account-deletion-cooldown",     "schedule": "0 2 * * *" },
     { "path": "/api/cron/payout-reconcile",              "schedule": "*/10 * * * *" },
+    { "path": "/api/cron/sonde-versements",              "schedule": "30 * * * *" },
     { "path": "/api/cron/collect-reconcile",             "schedule": "*/5 * * * *" },
     { "path": "/api/cron/alerte-ventes-bloquees",        "schedule": "*/15 * * * *" },
     { "path": "/api/cron/qualite-fiches",                "schedule": "0 9 * * *" },
