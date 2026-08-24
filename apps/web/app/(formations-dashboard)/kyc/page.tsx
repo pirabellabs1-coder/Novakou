@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToastStore } from "@/store/toast";
+import { CaptureSelfie } from "@/components/kyc/CaptureSelfie";
 import {
   BadgeCheck,
   Clock,
@@ -464,14 +465,16 @@ export default function KycPage() {
               onVider={() => { setVersoUrl(""); setVersoPreviewUrl(""); setVersoFileName(null); }}
             />
 
-            <DepotPiece
+            {/* Le visage n'est PAS un import de fichier : il est pris en direct.
+                Une photo de galerie pourrait être empruntée — c'est justement
+                ce que le contrôle d'identité doit empêcher. */}
+            <CaptureSelfie
               titre="Photo de votre visage"
-              consigne="Une photo de vous, de face, prise à l'instant. C'est elle qui relie la pièce à son porteur."
+              consigne="Une photo de vous, de face, prise à l'instant avec votre caméra. C'est elle qui relie la pièce à son porteur."
               url={selfieUrl}
               apercu={selfiePreviewUrl}
               nomFichier={selfieFileName}
               televersement={uploading}
-              camera="user"
               onFichier={(f) => handleFileUpload(f, "selfie")}
               onVider={() => { setSelfieUrl(""); setSelfiePreviewUrl(""); setSelfieFileName(null); }}
             />

@@ -28,8 +28,10 @@ test("le serveur refuse un dossier incomplet", () => {
 test("le formulaire réclame les trois pièces avant d'autoriser l'envoi", () => {
   const src = lire("app/(formations-dashboard)/kyc/page.tsx");
   expect(src).toMatch(/!documentUrl\.trim\(\)\s*\|\|\s*!versoUrl\.trim\(\)\s*\|\|\s*!selfieUrl\.trim\(\)/);
-  // Trois emplacements distincts, pas un seul dupliqué à la main.
-  expect((src.match(/<DepotPiece/g) ?? []).length).toBe(3);
+  // Recto et verso par dépôt de fichier ; le visage passe par une capture en
+  // direct (CaptureSelfie) — donc deux DepotPiece, pas trois.
+  expect((src.match(/<DepotPiece/g) ?? []).length).toBe(2);
+  expect(src, "la capture de selfie en direct est absente").toContain("<CaptureSelfie");
 });
 
 test("les consignes de prise de vue sont affichées", () => {
@@ -39,11 +41,14 @@ test("les consignes de prise de vue sont affichées", () => {
   }
 });
 
-test("la photo de visage ouvre la caméra frontale", () => {
-  const src = lire("app/(formations-dashboard)/kyc/page.tsx");
-  // `capture="user"` : sans lui, le téléphone ouvre la caméra arrière et la
-  // personne se photographie à l'aveugle.
-  expect(src).toContain('camera="user"');
+test("la photo de visage est prise en direct par la caméra frontale", () => {
+  const src = lire("components/kyc/CaptureSelfie.tsx");
+  // Capture en direct (getUserMedia), pas un import de galerie : c'est ce qui
+  // garantit une photo « prise à l'instant » et non une image empruntée.
+  expect(src).toContain("getUserMedia");
+  // `facingMode: "user"` ouvre la caméra FRONTALE — sans lui, la personne se
+  // photographierait avec la caméra arrière, à l'aveugle.
+  expect(src).toContain('facingMode: "user"');
 });
 
 test("l'admin voit les trois pièces, pas seulement le recto", () => {
