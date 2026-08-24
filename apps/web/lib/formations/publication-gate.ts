@@ -108,3 +108,28 @@ export async function notifierMiseEnAttente(p: {
     link: "/vendeur/produits",
   }).catch(() => null);
 }
+
+/**
+ * Trace un refus de publication dans la cloche du vendeur.
+ *
+ * Le bandeau affiché à l'écran explique la cause, mais il disparaît dès que le
+ * vendeur le ferme — or il ferme souvent avant d'avoir tout corrigé. La même
+ * cause déposée en notification reste consultable : il retrouve POURQUOI son
+ * produit n'est pas en ligne, à tout moment, sans re-tenter la publication.
+ */
+export async function notifierRefusPublication(p: {
+  userId: string;
+  titre: string;
+  raison: string;
+}): Promise<void> {
+  const { createNotification } = await import("@/lib/notifications/service");
+  await createNotification({
+    userId: p.userId,
+    type: "system",
+    title: "Publication refusée",
+    message:
+      `« ${p.titre} » n'a pas pu être mis en ligne. ${p.raison} ` +
+      "Corrigez votre fiche puis relancez la publication.",
+    link: "/vendeur/produits",
+  }).catch(() => null);
+}

@@ -36,6 +36,8 @@ import {
   MessageSquare,
   Info,
   Trash2,
+  AlertTriangle,
+  X,
 } from "lucide-react";
 import {
   useDraftField,
@@ -134,6 +136,15 @@ export default function EditerProduitPage() {
   const [salesEndAtInput, setSalesEndAtInput] = useDraftField<string>(`${draftPrefix}:salesEndAt`, "");
   const [dirty, setDirty] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
+  // Résultat de la dernière tentative de publication. Reste affiché tant que le
+  // vendeur ne l'a pas fermé (croix) : une raison de refus qui s'efface toute
+  // seule laisse le vendeur sans savoir quoi corriger.
+  const [publishNotice, setPublishNotice] = useState<{
+    tone: "error" | "info";
+    title: string;
+    message: string;
+    problemes: string[];
+  } | null>(null);
   // Tracks whether we've already pulled the API value into state on first
   // load — this is what lets drafts win over fresh refetches.
   const [hasHydrated, setHasHydrated] = useState(false);
@@ -248,13 +259,62 @@ export default function EditerProduitPage() {
   });
 
   const publishMutation = useMutation({
-    mutationFn: (newStatus: "ACTIF" | "BROUILLON") =>
-      fetch(`/api/formations/vendeur/products/${id}`, {
+    mutationFn: async (newStatus: "ACTIF" | "BROUILLON") => {
+      // Publier = enregistrer les corrections ET demander la mise en ligne dans
+      // le MÊME appel. Sinon la validation juge l'ancienne fiche enregistrée et
+      // refuse encore une correction pourtant faite à l'écran — c'est ce qui
+      // donnait l'impression d'un bouton « Publier » qui ne répond plus.
+      // Dépublier ne touche que le statut.
+      const payload =
+        newStatus === "ACTIF"
+          ? { ...buildProductPayload(), status: "ACTIF" }
+          : { status: "BROUILLON" };
+      const res = await fetch(`/api/formations/vendeur/products/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
-      }).then((r) => r.json()),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["product", id] }),
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        const problemes: string[] = Array.isArray(json?.problemes)
+          ? json.problemes
+              .map((x: { message?: string }) => x?.message)
+              .filter((m: unknown): m is string => typeof m === "string" && m.length > 0)
+          : [];
+        throw Object.assign(new Error(json?.error ?? "La publication a été refusée."), { problemes });
+      }
+      return json;
+    },
+    onSuccess: (json) => {
+      qc.invalidateQueries({ queryKey: ["product", id] });
+      // Les corrections viennent d'être persistées avec la publication : plus de
+      // brouillon local en attente, plus d'état « non enregistré ».
+      clearDrafts(draftPrefix);
+      setDirty(false);
+      setSavedAt(new Date());
+      // Publication conforme mais soumise à la file de validation admin.
+      if (json?.data?.enAttente) {
+        setPublishNotice({
+          tone: "info",
+          title: "Produit soumis à validation",
+          message:
+            "Votre fiche est conforme. Elle passe une dernière vérification de l'équipe avant sa mise en ligne — vous serez notifié dès son approbation.",
+          problemes: [],
+        });
+      } else {
+        setPublishNotice(null);
+      }
+    },
+    onError: (err: Error & { problemes?: string[] }) => {
+      setPublishNotice({
+        tone: "error",
+        title: "Publication refusée",
+        message: err.message,
+        problemes: err.problemes ?? [],
+      });
+      // Le bandeau est en haut de page : on y remonte pour qu'il soit vu.
+      if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+    },
   });
 
   const deleteMutation = useMutation({
@@ -271,13 +331,16 @@ export default function EditerProduitPage() {
     setDirty(true);
   }
 
-  function handleSave() {
+  // Construit le corps envoyé au serveur à partir de l'état du formulaire.
+  // Partagé entre « Enregistrer » et « Publier » : les deux doivent envoyer
+  // exactement la même fiche, sinon publier ignorerait les dernières saisies.
+  function buildProductPayload(): Record<string, unknown> {
     // Parse les limites : champ vide → null (pas de limite). NaN négatif → on
     // laisse remonter null aussi pour éviter d'écrire des valeurs absurdes.
     const maxBuyersParsed = maxBuyersInput.trim() === "" ? null : Math.max(0, Math.floor(Number(maxBuyersInput)));
     const currentBuyersParsed = currentBuyersInput.trim() === "" ? 0 : Math.max(0, Math.floor(Number(currentBuyersInput)));
     const salesEndAtParsed = salesEndAtInput.trim() === "" ? null : new Date(salesEndAtInput).toISOString();
-    saveMutation.mutate({
+    return {
       title,
       description,
       productType,
@@ -296,7 +359,11 @@ export default function EditerProduitPage() {
       maxBuyers: maxBuyersParsed,
       currentBuyers: currentBuyersParsed,
       salesEndAt: salesEndAtParsed,
-    });
+    };
+  }
+
+  function handleSave() {
+    saveMutation.mutate(buildProductPayload());
   }
 
   async function handleDelete() {
@@ -399,6 +466,59 @@ export default function EditerProduitPage() {
 
       {/* Content */}
       <div className="max-w-5xl mx-auto px-5 md:px-8 py-6 space-y-6">
+
+        {/* Résultat de publication — bandeau figé, fermé par l'utilisateur.
+            Volontairement PAS un toast : la cause d'un refus doit rester lisible
+            le temps de corriger. Elle est aussi déposée dans la cloche côté
+            serveur, donc consultable même après fermeture. */}
+        {publishNotice && (
+          <div
+            className={`rounded-2xl border-2 p-5 ${
+              publishNotice.tone === "error"
+                ? "border-red-200 bg-red-50"
+                : "border-amber-200 bg-amber-50"
+            }`}
+            role="alert"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3 min-w-0">
+                {publishNotice.tone === "error" ? (
+                  <AlertTriangle size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
+                ) : (
+                  <Info size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                )}
+                <div className="min-w-0">
+                  <p
+                    className={`text-sm font-extrabold ${
+                      publishNotice.tone === "error" ? "text-red-700" : "text-amber-700"
+                    }`}
+                  >
+                    {publishNotice.title}
+                  </p>
+                  <p className="text-sm text-[#33453b] mt-1">{publishNotice.message}</p>
+                  {publishNotice.problemes.length > 0 && (
+                    <ul className="mt-2 space-y-1 list-disc pl-5 text-sm text-[#33453b]">
+                      {publishNotice.problemes.map((p, i) => (
+                        <li key={i}>{p}</li>
+                      ))}
+                    </ul>
+                  )}
+                  <p className="text-xs text-[#5c647a] mt-2">
+                    Cette explication reste disponible dans vos notifications (cloche 🔔).
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPublishNotice(null)}
+                aria-label="Fermer ce message"
+                className="p-1.5 rounded-lg hover:bg-black/5 text-[#5c647a] flex-shrink-0"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Stats card */}
         <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3">

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { decisionPublication, notifierMiseEnAttente } from "@/lib/formations/publication-gate";
+import { decisionPublication, notifierMiseEnAttente, notifierRefusPublication } from "@/lib/formations/publication-gate";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
@@ -194,6 +194,17 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         exigerBanniere: true,
       });
       if (!decision.ok) {
+        // Refus d'une publication EXPLICITE → on en garde une trace dans la
+        // cloche. On ne notifie pas quand il s'agit d'une simple édition d'un
+        // produit déjà en ligne (statutDemande vide) : ce serait une alerte à
+        // chaque correction, alors que le produit reste visible.
+        if (statutDemande === "ACTIF") {
+          await notifierRefusPublication({
+            userId: ctx.userId,
+            titre: (body.title !== undefined ? body.title : existing.title) || "Votre produit",
+            raison: decision.error,
+          });
+        }
         return NextResponse.json(
           {
             error: decision.error,
