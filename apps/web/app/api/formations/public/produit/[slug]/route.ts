@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { resolveStorageFields } from "@/lib/storage-resolver";
 
@@ -43,17 +45,33 @@ export async function GET(_req: Request, { params }: Params) {
       },
     });
 
-    if (!product || product.status !== "ACTIF") {
+    if (!product) {
       return NextResponse.json({ error: "Produit introuvable" }, { status: 404 });
     }
 
-    // Increment view count in background
-    prisma.digitalProduct
-      .update({
-        where: { id: product.id },
-        data: { viewsCount: { increment: 1 } },
-      })
-      .catch(() => null);
+    // Le public ne voit que les fiches ACTIF. Exception : un ADMIN authentifié
+    // peut consulter une fiche non publiée (En attente / brouillon) pour la
+    // contrôler AVANT validation depuis le tableau de bord admin. Sans cette
+    // exception, le bouton « Voir » de l'admin renvoyait un 404.
+    if (product.status !== "ACTIF") {
+      const session = await getServerSession(authOptions);
+      const role = (session?.user as { role?: string } | undefined)?.role;
+      const isAdmin = role === "admin" || role === "ADMIN";
+      if (!isAdmin) {
+        return NextResponse.json({ error: "Produit introuvable" }, { status: 404 });
+      }
+    }
+
+    // Compteur de vues : uniquement pour le public sur une fiche publiée. Un
+    // aperçu admin ne doit pas gonfler les statistiques du vendeur.
+    if (product.status === "ACTIF") {
+      prisma.digitalProduct
+        .update({
+          where: { id: product.id },
+          data: { viewsCount: { increment: 1 } },
+        })
+        .catch(() => null);
+    }
 
     // Whether the buyer can use the preview tab: opt-in by vendor, and at
     // least one file (legacy fileUrl included) is a PDF that pdf-lib can read.

@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { resolveStorageFields } from "@/lib/storage-resolver";
 
@@ -53,17 +55,33 @@ export async function GET(_req: Request, { params }: Params) {
       },
     });
 
-    if (!formation || formation.status !== "ACTIF") {
+    if (!formation) {
       return NextResponse.json({ error: "Formation introuvable" }, { status: 404 });
     }
 
-    // Fire-and-forget view counter increment
-    prisma.formation
-      .update({
-        where: { id: formation.id },
-        data: { viewsCount: { increment: 1 } },
-      })
-      .catch(() => null);
+    // Le public ne voit que les fiches ACTIF. Exception : un ADMIN authentifié
+    // peut consulter une fiche non publiée (En attente / brouillon) pour la
+    // contrôler AVANT validation depuis le tableau de bord admin. Sans cette
+    // exception, le bouton « Voir » de l'admin renvoyait un 404.
+    if (formation.status !== "ACTIF") {
+      const session = await getServerSession(authOptions);
+      const role = (session?.user as { role?: string } | undefined)?.role;
+      const isAdmin = role === "admin" || role === "ADMIN";
+      if (!isAdmin) {
+        return NextResponse.json({ error: "Formation introuvable" }, { status: 404 });
+      }
+    }
+
+    // Compteur de vues : uniquement pour le public sur une fiche publiée. Un
+    // aperçu admin ne doit pas gonfler les statistiques du vendeur.
+    if (formation.status === "ACTIF") {
+      prisma.formation
+        .update({
+          where: { id: formation.id },
+          data: { viewsCount: { increment: 1 } },
+        })
+        .catch(() => null);
+    }
 
     // Compute total lessons + duration
     const totalLessons = formation.sections.reduce(
