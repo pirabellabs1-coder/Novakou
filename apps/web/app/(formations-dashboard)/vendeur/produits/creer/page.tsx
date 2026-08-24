@@ -324,20 +324,39 @@ export default function CreerProduitPage() {
       // AFRIGAGNE : ses ebooks refusés disparaissaient — il croyait tout
       // perdu). On l'amène directement sur la page d'édition, problèmes en main.
       if (res.data?.publicationRefusee) {
-        const detail = Array.isArray(res.data.problemes)
-          ? res.data.problemes.map((p: { message: string }) => p.message).join(" ")
-          : "";
-        useToastStore
-          .getState()
-          .addToast(
-            "warning",
-            `Publication refusée — votre travail est enregistré en brouillon. ${detail}`.trim(),
+        const problemes: string[] = Array.isArray(res.data.problemes)
+          ? res.data.problemes
+              .map((p: { message?: string }) => p?.message)
+              .filter((m: unknown): m is string => typeof m === "string" && m.length > 0)
+          : [];
+
+        if (res.data.kind === "formation") {
+          // Formations : comportement inchangé — la page d'édition cours n'a pas
+          // encore de bandeau de refus, on garde donc le toast.
+          useToastStore
+            .getState()
+            .addToast(
+              "warning",
+              `Publication refusée — votre travail est enregistré en brouillon. ${problemes.join(" ")}`.trim(),
+            );
+          router.push(`/vendeur/cours/${res.data.id}/editer`);
+          return;
+        }
+
+        // Produits : l'erreur ne doit apparaître QUE dans le bandeau de la page
+        // d'édition, pas en toast qui s'efface. On la transmet via sessionStorage ;
+        // la page d'édition la lit au chargement. Le travail est déjà enregistré
+        // en brouillon côté serveur, et le refus est déjà dans la cloche.
+        try {
+          sessionStorage.setItem(
+            `nk:publish-refus:${res.data.id}`,
+            JSON.stringify({ problemes }),
           );
-        router.push(
-          res.data.kind === "formation"
-            ? `/vendeur/cours/${res.data.id}/editer`
-            : `/vendeur/produits/${res.data.id}/editer`,
-        );
+        } catch {
+          // sessionStorage indisponible : le bandeau réapparaîtra à la prochaine
+          // tentative de publication depuis la page d'édition.
+        }
+        router.push(`/vendeur/produits/${res.data.id}/editer`);
         return;
       }
       // Publication partie en VALIDATION (régime hybride) : le dire tout de

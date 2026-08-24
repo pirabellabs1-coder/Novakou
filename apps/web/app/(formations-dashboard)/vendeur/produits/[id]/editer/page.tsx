@@ -241,6 +241,39 @@ export default function EditerProduitPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId, hasHydrated, draftPrefix]);
 
+  // Refus venu de l'assistant de CRÉATION : la première publication est refusée
+  // là-bas, puis le vendeur est redirigé ici. Le motif est transmis par
+  // sessionStorage pour s'afficher dans LE BANDEAU (et nulle part ailleurs) dès
+  // l'arrivée — sinon il ne verrait rien avant de re-cliquer « Publier ».
+  useEffect(() => {
+    if (!id || typeof window === "undefined") return;
+    let raw: string | null = null;
+    try {
+      raw = window.sessionStorage.getItem(`nk:publish-refus:${id}`);
+      if (raw) window.sessionStorage.removeItem(`nk:publish-refus:${id}`);
+    } catch {
+      return;
+    }
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw) as { problemes?: unknown };
+      const problemes = Array.isArray(parsed.problemes)
+        ? parsed.problemes.filter((m): m is string => typeof m === "string" && m.length > 0)
+        : [];
+      setPublishNotice({
+        tone: "error",
+        title: "Publication refusée",
+        message:
+          problemes.length > 0
+            ? "Corrigez les points suivants, puis relancez la publication :"
+            : "La publication a été refusée.",
+        problemes,
+      });
+    } catch {
+      // Charge utile illisible : on ignore, pas de bandeau fantôme.
+    }
+  }, [id]);
+
   const saveMutation = useMutation({
     mutationFn: (body: Record<string, unknown>) =>
       fetch(`/api/formations/vendeur/products/${id}`, {

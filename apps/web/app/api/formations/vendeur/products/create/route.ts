@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { decisionPublication, notifierMiseEnAttente } from "@/lib/formations/publication-gate";
+import { decisionPublication, notifierMiseEnAttente, notifierRefusPublication } from "@/lib/formations/publication-gate";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
@@ -159,6 +159,14 @@ export async function POST(request: Request) {
         }
         problemesRefus = decision.problemes ?? [{ champ: "fiche", message: decision.error }];
         statutPublication = "BROUILLON";
+        // Même refus qu'à l'édition → même trace dans la cloche. Le vendeur
+        // retrouve POURQUOI sa toute première publication n'est pas passée,
+        // même s'il quitte l'écran avant d'avoir tout corrigé.
+        await notifierRefusPublication({
+          userId,
+          titre: title,
+          raison: decision.error,
+        });
       } else {
         statutPublication = decision.statut;
       }
