@@ -267,7 +267,7 @@ export default function AdminProduitsPage() {
                     ].map((c) => (
                       <th
                         key={c.h}
-                        className={`text-[10.5px] uppercase font-extrabold px-5 py-3 ${c.align}`}
+                        className={`text-[10.5px] uppercase font-extrabold px-3.5 py-3 ${c.align}`}
                         style={{ color: ST.textMuted, letterSpacing: ".06em" }}
                       >
                         {c.h}
@@ -278,13 +278,13 @@ export default function AdminProduitsPage() {
                 <tbody>
                   {products.map((p) => (
                     <tr key={p.id} className="transition-colors hover:bg-[#f7faf8]">
-                      <td className="px-5 py-4" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                      <td className="px-3.5 py-4" style={{ borderTop: `1px solid ${ST.divider}` }}>
                         {/* max-w OBLIGATOIRE : dans une cellule de tableau
                             auto-dimensionnée, `truncate` ne contraint rien —
                             un titre long élargissait la colonne jusqu'à
                             pousser Statut et Actions HORS ÉCRAN. L'admin ne
                             voyait plus les boutons Valider/Refuser. */}
-                        <div className="flex items-center gap-3 min-w-0 max-w-[300px] xl:max-w-[420px]">
+                        <div className="flex items-center gap-3 min-w-0 max-w-[220px] xl:max-w-[300px]">
                           <div
                             className="w-12 h-12 rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center"
                             style={{ background: ST.divider }}
@@ -318,12 +318,12 @@ export default function AdminProduitsPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-5 py-4" style={{ borderTop: `1px solid ${ST.divider}` }}>
-                        <p className="text-[12px] font-bold truncate max-w-[180px]" style={{ color: ST.text }}>
+                      <td className="px-3.5 py-4" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                        <p className="text-[12px] font-bold truncate max-w-[130px]" style={{ color: ST.text }}>
                           {p.seller}
                         </p>
                       </td>
-                      <td className="px-5 py-4 text-right" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                      <td className="px-3.5 py-4 text-right" style={{ borderTop: `1px solid ${ST.divider}` }}>
                         <p className="text-[13px] font-extrabold tabular-nums" style={{ color: ST.text }}>
                           {p.sales}
                         </p>
@@ -333,7 +333,7 @@ export default function AdminProduitsPage() {
                           </p>
                         )}
                       </td>
-                      <td className="px-5 py-4 text-right" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                      <td className="px-3.5 py-4 text-right" style={{ borderTop: `1px solid ${ST.divider}` }}>
                         <p className="text-[13px] font-extrabold tabular-nums" style={{ color: ST.green }}>
                           {formatFCFA(p.revenue)}
                         </p>
@@ -341,10 +341,10 @@ export default function AdminProduitsPage() {
                           FCFA
                         </p>
                       </td>
-                      <td className="px-5 py-4" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                      <td className="px-3.5 py-4" style={{ borderTop: `1px solid ${ST.divider}` }}>
                         <StStatusPill status={p.status} label={STATUS_LABELS[p.status] ?? p.status} />
                       </td>
-                      <td className="px-5 py-4" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                      <td className="px-3.5 py-4" style={{ borderTop: `1px solid ${ST.divider}` }}>
                         <div className="flex gap-1.5 justify-end">
                           {p.status === "EN_ATTENTE" ? (
                             <>
