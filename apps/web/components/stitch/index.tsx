@@ -133,6 +133,7 @@ export function StButton({
   variant = "primary",
   size = "md",
   href,
+  target,
   onClick,
   disabled,
   type = "button",
@@ -144,6 +145,9 @@ export function StButton({
   variant?: "primary" | "secondary" | "dark" | "white" | "ghost-green";
   size?: "sm" | "md" | "lg";
   href?: string;
+  // Ouvrir dans un nouvel onglet (ex. l'admin consulte un produit sans
+  // quitter sa liste de validation). rel sécurisé ajouté automatiquement.
+  target?: "_blank" | "_self";
   onClick?: () => void;
   disabled?: boolean;
   type?: "button" | "submit";
@@ -191,7 +195,13 @@ export function StButton({
 
   if (href && !disabled) {
     return (
-      <Link href={href} className={`${base} ${variantClass}`} style={styleProps}>
+      <Link
+        href={href}
+        target={target}
+        rel={target === "_blank" ? "noopener noreferrer" : undefined}
+        className={`${base} ${variantClass}`}
+        style={styleProps}
+      >
         {content}
       </Link>
     );

@@ -348,6 +348,27 @@ export default function AdminProduitsPage() {
                         <div className="flex gap-1.5 justify-end">
                           {p.status === "EN_ATTENTE" ? (
                             <>
+                              {/* Consulter la fiche AVANT de décider — ouvre
+                                  dans un nouvel onglet pour ne pas perdre la
+                                  liste de validation. La page publique
+                                  s'affiche même si le produit n'est pas encore
+                                  publié (recherche par slug, sans filtre de
+                                  statut). */}
+                              {p.slug && (
+                                <StButton
+                                  variant="secondary"
+                                  size="sm"
+                                  icon={ExternalLink}
+                                  href={
+                                    p.kind === "formation"
+                                      ? `/formation/${p.slug}`
+                                      : `/produit/${p.slug}`
+                                  }
+                                  target="_blank"
+                                >
+                                  Voir
+                                </StButton>
+                              )}
                               <StButton
                                 variant="primary"
                                 size="sm"
@@ -389,6 +410,7 @@ export default function AdminProduitsPage() {
                                   ? `/formation/${p.slug}`
                                   : `/produit/${p.slug}`
                               }
+                              target="_blank"
                             >
                               Voir
                             </StButton>
