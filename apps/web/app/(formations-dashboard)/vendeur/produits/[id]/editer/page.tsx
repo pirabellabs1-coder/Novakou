@@ -454,17 +454,25 @@ export default function EditerProduitPage() {
 
   return (
     <div className="min-h-screen bg-[#f7f9fb]">
-      {/* Top bar */}
+      {/* Top bar — responsive.
+          Sur mobile, tout tenait sur une seule ligne : « Enregistrer » était
+          coupé et « Publier » débordait hors de l'écran, donc inatteignable.
+          On sépare désormais le CONTEXTE (retour, titre, statut) des ACTIONS :
+          les actions passent sur une 2e ligne pleine largeur en mobile, et
+          restent en ligne unique à partir de `md`. */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-5 md:px-8 h-14 flex items-center gap-3">
-          <Link href="/vendeur/produits" className="text-[#5c647a] hover:text-[#191c1e]">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-2.5 md:py-0 md:h-14 flex flex-wrap md:flex-nowrap items-center gap-x-3 gap-y-2">
+          <Link href="/vendeur/produits" className="text-[#5c647a] hover:text-[#191c1e] flex-shrink-0">
             <ArrowLeft size={20} />
           </Link>
           <div className="flex-1 min-w-0">
             <p className="text-xs text-[#5c647a] truncate">Édition produit · {product.slug}</p>
           </div>
-          <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${status.cls}`}>{status.label}</span>
-          <div className="flex items-center gap-2 text-xs text-[#5c647a]">
+          <span className={`flex-shrink-0 text-[11px] font-bold px-2.5 py-1 rounded-full ${status.cls}`}>{status.label}</span>
+          {/* État de sauvegarde — masqué en mobile : la barre « Modifications non
+              enregistrées » en bas d'écran couvre déjà ce besoin, et on gagne la
+              place pour le titre. */}
+          <div className="hidden md:flex items-center gap-2 text-xs text-[#5c647a] flex-shrink-0">
             {saveMutation.isPending ? (
               <><Loader2 size={14} className="animate-spin" />Sauvegarde…</>
             ) : savedAt ? (
@@ -479,29 +487,33 @@ export default function EditerProduitPage() {
               </span>
             ) : null}
           </div>
-          <a href={`/produit/${product.slug}`} target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors">
-            <ExternalLink size={14} />Aperçu
-          </a>
-          <button
-            onClick={handleSave}
-            disabled={!dirty || saveMutation.isPending}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white disabled:opacity-50"
-            style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-          >
-            <Save size={14} />
-            Enregistrer
-          </button>
-          <button
-            onClick={() => publishMutation.mutate(isPublished ? "BROUILLON" : "ACTIF")}
-            disabled={publishMutation.isPending}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
-              isPublished ? "bg-amber-100 text-amber-700 hover:bg-amber-200" : "bg-zinc-900 text-white hover:bg-zinc-700"
-            }`}
-          >
-            {isPublished ? <Pause size={14} /> : <Upload size={14} />}
-            {isPublished ? "Dépublier" : "Publier"}
-          </button>
+          {/* Actions : pleine largeur (2e ligne) en mobile, inline en desktop.
+              Chaque bouton prend un tiers de la largeur en mobile (flex-1). */}
+          <div className="w-full md:w-auto flex items-center gap-2">
+            <a href={`/produit/${product.slug}`} target="_blank" rel="noopener noreferrer"
+              className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-3 py-2 md:py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors">
+              <ExternalLink size={14} />Aperçu
+            </a>
+            <button
+              onClick={handleSave}
+              disabled={!dirty || saveMutation.isPending}
+              className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-3 py-2 md:py-1.5 rounded-xl text-xs font-bold whitespace-nowrap text-white disabled:opacity-50"
+              style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+            >
+              <Save size={14} />
+              Enregistrer
+            </button>
+            <button
+              onClick={() => publishMutation.mutate(isPublished ? "BROUILLON" : "ACTIF")}
+              disabled={publishMutation.isPending}
+              className={`flex-1 md:flex-none flex items-center justify-center gap-1.5 px-3 py-2 md:py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-colors ${
+                isPublished ? "bg-amber-100 text-amber-700 hover:bg-amber-200" : "bg-zinc-900 text-white hover:bg-zinc-700"
+              }`}
+            >
+              {isPublished ? <Pause size={14} /> : <Upload size={14} />}
+              {isPublished ? "Dépublier" : "Publier"}
+            </button>
+          </div>
         </div>
       </div>
 
