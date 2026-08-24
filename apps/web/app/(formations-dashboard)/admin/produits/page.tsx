@@ -35,6 +35,7 @@ type Product = {
   thumbnail: string | null;
   status: string;
   createdAt: string;
+  submittedAt: string;
   category: string;
   sales: number;
   rating: number;
@@ -53,6 +54,32 @@ type Summary = {
 
 function formatFCFA(n: number) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(n));
+}
+
+// Date courte « 24 août 2026 » pour suivre les soumissions.
+function formatDateCourte(iso: string) {
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(iso));
+}
+
+// Date + heure complètes, affichées au survol (title) pour lever toute ambiguïté.
+function formatDateComplete(iso: string) {
+  return new Intl.DateTimeFormat("fr-FR", {
+    dateStyle: "long",
+    timeStyle: "short",
+  }).format(new Date(iso));
+}
+
+// Ancienneté « il y a X j » : sert à repérer les produits en attente depuis
+// longtemps. Approximation en jours (suffisant pour la modération).
+function ancienneteJours(iso: string) {
+  const jours = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  if (jours <= 0) return "aujourd'hui";
+  if (jours === 1) return "hier";
+  return `il y a ${jours} j`;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -343,6 +370,21 @@ export default function AdminProduitsPage() {
                       </td>
                       <td className="px-3.5 py-4" style={{ borderTop: `1px solid ${ST.divider}` }}>
                         <StStatusPill status={p.status} label={STATUS_LABELS[p.status] ?? p.status} />
+                        {/* Date de soumission sous la pastille : pour un produit
+                            « En attente » on met en avant l'ancienneté (depuis
+                            quand il patiente) en ambre ; sinon simple date. */}
+                        <div
+                          className="mt-1.5 text-[10px] leading-tight tabular-nums"
+                          title={`Soumis le ${formatDateComplete(p.submittedAt)}`}
+                        >
+                          <span style={{ color: ST.textMuted }}>{formatDateCourte(p.submittedAt)}</span>
+                          {p.status === "EN_ATTENTE" && (
+                            <span className="font-extrabold" style={{ color: ST.amberText }}>
+                              {" · "}
+                              {ancienneteJours(p.submittedAt)}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-3.5 py-4" style={{ borderTop: `1px solid ${ST.divider}` }}>
                         <div className="flex gap-1.5 justify-end">

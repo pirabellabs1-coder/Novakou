@@ -32,7 +32,7 @@ export async function GET(request: Request) {
         take: 100,
         orderBy: { createdAt: "desc" },
         select: {
-          id: true, title: true, slug: true, price: true, thumbnail: true, status: true, createdAt: true,
+          id: true, title: true, slug: true, price: true, thumbnail: true, status: true, createdAt: true, updatedAt: true,
           studentsCount: true, rating: true, customCategory: true,
           instructeur: { select: { user: { select: { name: true, email: true } } } },
           enrollments: { select: { paidAmount: true, refundedAt: true } },
@@ -43,7 +43,7 @@ export async function GET(request: Request) {
         take: 100,
         orderBy: { createdAt: "desc" },
         select: {
-          id: true, title: true, slug: true, price: true, banner: true, status: true, createdAt: true,
+          id: true, title: true, slug: true, price: true, banner: true, status: true, createdAt: true, updatedAt: true,
           salesCount: true, rating: true, productType: true,
           instructeur: { select: { user: { select: { name: true, email: true } } } },
           purchases: { select: { paidAmount: true } },
@@ -61,6 +61,10 @@ export async function GET(request: Request) {
         thumbnail: f.thumbnail,
         status: f.status,
         createdAt: f.createdAt,
+        // Date de soumission pour validation ≈ dernière modif (le vendeur
+        // clique « Publier » → passage en EN_ATTENTE). Sert à suivre depuis
+        // combien de temps un produit attend.
+        submittedAt: f.updatedAt,
         category: f.customCategory ?? "Formation",
         sales: f.studentsCount,
         rating: f.rating,
@@ -77,6 +81,7 @@ export async function GET(request: Request) {
         thumbnail: p.banner,
         status: p.status,
         createdAt: p.createdAt,
+        submittedAt: p.updatedAt,
         category: p.productType,
         sales: p.salesCount,
         rating: p.rating,
