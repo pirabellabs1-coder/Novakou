@@ -432,11 +432,11 @@ export default function KycPage() {
                 Pour que votre dossier soit accepté du premier coup
               </p>
               <ul className="text-[12px] leading-relaxed space-y-1" style={{ color: "#0c447c" }}>
-                <li>• Photographiez en <strong>pleine lumière</strong>, de préférence à la lumière du jour.</li>
+                <li>• <strong>Pièce d&apos;identité (recto et verso)</strong> : photographiez en <strong>pleine lumière</strong>, de préférence à la lumière du jour.</li>
                 <li>• Évitez les <strong>reflets et les ombres</strong> : ne mettez pas le flash directement sur la pièce.</li>
                 <li>• La pièce doit être <strong>entière dans le cadre</strong>, à plat, sans doigt qui masque une information.</li>
                 <li>• <strong>Chaque caractère doit être lisible</strong> : nom, date de naissance, numéro, dates de validité.</li>
-                <li>• Sur la photo de visage : <strong>tête nue, sans lunettes de soleil</strong>, visage bien éclairé et de face.</li>
+                <li>• <strong>Photo du visage</strong> : elle se prend <strong>en direct avec votre caméra</strong> (pas d&apos;import de fichier). Cadrez votre visage <strong>de face, tête nue, sans lunettes de soleil</strong>, dans un endroit bien éclairé.</li>
               </ul>
               <p className="text-[11.5px] mt-2.5 font-semibold" style={{ color: "#0c447c" }}>
                 Les trois pièces sont obligatoires. Un dossier incomplet ou illisible est refusé.
