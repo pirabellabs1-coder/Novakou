@@ -190,6 +190,11 @@ export function NovakouNotificationBell({ tone = "slate", viewAllHref }: Novakou
                 const typeInfo = TYPE_ICONS[notif.type] ?? TYPE_ICONS.system;
                 const content = (
                   <div
+                    // Le message est tronqué à 2 lignes pour garder la liste
+                    // compacte. Au survol (souris, donc desktop), l'infobulle
+                    // native rend le texte COMPLET : indispensable pour un motif
+                    // de refus long, sinon le vendeur ne lit jamais la fin.
+                    title={`${notif.title}\n${notif.message}`}
                     className={`flex gap-3 px-4 py-3 border-b border-zinc-50 cursor-pointer transition-colors ${
                       notif.read ? "hover:bg-zinc-50" : "bg-[#22c55e]/5 hover:bg-[#22c55e]/10"
                     }`}

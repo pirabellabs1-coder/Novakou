@@ -306,11 +306,19 @@ export default function EditerProduitPage() {
       }
     },
     onError: (err: Error & { problemes?: string[] }) => {
+      const problemes = err.problemes ?? [];
+      // `err.message` est déjà la concaténation des mêmes problèmes que la liste
+      // à puces : l'afficher en plus ferait doublon. Quand on a le détail en
+      // puces, le paragraphe se réduit à une phrase d'introduction ; sinon (ex.
+      // compte suspendu, sans liste) on garde le message tel quel.
       setPublishNotice({
         tone: "error",
         title: "Publication refusée",
-        message: err.message,
-        problemes: err.problemes ?? [],
+        message:
+          problemes.length > 0
+            ? "Corrigez les points suivants, puis relancez la publication :"
+            : err.message,
+        problemes,
       });
       // Le bandeau est en haut de page : on y remonte pour qu'il soit vu.
       if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
