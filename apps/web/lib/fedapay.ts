@@ -97,19 +97,41 @@ export async function initPayout(params: FedapayPayoutInitParams): Promise<Fedap
     },
   };
 
-  const createRes = await fetch(`${base}/payouts`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(createBody),
-  });
-  const createJson = (await createRes.json().catch(() => ({}))) as {
+  type ReponseCreation = {
     "v1/payout"?: FedapayPayoutObject;
     payout?: FedapayPayoutObject;
     message?: string;
     errors?: unknown;
   };
-  // FedaPay enveloppe l'objet sous "v1/payout" (ou "payout" selon la version).
-  const created = createJson["v1/payout"] || createJson.payout;
+  const creer = async (reference?: string) => {
+    const res = await fetch(`${base}/payouts`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        ...createBody,
+        ...(reference ? { merchant_reference: reference } : {}),
+      }),
+    });
+    const json = (await res.json().catch(() => ({}))) as ReponseCreation;
+    return { res, json, objet: json["v1/payout"] || json.payout };
+  };
+
+  let { res: createRes, json: createJson, objet: created } = await creer();
+
+  // ── RÉFÉRENCE DÉJÀ OCCUPÉE : reprise automatique ──────────────────────────
+  // « merchant_reference n'est pas disponible » = un essai PRÉCÉDENT de CE
+  // retrait a laissé un versement orphelin chez FedaPay (créé puis jamais
+  // abouti, état failed ou pending-jamais-démarré — aucun ne verse d'argent
+  // tout seul). Exiger un nettoyage manuel du tableau de bord bloquait le
+  // retrait de Gildas depuis le 2026-08-19. On recrée UNE fois avec une
+  // référence suffixée : la protection anti-double-envoi reste assurée côté
+  // base (un retrait avec paymentRef ou hors EN_ATTENTE n'est jamais renvoyé).
+  if (!created?.id && JSON.stringify(createJson.errors ?? "").includes("merchant_reference")) {
+    const secours = `${params.merchantReference ?? "sans-ref"}-r${Date.now().toString(36).slice(-5)}`;
+    console.warn(`[fedapay] référence occupée par un essai précédent — reprise avec « ${secours} »`);
+    ({ res: createRes, json: createJson, objet: created } = await creer(secours));
+  }
+
   if (!createRes.ok || !created?.id) {
     const detail = createJson.errors ? ` — ${JSON.stringify(createJson.errors)}` : "";
     throw new Error((createJson.message || "FedaPay payout create failed") + detail);
@@ -124,8 +146,21 @@ export async function initPayout(params: FedapayPayoutInitParams): Promise<Fedap
   });
   const startJson = (await startRes.json().catch(() => ({}))) as { message?: string };
   if (!startRes.ok) {
-    // Le payout existe mais n'a pas pu être déclenché : on remonte l'erreur avec
-    // l'id, pour trace/réconciliation manuelle.
+    // Le versement est créé mais jamais démarré : sans nettoyage, il occupe la
+    // référence marchande pour toujours et chaque relance butera dessus.
+    // DELETE /payouts/{id} est documenté — on efface l'orphelin, et l'échec
+    // devient un refus PROPRE sur lequel l'orchestrateur peut basculer sans
+    // risque : rien n'a bougé, rien ne reste.
+    const suppr = await fetch(`${base}/payouts/${encodeURIComponent(payoutId)}`, {
+      method: "DELETE",
+      headers,
+    }).catch(() => null);
+    if (suppr?.ok) {
+      throw new Error(
+        `FedaPay : démarrage refusé (${startJson.message || `HTTP ${startRes.status}`}) — versement annulé proprement, opération non autorisée`,
+      );
+    }
+    // Suppression impossible : l'orphelin subsiste, on garde l'id en clair.
     throw new Error(`FedaPay payout ${payoutId} start failed: ${startJson.message || `HTTP ${startRes.status}`}`);
   }
 
