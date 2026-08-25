@@ -115,6 +115,25 @@ const ADAPTATEURS: Record<PayoutProviderId, AdaptateurVersement> = {
         // Mieux vaut sauter proprement qu'envoyer une requête qu'on SAIT invalide.
         throw new Error("pays du bénéficiaire inconnu pour cette route FedaPay");
       }
+
+      // ── L'ARGENT DISPONIBLE DÉCIDE (même règle que PawaPay ci-dessous) ──
+      // FedaPay expose un solde PAR MODE (mtn_open, moov, sbin…) : on le lit
+      // avant d'envoyer, et un mode à sec est sauté d'un refus propre que
+      // l'orchestrateur sait relayer. Lecture en confort : si elle échoue,
+      // on tente quand même.
+      try {
+        const { soldesCompte } = await import("@/lib/fedapay");
+        const soldes = await soldesCompte();
+        const mode = (route as { mode: string }).mode;
+        const ligne = soldes.find((x) => x.mode === mode);
+        if (ligne && ligne.solde < Math.round(input.amount)) {
+          throw new Error(
+            `INSUFFICIENT_WALLET — solde FedaPay du mode « ${mode} » insuffisant (${Math.round(ligne.solde)} F disponible, ${Math.round(input.amount)} demandé)`,
+          );
+        }
+      } catch (err) {
+        if (err instanceof Error && err.message.startsWith("INSUFFICIENT_WALLET")) throw err;
+      }
       const r = await fedapayInit({
         amount: input.amount,
         currencyIso: currency,
@@ -188,6 +207,9 @@ const ADAPTATEURS: Record<PayoutProviderId, AdaptateurVersement> = {
           userMessage: "PawaPay : versement non activé sur cet opérateur pour notre compte (à demander à PawaPay).",
         };
       }
+      if (/INSUFFICIENT_WALLET/.test(msg)) {
+        return { category: "insufficient_funds" as const, userMessage: `PawaPay : ${msg.replace("INSUFFICIENT_WALLET — ", "")}` };
+      }
       const refusExplicite = /REJECTED|INVALID_PARAMETER|RECIPIENT_NOT_FOUND|AMOUNT_TOO|INVALID_/i.test(msg);
       return {
         category: (refusExplicite ? "validation" : "provider_failed") as "validation" | "provider_failed",
@@ -205,6 +227,40 @@ const ADAPTATEURS: Record<PayoutProviderId, AdaptateurVersement> = {
       await chargerTaux();
       const { currencyForOperator } = await import("@/lib/payments/registry");
       const aVerser = montantAFacturer(Math.round(input.amount), currencyForOperator(code));
+
+      // ── L'ARGENT DISPONIBLE DÉCIDE (règle fondateur, 2026-08-25) ────────
+      // Le portefeuille PawaPay du pays est lu AVANT d'envoyer : à sec, la
+      // passerelle est sautée d'un refus propre (« solde insuffisant »),
+      // classé pour que l'orchestrateur relaie vers la suivante — au lieu
+      // d'un aller-retour d'échec chez le fournisseur. Lecture en confort :
+      // si elle échoue, on tente quand même, PawaPay tranchera.
+      try {
+        const { soldesPortefeuilles } = await import("@/lib/pawapay");
+        const { getOperator } = await import("@/lib/payments/registry");
+        // Les portefeuilles PawaPay sont PAR PAYS : trois pays partagent le
+        // XOF, et le solde du Sénégal ne paie pas un versement au Bénin. On
+        // fait donc correspondre le pays de l'opérateur (ISO-2 du registre)
+        // au pays du portefeuille (ISO-3 chez PawaPay).
+        const ISO3: Record<string, string> = {
+          bj: "BEN", ci: "CIV", sn: "SEN", cm: "CMR", cg: "COG", ga: "GAB", cd: "COD",
+          ke: "KEN", rw: "RWA", sl: "SLE", ug: "UGA", zm: "ZMB", tg: "TGO", bf: "BFA",
+          ml: "MLI", ne: "NER", gn: "GIN", tz: "TZA", mw: "MWI", ng: "NGA", gh: "GHA", mz: "MOZ",
+        };
+        const paysOp = ISO3[getOperator(code)?.country ?? ""] ?? null;
+        if (paysOp) {
+          const portefeuilles = await soldesPortefeuilles();
+          const ligne = portefeuilles.find((x) => x.pays === paysOp && x.devise === aVerser.devise);
+          if (ligne && ligne.solde < aVerser.montant) {
+            throw new Error(
+              `INSUFFICIENT_WALLET — portefeuille PawaPay ${paysOp} insuffisant (${Math.round(ligne.solde)} ${aVerser.devise} disponible, ${aVerser.montant} demandé)`,
+            );
+          }
+        }
+      } catch (err) {
+        if (err instanceof Error && err.message.startsWith("INSUFFICIENT_WALLET")) throw err;
+        // Lecture de solde indisponible : ne jamais bloquer un versement pour ça.
+      }
+
       const r = await initPayout({
         provider,
         amount: aVerser.montant,

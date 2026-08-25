@@ -217,6 +217,13 @@ export function classifyFedapayError(
     };
   }
   const lower = msg.toLowerCase();
+  // Solde du mode lu AVANT l'envoi : refus propre, bascule sûre.
+  if (msg.startsWith("INSUFFICIENT_WALLET")) {
+    return {
+      category: "insufficient_funds",
+      userMessage: `FedaPay : ${msg.replace("INSUFFICIENT_WALLET — ", "")}`,
+    };
+  }
   // « merchant_reference n'est pas disponible » : un versement portant NOTRE
   // référence de retrait existe DÉJÀ chez FedaPay — créé par un essai
   // précédent qui n'a pas été jusqu'au bout (créé mais jamais démarré, ou
