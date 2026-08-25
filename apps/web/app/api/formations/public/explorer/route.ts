@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { FILTRE_PRIX_MARKETPLACE } from "@/lib/formations/seuils";
 import { prisma } from "@/lib/prisma";
 import { resolveStorageFields } from "@/lib/storage-resolver";
 import { cldUrl } from "@/lib/cloudinary-url";
@@ -24,8 +25,10 @@ export async function GET(request: Request) {
     // Exclure les produits cachés du marketplace ET les liens de paiement
     // (produits « cachés » servant uniquement d'URL de checkout — pas des
     // articles à découvrir dans la marketplace).
-    const formationWhere: Record<string, unknown> = { status: "ACTIF", hiddenFromMarketplace: false };
-    const productWhere: Record<string, unknown> = { status: "ACTIF", hiddenFromMarketplace: false, isPaymentLink: false };
+    // Sous le seuil, un produit payant reste vendable (boutique, lien direct)
+    // mais ne figure pas sur la marketplace publique — règle fondateur.
+    const formationWhere: Record<string, unknown> = { status: "ACTIF", hiddenFromMarketplace: false, AND: [FILTRE_PRIX_MARKETPLACE] };
+    const productWhere: Record<string, unknown> = { status: "ACTIF", hiddenFromMarketplace: false, isPaymentLink: false, AND: [FILTRE_PRIX_MARKETPLACE] };
 
     // Découpe la recherche en MOTS (tokens). Avant on cherchait la phrase
     // entière en `contains` → une recherche multi-mots (ex. l'assistant IA qui
@@ -160,8 +163,8 @@ export async function GET(request: Request) {
           name: true, slug: true, icon: true, color: true, order: true,
           _count: {
             select: {
-              formations: { where: { status: "ACTIF", hiddenFromMarketplace: false } },
-              digitalProducts: { where: { status: "ACTIF", hiddenFromMarketplace: false, isPaymentLink: false } },
+              formations: { where: { status: "ACTIF", hiddenFromMarketplace: false, AND: [FILTRE_PRIX_MARKETPLACE] } },
+              digitalProducts: { where: { status: "ACTIF", hiddenFromMarketplace: false, isPaymentLink: false, AND: [FILTRE_PRIX_MARKETPLACE] } },
             },
           },
         },

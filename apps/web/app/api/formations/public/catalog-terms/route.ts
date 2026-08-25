@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { FILTRE_PRIX_MARKETPLACE } from "@/lib/formations/seuils";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -16,7 +17,7 @@ export async function GET() {
     const [formations, products, cats] = await Promise.all([
       prisma.formation
         .findMany({
-          where: { status: "ACTIF", hiddenFromMarketplace: false },
+          where: { status: "ACTIF", hiddenFromMarketplace: false, AND: [FILTRE_PRIX_MARKETPLACE] },
           select: { title: true },
           orderBy: { studentsCount: "desc" },
           take: 60,
@@ -24,7 +25,7 @@ export async function GET() {
         .catch(() => []),
       prisma.digitalProduct
         .findMany({
-          where: { status: "ACTIF", hiddenFromMarketplace: false },
+          where: { status: "ACTIF", hiddenFromMarketplace: false, AND: [FILTRE_PRIX_MARKETPLACE] },
           select: { title: true },
           orderBy: { salesCount: "desc" },
           take: 60,

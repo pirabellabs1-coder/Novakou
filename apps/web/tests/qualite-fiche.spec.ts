@@ -1,8 +1,9 @@
 import { test, expect } from "@playwright/test";
 import {
   verifierFiche, dimensionsDepuisEntete, respecteFormat,
-  VIGNETTE, BANNIERE, MIN_TITRE, MIN_DESCRIPTION, PRIX_MINIMUM,
+  VIGNETTE, BANNIERE, MIN_TITRE, MIN_DESCRIPTION,
 } from "../lib/formations/product-quality";
+import { SEUIL_MARKETPLACE_FCFA, FILTRE_PRIX_MARKETPLACE } from "../lib/formations/seuils";
 
 /**
  * Une boutique se juge en trois secondes. Un titre de quatre lettres, une
@@ -38,16 +39,23 @@ test("une description vide de sens est refusée même remplie de balises", async
   expect(p.map((x) => x.champ)).toContain("description");
 });
 
-test("le gratuit reste permis, le payant dérisoire non", async () => {
+test("le prix ne bloque plus la publication — il ne joue que sur la visibilité marketplace", async () => {
+  // Décision fondateur 2026-08-24 : un produit sous le seuil reste publiable
+  // et vendable ; il est seulement absent de la marketplace publique.
   expect(await verifierFiche({ ...bonneFiche, prix: 0 })).toHaveLength(0);
-  const p = await verifierFiche({ ...bonneFiche, prix: PRIX_MINIMUM - 1 });
-  expect(p.map((x) => x.champ)).toContain("prix");
+  expect(await verifierFiche({ ...bonneFiche, prix: SEUIL_MARKETPLACE_FCFA - 1 })).toHaveLength(0);
+  // La clause de visibilité garde le gratuit et le seuil, écarte l'entre-deux.
+  const [gratuit, auSeuil] = FILTRE_PRIX_MARKETPLACE.OR;
+  expect(gratuit).toEqual({ price: 0 });
+  expect(auSeuil).toEqual({ price: { gte: SEUIL_MARKETPLACE_FCFA } });
 });
 
 test("aucune limite haute n'est imposée", async () => {
   const p = await verifierFiche({
     ...bonneFiche,
-    titre: "T".repeat(400),
+    // Long mais écrit normalement : c'est la LONGUEUR qu'on teste ici, pas
+    // la règle anti-majuscules (couverte par son propre test).
+    titre: "Titre particulièrement long et détaillé ".repeat(10).trim(),
     description: "D".repeat(20000),
     prix: 5_000_000,
   });
@@ -83,7 +91,11 @@ test("une image illisible ne bloque JAMAIS le vendeur", async () => {
 
 test("tous les problèmes sont rendus d'un coup", async () => {
   // Corriger une chose à la fois, en revenant cinq fois, décourage.
+  // (Le prix ne compte plus parmi les défauts : depuis la décision fondateur
+  // du 2026-08-24, il ne bloque plus la publication — il ne joue que sur la
+  // visibilité marketplace.)
   const p = await verifierFiche({ titre: "Pack", description: "court", prix: 10 });
-  expect(p.length).toBeGreaterThanOrEqual(3);
+  expect(p.map((x) => x.champ)).toEqual(expect.arrayContaining(["titre", "description"]));
+  expect(p.length).toBeGreaterThanOrEqual(2);
   expect(MIN_DESCRIPTION).toBeGreaterThan(0);
 });

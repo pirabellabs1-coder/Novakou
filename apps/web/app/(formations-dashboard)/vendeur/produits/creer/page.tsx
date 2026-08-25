@@ -67,6 +67,7 @@ import {
   formatSavedAt,
   clearDrafts,
 } from "@/lib/hooks/use-draft-storage";
+import { SEUIL_MARKETPLACE_FCFA } from "@/lib/formations/seuils";
 
 const DRAFT_PREFIX = "vendeur:product:create";
 const ONBOARDING_KEY = "nk-onboarding:product-create:dismissed";
@@ -1416,6 +1417,15 @@ export default function CreerProduitPage() {
                       <CheckCircle2 className="w-5 h-5 text-emerald-500 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                     )}
                   </div>
+                  {!isFree && price > 0 && price < SEUIL_MARKETPLACE_FCFA && (
+                    <p className="mt-1.5 text-xs text-amber-700 font-semibold flex items-start gap-1">
+                      <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                      <span>
+                        Sous {new Intl.NumberFormat("fr-FR").format(SEUIL_MARKETPLACE_FCFA)} FCFA, votre produit reste en vente sur votre
+                        boutique et par lien direct, mais n&apos;apparaîtra pas sur la marketplace publique Novakou.
+                      </span>
+                    </p>
+                  )}
                   {!isFree && price === 0 && (
                     <p className="mt-1.5 text-xs text-rose-600 font-semibold flex items-center gap-1">
                       <AlertCircle className="w-3 h-3" />

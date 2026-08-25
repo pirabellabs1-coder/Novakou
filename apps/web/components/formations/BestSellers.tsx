@@ -21,6 +21,7 @@ import Image from "next/image";
 import AdaptiveImage from "@/components/formations/AdaptiveImage";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { FILTRE_PRIX_MARKETPLACE } from "@/lib/formations/seuils";
 import { cldUrl } from "@/lib/cloudinary-url";
 
 /** Strip HTML tags for safe display in cards */
@@ -55,7 +56,7 @@ async function fetchBestSellers(): Promise<Item[]> {
     // Fetch top formations + top products, merge and sort
     const [formations, products] = await Promise.all([
       prisma.formation.findMany({
-        where: { status: "ACTIF", hiddenFromMarketplace: false },
+        where: { status: "ACTIF", hiddenFromMarketplace: false, AND: [FILTRE_PRIX_MARKETPLACE] },
         orderBy: [{ studentsCount: "desc" }, { rating: "desc" }, { createdAt: "desc" }],
         take: 6,
         select: {
@@ -73,7 +74,7 @@ async function fetchBestSellers(): Promise<Item[]> {
         },
       }),
       prisma.digitalProduct.findMany({
-        where: { status: "ACTIF", hiddenFromMarketplace: false },
+        where: { status: "ACTIF", hiddenFromMarketplace: false, AND: [FILTRE_PRIX_MARKETPLACE] },
         orderBy: [{ salesCount: "desc" }, { rating: "desc" }, { createdAt: "desc" }],
         take: 6,
         select: {

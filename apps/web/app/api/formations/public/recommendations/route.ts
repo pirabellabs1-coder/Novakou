@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { FILTRE_PRIX_MARKETPLACE } from "@/lib/formations/seuils";
 
 /**
  * GET /api/formations/public/recommendations
@@ -48,6 +49,7 @@ export async function GET(request: Request) {
     const baseWhere = {
       status: "ACTIF" as const,
       hiddenFromMarketplace: false,
+      AND: [FILTRE_PRIX_MARKETPLACE],
       ...(instructeurId ? { instructeurId } : categoryId ? { categoryId } : {}),
       ...(excludeId ? { id: { not: excludeId } } : {}),
     };

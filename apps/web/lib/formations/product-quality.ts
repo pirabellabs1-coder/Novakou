@@ -20,14 +20,6 @@ export const MIN_TITRE = 10;
 export const MIN_DESCRIPTION = 80;
 
 /**
- * Prix plancher d'un produit payant, en FCFA. Zéro reste autorisé (gratuit).
- * Règle fondateur (document de validation, août 2026) : 1 000 FCFA minimum —
- * en dessous, entre les frais de passerelle et l'image de la marketplace, la
- * vente ne profite à personne.
- */
-export const PRIX_MINIMUM = 1000;
-
-/**
  * Au-delà de ce prix, le produit n'est plus publié automatiquement : il part
  * en validation manuelle (règle fondateur). Un prix à six chiffres sur un
  * contenu creux est le premier signal d'arnaque qu'un acheteur rencontre.
@@ -219,14 +211,11 @@ export async function verifierFiche(p: {
     });
   }
 
-  // Le gratuit reste possible ; c'est le payant dérisoire qu'on écarte.
-  const prix = typeof p.prix === "number" ? p.prix : NaN;
-  if (Number.isFinite(prix) && prix > 0 && prix < PRIX_MINIMUM) {
-    out.push({
-      champ: "prix",
-      message: `Le prix est de ${Math.round(prix)} FCFA. Le minimum est de ${PRIX_MINIMUM} FCFA — en dessous, les frais de la passerelle dépassent le montant encaissé.`,
-    });
-  }
+  // PLUS DE PRIX PLANCHER (décision fondateur, 2026-08-24). La règle des
+  // 1 000 FCFA minimum refusait la publication d'un produit payant en dessous
+  // de ce seuil ; le vendeur fixe désormais librement son prix. Seule borne
+  // restante : les passerelles elles-mêmes refusent un encaissement sous
+  // ~100 FCFA — c'est leur contrainte technique, pas une règle Novakou.
 
   const [vignette, banniere] = await Promise.all([
     p.vignetteUrl ? lireDimensions(p.vignetteUrl) : Promise.resolve(null),

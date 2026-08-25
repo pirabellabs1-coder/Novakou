@@ -46,6 +46,7 @@ import {
   clearDrafts,
   hasStoredDraft,
 } from "@/lib/hooks/use-draft-storage";
+import { SEUIL_MARKETPLACE_FCFA } from "@/lib/formations/seuils";
 
 interface Product {
   id: string;
@@ -676,6 +677,12 @@ export default function EditerProduitPage() {
                 className="w-full text-base font-bold text-[#006e2f] bg-white px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/20"
                 min={0}
               />
+              {Number(price) > 0 && Number(price) < SEUIL_MARKETPLACE_FCFA && (
+                <p className="mt-1.5 text-xs text-amber-700 font-semibold">
+                  Sous {new Intl.NumberFormat("fr-FR").format(SEUIL_MARKETPLACE_FCFA)} FCFA, ce produit reste en vente sur votre
+                  boutique et par lien direct, mais n&apos;apparaît pas sur la marketplace publique Novakou.
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#5c647a] uppercase tracking-wider mb-1.5">Prix barré (optionnel)</label>
