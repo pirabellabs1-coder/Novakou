@@ -7,6 +7,7 @@ import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { resolveStorageFileUrl, getStorageObjectPath } from "@/lib/supabase-storage";
 import { revalidatePublicCatalog } from "@/lib/formations/revalidate-public";
+import { getOrCreateCategory } from "@/lib/formations/categories";
 
 // Reconvertit une URL Supabase Storage (signée ou non) en chemin brut pour la DB.
 // Pour les URLs externes (Cloudinary, http public), conserve la valeur telle quelle.
@@ -172,6 +173,16 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           ? (body.fileUrl ? normalizeStorageUrlForDb(body.fileUrl) : null)
           : undefined;
 
+    // Catégorie : modifiable après coup, même trouve-ou-crée qu'à la création
+    // (n'importe quel libellé non vide est accepté, y compris ceux écrits via
+    // « Autre »). Champ absent ou vide → on ne touche pas à la catégorie.
+    let categoryUpdate: { categoryId: string; customCategory: string } | undefined;
+    if (typeof body.category === "string" && body.category.trim()) {
+      const libelle = body.category.trim().slice(0, 60);
+      const cat = await getOrCreateCategory(libelle);
+      categoryUpdate = { categoryId: cat.id, customCategory: libelle };
+    }
+
     // ── RÈGLES DE PUBLICATION (mêmes qu'à la création) ───────────────────
     // Elles ne s'appliquent que si le produit SERA visible : publication
     // demandée, ou produit déjà en ligne qu'on modifie (sinon on pourrait
@@ -258,6 +269,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
             ? new Date(body.salesEndAt)
             : undefined,
         ...(filesUpdate ? { files: filesUpdate } : {}),
+        ...(categoryUpdate ?? {}),
       },
       include: {
         files: {

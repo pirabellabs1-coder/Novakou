@@ -8,16 +8,7 @@ import { DigitalProductType } from "@prisma/client";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { getActiveShopId } from "@/lib/formations/active-shop";
 import { slugify } from "@/lib/formations/slugs";
-
-
-async function getOrCreateCategory(name: string) {
-  const slug = slugify(name);
-  const existing = await prisma.formationCategory.findUnique({ where: { slug } });
-  if (existing) return existing;
-  return prisma.formationCategory.create({
-    data: { name, slug, isActive: true },
-  });
-}
+import { getOrCreateCategory } from "@/lib/formations/categories";
 
 /**
  * POST /api/vendeur/products/create

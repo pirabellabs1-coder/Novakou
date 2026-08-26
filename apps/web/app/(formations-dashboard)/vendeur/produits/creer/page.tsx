@@ -68,6 +68,7 @@ import {
   clearDrafts,
 } from "@/lib/hooks/use-draft-storage";
 import { SEUIL_MARKETPLACE_FCFA } from "@/lib/formations/seuils";
+import { CATEGORIES_PRODUITS as categories, CATEGORIE_AUTRE } from "@/lib/formations/categories-produits";
 
 const DRAFT_PREFIX = "vendeur:product:create";
 const ONBOARDING_KEY = "nk-onboarding:product-create:dismissed";
@@ -133,43 +134,8 @@ const productTypes: {
   { value: "audio", kind: "product", productType: "AUDIO", label: "Audio / Podcast", description: "Contenu audio téléchargeable", icon: Headphones, hint: "Suggéré ~25 000 FCFA · 60min" },
 ];
 
-const categories = [
-  "Développement Web",
-  "Marketing Digital",
-  "Design Graphique",
-  "Entrepreneuriat",
-  "Finance & Comptabilité",
-  "Langues & Communication",
-  "Photographie & Vidéo",
-  "Business & Management",
-  "Productivité",
-  "Intelligence Artificielle",
-  "E-commerce & Dropshipping",
-  "Réseaux sociaux & Création de contenu",
-  "Crypto & Trading",
-  "Immobilier",
-  "Agriculture & Élevage",
-  "Cuisine & Restauration",
-  "Mode, Beauté & Coiffure",
-  "Santé & Bien-être",
-  "Développement personnel",
-  "Éducation & Concours",
-  "Religion & Spiritualité",
-  "Musique & Audio",
-  "Livres & E-books",
-  "Modèles & Templates",
-  "Logiciels & Outils",
-  "Artisanat & Métiers manuels",
-  "Droit & Démarches administratives",
-];
-
-/**
- * Valeur sentinelle du choix « Autre » : le vendeur écrit alors sa propre
- * catégorie. Le serveur sait déjà l'accueillir — il fait du trouve-ou-crée
- * (getOrCreateCategory) sur n'importe quel libellé — la limite n'a jamais
- * été que dans cette liste figée.
- */
-const CATEGORIE_AUTRE = "__autre__";
+// La liste des catégories et la sentinelle « Autre » vivent désormais dans
+// lib/formations/categories-produits.ts, partagées avec la page d'ÉDITION.
 
 type Lesson = { title: string; duration: number; videoUrl: string };
 type Module = { title: string; lessons: Lesson[] };

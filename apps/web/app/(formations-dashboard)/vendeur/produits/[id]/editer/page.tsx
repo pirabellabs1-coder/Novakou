@@ -47,6 +47,7 @@ import {
   hasStoredDraft,
 } from "@/lib/hooks/use-draft-storage";
 import { SEUIL_MARKETPLACE_FCFA } from "@/lib/formations/seuils";
+import { CATEGORIES_PRODUITS, CATEGORIE_AUTRE } from "@/lib/formations/categories-produits";
 
 interface Product {
   id: string;
@@ -135,6 +136,11 @@ export default function EditerProduitPage() {
   const [maxBuyersInput, setMaxBuyersInput] = useDraftField<string>(`${draftPrefix}:maxBuyers`, "");
   const [currentBuyersInput, setCurrentBuyersInput] = useDraftField<string>(`${draftPrefix}:currentBuyers`, "");
   const [salesEndAtInput, setSalesEndAtInput] = useDraftField<string>(`${draftPrefix}:salesEndAt`, "");
+  // Catégorie : même mécanique que sur la page de création — liste partagée +
+  // sentinelle « Autre » qui ouvre un champ libre.
+  const [category, setCategory] = useDraftField<string>(`${draftPrefix}:category`, "");
+  const [categorieLibre, setCategorieLibre] = useDraftField<string>(`${draftPrefix}:categorieLibre`, "");
+  const categorieEffective = category === CATEGORIE_AUTRE ? categorieLibre.trim() : category;
   const [dirty, setDirty] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   // Résultat de la dernière tentative de publication. Reste affiché tant que le
@@ -233,6 +239,20 @@ export default function EditerProduitPage() {
     // datetime-local attend "YYYY-MM-DDTHH:MM" (sans secondes ni TZ)
     if (!has("salesEndAt")) setSalesEndAtInput(product.salesEndAt ? product.salesEndAt.slice(0, 16) : "");
     else anyDraft = true;
+    // Catégorie : si le libellé actuel figure dans la liste, on présélectionne
+    // l'option ; sinon (catégorie écrite via « Autre » ou héritage) on ouvre
+    // « Autre » avec le libellé prérempli. Les deux clés vont ensemble : un
+    // brouillon sur l'une gèle l'autre pour ne pas mélanger deux origines.
+    if (!has("category") && !has("categorieLibre")) {
+      const nomCategorie = product.category?.name ?? "";
+      if (!nomCategorie || CATEGORIES_PRODUITS.includes(nomCategorie)) {
+        setCategory(nomCategorie);
+        setCategorieLibre("");
+      } else {
+        setCategory(CATEGORIE_AUTRE);
+        setCategorieLibre(nomCategorie);
+      }
+    } else anyDraft = true;
 
     setDirty(anyDraft);
     setHasHydrated(true);
@@ -401,6 +421,8 @@ export default function EditerProduitPage() {
       maxBuyers: maxBuyersParsed,
       currentBuyers: currentBuyersParsed,
       salesEndAt: salesEndAtParsed,
+      // Vide → champ absent : le serveur ne touche pas à la catégorie en place.
+      ...(categorieEffective ? { category: categorieEffective } : {}),
     };
   }
 
@@ -649,6 +671,31 @@ export default function EditerProduitPage() {
                 <option key={t.value} value={t.value}>{t.label}</option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-[#5c647a] uppercase tracking-wider mb-1.5">Catégorie</label>
+            <select
+              value={category}
+              onChange={(e) => track(setCategory, e.target.value)}
+              className="w-full text-sm text-[#191c1e] bg-white px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/20"
+            >
+              <option value="">Sélectionner une catégorie…</option>
+              {CATEGORIES_PRODUITS.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+              <option value={CATEGORIE_AUTRE}>Autre… (écrire ma catégorie)</option>
+            </select>
+            {category === CATEGORIE_AUTRE && (
+              <input
+                type="text"
+                value={categorieLibre}
+                onChange={(e) => track(setCategorieLibre, e.target.value)}
+                placeholder="Écrivez votre catégorie (ex : Coaching sportif)"
+                maxLength={60}
+                className="mt-2 w-full text-sm text-[#191c1e] bg-white px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/20"
+              />
+            )}
           </div>
 
           <div>
