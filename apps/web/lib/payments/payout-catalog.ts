@@ -242,7 +242,9 @@ export const PAYOUT_METHODS: PayoutMethodDef[] = [
   },
   {
     id: "togocel",
-    label: "Togocel Money (Togo)",
+    // id `togocel` conservé (routage) ; libellé aligné sur le rebranding
+    // Togocel → T-Money (Togocom / « Mixx by Yas »).
+    label: "T-Money (Togo)",
     icon: "phone_iphone",
     currency: "XOF",
     countries: ["TG"],

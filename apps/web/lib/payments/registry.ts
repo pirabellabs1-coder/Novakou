@@ -282,7 +282,11 @@ export const OPERATORS: Record<string, OperatorEntry> = {
       feexpay: { code: "togo", params: { network: "MOOV TG" } },
       fedapay: { code: "moov_tg" } } },
   togocel: {
-    label: "Togocel Money (Togo)", country: "tg", currency: "XOF", family: "mobile_money",
+    // Clé interne `togocel` CONSERVÉE (= mode FedaPay confirmé + réseau FeexPay
+    // « TOGOCOM TG »). Seul le libellé suit le rebranding : Togocel → T-Money
+    // (Togocom, aujourd'hui « Mixx by Yas »). Les clients ne reconnaissaient
+    // pas « Togocel Money ».
+    label: "T-Money (Togo)", country: "tg", currency: "XOF", family: "mobile_money",
     collect: {
       feexpay: { code: "TOGOCOM TG" },
       fedapay: { code: "togocel" } },
