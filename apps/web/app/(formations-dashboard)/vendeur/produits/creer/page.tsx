@@ -144,7 +144,32 @@ const categories = [
   "Business & Management",
   "Productivité",
   "Intelligence Artificielle",
+  "E-commerce & Dropshipping",
+  "Réseaux sociaux & Création de contenu",
+  "Crypto & Trading",
+  "Immobilier",
+  "Agriculture & Élevage",
+  "Cuisine & Restauration",
+  "Mode, Beauté & Coiffure",
+  "Santé & Bien-être",
+  "Développement personnel",
+  "Éducation & Concours",
+  "Religion & Spiritualité",
+  "Musique & Audio",
+  "Livres & E-books",
+  "Modèles & Templates",
+  "Logiciels & Outils",
+  "Artisanat & Métiers manuels",
+  "Droit & Démarches administratives",
 ];
+
+/**
+ * Valeur sentinelle du choix « Autre » : le vendeur écrit alors sa propre
+ * catégorie. Le serveur sait déjà l'accueillir — il fait du trouve-ou-crée
+ * (getOrCreateCategory) sur n'importe quel libellé — la limite n'a jamais
+ * été que dans cette liste figée.
+ */
+const CATEGORIE_AUTRE = "__autre__";
 
 type Lesson = { title: string; duration: number; videoUrl: string };
 type Module = { title: string; lessons: Lesson[] };
@@ -203,6 +228,9 @@ export default function CreerProduitPage() {
   const [selectedType, setSelectedType] = useDraftField<ProductSubType>(`${DRAFT_PREFIX}:selectedType`, null);
   const [title, setTitle] = useDraftField(`${DRAFT_PREFIX}:title`, "");
   const [category, setCategory] = useDraftField(`${DRAFT_PREFIX}:category`, "");
+  // « Autre » : le select porte la sentinelle, ce champ porte le vrai libellé.
+  const [categorieLibre, setCategorieLibre] = useDraftField(`${DRAFT_PREFIX}:categorieLibre`, "");
+  const categorieEffective = category === CATEGORIE_AUTRE ? categorieLibre.trim() : category;
   const [shortDesc, setShortDesc] = useDraftField(`${DRAFT_PREFIX}:shortDesc`, "");
   const [description, setDescription] = useDraftField(`${DRAFT_PREFIX}:description`, "");
   // `thumbnail` = vignette carrée affichée sur les cartes marketplace.
@@ -287,7 +315,7 @@ export default function CreerProduitPage() {
         body: JSON.stringify({
           kind: selected?.kind,
           productType: selected?.productType,
-          title, shortDesc, description, category,
+          title, shortDesc, description, category: categorieEffective,
           thumbnail: thumbnail || null,
           banner: banner || null,
           price: isFree ? 0 : price,
@@ -416,7 +444,7 @@ export default function CreerProduitPage() {
           body: JSON.stringify({
             kind: selected.kind,
             productType: selected.productType,
-            title, shortDesc, description, category,
+            title, shortDesc, description, category: categorieEffective,
             thumbnail: thumbnail || null,
             banner: banner || null,
             price: isFree ? 0 : price,
@@ -436,7 +464,7 @@ export default function CreerProduitPage() {
 
   // ─── Validation par champ (pour les checkmarks inline + tooltip raisons) ─
   const titleValid = title.trim().length > 0;
-  const categoryValid = category.length > 0;
+  const categoryValid = categorieEffective.length > 0;
   const shortDescValid = shortDesc.trim().length > 0;
   const typeValid = selectedType !== null;
   const descTextLen = description.replace(/<[^>]*>/g, "").trim().length;
@@ -1028,11 +1056,28 @@ export default function CreerProduitPage() {
                           {categories.map((c) => (
                             <option key={c} value={c}>{c}</option>
                           ))}
+                          <option value={CATEGORIE_AUTRE}>Autre… (écrire ma catégorie)</option>
                         </select>
                         {categoryValid && (
                           <CheckCircle2 className="w-5 h-5 text-emerald-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                         )}
                       </div>
+                      {category === CATEGORIE_AUTRE && (
+                        <div className="relative mt-2">
+                          <input
+                            type="text"
+                            value={categorieLibre}
+                            onChange={(e) => setCategorieLibre(e.target.value)}
+                            placeholder="Écrivez votre catégorie (ex : Coaching sportif)"
+                            maxLength={60}
+                            autoFocus
+                            className={`${inputClass} ${categoryValid ? "pr-10" : ""}`}
+                          />
+                          {categoryValid && (
+                            <CheckCircle2 className="w-5 h-5 text-emerald-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     <div>
