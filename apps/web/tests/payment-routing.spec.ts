@@ -166,9 +166,11 @@ test("un pays payable uniquement par carte reste proposable", () => {
   );
   expect(paysXof.has("ml"), "le Mali doit rester connu du registre").toBe(true);
 
-  // La carte XOF doit avoir au moins une route, sinon aucun pays sans mobile
-  // money encaissable ne serait vendable.
-  expect(providersFor("card_xof", "collect").length).toBeGreaterThan(0);
+  // ⛔ Carte masquée le 2026-08-30 (0 paiement carte abouti sur tout
+  // l'historique — API_ERROR FedaPay). Conséquence assumée : un pays sans
+  // mobile money encaissable (Mali) est invendable tant que la carte est
+  // coupée. À la réactivation, remettre : .toBeGreaterThan(0).
+  expect(providersFor("card_xof", "collect").length).toBe(0);
 });
 
 test("iPay Money ne declare que des types de paiement connus", () => {
@@ -191,10 +193,13 @@ test("chaque operateur du Niger a bien une passerelle", () => {
   }
 });
 
-test("la carte reste servie par plusieurs passerelles", () => {
-  // La carte est le seul moyen de certains pays (Mali) : une passerelle unique
-  // y couperait toutes les ventes en cas de panne.
-  expect(providersFor("card_xof", "collect").length).toBeGreaterThan(1);
+test("la carte reste masquée tant que l'encaissement n'est pas confirmé", () => {
+  // ⛔ Masquée le 2026-08-30 : aucun paiement carte n'a jamais abouti.
+  // À la réactivation (FedaPay/iPay confirmés), ce test redeviendra :
+  // « la carte reste servie par plusieurs passerelles » — une passerelle
+  // unique couperait toutes les ventes du Mali en cas de panne :
+  //   expect(providersFor("card_xof", "collect").length).toBeGreaterThan(1);
+  expect(providersFor("card_xof", "collect").length).toBe(0);
 });
 
 /**
@@ -213,9 +218,11 @@ test("la carte part d'abord sur une page sécurisée", () => {
   const routes = enc
     .map((p) => ({ id: p.id, route: routeFor("card_xof", p.id, "collect") }))
     .filter((x) => x.route);
-  expect(routes.length, "aucune passerelle ne sert la carte").toBeGreaterThan(0);
-  // Au moins une doit héberger la page — sinon la carte est invendable.
-  expect(routes.some((x) => x.route?.params?.hosted === "1")).toBe(true);
+  // ⛔ Carte masquée le 2026-08-30 : plus aucune route tant que l'encaissement
+  // n'est pas confirmé chez FedaPay/iPay. À la réactivation, remettre :
+  //   expect(routes.length, "aucune passerelle ne sert la carte").toBeGreaterThan(0);
+  //   expect(routes.some((x) => x.route?.params?.hosted === "1")).toBe(true);
+  expect(routes.length).toBe(0);
 });
 
 test("le Mobile Money garde le débit direct en tête", () => {

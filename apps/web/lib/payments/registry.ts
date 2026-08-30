@@ -441,11 +441,15 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // ─────────────────────── Cartes bancaires ───────────────────────
   card_xof: {
     label: "Carte bancaire", country: "", currency: "XOF", family: "card",
-    collect: {
-      // FedaPay encaisse la carte sur SA page sécurisée : aucune donnée
-      // bancaire ne touche nos serveurs (hors périmètre PCI-DSS).
-      fedapay: { code: "hosted", params: { hosted: "1" } },
-      ipaymoney: { code: "card" } },
+    // ⛔ MASQUÉE le 2026-08-30 — décision fondateur. Sur tout l'historique de
+    // la plateforme, AUCUN paiement carte n'a jamais abouti (21 tentatives,
+    // 0 succès ; les 2 dernières : API_ERROR chez FedaPay, refs 112828653 et
+    // 112828591). Proposer un moyen qui échoue à 100 % fait perdre des ventes.
+    // À réactiver UNIQUEMENT quand FedaPay (ou iPay) aura confirmé que
+    // l'encaissement carte est activé sur notre compte — remettre alors :
+    //   fedapay: { code: "hosted", params: { hosted: "1" } },  // page hébergée, hors PCI-DSS
+    //   ipaymoney: { code: "card" },
+    collect: {},
     payout: {} },
   card_xaf: {
     label: "Carte bancaire", country: "", currency: "XAF", family: "card",
