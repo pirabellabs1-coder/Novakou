@@ -339,7 +339,7 @@ export async function processAffiliateWithdrawalAuto(withdrawalId: string): Prom
     return { status: "SENT", provider: w.paymentProvider ?? "?", paymentRef: w.paymentRef ?? "" };
   }
 
-  if (!anyAutoProviderConfigured()) {
+  if (!(await anyAutoProviderConfigured())) {
     await notify(w.userId, "Demande de retrait enregistrée", `Votre retrait de ${Math.round(w.amount)} FCFA est en attente de versement (24-48h ouvrées).`, "/affilie/retraits");
     return { status: "PENDING_MANUAL", reason: "Aucun fournisseur de versement configuré" };
   }

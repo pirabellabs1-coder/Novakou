@@ -1,6 +1,6 @@
 // Orchestrateur de PAYOUT avec bascule automatique de fournisseur.
 //
-// Ordre de bascule : FedaPay → FeexPay.
+// Ordre de bascule : PawaPay → FeexPay → FedaPay → Monetbil (cf. PROVIDER_ORDER).
 // On tente chaque fournisseur configuré ET capable de servir l'opérateur du
 // bénéficiaire. Si l'un REFUSE (solde insuffisant, IP non autorisée, validation),
 // on rejoue le même versement chez le suivant. Aucun argent ne circule entre
