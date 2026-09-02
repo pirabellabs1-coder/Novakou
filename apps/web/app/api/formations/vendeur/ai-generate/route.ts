@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
     console.error("[vendeur/ai-generate POST]", err);
     // On INSPECTE le message pour poser un diagnostic, mais on ne le RENVOIE
     // pas : le vendeur reçoit l'indice actionnable, pas la trace interne.
+    // fuite-erreur-ok : inspecte pour choisir l'indice, jamais renvoye.
     const msg = err instanceof Error ? err.message : "";
     return NextResponse.json(
       {

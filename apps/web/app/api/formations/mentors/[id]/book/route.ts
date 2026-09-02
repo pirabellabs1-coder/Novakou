@@ -249,6 +249,7 @@ export async function POST(request: Request, { params }: Params) {
     });
   } catch (err) {
     console.error("[mentors/[id]/book POST]", err);
+    // fuite-erreur-ok : renvoye uniquement en developpement (detail: IS_DEV ? …).
     const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: "Erreur serveur", detail: IS_DEV ? message : undefined }, { status: 500 });
   }

@@ -721,6 +721,7 @@ export async function POST(request: Request) {
             aFacturer = montantAFacturer(Math.round(totalAmount), currencyForOperator(chosenOperator));
           } catch (err) {
             await failAttempt(
+              // fuite-erreur-ok : enregistre la cause en base, pas une reponse.
               err instanceof Error ? err.message : "Devise d'encaissement indéterminable",
               "currency_unresolved",
             );
@@ -767,6 +768,7 @@ export async function POST(request: Request) {
             aFacturer = montantAFacturer(Math.round(totalAmount), currencyForOperator(chosenOperator));
           } catch (err) {
             await failAttempt(
+              // fuite-erreur-ok : enregistre la cause en base, pas une reponse.
               err instanceof Error ? err.message : "Devise d'encaissement indéterminable",
               "currency_unresolved",
             );
@@ -863,6 +865,7 @@ export async function POST(request: Request) {
         usedProvider = candidate.provider;
         break;
       } catch (err) {
+        // fuite-erreur-ok : alimente `failures`, dont le rendu `detail` est borne a IS_DEV.
         const message = err instanceof Error ? err.message : "Erreur inconnue";
         failures.push(`${candidate.provider} : ${message}`);
         console.error(`[payment/init:${candidate.provider}]`, err);
