@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Créer un compte · Novakou",
+  title: "Créer un compte gratuit",
   description:
     "Inscrivez-vous gratuitement sur Novakou pour vendre vos formations, acheter des produits digitaux ou devenir mentor.",
   openGraph: {

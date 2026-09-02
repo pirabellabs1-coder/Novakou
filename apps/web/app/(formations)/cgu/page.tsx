@@ -2,7 +2,7 @@ import Link from "next/link";
 import { loadRefundConfig } from "@/lib/formations/refund-policy";
 
 export const metadata = {
-  title: "Conditions Générales d'Utilisation & de Vente — Novakou",
+  title: "Conditions Générales d'Utilisation et de Vente",
   description:
     "Conditions générales de Novakou : inscription et comptes, rôle d'intermédiaire, obligations des vendeurs et acheteurs, commission, paiements et escrow, droit de rétractation et remboursements, propriété intellectuelle, contenus interdits, modération, affiliation, suspension et litiges.",
   alternates: { canonical: "/cgu" },

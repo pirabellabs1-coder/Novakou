@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Mentions légales — Novakou",
+  title: "Mentions légales",
   description:
     "Mentions légales de Novakou : identité et coordonnées de l'éditeur, directeur de la publication, hébergeur, propriété intellectuelle, responsabilité, protection des données et médiation de la consommation.",
   alternates: { canonical: "/mentions-legales" },

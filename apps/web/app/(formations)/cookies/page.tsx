@@ -9,7 +9,7 @@ import {
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Politique de cookies — Novakou",
+  title: "Politique de cookies",
   description:
     "Politique cookies de Novakou : qu'est-ce qu'un cookie, base légale et consentement, catégories (nécessaires, préférences, analytiques, marketing) avec durées, cookies tiers, et comment gérer vos préférences.",
   alternates: { canonical: "/cookies" },

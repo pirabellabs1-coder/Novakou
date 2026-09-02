@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Connexion · Novakou",
+  title: "Connexion à votre compte",
   description:
     "Connectez-vous à votre espace Novakou pour accéder à vos formations, produits et outils de vente.",
   openGraph: {

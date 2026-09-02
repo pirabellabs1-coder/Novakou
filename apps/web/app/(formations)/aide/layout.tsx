@@ -4,7 +4,7 @@ import { ARTICLES } from "@/lib/help/articles";
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
 
 export const metadata: Metadata = {
-  title: "Centre d'aide — Novakou",
+  title: "Centre d'aide · Questions fréquentes",
   description:
     "Trouvez des réponses à vos questions sur Novakou : paiements, formations, produits digitaux, compte vendeur et plus encore.",
   alternates: { canonical: "/aide" },

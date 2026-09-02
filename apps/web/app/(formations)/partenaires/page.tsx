@@ -15,7 +15,7 @@ import {
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Partenaires · Novakou",
+  title: "Partenaires et intégrations",
   description: "Découvrez nos partenaires de paiement, technologie et écosystème. Devenez partenaire Novakou.",
 };
 

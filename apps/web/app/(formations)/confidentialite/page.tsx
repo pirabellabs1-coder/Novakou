@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Politique de confidentialité & RGPD — Novakou",
+  title: "Politique de confidentialité et RGPD",
   description:
     "Politique de confidentialité de Novakou : responsable de traitement, données collectées, finalités et bases légales, durées de conservation, sous-traitants, transferts hors UE, cookies, sécurité et vos droits RGPD (accès, rectification, effacement, portabilité, opposition).",
   alternates: { canonical: "/confidentialite" },

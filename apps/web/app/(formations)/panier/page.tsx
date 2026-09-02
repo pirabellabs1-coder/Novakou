@@ -5,7 +5,7 @@ import PanierClient from "./PanierClient";
 // composant client ne peut pas exporter de métadonnées, la page tombait donc
 // sur le titre générique du site. D'où cette enveloppe serveur.
 export const metadata: Metadata = {
-  title: "Votre panier · Novakou",
+  title: "Votre panier · Finaliser vos achats",
   description: "Vos formations et produits sélectionnés, prêts à être commandés.",
   // Un panier est propre à chaque visiteur : rien à indexer, et une page de
   // panier dans les résultats de recherche n'apporte que de la confusion.

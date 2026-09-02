@@ -39,6 +39,8 @@ const meta: GuideMeta = {
 
 export const revalidate = 86400;
 
+// `absolute` plus bas : « Novakou » est deja dans SEO_TITLE, sinon le
+// template du layout racine ajoute « | Novakou » et le nom sort deux fois.
 const SEO_TITLE = "Devenir affilié Novakou et gagner 40 %";
 const SEO_DESCRIPTION =
   "Gagnez 40 % de commission en recommandant des formations et produits digitaux sur Novakou. Sans rien créer : partagez votre lien, encaissez via Mobile Money.";
@@ -49,7 +51,7 @@ const OG_IMAGE = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
 )}`;
 
 export const metadata: Metadata = {
-  title: SEO_TITLE,
+  title: { absolute: SEO_TITLE },
   description: SEO_DESCRIPTION,
   keywords: meta.keywords,
   alternates: {

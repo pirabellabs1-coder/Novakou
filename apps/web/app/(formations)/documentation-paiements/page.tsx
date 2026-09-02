@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Documentation des paiements — Novakou",
+  title: "Documentation des paiements",
   description:
     "Comment fonctionnent les paiements sur Novakou : écran de paiement unique, carte bancaire et Mobile Money, séquestre, retraits, commissions, codes promo, order bumps et affiliation. Cadre de sécurité et obligations.",
 };

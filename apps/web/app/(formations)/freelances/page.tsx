@@ -15,7 +15,7 @@ import {
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Freelances & Mentors · Novakou",
+  title: "Freelances et Mentors",
   description: "Découvrez les meilleurs créateurs et mentors d'Afrique francophone. Formations, coaching, expertise.",
 };
 

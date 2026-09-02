@@ -6,7 +6,9 @@ export const metadata: Metadata = {
   // Title raccourci sous 60 char (avant: "Programme d'affiliation · Gagnez
   // en recommandant Novakou" = 71c, dépassait la limite Google + ajout du
   // suffix automatique "| Novakou").
-  title: "Affiliation Novakou · Gagnez par recommandation",
+  // `absolute` : « Novakou » est deja dans le titre. Sans ça, le template
+  // du layout racine ajoute « | Novakou » et le nom sort deux fois.
+  title: { absolute: "Affiliation Novakou · Gagnez par recommandation" },
   description:
     "Partagez votre lien unique et recevez une commission sur chaque vente générée. Tableau de bord, suivi des clics et paiements automatiques.",
   alternates: { canonical: "/affiliation" },

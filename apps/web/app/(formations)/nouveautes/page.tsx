@@ -15,7 +15,9 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Nouveautés Novakou 2.0 — tout ce qui change et comment en profiter",
+  // `absolute` : « Novakou » est deja dans le titre. Sans ça, le template
+  // du layout racine ajoute « | Novakou » et le nom sort deux fois.
+  title: { absolute: "Nouveautés Novakou 2.0 — tout ce qui change" },
   description:
     "Messagerie en temps réel, recherche par IA, notifications push, application installable, badge Vendeur vérifié… Découvrez les nouveautés de Novakou 2.0 et apprenez à les utiliser pas à pas.",
   alternates: { canonical: "/nouveautes" },

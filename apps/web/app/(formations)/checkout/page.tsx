@@ -7,7 +7,7 @@ import CheckoutInner from "./CheckoutInner";
 // interactive a besoin d'être cliente. La page peut donc porter ses propres
 // métadonnées, ce qu'un composant client ne sait pas faire.
 export const metadata: Metadata = {
-  title: "Finaliser votre commande · Novakou",
+  title: "Finaliser votre commande",
   description: "Paiement sécurisé de votre commande sur Novakou.",
   // Une page de commande est propre à un panier : ni indexée, ni partagée.
   robots: { index: false, follow: false },

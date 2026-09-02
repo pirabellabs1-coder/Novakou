@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Confiance & sécurité — Novakou",
+  title: "Confiance et sécurité",
   description:
     "Comment Novakou protège acheteurs et vendeurs : paiement séquestré (escrow), vérification d'identité (KYC), chiffrement, protection des contenus, gestion des litiges, lutte anti-fraude et conformité RGPD.",
   alternates: { canonical: "/confiance-securite" },

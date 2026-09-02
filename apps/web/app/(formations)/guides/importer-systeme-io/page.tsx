@@ -11,7 +11,9 @@ const OG_IMAGE = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
 )}`;
 
 export const metadata: Metadata = {
-  title: "Importer son tunnel Systeme.io sur Novakou (2026)",
+  // `absolute` : « Novakou » est deja dans le titre. Sans ça, le template
+  // du layout racine ajoute « | Novakou » et le nom sort deux fois.
+  title: { absolute: "Importer son tunnel Systeme.io sur Novakou (2026)" },
   description:
     "Vous venez de Systeme.io ? Importez votre tunnel de vente sur votre boutique Novakou en quelques secondes : collez l'URL, on récupère le titre, le texte et l'image automatiquement. Guide complet pas à pas.",
   keywords: [

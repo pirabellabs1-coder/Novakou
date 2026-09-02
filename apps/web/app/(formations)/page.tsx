@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   // via son template de titre. Le remettre affichait le nom deux fois.
   title: "Vendre ses formations et produits digitaux en ligne",
   description:
-    "Novakou est la plateforme tout-en-un des créateurs : vendez formations, ebooks, coaching et templates. Boutique en ligne, paiements Mobile Money (Wave, Orange, MTN) et carte, tunnels de vente et IA inclus. 10 % de commission, zéro abonnement.",
+    "Vendez formations, ebooks, coaching et templates. Paiements Mobile Money et carte, boutique et tunnels de vente inclus. 10 % de commission, zéro abonnement.",
   keywords: [
     "vendre des formations en ligne",
     "plateforme pour vendre des produits digitaux",

@@ -4,7 +4,7 @@ import { Sparkles, BadgeCheck, Share2, ArrowLeft } from "lucide-react";
 import CertificateView from "@/components/formations/CertificateView";
 
 export const metadata: Metadata = {
-  title: "Exemple de certificat · Novakou",
+  title: "Exemple de certificat",
   description:
     "Découvrez à quoi ressemble un certificat Novakou délivré à un apprenant après avoir terminé une formation.",
 };

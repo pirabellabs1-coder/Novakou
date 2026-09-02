@@ -11,7 +11,7 @@ import {
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Services & Produits digitaux · Novakou",
+  title: "Services et Produits digitaux",
   description: "Découvrez tous les types de produits et services disponibles : formations vidéo, e-books, templates, coaching, audio, et plus.",
 };
 

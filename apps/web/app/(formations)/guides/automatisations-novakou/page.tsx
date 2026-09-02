@@ -11,7 +11,9 @@ const OG_IMAGE = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
 )}`;
 
 export const metadata: Metadata = {
-  title: "Automatiser vente formation : tunnel Novakou",
+  // `absolute` : « Novakou » est deja dans le titre. Sans ça, le template
+  // du layout racine ajoute « | Novakou » et le nom sort deux fois.
+  title: { absolute: "Automatiser vente formation : tunnel Novakou" },
   description:
     "Automatisez vos ventes de formations sur Novakou : emails de bienvenue, relances panier, accès automatique, Mobile Money. Vendez pendant que vous dormez.",
   keywords: [

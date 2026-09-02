@@ -488,7 +488,7 @@ Mêmes méthodes que pour les formations. Fonds bloqués en séquestre, libéré
     slug: "methodes-paiement",
     category: "paiements",
     title: "Méthodes de paiement acceptées",
-    excerpt: "Mobile Money africain, cartes Visa/Mastercard, PayPal, virement bancaire.",
+    excerpt: "Mobile Money africain (Wave, Orange, MTN, Moov), cartes Visa et Mastercard, PayPal et virement bancaire : tous les moyens de paiement acceptés sur Novakou.",
     readingMin: 3,
     lastUpdated: "2026-04-18",
     tags: ["paiement", "mobile money", "carte", "paypal"],

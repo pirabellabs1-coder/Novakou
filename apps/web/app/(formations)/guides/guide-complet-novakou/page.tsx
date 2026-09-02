@@ -11,7 +11,9 @@ const OG_IMAGE = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
 )}`;
 
 export const metadata: Metadata = {
-  title: "Guide complet Novakou : vendre formation",
+  // `absolute` : « Novakou » est deja dans le titre. Sans ça, le template
+  // du layout racine ajoute « | Novakou » et le nom sort deux fois.
+  title: { absolute: "Guide complet Novakou : vendre formation" },
   description:
     "Tutoriel pas-à-pas pour créer votre boutique, publier formations et ebooks, configurer Mobile Money, et recevoir vos premiers paiements sur Novakou.",
   alternates: {

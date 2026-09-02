@@ -43,7 +43,9 @@ const meta: GuideMeta = {
 
 export const revalidate = 86400;
 
-const SEO_TITLE = "Novakou : la plateforme n°1 de vente de produits numériques en Afrique";
+// `absolute` plus bas : « Novakou » est deja dans SEO_TITLE, sinon le
+// template du layout racine ajoute « | Novakou » et le nom sort deux fois.
+const SEO_TITLE = "Novakou : la plateforme n°1 de vente en Afrique";
 const SEO_DESCRIPTION =
   "Découvrez toutes les fonctionnalités de Novakou : Mobile Money, tunnel de vente, automatisation, affiliation, pixels, escrow, abonnements et IA. Tout pour vendre en Afrique.";
 const OG_IMAGE = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
@@ -53,7 +55,7 @@ const OG_IMAGE = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
 )}`;
 
 export const metadata: Metadata = {
-  title: SEO_TITLE,
+  title: { absolute: SEO_TITLE },
   description: SEO_DESCRIPTION,
   keywords: meta.keywords,
   alternates: {

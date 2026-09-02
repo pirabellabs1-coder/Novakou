@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Conditions du Programme d'Affiliation — Novakou",
+  title: "Conditions du Programme d'Affiliation",
 };
 
 export default function CGUAffiliationPage() {
