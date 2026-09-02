@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
 
 export const metadata: Metadata = {
-  title: "Nous contacter",
+  title: "Nous contacter · Support et partenariats",
   description:
     "Contactez l'équipe Novakou pour toute question, partenariat ou assistance. Nous répondons sous 24h, en français, depuis Dakar.",
   alternates: { canonical: "/contact" },

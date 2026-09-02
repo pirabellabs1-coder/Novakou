@@ -8,7 +8,9 @@ import "./home.css";
 const sora = Sora({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-sora", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "Novakou | Vendre ses formations et produits digitaux en ligne",
+  // Pas de « Novakou » ici : le layout racine ajoute deja « | Novakou »
+  // via son template de titre. Le remettre affichait le nom deux fois.
+  title: "Vendre ses formations et produits digitaux en ligne",
   description:
     "Novakou est la plateforme tout-en-un des créateurs : vendez formations, ebooks, coaching et templates. Boutique en ligne, paiements Mobile Money (Wave, Orange, MTN) et carte, tunnels de vente et IA inclus. 10 % de commission, zéro abonnement.",
   keywords: [
@@ -31,12 +33,25 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fr_FR",
     siteName: "Novakou",
+    // OBLIGATOIRE ici : un openGraph declare dans une page REMPLACE
+    // entierement celui du layout racine, il ne fusionne pas champ par
+    // champ. Sans cette ligne, l'accueil perdait son image et se
+    // partageait sans visuel sur WhatsApp, Facebook et LinkedIn.
+    images: [
+      {
+        url: "/api/og",
+        width: 1200,
+        height: 630,
+        alt: "Novakou — vendez vos formations et produits digitaux",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Novakou — Vendez vos formations et produits digitaux en ligne",
     description:
       "Boutique, paiements Mobile Money et carte, tunnels de vente et IA inclus. 10 % de commission, zéro abonnement.",
+    images: ["/api/og"],
   },
 };
 

@@ -7,7 +7,7 @@ import Link from "next/link";
 import GuidesFilteredGrid from "./_GuidesFilteredGrid";
 
 export const metadata: Metadata = {
-  title: "Guides gratuits pour créateurs africains | Novakou",
+  title: "Guides gratuits pour créateurs africains",
   description:
     "20 guides complets et gratuits pour créer, vendre et automatiser vos formations en ligne en Afrique francophone. De l'idée à la première vente.",
 };

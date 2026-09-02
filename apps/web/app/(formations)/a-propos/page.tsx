@@ -11,7 +11,7 @@ import {
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "À propos · Novakou",
+  title: "À propos · Notre mission et nos valeurs",
   description: "Novakou est la plateforme qui transforme les talents en revenus durables. Découvrez notre mission, notre équipe et nos valeurs.",
 };
 
