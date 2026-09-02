@@ -44,8 +44,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const actorId = (session.user as { id?: string }).id;
 
     // Le MOTIF de refus est écrit sur le produit (refuseReason), pas seulement
-    // dans le journal d'audit : c'est lui que le vendeur lit à l'édition.
-    // Avant, l'écran vendeur affichait un refus… sans jamais dire pourquoi.
+    // dans le journal d'audit : c'est lui que le vendeur lit sur sa liste de
+    // produits, en plus de sa notification. Sans lui, l'écran vendeur affiche
+    // un refus… sans jamais dire pourquoi.
     if (kind === "formation") {
       // FormationStatus n'a pas REFUSE : un refus archive, avec le motif.
       const newStatus = action === "approve" ? "ACTIF" as const : "ARCHIVE" as const;

@@ -134,6 +134,13 @@ function isArchived(p: Product) {
   return p.status === "ARCHIVE" || p.status === "ARCHIVED";
 }
 
+// Statuts sous lesquels le motif de la moderation doit rester visible.
+// REFUSE : refus d'un produit numerique. ARCHIVE : refus d'une formation
+// (FormationStatus n'a pas de REFUSE). BROUILLON : retrait du marketplace.
+// Hors de ces trois cas, refuseReason est remis a null par l'API, ou le
+// produit est reparti en validation — inutile d'afficher un motif perime.
+const STATUTS_AVEC_MOTIF = new Set(["BROUILLON", "REFUSE", "ARCHIVE"]);
+
 function statusKey(s: string): string {
   if (s === "ACTIF_PRODUCT") return "ACTIF";
   if (s === "BROUILLON_PRODUCT") return "BROUILLON";
@@ -458,11 +465,15 @@ export default function ProduitsPage() {
                       <span className="text-[11px]" style={{ color: ST.textMuted }}>FCFA</span>
                     </div>
 
-                    {/* Motif de retrait par la modération (produit remis en brouillon) */}
-                    {product.refuseReason && statusKey(product.status) === "BROUILLON" && (
+                    {/* Décision de la modération. Sans ce bandeau, un vendeur refusé
+                        voyait la pastille « Refusé » sans jamais lire POURQUOI : le
+                        motif n'existait à l'écran que pour un retrait en brouillon. */}
+                    {product.refuseReason && STATUTS_AVEC_MOTIF.has(statusKey(product.status)) && (
                       <div className="mb-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2">
                         <p className="text-[10px] font-extrabold uppercase tracking-wide text-rose-700">
-                          Retiré par la modération
+                          {statusKey(product.status) === "BROUILLON"
+                            ? "Retiré par la modération"
+                            : "Refusé par la modération"}
                         </p>
                         <p className="mt-0.5 text-[11px] leading-snug text-rose-900">{product.refuseReason}</p>
                         <p className="mt-1 text-[10px] text-rose-700/80">Corrigez puis resoumettez à la validation.</p>

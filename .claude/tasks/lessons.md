@@ -15,3 +15,14 @@
 - Réécrire un fichier avec Python écrase les CRLF du dépôt et gonfle le diff de
   centaines de lignes fantômes. Relire `git diff --numstat` après toute
   réécriture programmatique, et restaurer les fins de ligne d'origine.
+- Une decision admin (refus, retrait, validation) n'est pas terminee quand
+  l'API l'enregistre : elle l'est quand le vendeur peut LIRE le motif a
+  l'ecran. Piege rencontre : le motif etait bien stocke dans `refuseReason` et
+  envoye en notification, mais le bandeau cote vendeur etait conditionne au
+  seul statut BROUILLON — donc invisible pour un produit REFUSE ou une
+  formation ARCHIVE. Verifier le chemin complet admin -> base -> ecran vendeur,
+  pas seulement l'aller.
+- Se mefier des commentaires de code decrivant un comportement : celui de la
+  route admin affirmait que le vendeur lisait le motif « a l'edition ». C'etait
+  faux, et je l'ai repete avant de verifier. Le code fait foi, meme contre un
+  commentaire ecrit juste a cote.
