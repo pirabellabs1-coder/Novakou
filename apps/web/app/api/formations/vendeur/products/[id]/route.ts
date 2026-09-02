@@ -3,6 +3,7 @@ import { decisionPublication, notifierMiseEnAttente, notifierRefusPublication } 
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { resolveStorageFileUrl, getStorageObjectPath } from "@/lib/supabase-storage";
@@ -175,11 +176,17 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     // Catégorie : modifiable après coup, même trouve-ou-crée qu'à la création
     // (n'importe quel libellé non vide est accepté, y compris ceux écrits via
     // « Autre »). Champ absent ou vide → on ne touche pas à la catégorie.
-    let categoryUpdate: { categoryId: string; customCategory: string } | undefined;
+    // On passe par la RELATION (`category: { connect }`), pas par la clé
+    // étrangère `categoryId` : cette mise à jour écrit aussi les fichiers en
+    // relation imbriquée, et Prisma refuse alors la clé brute. Et
+    // `customCategory` n'existe QUE sur Formation, pas sur DigitalProduct —
+    // l'envoyer faisait échouer toute la publication. Le libellé écrit par le
+    // vendeur n'est pas perdu : getOrCreateCategory en fait le nom de la
+    // catégorie elle-même.
+    let categoryUpdate: Pick<Prisma.DigitalProductUpdateInput, "category"> | undefined;
     if (typeof body.category === "string" && body.category.trim()) {
-      const libelle = body.category.trim().slice(0, 60);
-      const cat = await getOrCreateCategory(libelle);
-      categoryUpdate = { categoryId: cat.id, customCategory: libelle };
+      const cat = await getOrCreateCategory(body.category.trim().slice(0, 60));
+      categoryUpdate = { category: { connect: { id: cat.id } } };
     }
 
     // ── RÈGLES DE PUBLICATION (mêmes qu'à la création) ───────────────────
@@ -305,8 +312,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       },
     });
   } catch (err) {
+    // Le détail reste dans les logs serveur (et Sentry). Il ne part PAS au
+    // vendeur : une trace Prisma renvoyée telle quelle remplissait son écran
+    // du schéma complet de la base, sans lui dire quoi faire.
     console.error("[vendeur/products/[id] PATCH]", err);
-    return NextResponse.json({ error: err instanceof Error ? err.message : "Erreur serveur" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Le produit n'a pas pu être enregistré. Réessayez dans un instant ; si le problème persiste, contactez le support." },
+      { status: 500 },
+    );
   }
 }
 

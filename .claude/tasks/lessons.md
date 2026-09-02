@@ -26,3 +26,18 @@
   route admin affirmait que le vendeur lisait le motif « a l'edition ». C'etait
   faux, et je l'ai repete avant de verifier. Le code fait foi, meme contre un
   commentaire ecrit juste a cote.
+- Prisma : dans un `update` qui contient une ecriture de relation imbriquee
+  (ici `files: { deleteMany, create }`), la cle etrangere brute (`categoryId`)
+  n'est PAS acceptee — il faut passer par la relation
+  (`category: { connect: { id } }`). Et un champ qui n'existe pas sur le
+  modele (`customCategory`, present sur Formation mais pas sur DigitalProduct)
+  fait echouer toute la requete.
+- TypeScript ne voit RIEN de tout cela si l'objet `data` est assemble par
+  spreads : la verification des proprietes excedentaires ne s'applique pas aux
+  spreads. La parade est de typer le fragment lui-meme par l'entree Prisma
+  (`Pick<Prisma.XUpdateInput, "champ">`), ce qui ramene l'erreur au
+  `pnpm typecheck`. Verifie : le bug d'origine devient alors une erreur de
+  compilation.
+- Ne jamais renvoyer `err.message` a un utilisateur final. Une trace Prisma
+  affichait au vendeur le schema complet de la base sur sa page produit. Le
+  detail va dans les logs, l'ecran recoit une phrase actionnable.
