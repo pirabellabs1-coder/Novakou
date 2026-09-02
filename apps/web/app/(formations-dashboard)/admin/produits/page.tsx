@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { promptAction } from "@/store/prompt";
+import { demanderMotifRefus } from "@/lib/admin/refus-produit";
 import {
   StCard,
   StPageHeader,
@@ -115,15 +116,18 @@ export default function AdminProduitsPage() {
       id,
       kind,
       action,
+      reason,
     }: {
       id: string;
       kind: string;
       action: string;
+      /** Motif de refus. Ignoré par l'API pour les autres actions. */
+      reason?: string;
     }) =>
       fetch(`/api/formations/admin/produits/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind, action }),
+        body: JSON.stringify({ kind, action, reason }),
       }).then((r) => r.json()),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-produits"] });
@@ -144,6 +148,17 @@ export default function AdminProduitsPage() {
       qc.invalidateQueries({ queryKey: ["admin-dashboard"] });
     },
   });
+
+  // Refus avec motif OBLIGATOIRE : un vendeur ne corrige que ce qu'on lui
+  // nomme. Sans motif, l'API retombe sur « Non conforme aux règles de la
+  // marketplace » — une phrase qui n'aide personne à republier.
+  // Le motif part dans la notification du vendeur ET s'affiche sur sa page
+  // d'édition (champ refuseReason).
+  async function handleReject(id: string, kind: string, title: string) {
+    const reason = await demanderMotifRefus(title);
+    if (reason === null) return; // annulé
+    actionMutation.mutate({ id, kind, action: "reject", reason: reason.trim() });
+  }
 
   async function handleDelete(id: string, kind: string, title: string) {
     const reason = await promptAction({
@@ -430,13 +445,7 @@ export default function AdminProduitsPage() {
                                 variant="secondary"
                                 size="sm"
                                 icon={XCircle}
-                                onClick={() =>
-                                  actionMutation.mutate({
-                                    id: p.id,
-                                    kind: p.kind,
-                                    action: "reject",
-                                  })
-                                }
+                                onClick={() => handleReject(p.id, p.kind, p.title)}
                                 disabled={actionMutation.isPending}
                               >
                                 Refuser

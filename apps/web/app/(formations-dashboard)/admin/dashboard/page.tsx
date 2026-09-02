@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { demanderMotifRefus } from "@/lib/admin/refus-produit";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -147,21 +148,33 @@ export default function AdminDashboardPage() {
       id,
       kind,
       action,
+      reason,
     }: {
       id: string;
       kind: string;
       action: string;
+      /** Motif de refus. Ignoré par l'API pour les autres actions. */
+      reason?: string;
     }) =>
       fetch(`/api/formations/admin/produits/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind, action }),
+        body: JSON.stringify({ kind, action, reason }),
       }).then((r) => r.json()),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-dashboard"] });
       qc.invalidateQueries({ queryKey: ["admin-produits"] });
     },
   });
+
+  // Meme regle que sur /admin/produits : un refus sans motif ne dit rien au
+  // vendeur, qui ne peut donc rien corriger. Le motif part dans sa
+  // notification et s'affiche sur sa page d'édition.
+  async function handleReject(id: string, kind: string, title: string) {
+    const reason = await demanderMotifRefus(title);
+    if (reason === null) return; // annulé
+    approveMutation.mutate({ id, kind, action: "reject", reason: reason.trim() });
+  }
 
   const d = response?.data;
   const pendingCount =
@@ -756,13 +769,7 @@ export default function AdminDashboardPage() {
                     <StButton
                       variant="secondary"
                       size="sm"
-                      onClick={() =>
-                        approveMutation.mutate({
-                          id: p.id,
-                          kind: p.kind,
-                          action: "reject",
-                        })
-                      }
+                      onClick={() => handleReject(p.id, p.kind, p.title)}
                       disabled={approveMutation.isPending}
                     >
                       Refuser
