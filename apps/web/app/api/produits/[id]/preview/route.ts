@@ -2,10 +2,9 @@
 // Legacy file with type drift - runtime behavior preserved, type checking skipped.
 
 import { NextResponse } from "next/server";
-import { PDFDocument, StandardFonts, degrees, rgb } from "pdf-lib";
 import { prisma } from "@/lib/prisma";
 import { resolveStorageFileUrl } from "@/lib/supabase-storage";
-import { PAGES_APERCU, TEXTE_FILIGRANE } from "@/lib/formations/apercu";
+import { construireApercuPdf, PdfIllisibleError } from "@/lib/formations/apercu-pdf";
 
 // Jamais de cache public : le vendeur peut dépublier son produit ou remplacer
 // son PDF à tout moment, et un CDN partagé continuerait de servir l'ancien
@@ -72,50 +71,18 @@ export async function GET(
     }
     const sourceBytes = new Uint8Array(await upstream.arrayBuffer());
 
-    // pdf-lib refuses encrypted PDFs by default. Try ignoreEncryption so a
-    // password-protected source falls back to "no preview" rather than 500.
-    let srcDoc: PDFDocument;
+    // Découpe + filigrane : lib/formations/apercu-pdf.ts, couvert par
+    // tests/apercu-ebook.spec.ts.
+    let outBytes: Uint8Array;
     try {
-      srcDoc = await PDFDocument.load(sourceBytes, { ignoreEncryption: true });
+      outBytes = await construireApercuPdf(sourceBytes);
     } catch (err) {
-      console.error("[produits/preview] PDFDocument.load failed", err);
-      return NextResponse.json({ error: "PDF illisible" }, { status: 422 });
-    }
-
-    // Un PDF d'une seule page ne montre qu'une page : on ne copie jamais plus
-    // que ce que le document contient, sinon copyPages jette.
-    const take = Math.min(PAGES_APERCU, srcDoc.getPageCount());
-
-    const outDoc = await PDFDocument.create();
-    const copied = await outDoc.copyPages(
-      srcDoc,
-      Array.from({ length: take }, (_, i) => i),
-    );
-    for (const page of copied) outDoc.addPage(page);
-
-    // Filigrane Novakou en diagonale sur chaque page, répété sur trois bandes
-    // pour couvrir la zone visible quelle que soit l'orientation. Toujours posé :
-    // la page produit promet à l'acheteur que l'aperçu est filigrané.
-    const font = await outDoc.embedFont(StandardFonts.HelveticaBold);
-    for (const page of outDoc.getPages()) {
-      const { width, height } = page.getSize();
-      const fontSize = Math.max(28, Math.min(width, height) * 0.06);
-      const color = rgb(0.55, 0.55, 0.55);
-      const opacity = 0.22;
-      for (const ratio of [0.25, 0.5, 0.75]) {
-        page.drawText(TEXTE_FILIGRANE, {
-          x: width * 0.08,
-          y: height * ratio,
-          size: fontSize,
-          font,
-          color,
-          opacity,
-          rotate: degrees(-30),
-        });
+      if (err instanceof PdfIllisibleError) {
+        console.error("[produits/preview] PDF illisible", err.message);
+        return NextResponse.json({ error: "PDF illisible" }, { status: 422 });
       }
+      throw err;
     }
-
-    const outBytes = await outDoc.save();
 
     // Bump view count async — mirrors the public product GET.
     prisma.digitalProduct

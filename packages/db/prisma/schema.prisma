@@ -1599,9 +1599,13 @@ model DigitalProduct {
   fileSize        Int? // bytes
   fileMimeType    String?
 
-  // Aperçu
+  // Aperçu — COLONNES INERTES depuis que l'aperçu est une règle plateforme
+  // (apps/web/lib/formations/apercu.ts) : 2 pages, filigrane obligatoire,
+  // affiché dès qu'un PDF est joint. Aucun chemin de code ne les lit plus.
+  // Conservées telles quelles pour ne pas migrer des données de production
+  // devenues sans effet. Ne pas les rebrancher sans décision du fondateur.
   previewEnabled   Boolean @default(false)
-  previewPages     Int     @default(5) // nombre de pages pour l'aperçu PDF
+  previewPages     Int     @default(5)
   watermarkEnabled Boolean @default(true)
 
   // Prix
