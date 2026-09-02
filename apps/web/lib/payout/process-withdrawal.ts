@@ -431,6 +431,27 @@ export async function processAffiliateWithdrawalAuto(withdrawalId: string): Prom
     where: { id: w.id },
     data: { paymentRef: exec.providerRef, paymentProvider: exec.provider, errorMessage: null },
   });
+
+  // Confirmé IMMÉDIATEMENT par la passerelle (FedaPay/FeexPay synchrone) →
+  // finaliser tout de suite au lieu d'attendre le cron de réconciliation
+  // (jusqu'à 10 min). On délègue à `reconcilePayout` — le MÊME code qui
+  // finalise sur webhook/cron : il passe le retrait TRAITE, marque les
+  // commissions PAID (avec `payoutRef`), crédite `paidEarnings` et notifie
+  // « Retrait versé ✅ ». Idempotent : reconcilePayout ignore un retrait déjà
+  // TRAITE, donc le cron ne re-finalisera pas et `paidEarnings` n'est crédité
+  // qu'une fois. Sans ça, le chemin affilié restait EN_ATTENTE alors que
+  // l'argent était parti — le chemin vendeur, lui, finalise déjà en ligne.
+  if (exec.status === "success") {
+    const { reconcilePayout } = await import("@/lib/payout/reconcile");
+    const label =
+      exec.provider === "feexpay" ? "FeexPay"
+      : exec.provider === "pawapay" ? "PawaPay"
+      : exec.provider === "fedapay" ? "FedaPay"
+      : exec.provider;
+    await reconcilePayout(exec.providerRef, "success", label);
+    return { status: "PAID", provider: exec.provider, paymentRef: exec.providerRef };
+  }
+
   await notify(w.userId, "Retrait en cours", `Votre retrait de ${Math.round(w.amount)} FCFA via ${shortMethodLabel(methodDef.id)} est en cours. Vous serez notifié dès réception.`, "/affilie/retraits");
   return { status: "SENT", provider: exec.provider, paymentRef: exec.providerRef };
 }
