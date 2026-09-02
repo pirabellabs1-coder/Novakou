@@ -47,3 +47,7 @@
   versement) ont BESOIN du message brut. Les couper y detruirait de
   l'observabilite sans rien proteger. Ne traiter que ce qui atterrit sur un
   ecran d'utilisateur final.
+- Un « out of memory » de Node peut n avoir aucun rapport avec le code : sur
+  cette machine, c etait le DISQUE plein (0,3 Go libres) qui faisait echouer
+  Playwright et les builds. Verifier l espace disque avant de suspecter une
+  fuite memoire ou un test.
