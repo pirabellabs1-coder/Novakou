@@ -155,7 +155,6 @@ export async function POST(req: Request, { params }: Params) {
     return NextResponse.json({ data: { requiresPayment: true, planId: id, amount: Math.round(plan.price) } });
   } catch (err) {
     console.error("[memberships/subscribe]", err);
-    const message = err instanceof Error ? err.message : "Erreur serveur";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }

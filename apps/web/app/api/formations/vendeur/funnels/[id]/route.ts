@@ -143,7 +143,7 @@ export async function PATCH(request: Request, { params }: Params) {
   } catch (err) {
     console.error("[vendeur/funnels/[id] PATCH]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { error: "Erreur serveur" },
       { status: 500 }
     );
   }

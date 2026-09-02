@@ -251,7 +251,7 @@ export async function GET() {
   } catch (err) {
     console.error("[wallet GET]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { error: "Erreur serveur" },
       { status: 500 }
     );
   }
@@ -653,7 +653,7 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("[wallet POST]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { error: "Erreur serveur" },
       { status: 500 }
     );
   }

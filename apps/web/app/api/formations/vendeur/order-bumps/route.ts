@@ -50,7 +50,7 @@ export async function GET() {
   } catch (err) {
     console.error("[vendeur/order-bumps GET]", err);
     return NextResponse.json(
-      { data: [], error: err instanceof Error ? err.message : "Erreur" },
+      { data: [], error: "Erreur" },
       { status: 500 },
     );
   }
@@ -137,7 +137,7 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("[vendeur/order-bumps POST]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur" },
+      { error: "Erreur" },
       { status: 500 },
     );
   }

@@ -97,7 +97,7 @@ export async function POST(req: Request) {
   } catch (err) {
     console.error("[vendeur/communaute POST]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { error: "Erreur serveur" },
       { status: 500 },
     );
   }

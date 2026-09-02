@@ -58,7 +58,7 @@ export async function GET() {
   } catch (err) {
     console.error("[wallet/payout-methods GET]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { error: "Erreur serveur" },
       { status: 500 },
     );
   }

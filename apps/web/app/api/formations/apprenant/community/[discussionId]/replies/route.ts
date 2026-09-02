@@ -53,7 +53,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ dis
     return NextResponse.json({ data: replies, isInstructor });
   } catch (err) {
     console.error("[community/replies GET]", err);
-    return NextResponse.json({ data: [], error: err instanceof Error ? err.message : "Erreur" }, { status: 500 });
+    return NextResponse.json({ data: [], error: "Erreur" }, { status: 500 });
   }
 }
 
@@ -125,6 +125,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ dis
     return NextResponse.json({ data: reply }, { status: 201 });
   } catch (err) {
     console.error("[community/replies POST]", err);
-    return NextResponse.json({ error: err instanceof Error ? err.message : "Erreur" }, { status: 500 });
+    return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }

@@ -73,9 +73,14 @@ export async function POST(request: NextRequest) {
     });
   } catch (err) {
     console.error("[vendeur/ai-generate POST]", err);
-    const msg = err instanceof Error ? err.message : "Erreur";
+    // On INSPECTE le message pour poser un diagnostic, mais on ne le RENVOIE
+    // pas : le vendeur reçoit l'indice actionnable, pas la trace interne.
+    const msg = err instanceof Error ? err.message : "";
     return NextResponse.json(
-      { error: msg, hint: msg.includes("OPENAI_API_KEY") ? "Ajoutez la variable OPENAI_API_KEY dans Vercel." : undefined },
+      {
+        error: "La génération a échoué. Réessayez dans un instant.",
+        hint: msg.includes("OPENAI_API_KEY") ? "Ajoutez la variable OPENAI_API_KEY dans Vercel." : undefined,
+      },
       { status: 500 },
     );
   }

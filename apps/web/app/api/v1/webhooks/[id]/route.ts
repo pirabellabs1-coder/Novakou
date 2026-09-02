@@ -108,7 +108,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     console.error("[v1/webhooks/:id PATCH]", err);
     return apiError(
       "SERVER_ERROR",
-      err instanceof Error ? err.message : "Erreur serveur",
+      "Erreur serveur",
       500,
     );
   }

@@ -43,6 +43,6 @@ export async function GET() {
     return NextResponse.json({ data: subscriptions });
   } catch (err) {
     console.error("[apprenant/subscriptions GET]", err);
-    return NextResponse.json({ data: [], error: err instanceof Error ? err.message : "Erreur" }, { status: 500 });
+    return NextResponse.json({ data: [], error: "Erreur" }, { status: 500 });
   }
 }

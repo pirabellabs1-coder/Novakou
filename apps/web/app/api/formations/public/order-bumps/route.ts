@@ -122,6 +122,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ data: result });
   } catch (err) {
     console.error("[public/order-bumps GET]", err);
-    return NextResponse.json({ data: [], error: err instanceof Error ? err.message : "Erreur" });
+    return NextResponse.json({ data: [], error: "Erreur" });
   }
 }

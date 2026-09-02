@@ -40,6 +40,6 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     });
   } catch (err) {
     console.error("[apprenant/subscriptions/cancel]", err);
-    return NextResponse.json({ error: err instanceof Error ? err.message : "Erreur" }, { status: 500 });
+    return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }

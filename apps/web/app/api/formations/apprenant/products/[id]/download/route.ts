@@ -89,7 +89,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   } catch (err) {
     console.error("[apprenant/products/download POST]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur" },
+      { error: "Erreur" },
       { status: 500 },
     );
   }

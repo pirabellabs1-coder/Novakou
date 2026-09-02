@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.error("[public/checkout-attempt POST]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { error: "Erreur serveur" },
       { status: 500 },
     );
   }

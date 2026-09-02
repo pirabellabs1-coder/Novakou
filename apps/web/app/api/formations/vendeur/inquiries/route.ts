@@ -45,6 +45,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ data: inquiries, summary });
   } catch (err) {
     console.error("[vendeur/inquiries GET]", err);
-    return NextResponse.json({ data: [], error: err instanceof Error ? err.message : "Erreur" }, { status: 500 });
+    return NextResponse.json({ data: [], error: "Erreur" }, { status: 500 });
   }
 }

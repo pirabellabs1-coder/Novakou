@@ -41,3 +41,9 @@
 - Ne jamais renvoyer `err.message` a un utilisateur final. Une trace Prisma
   affichait au vendeur le schema complet de la base sur sa page produit. Le
   detail va dans les logs, l'ecran recoit une phrase actionnable.
+- Perimetre a retenir quand on chasse une fuite d'erreur : toutes les routes
+  ne sont pas equivalentes. `cron/` et `webhooks/` repondent a des machines, et
+  les outils de diagnostic admin (test-gateway, apply-migration, diagnostic-
+  versement) ont BESOIN du message brut. Les couper y detruirait de
+  l'observabilite sans rien proteger. Ne traiter que ce qui atterrit sur un
+  ecran d'utilisateur final.

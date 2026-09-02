@@ -61,7 +61,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ data: results });
   } catch (err) {
     console.error("[funnels/ab-tests GET]", err);
-    return NextResponse.json({ data: [], error: err instanceof Error ? err.message : "Erreur" }, { status: 500 });
+    return NextResponse.json({ data: [], error: "Erreur" }, { status: 500 });
   }
 }
 
@@ -104,6 +104,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ data: test }, { status: 201 });
   } catch (err) {
     console.error("[funnels/ab-tests POST]", err);
-    return NextResponse.json({ error: err instanceof Error ? err.message : "Erreur" }, { status: 500 });
+    return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }

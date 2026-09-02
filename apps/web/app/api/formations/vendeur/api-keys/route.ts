@@ -165,7 +165,7 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("[api-keys POST]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { error: "Erreur serveur" },
       { status: 500 },
     );
   }

@@ -79,7 +79,6 @@ export async function GET(request: Request) {
     );
   } catch (err) {
     console.error("[payment/verify]", err);
-    const message = err instanceof Error ? err.message : "Erreur inconnue";
-    return NextResponse.json({ error: "Échec de la vérification", message }, { status: 500 });
+    return NextResponse.json({ error: "Échec de la vérification" }, { status: 500 });
   }
 }

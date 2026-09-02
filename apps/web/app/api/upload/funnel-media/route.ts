@@ -111,7 +111,7 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: retry.error.message }, { status: 500 });
         }
       } else {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
       }
     }
 
@@ -130,7 +130,7 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("[funnel-media upload]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { error: "Erreur serveur" },
       { status: 500 }
     );
   }

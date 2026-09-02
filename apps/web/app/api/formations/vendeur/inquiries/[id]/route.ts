@@ -89,7 +89,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Action invalide (reply|close|reopen)" }, { status: 400 });
   } catch (err) {
     console.error("[vendeur/inquiries PATCH]", err);
-    return NextResponse.json({ error: err instanceof Error ? err.message : "Erreur" }, { status: 500 });
+    return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }
 

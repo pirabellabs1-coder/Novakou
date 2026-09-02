@@ -54,7 +54,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   } catch (err) {
     console.error("[vendeur/order-bumps PATCH]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur" },
+      { error: "Erreur" },
       { status: 500 },
     );
   }
@@ -82,7 +82,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   } catch (err) {
     console.error("[vendeur/order-bumps DELETE]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur" },
+      { error: "Erreur" },
       { status: 500 },
     );
   }

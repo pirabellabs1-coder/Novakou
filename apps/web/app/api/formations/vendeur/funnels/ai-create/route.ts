@@ -228,7 +228,7 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("[vendeur/funnels/ai-create POST]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { error: "Erreur serveur" },
       { status: 500 }
     );
   }

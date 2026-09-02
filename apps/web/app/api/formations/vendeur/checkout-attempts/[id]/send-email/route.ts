@@ -156,7 +156,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
   } catch (err) {
     console.error("[checkout-attempt send-email POST]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { error: "Erreur serveur" },
       { status: 500 },
     );
   }

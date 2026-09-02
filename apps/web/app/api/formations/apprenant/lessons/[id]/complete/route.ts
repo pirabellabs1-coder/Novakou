@@ -163,7 +163,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   } catch (err) {
     console.error("[lessons/[id]/complete POST]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { error: "Erreur serveur" },
       { status: 500 }
     );
   }

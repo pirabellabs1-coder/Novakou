@@ -48,7 +48,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   } catch (err) {
     console.error("[vendeur/webhooks PATCH]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur" },
+      { error: "Erreur" },
       { status: 500 },
     );
   }
@@ -76,7 +76,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   } catch (err) {
     console.error("[vendeur/webhooks DELETE]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur" },
+      { error: "Erreur" },
       { status: 500 },
     );
   }
@@ -113,7 +113,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   } catch (err) {
     console.error("[vendeur/webhooks POST test]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur" },
+      { error: "Erreur" },
       { status: 500 },
     );
   }

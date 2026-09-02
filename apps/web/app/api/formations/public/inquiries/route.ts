@@ -204,6 +204,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ data: { id: inquiry.id } }, { status: 201 });
   } catch (err) {
     console.error("[public/inquiries POST]", err);
-    return NextResponse.json({ error: err instanceof Error ? err.message : "Erreur" }, { status: 500 });
+    return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }

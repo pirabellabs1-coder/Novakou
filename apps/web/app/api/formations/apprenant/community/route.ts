@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ data: discussions });
   } catch (err) {
     console.error("[apprenant/community GET]", err);
-    return NextResponse.json({ data: [], error: err instanceof Error ? err.message : "Erreur" }, { status: 500 });
+    return NextResponse.json({ data: [], error: "Erreur" }, { status: 500 });
   }
 }
 
@@ -114,6 +114,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ data: discussion }, { status: 201 });
   } catch (err) {
     console.error("[apprenant/community POST]", err);
-    return NextResponse.json({ error: err instanceof Error ? err.message : "Erreur" }, { status: 500 });
+    return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }

@@ -115,7 +115,7 @@ export async function PATCH(request: Request, { params }: Params) {
   } catch (err) {
     console.error("[workflow PATCH]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { error: "Erreur serveur" },
       { status: 500 }
     );
   }

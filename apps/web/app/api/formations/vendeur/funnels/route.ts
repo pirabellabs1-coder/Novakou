@@ -112,7 +112,7 @@ export async function GET() {
     return NextResponse.json({ data: enriched });
   } catch (err) {
     console.error("[vendeur/funnels GET]", err);
-    return NextResponse.json({ data: [], error: err instanceof Error ? err.message : String(err) });
+    return NextResponse.json({ data: [], error: "Erreur serveur" });
   }
 }
 
@@ -325,7 +325,7 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("[vendeur/funnels POST]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { error: "Erreur serveur" },
       { status: 500 }
     );
   }

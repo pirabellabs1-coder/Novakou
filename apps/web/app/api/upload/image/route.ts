@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("[Upload Image] Error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Erreur lors de l'upload" },
+      { error: "Erreur lors de l'upload" },
       { status: 500 }
     );
   }

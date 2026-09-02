@@ -271,7 +271,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     console.error("[v1/products/:id PATCH]", err);
     return apiError(
       "SERVER_ERROR",
-      err instanceof Error ? err.message : "Erreur serveur",
+      "Erreur serveur",
       500,
     );
   }
@@ -304,7 +304,7 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     console.error("[v1/products/:id DELETE]", err);
     return apiError(
       "SERVER_ERROR",
-      err instanceof Error ? err.message : "Erreur serveur",
+      "Erreur serveur",
       500,
     );
   }

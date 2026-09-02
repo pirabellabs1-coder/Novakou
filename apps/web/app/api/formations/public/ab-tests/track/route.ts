@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ data: { ok: true } });
   } catch (err) {
     console.error("[public/ab-tests/track]", err);
-    return NextResponse.json({ error: err instanceof Error ? err.message : "Erreur" }, { status: 500 });
+    return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }
 

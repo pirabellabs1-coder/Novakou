@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
     console.error("[v1/webhooks/test POST]", err);
     return apiError(
       "SERVER_ERROR",
-      err instanceof Error ? err.message : "Erreur serveur",
+      "Erreur serveur",
       500,
     );
   }

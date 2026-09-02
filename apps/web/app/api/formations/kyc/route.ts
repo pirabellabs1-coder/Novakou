@@ -201,7 +201,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ data: { id: req.id, status: req.status } });
   } catch (err) {
     console.error("[formations/kyc POST]", err);
-    const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: "Erreur serveur", detail: msg }, { status: 500 });
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }

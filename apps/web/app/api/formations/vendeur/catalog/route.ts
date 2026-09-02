@@ -156,7 +156,7 @@ export async function GET() {
   } catch (err) {
     console.error("[vendeur/catalog GET]", err);
     return NextResponse.json(
-      { data: [], error: err instanceof Error ? err.message : String(err) },
+      { data: [], error: "Erreur serveur" },
       { status: 200 } // return empty data instead of 500 — UI handles gracefully
     );
   }

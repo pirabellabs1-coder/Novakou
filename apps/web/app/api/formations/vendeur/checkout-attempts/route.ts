@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
   } catch (err) {
     console.error("[vendeur/checkout-attempts GET]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { error: "Erreur serveur" },
       { status: 500 },
     );
   }
@@ -145,7 +145,7 @@ export async function PATCH(request: NextRequest) {
   } catch (err) {
     console.error("[vendeur/checkout-attempts PATCH]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { error: "Erreur serveur" },
       { status: 500 },
     );
   }

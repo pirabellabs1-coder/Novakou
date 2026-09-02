@@ -43,7 +43,7 @@ export async function GET() {
     return NextResponse.json({ data: plans });
   } catch (err) {
     console.error("[vendeur/subscription-plans GET]", err);
-    return NextResponse.json({ data: [], error: err instanceof Error ? err.message : "Erreur" }, { status: 500 });
+    return NextResponse.json({ data: [], error: "Erreur" }, { status: 500 });
   }
 }
 
@@ -107,6 +107,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ data: plan }, { status: 201 });
   } catch (err) {
     console.error("[vendeur/subscription-plans POST]", err);
-    return NextResponse.json({ error: err instanceof Error ? err.message : "Erreur" }, { status: 500 });
+    return NextResponse.json({ error: "Erreur" }, { status: 500 });
   }
 }

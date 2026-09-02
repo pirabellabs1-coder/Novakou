@@ -95,7 +95,7 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("[auth/change-password POST]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { error: "Erreur serveur" },
       { status: 500 },
     );
   }

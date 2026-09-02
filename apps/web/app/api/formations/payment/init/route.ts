@@ -369,8 +369,7 @@ export async function POST(request: Request) {
         });
       } catch (err) {
         console.error("[payment/init free fulfill]", err);
-        const message = err instanceof Error ? err.message : "Finalisation échouée";
-        return NextResponse.json({ error: message }, { status: 500 });
+        return NextResponse.json({ error: "Finalisation échouée" }, { status: 500 });
       }
     }
 
@@ -880,7 +879,7 @@ export async function POST(request: Request) {
             error:
               "Le paiement par carte est momentanément indisponible. " +
               "Essayez le Mobile Money, ou réessayez dans un instant.",
-            detail,
+            detail: IS_DEV ? detail : undefined,
           },
           { status: 502 },
         );
@@ -897,14 +896,14 @@ export async function POST(request: Request) {
             error:
               "Ce moyen de paiement n'est pas disponible pour le moment. Choisissez-en un autre — votre commande est conservée.",
             code: "NO_GATEWAY",
-            detail,
+            detail: IS_DEV ? detail : undefined,
           },
           { status: 400 },
         );
       }
       await failAttempt(detail, "all_gateways_failed");
       return NextResponse.json(
-        { error: "Le paiement n'a pas pu être lancé. Réessayez dans un instant.", detail },
+        { error: "Le paiement n'a pas pu être lancé. Réessayez dans un instant.", detail: IS_DEV ? detail : undefined },
         { status: 502 },
       );
     }
@@ -943,7 +942,6 @@ export async function POST(request: Request) {
     });
   } catch (err) {
     console.error("[payment/init]", err);
-    const message = err instanceof Error ? err.message : "Erreur inconnue";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Erreur inconnue" }, { status: 500 });
   }
 }

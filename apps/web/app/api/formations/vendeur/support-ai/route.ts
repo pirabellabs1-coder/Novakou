@@ -47,7 +47,7 @@ export async function GET() {
   } catch (err) {
     console.error("[vendeur/support-ai GET]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { error: "Erreur serveur" },
       { status: 500 },
     );
   }
@@ -119,7 +119,7 @@ export async function PATCH(request: Request) {
   } catch (err) {
     console.error("[vendeur/support-ai PATCH]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { error: "Erreur serveur" },
       { status: 500 },
     );
   }

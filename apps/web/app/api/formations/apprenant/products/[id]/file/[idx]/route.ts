@@ -187,7 +187,7 @@ export async function GET(
   } catch (err) {
     console.error("[apprenant/products/file GET]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur" },
+      { error: "Erreur" },
       { status: 500 },
     );
   }
