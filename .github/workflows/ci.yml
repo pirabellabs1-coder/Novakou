@@ -92,7 +92,11 @@ jobs:
         run: pnpm --filter @freelancehigh/web exec playwright install --with-deps chromium
 
       - name: Apply database schema
-        run: pnpm --filter @freelancehigh/db migrate:deploy
+        # `db push` et non `migrate deploy` : cette base est JETABLE, recreee a
+        # chaque execution. On veut le schema courant, pas le rejeu des 42
+        # migrations historiques — une seule d'entre elles qui a derive fait
+        # echouer tout le job, sans rien apprendre sur le code teste.
+        run: pnpm --filter @freelancehigh/db db:push
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test
           DIRECT_URL: postgresql://test:test@localhost:5432/test
