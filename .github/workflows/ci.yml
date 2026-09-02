@@ -50,6 +50,25 @@ jobs:
     # Only on PRs and main pushes
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
 
+    # Sans base, chaque page qui interroge Prisma attendait le délai de
+    # connexion À CHAQUE requête : l'accueil mettait plus de 30 s à répondre et
+    # 28 tests expiraient. Les identifiants ci-dessous sont exactement ceux que
+    # DATABASE_URL attendait déjà plus bas — le service, lui, manquait.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -72,6 +91,12 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm --filter @freelancehigh/web exec playwright install --with-deps chromium
 
+      - name: Apply database schema
+        run: pnpm --filter @freelancehigh/db migrate:deploy
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+          DIRECT_URL: postgresql://test:test@localhost:5432/test
+
       - name: Run E2E tests
         run: pnpm --filter @freelancehigh/web test:e2e
         env:
@@ -79,6 +104,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_placeholder
           DATABASE_URL: postgresql://test:test@localhost:5432/test
+          DIRECT_URL: postgresql://test:test@localhost:5432/test
           NEXTAUTH_SECRET: ci-test-secret-not-for-prod
           NEXTAUTH_URL: http://localhost:3000
 

@@ -60,3 +60,10 @@
   ferme ») a une liste recopiee (« CM, BF, KE »). Quand le figeage est
   volontaire, ecrire dans le message d'echec qu'il faut mettre le test a jour
   dans le meme commit.
+- Un test E2E qui expire en masse n'est presque jamais un probleme de test :
+  c'est l'environnement. Ici, le job E2E n'avait AUCUNE base, alors que
+  DATABASE_URL pointait deja vers postgres://test:test@localhost:5432/test —
+  le service manquait, tout simplement. Chaque page interrogeant Prisma
+  attendait le delai de connexion A CHAQUE requete, et 28 tests depassaient les
+  30 s. Comparer avec un workflow VERT du meme depot (ici seo.yml) est le
+  raccourci le plus rapide pour trouver ce qui manque.

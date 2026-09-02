@@ -27,17 +27,29 @@ test("aucun moyen de retrait proposé sans passerelle capable de le payer", () =
 });
 
 /**
- * Manque CONNU, en attente d'un arbitrage du fondateur : une passerelle sait
- * payer « mtn_cg » (MTN Congo), mais le catalogue de retrait n'a AUCUNE entree
- * Congo. Un vendeur congolais ne peut donc pas retirer alors que nous saurions
- * le payer. Ouvrir un pays au retrait — libelle, montant minimum, opportunite —
- * est une decision metier, pas un detail a deviner dans un test.
+ * Manque CONNU, en attente d'un arbitrage du fondateur.
+ *
+ * Une passerelle sait payer ces dix operateurs, mais le catalogue de retrait
+ * n'a AUCUNE entree pour leur pays. Concretement : un vendeur de RDC, du
+ * Congo, du Gabon, du Rwanda, d'Ouganda, de Zambie ou de Sierra Leone ne peut
+ * pas retirer son argent, alors que nous saurions le lui envoyer.
+ *
+ * Ouvrir un pays au retrait — libelle, montant minimum, opportunite — est une
+ * decision metier, pas un detail a deviner dans un test.
  *
  * Le manque n'est ni masque ni bloquant : il est NOMME. Le test echoue des
  * qu'un AUTRE operateur rejoint ce cas, pour que la liste ne grossisse pas en
  * silence. Retirer une ligne d'ici le jour ou le pays est ouvert.
  */
-const PAYABLES_NON_OFFERTS_CONNUS = ["mtn_cg"];
+const PAYABLES_NON_OFFERTS_CONNUS = [
+  "airtel_cd", "orange_cd",   // RD Congo
+  "airtel_cg", "mtn_cg",      // Congo
+  "airtel_ga",                // Gabon
+  "mtn_rw",                   // Rwanda
+  "mtn_ug",                   // Ouganda
+  "mtn_zm", "zamtel_zm",      // Zambie
+  "orange_sl",                // Sierra Leone
+];
 
 test("aucun opérateur versable ne devient invisible sans qu'on le sache", () => {
   const versables = Object.keys(OPERATORS).filter((code) =>
