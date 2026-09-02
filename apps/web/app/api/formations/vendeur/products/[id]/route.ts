@@ -35,7 +35,6 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         tags: true, status: true, fileUrl: true,
         hiddenFromMarketplace: true,
         affiliateEnabled: true, affiliateCommissionPct: true,
-        previewEnabled: true, previewPages: true, watermarkEnabled: true,
         // Limites de vente (pour le formulaire vendeur)
         maxBuyers: true, currentBuyers: true, salesEndAt: true,
         createdAt: true, updatedAt: true,
@@ -249,11 +248,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           : typeof body.affiliateCommissionPct === "number"
             ? Math.max(40, Math.min(90, Math.round(body.affiliateCommissionPct))) // minimum 40 %
             : undefined,
-        previewEnabled: typeof body.previewEnabled === "boolean" ? body.previewEnabled : undefined,
-        previewPages: typeof body.previewPages === "number" && body.previewPages >= 1 && body.previewPages <= 20
-          ? Math.floor(body.previewPages)
-          : undefined,
-        watermarkEnabled: typeof body.watermarkEnabled === "boolean" ? body.watermarkEnabled : undefined,
+        // previewEnabled / previewPages / watermarkEnabled ne sont plus des
+        // réglages vendeur : l'aperçu est une règle plateforme uniforme
+        // (lib/formations/apercu.ts). Un client qui les enverrait est ignoré.
         // Limites de vente. body.X === null → on remet null (pas de limite). undefined → on ne touche pas.
         maxBuyers: body.maxBuyers === null
           ? null

@@ -35,6 +35,7 @@ import {
   Star,
   MessageSquare,
   Info,
+  BookOpen,
   Trash2,
   AlertTriangle,
   X,
@@ -48,6 +49,7 @@ import {
 } from "@/lib/hooks/use-draft-storage";
 import { SEUIL_MARKETPLACE_FCFA } from "@/lib/formations/seuils";
 import { CATEGORIES_PRODUITS, CATEGORIE_AUTRE } from "@/lib/formations/categories-produits";
+import { PAGES_APERCU } from "@/lib/formations/apercu";
 
 interface Product {
   id: string;
@@ -72,9 +74,6 @@ interface Product {
   hiddenFromMarketplace: boolean;
   affiliateEnabled?: boolean;
   affiliateCommissionPct?: number | null;
-  previewEnabled?: boolean;
-  previewPages?: number;
-  watermarkEnabled?: boolean;
   // Limites de vente — nullables = pas de limite (rétro-compat avec produits existants)
   maxBuyers?: number | null;
   currentBuyers?: number;
@@ -125,10 +124,10 @@ export default function EditerProduitPage() {
   const [affiliateCommissionPct, setAffiliateCommissionPct] = useDraftField(`${draftPrefix}:affiliateCommissionPct`, 40);
   const [tagsInput, setTagsInput] = useDraftField(`${draftPrefix}:tagsInput`, "");
   const [files, setFiles] = useDraftField<ProductFile[]>(`${draftPrefix}:files`, []);
+  // L'aperçu gratuit n'a de sens que si un PDF est joint — seul format que
+  // pdf-lib sait découper côté serveur.
+  const aPdf = files.some((f) => (f.mimeType ?? "").toLowerCase() === "application/pdf");
   const [hiddenFromMarketplace, setHiddenFromMarketplace] = useDraftField(`${draftPrefix}:hiddenFromMarketplace`, false);
-  const [previewEnabled, setPreviewEnabled] = useDraftField(`${draftPrefix}:previewEnabled`, false);
-  const [previewPages, setPreviewPages] = useDraftField(`${draftPrefix}:previewPages`, 5);
-  const [watermarkEnabled, setWatermarkEnabled] = useDraftField(`${draftPrefix}:watermarkEnabled`, true);
   // Limites de vente. Tous nullable / vides côté UI → pas de limite.
   // maxBuyers vide = vente illimitée. salesEndAt vide = pas d'échéance.
   // currentBuyers est rendu éditable pour permettre au vendeur de réinitialiser
@@ -224,12 +223,6 @@ export default function EditerProduitPage() {
     if (!has("files")) setFiles(Array.isArray(product.files) ? product.files : []);
     else anyDraft = true;
     if (!has("hiddenFromMarketplace")) setHiddenFromMarketplace(!!product.hiddenFromMarketplace);
-    else anyDraft = true;
-    if (!has("previewEnabled")) setPreviewEnabled(!!product.previewEnabled);
-    else anyDraft = true;
-    if (!has("previewPages")) setPreviewPages(typeof product.previewPages === "number" ? product.previewPages : 5);
-    else anyDraft = true;
-    if (!has("watermarkEnabled")) setWatermarkEnabled(product.watermarkEnabled !== false);
     else anyDraft = true;
     // Limites de vente — null/undefined côté API → champ vide côté UI
     if (!has("maxBuyers")) setMaxBuyersInput(product.maxBuyers != null ? String(product.maxBuyers) : "");
@@ -415,9 +408,6 @@ export default function EditerProduitPage() {
       tags: tagsInput.split(",").map((t) => t.trim()).filter(Boolean),
       files,
       hiddenFromMarketplace,
-      previewEnabled,
-      previewPages,
-      watermarkEnabled,
       maxBuyers: maxBuyersParsed,
       currentBuyers: currentBuyersParsed,
       salesEndAt: salesEndAtParsed,
@@ -869,93 +859,36 @@ export default function EditerProduitPage() {
           />
         </div>
 
-        {/* Section: Aperçu gratuit (PDF only) */}
+        {/* Section: Aperçu gratuit — règle plateforme, non réglable */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
           <div>
             <h2 className="text-base font-extrabold text-[#191c1e] mb-1">Aperçu gratuit</h2>
             <p className="text-xs text-[#5c647a]">
-              Laissez les acheteurs feuilleter les premières pages de votre PDF avant l&apos;achat.
-              Les pages affichées portent un filigrane Novakou pour protéger votre contenu.
+              Dès que votre produit contient un PDF, un onglet « Aperçu » s&apos;affiche sur sa page
+              de vente. Les acheteurs y feuillettent les {PAGES_APERCU} premières pages, filigranées
+              Novakou. C&apos;est la même règle pour tous les vendeurs : rien à régler ici.
             </p>
           </div>
 
-          {!files.some((f) => (f.mimeType ?? "").toLowerCase() === "application/pdf") && (
-            <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800">
-              <Info size={16} className="flex-shrink-0 mt-0.5" />
-              <p>Aucun PDF n&apos;est attaché à ce produit. L&apos;aperçu ne s&apos;affichera que si vous ajoutez un fichier PDF dans la section ci-dessus.</p>
-            </div>
-          )}
-
-          <label className="flex items-center justify-between gap-4 p-4 rounded-xl border border-gray-200 hover:border-[#006e2f]/30 cursor-pointer">
-            <div>
-              <p className="text-sm font-bold text-[#191c1e]">Activer l&apos;aperçu gratuit</p>
-              <p className="text-xs text-[#5c647a] mt-0.5">
-                Affiche un onglet « Aperçu » sur la page produit avec les premières pages du PDF.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => track(setPreviewEnabled, !previewEnabled)}
-              className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${
-                previewEnabled ? "bg-[#006e2f]" : "bg-gray-200"
-              }`}
-              aria-pressed={previewEnabled}
-            >
-              <span
-                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${
-                  previewEnabled ? "left-6" : "left-0.5"
-                }`}
-              />
-            </button>
-          </label>
-
-          {previewEnabled && (
-            <>
-              <div className="p-4 rounded-xl border border-gray-200 space-y-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-bold text-[#191c1e]">Nombre de pages visibles</p>
-                  <span className="text-base font-extrabold text-[#006e2f] tabular-nums">{previewPages}</span>
-                </div>
-                <input
-                  type="range"
-                  min={1}
-                  max={20}
-                  value={previewPages}
-                  onChange={(e) => track(setPreviewPages, Number(e.target.value))}
-                  className="w-full accent-[#006e2f]"
-                />
-                <div className="flex justify-between text-[10px] text-[#5c647a] font-semibold uppercase tracking-wider">
-                  <span>1 page</span>
-                  <span>20 pages max</span>
-                </div>
-                <p className="text-xs text-[#5c647a]">
-                  Si votre PDF contient moins de pages que cette valeur, toutes seront affichées.
+          {aPdf ? (
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-[#006e2f]/5 border border-[#006e2f]/20">
+              <BookOpen size={18} className="text-[#006e2f] flex-shrink-0 mt-0.5" />
+              <div className="text-xs text-[#191c1e] leading-relaxed">
+                <p className="font-bold mb-0.5">Aperçu actif sur ce produit</p>
+                <p className="text-[#5c647a]">
+                  {PAGES_APERCU} pages visibles, filigrane Novakou incrusté sur chacune. Le fichier
+                  complet, lui, n&apos;est jamais servi avant paiement.
                 </p>
               </div>
-
-              <label className="flex items-center justify-between gap-4 p-4 rounded-xl border border-gray-200 hover:border-[#006e2f]/30 cursor-pointer">
-                <div>
-                  <p className="text-sm font-bold text-[#191c1e]">Filigrane Novakou</p>
-                  <p className="text-xs text-[#5c647a] mt-0.5">
-                    Recommandé. Empêche la diffusion de l&apos;aperçu comme s&apos;il s&apos;agissait du fichier complet.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => track(setWatermarkEnabled, !watermarkEnabled)}
-                  className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${
-                    watermarkEnabled ? "bg-[#006e2f]" : "bg-gray-200"
-                  }`}
-                  aria-pressed={watermarkEnabled}
-                >
-                  <span
-                    className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${
-                      watermarkEnabled ? "left-6" : "left-0.5"
-                    }`}
-                  />
-                </button>
-              </label>
-            </>
+            </div>
+          ) : (
+            <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800">
+              <Info size={16} className="flex-shrink-0 mt-0.5" />
+              <p>
+                Aucun PDF n&apos;est attaché à ce produit. L&apos;aperçu apparaîtra automatiquement
+                dès que vous ajouterez un fichier PDF dans la section ci-dessus.
+              </p>
+            </div>
           )}
         </div>
 

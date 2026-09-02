@@ -5,18 +5,17 @@ import { NextResponse } from "next/server";
 import { PDFDocument, StandardFonts, degrees, rgb } from "pdf-lib";
 import { prisma } from "@/lib/prisma";
 import { resolveStorageFileUrl } from "@/lib/supabase-storage";
+import { PAGES_APERCU, TEXTE_FILIGRANE } from "@/lib/formations/apercu";
 
-// Streamed inline so the iframe can render it. Do NOT cache publicly — the
-// underlying PDF can be unpublished or the vendor can revoke previewEnabled
-// at any time. Private cache for 1h is enough to absorb refreshes.
+// Jamais de cache public : le vendeur peut dépublier son produit ou remplacer
+// son PDF à tout moment, et un CDN partagé continuerait de servir l'ancien
+// extrait. Un cache privé d'1 h suffit à absorber les rafraîchissements.
 const CACHE_HEADER = "private, max-age=3600";
 
-const WATERMARK_TEXT = "APERÇU — novakou.com";
-
-// Public preview of a digital product PDF.
-// Streams the first N pages (vendor-controlled, capped at 20) with an optional
-// diagonal Novakou watermark. No auth required: previews are part of the
-// product's public marketing surface, but only when the vendor opts in.
+// Aperçu public du PDF d'un produit numérique.
+// Renvoie les PAGES_APERCU premières pages, toujours filigranées. Ni le nombre
+// de pages ni le filigrane ne sont négociables : voir lib/formations/apercu.ts.
+// Pas d'auth — l'aperçu fait partie de la vitrine publique du produit.
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -28,9 +27,6 @@ export async function GET(
       where: { id },
       select: {
         status: true,
-        previewEnabled: true,
-        previewPages: true,
-        watermarkEnabled: true,
         fileUrl: true,
         files: {
           orderBy: { order: "asc" },
@@ -44,12 +40,6 @@ export async function GET(
     }
     if (product.status !== "ACTIF") {
       return NextResponse.json({ error: "Produit non publié" }, { status: 404 });
-    }
-    if (!product.previewEnabled) {
-      return NextResponse.json(
-        { error: "Aperçu non activé par le vendeur" },
-        { status: 403 },
-      );
     }
 
     // Pick the first PDF from the file list. Fall back to the legacy fileUrl
@@ -92,9 +82,9 @@ export async function GET(
       return NextResponse.json({ error: "PDF illisible" }, { status: 422 });
     }
 
-    const totalPages = srcDoc.getPageCount();
-    const requested = Math.max(1, Math.min(product.previewPages ?? 5, 20));
-    const take = Math.min(requested, totalPages);
+    // Un PDF d'une seule page ne montre qu'une page : on ne copie jamais plus
+    // que ce que le document contient, sinon copyPages jette.
+    const take = Math.min(PAGES_APERCU, srcDoc.getPageCount());
 
     const outDoc = await PDFDocument.create();
     const copied = await outDoc.copyPages(
@@ -103,26 +93,25 @@ export async function GET(
     );
     for (const page of copied) outDoc.addPage(page);
 
-    // Diagonal Novakou watermark across each page. Repeated in a 3-row band
-    // so it covers the visible area regardless of page orientation.
-    if (product.watermarkEnabled !== false) {
-      const font = await outDoc.embedFont(StandardFonts.HelveticaBold);
-      for (const page of outDoc.getPages()) {
-        const { width, height } = page.getSize();
-        const fontSize = Math.max(28, Math.min(width, height) * 0.06);
-        const color = rgb(0.55, 0.55, 0.55);
-        const opacity = 0.22;
-        for (const ratio of [0.25, 0.5, 0.75]) {
-          page.drawText(WATERMARK_TEXT, {
-            x: width * 0.08,
-            y: height * ratio,
-            size: fontSize,
-            font,
-            color,
-            opacity,
-            rotate: degrees(-30),
-          });
-        }
+    // Filigrane Novakou en diagonale sur chaque page, répété sur trois bandes
+    // pour couvrir la zone visible quelle que soit l'orientation. Toujours posé :
+    // la page produit promet à l'acheteur que l'aperçu est filigrané.
+    const font = await outDoc.embedFont(StandardFonts.HelveticaBold);
+    for (const page of outDoc.getPages()) {
+      const { width, height } = page.getSize();
+      const fontSize = Math.max(28, Math.min(width, height) * 0.06);
+      const color = rgb(0.55, 0.55, 0.55);
+      const opacity = 0.22;
+      for (const ratio of [0.25, 0.5, 0.75]) {
+        page.drawText(TEXTE_FILIGRANE, {
+          x: width * 0.08,
+          y: height * ratio,
+          size: fontSize,
+          font,
+          color,
+          opacity,
+          rotate: degrees(-30),
+        });
       }
     }
 

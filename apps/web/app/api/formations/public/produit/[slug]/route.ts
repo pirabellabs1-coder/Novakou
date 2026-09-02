@@ -73,12 +73,12 @@ export async function GET(_req: Request, { params }: Params) {
         .catch(() => null);
     }
 
-    // Whether the buyer can use the preview tab: opt-in by vendor, and at
-    // least one file (legacy fileUrl included) is a PDF that pdf-lib can read.
-    const hasPdfFile =
+    // L'onglet Aperçu s'affiche dès qu'un PDF est joint : depuis la règle
+    // plateforme (lib/formations/apercu.ts), ce n'est plus un opt-in vendeur.
+    // Seule condition restante : avoir un PDF que pdf-lib sait lire.
+    const previewAvailable =
       product.files.some((f) => (f.mimeType ?? "").toLowerCase() === "application/pdf") ||
       (typeof product.fileUrl === "string" && product.fileUrl.toLowerCase().endsWith(".pdf"));
-    const previewAvailable = product.previewEnabled === true && hasPdfFile;
 
     const payload = {
       id: product.id,
@@ -100,9 +100,6 @@ export async function GET(_req: Request, { params }: Params) {
       maxBuyers: product.maxBuyers,
       currentBuyers: product.currentBuyers,
       salesEndAt: product.salesEndAt ? product.salesEndAt.toISOString() : null,
-      previewEnabled: product.previewEnabled,
-      previewPages: product.previewPages,
-      watermarkEnabled: product.watermarkEnabled,
       previewAvailable,
       category: product.category,
       instructeur: {

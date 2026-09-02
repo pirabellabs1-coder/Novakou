@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import ShopFooter from "@/components/formations/ShopFooter";
 import { FormationsFooter } from "@/components/formations/FormationsFooter";
 import { FormationsNavbar } from "@/components/formations/FormationsNavbar";
+import { ApercuPdf } from "@/components/formations/ApercuPdf";
+import { PAGES_APERCU } from "@/lib/formations/apercu";
 import { ShopHeader } from "@/components/formations/ShopHeader";
 import { productImageSrc, avatarSrc } from "@/lib/utils/image-url";
 import { shopFontStack, shopFontHref } from "@/lib/formations/shop-fonts";
@@ -87,9 +89,6 @@ interface Product {
   maxBuyers: number | null;
   currentBuyers: number | null;
   salesEndAt?: string | null;
-  previewEnabled?: boolean;
-  previewPages?: number;
-  watermarkEnabled?: boolean;
   previewAvailable?: boolean;
   category: { id: string; slug: string; name: string } | null;
   instructeur: Vendeur;
@@ -573,39 +572,21 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
               </div>
             )}
 
-            {/* Aperçu tab — preview PDF (vendor opt-in, watermarked) */}
+            {/* Onglet Aperçu — 2 premières pages filigranées, rendues sur canvas */}
             {activeTab === "apercu" && product.previewAvailable && (
               <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-6 space-y-4">
                 <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
                   <Eye size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
                   <div className="text-xs text-amber-900 leading-relaxed">
                     <p className="font-bold mb-0.5">
-                      Aperçu gratuit — {product.previewPages ?? 5} première{(product.previewPages ?? 5) > 1 ? "s" : ""} page{(product.previewPages ?? 5) > 1 ? "s" : ""}
+                      Aperçu gratuit — {PAGES_APERCU} première{PAGES_APERCU > 1 ? "s" : ""} page{PAGES_APERCU > 1 ? "s" : ""}
                     </p>
                     <p>
                       Les pages affichées portent un filigrane Novakou. Achetez le produit pour télécharger le fichier complet sans filigrane.
                     </p>
                   </div>
                 </div>
-                <div className="relative w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-50" style={{ aspectRatio: "1 / 1.414" }}>
-                  <iframe
-                    src={`/api/produits/${product.id}/preview#toolbar=0&navpanes=0&scrollbar=1`}
-                    title={`Aperçu — ${product.title}`}
-                    className="absolute inset-0 w-full h-full"
-                    onContextMenu={(e) => e.preventDefault()}
-                  />
-                </div>
-                <p className="text-[11px] text-[#5c647a] text-center">
-                  Si l&apos;aperçu ne s&apos;affiche pas, votre navigateur bloque peut-être les PDF intégrés.{" "}
-                  <a
-                    href={`/api/produits/${product.id}/preview`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[#006e2f] font-semibold hover:underline"
-                  >
-                    Ouvrir dans un nouvel onglet
-                  </a>
-                </p>
+                <ApercuPdf produitId={product.id} titre={product.title} />
               </div>
             )}
 
