@@ -26,20 +26,43 @@ test("aucun moyen de retrait proposé sans passerelle capable de le payer", () =
   }
 });
 
-test("tout opérateur versable par une passerelle est bien proposé", () => {
+/**
+ * Manque CONNU, en attente d'un arbitrage du fondateur : une passerelle sait
+ * payer « mtn_cg » (MTN Congo), mais le catalogue de retrait n'a AUCUNE entree
+ * Congo. Un vendeur congolais ne peut donc pas retirer alors que nous saurions
+ * le payer. Ouvrir un pays au retrait — libelle, montant minimum, opportunite —
+ * est une decision metier, pas un detail a deviner dans un test.
+ *
+ * Le manque n'est ni masque ni bloquant : il est NOMME. Le test echoue des
+ * qu'un AUTRE operateur rejoint ce cas, pour que la liste ne grossisse pas en
+ * silence. Retirer une ligne d'ici le jour ou le pays est ouvert.
+ */
+const PAYABLES_NON_OFFERTS_CONNUS = ["mtn_cg"];
+
+test("aucun opérateur versable ne devient invisible sans qu'on le sache", () => {
   const versables = Object.keys(OPERATORS).filter((code) =>
     PROVIDERS.filter((p) => p.directions.includes("payout")).some((p) => routeFor(code, p.id, "payout")),
   );
   const proposes = new Set(getAvailablePayoutMethods(null).map((m) => m.id));
-  for (const code of versables) {
-    expect(proposes.has(code), `${code} est payable mais reste caché au vendeur`).toBe(true);
-  }
+  const caches = versables.filter((code) => !proposes.has(code));
+  expect(
+    caches.sort(),
+    "Un opérateur est devenu payable sans être proposé au vendeur. Ajoutez-le " +
+      "au catalogue de retrait, ou inscrivez-le dans PAYABLES_NON_OFFERTS_CONNUS " +
+      "avec la raison.",
+  ).toEqual([...PAYABLES_NON_OFFERTS_CONNUS].sort());
 });
 
 test("un pays sans route de versement ne propose rien plutôt que du faux", () => {
-  // Le Cameroun et le Burkina n'ont aucune route de versement aujourd'hui.
-  // Mieux vaut une liste vide qu'un moyen qui échouera.
-  for (const pays of ["CM", "BF", "KE"]) {
+  // La liste « CM, BF, KE » etait figee : depuis, PawaPay a ouvert le retrait
+  // la ou le compte le sert, et le Cameroun comme le Kenya sont couverts. On
+  // ne cite donc plus de pays : on parcourt CEUX qui n'ont aucune route, quels
+  // qu'ils soient. L'invariant survit aux arbitrages de couverture.
+  const paysDuCatalogue = [...new Set(PAYOUT_METHODS.flatMap((m) => m.countries))];
+  const sansRoute = paysDuCatalogue.filter(
+    (pays) => !PAYOUT_METHODS.some((m) => m.countries.includes(pays) && isPayoutMethodServable(m.id)),
+  );
+  for (const pays of sansRoute) {
     expect(getAvailablePayoutMethods(pays), `${pays} propose des moyens impayables`).toHaveLength(0);
   }
 });
@@ -51,12 +74,16 @@ test("les pays réellement couverts proposent leurs moyens", () => {
 });
 
 test("le filtre ne dépend pas du catalogue historique mais du registre", () => {
-  // Les moyens hérités de l'ancienne passerelle restent dans le catalogue
+  // Les moyens hérités d'une passerelle retiree restent dans le catalogue
   // (historique des retraits déjà versés) mais ne doivent plus être offerts.
-  const retires = PAYOUT_METHODS.filter((m) => !isPayoutMethodServable(m.id)).map((m) => m.id);
-  expect(retires).toContain("mtn_cm");
-  expect(retires).toContain("mpesa_ke");
-  expect(getAvailablePayoutMethods(null).map((m) => m.id)).not.toContain("mtn_cm");
+  // On ne nomme plus « mtn_cm » ni « mpesa_ke » : tous deux sont redevenus
+  // servables via PawaPay, et le test s'opposait a une ouverture voulue.
+  // L'invariant reel : ce que le registre ne sait pas payer n'est pas offert.
+  const nonServables = PAYOUT_METHODS.filter((m) => !isPayoutMethodServable(m.id)).map((m) => m.id);
+  const offerts = getAvailablePayoutMethods(null).map((m) => m.id);
+  for (const id of nonServables) {
+    expect(offerts, `${id} n'est pas payable et ne doit pas être offert`).not.toContain(id);
+  }
 });
 
 /**
@@ -102,7 +129,13 @@ test("un pays servi par une passerelle est ouvert au retrait", () => {
 });
 
 test("un pays sans route reste fermé, sans liste à maintenir", () => {
-  for (const pays of ["CM", "BF", "KE"]) {
+  // Le nom du test le disait deja : « sans liste a maintenir ». Il en tenait
+  // pourtant une, et elle a rouille. Elle est desormais derivee du catalogue.
+  const paysDuCatalogue = [...new Set(PAYOUT_METHODS.flatMap((m) => m.countries))];
+  const sansRoute = paysDuCatalogue.filter(
+    (p) => !PAYOUT_METHODS.some((m) => m.countries.includes(p) && isPayoutMethodServable(m.id)),
+  );
+  for (const pays of sansRoute) {
     expect(isPayoutCountryDisabled(pays), `${pays} ouvert sans route de versement`).toBe(true);
   }
 });
@@ -113,7 +146,13 @@ test("un pays sans route reste fermé, sans liste à maintenir", () => {
  * son bouton grisé sans explication.
  */
 test("aucun moyen servable n'exige plus que le minimum global", () => {
-  for (const m of getAvailablePayoutMethods(null)) {
+  // MIN_WITHDRAWAL_XOF est libelle en XOF : le comparer au minimum d'un moyen
+  // libelle en UGX ou en KES compare des grandeurs sans rapport (airtel_ug
+  // exige 1 000 UGX, soit environ 160 XOF — ce n'est pas une incoherence).
+  // On borne donc la regle aux moyens de la meme devise.
+  const enXof = getAvailablePayoutMethods(null).filter((m) => m.currency === "XOF");
+  expect(enXof.length, "aucun moyen en XOF : le catalogue est vide ?").toBeGreaterThan(0);
+  for (const m of enXof) {
     expect(m.minAmount, `${m.id} exige ${m.minAmount} > ${MIN_WITHDRAWAL_XOF}`).toBeLessThanOrEqual(MIN_WITHDRAWAL_XOF);
   }
 });

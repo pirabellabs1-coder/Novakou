@@ -77,7 +77,12 @@ test("chaque opérateur déclare un pays, une devise et une famille cohérents",
     if (entry.family === "card" && entry.country !== "") {
       invalides.push(`${op}: la carte doit couvrir toute la zone, pas le seul pays « ${entry.country} »`);
     }
-    if (entry.currency !== "XOF" && entry.currency !== "XAF") invalides.push(`${op}: devise « ${entry.currency} »`);
+    // La restriction « XOF ou XAF » datait de l'epoque ou la plateforme ne
+    // servait que la zone CFA. Depuis, la Guinee (GNF), le Kenya, la Tanzanie,
+    // l'Ouganda, la Zambie, l'Ethiopie et le Lesotho ont ete ouverts : 32
+    // operateurs legitimes faisaient echouer ce test. On verifie desormais la
+    // FORME (un code ISO 4217), pas une liste de devises a maintenir.
+    if (!/^[A-Z]{3}$/.test(entry.currency)) invalides.push(`${op}: devise « ${entry.currency} » n'est pas un code ISO 4217`);
     if (entry.family !== "mobile_money" && entry.family !== "card") invalides.push(`${op}: famille « ${entry.family} »`);
     if (!entry.label.trim()) invalides.push(`${op}: libellé vide`);
   }

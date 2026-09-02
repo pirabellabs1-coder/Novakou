@@ -43,15 +43,19 @@ test("tout appel de passerelle porte une clé d'authentification", () => {
   }
 });
 
-test("aucun appel de passerelle ne contourne le proxy à IP fixe", () => {
-  for (const f of ["feexpay.ts", "fedapay.ts", "ipaymoney.ts"]) {
-    const src = lire(f);
-    // `fetch(` nu vers une URL de fournisseur = sortie par l'IP de Vercel.
-    expect(
-      /await fetch\(`\$\{(?:base|IPAY_API_BASE|FEEXPAY[A-Z_]*)\}/.test(src),
-      `${f} : un appel utilise fetch au lieu de payoutFetch`,
-    ).toBe(false);
-  }
+test("le VERSEMENT FeexPay ne contourne pas le proxy à IP fixe", () => {
+  // Portee reduite a FeexPay, et a son seul base de VERSEMENT. Depuis
+  // « le proxy a IP fixe ne sert plus que FeexPay — son forfait etait mange
+  // par les autres », FedaPay, Monetbil et iPay sortent EN DIRECT : les
+  // inclure ici faisait echouer le test sur un choix delibere. Et
+  // l'ENCAISSEMENT FeexPay sort aussi en direct, par le meme raisonnement :
+  // seul le versement est filtre par IP chez eux.
+  const src = lire("feexpay.ts");
+  expect(
+    /await fetch\(`\$\{FEEXPAY_API_BASE\}/.test(src),
+    "feexpay.ts : un appel de VERSEMENT utilise fetch au lieu de payoutFetch",
+  ).toBe(false);
+  expect(src, "feexpay.ts doit sortir ses versements par le proxy").toContain("payoutFetch(");
 });
 
 test("le chemin de consultation FeexPay est celui qui existe vraiment", () => {

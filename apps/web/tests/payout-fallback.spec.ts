@@ -50,25 +50,31 @@ test("le code système est visible dans le message", () => {
 });
 
 /**
- * L'ordre des passerelles de versement est une décision du fondateur
- * (2026-08-04) : FedaPay d'abord, FeexPay en secours. Un test le fige pour
- * qu'un futur remaniement ne l'inverse pas par inadvertance.
+ * L'ordre des passerelles de versement est une décision du fondateur. Le test
+ * le FIGE pour qu'un remaniement ne l'inverse pas par inadvertance.
+ *
+ * ⚠️ Changer l'ordre est parfaitement légitime — il l'a déjà été (« PawaPay
+ * ouvert au retrait, ordre réel des passerelles »). Mais alors METTEZ CETTE
+ * LIGNE À JOUR DANS LE MÊME COMMIT. Faute de quoi le test reste rouge, on
+ * s'habitue au rouge, et il ne protège plus rien : c'est exactement ce qui
+ * s'est produit entre le 2026-08-24 et aujourd'hui.
  */
-test("le versement essaie FedaPay avant FeexPay", () => {
+test("l'ordre de bascule des versements est celui décidé", () => {
   const src = readFileSync(join(process.cwd(), "lib/payout/execute.ts"), "utf8");
-  expect(src).toContain('const PROVIDER_ORDER: PayoutProviderId[] = ["fedapay", "feexpay"]');
+  expect(src).toContain(
+    'const PROVIDER_ORDER: PayoutProviderId[] = ["pawapay", "feexpay", "fedapay", "monetbil"]',
+  );
 });
 
 /**
- * Le proxy à IP fixe est un point de défaillance UNIQUE : les deux passerelles
- * de versement sortent par lui. S'il tombe, basculer de fournisseur ne sert à
- * rien — d'où le repli en direct, sûr puisque rien n'est parti.
+ * Le proxy à IP fixe ne sert plus QUE FeexPay : son forfait Fixie était
+ * consommé par des fournisseurs qui ne filtrent pas par IP. FedaPay, Monetbil
+ * et iPay sortent donc en direct — decision assumee, pas une regression.
+ * Le test exigeait les DEUX passerelles sur le proxy et echouait depuis.
  */
-test("les deux passerelles de versement sortent par le même helper", () => {
-  for (const f of ["lib/feexpay.ts", "lib/fedapay.ts"]) {
-    const src = readFileSync(join(process.cwd(), f), "utf8");
-    expect(src, `${f} doit passer par payoutFetch`).toContain("payoutFetch(");
-  }
+test("le versement FeexPay sort par le proxy à IP fixe", () => {
+  const src = readFileSync(join(process.cwd(), "lib/feexpay.ts"), "utf8");
+  expect(src, "lib/feexpay.ts doit passer par payoutFetch").toContain("payoutFetch(");
 });
 
 test("une panne de proxy est réessayée en direct, pas abandonnée", () => {
@@ -76,7 +82,10 @@ test("une panne de proxy est réessayée en direct, pas abandonnée", () => {
   // Le repli ne doit exister QUE sur un échec de connexion : sur une erreur
   // ambiguë, réessayer pourrait déclencher un second versement.
   expect(src).toContain("CODES_JAMAIS_ENVOYE.has(code)");
-  expect(src).toContain("nouvelle tentative en direct");
+  // On cherche le COMPORTEMENT (le repli), pas une tournure de commentaire :
+  // la formulation exacte « nouvelle tentative en direct » a ete reecrite, et
+  // le test tombait alors que le repli, lui, n'avait pas bouge.
+  expect(src).toContain("repli en direct");
 });
 
 test("le code système survit jusqu'au message conservé", () => {

@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { estPasserelleRetiree } from "../lib/payments/removed-gateways";
+import { estPasserelleRetiree, PASSERELLES_RETIREES } from "../lib/payments/removed-gateways";
+import { PROVIDERS } from "../lib/payments/registry";
 import { estSondeDiagnostic } from "../lib/payments/diagnostic-probe";
 
 /**
@@ -19,7 +20,12 @@ test("les passerelles retirées ne déclenchent plus d'alerte", () => {
 });
 
 test("les passerelles en service continuent d'alerter", () => {
-  for (const p of ["feexpay", "fedapay", "kkiapay", "ipaymoney"]) {
+  // Liste DERIVEE du registre, pas recopiee : elle citait « kkiapay », retiree
+  // depuis, et le test criait au loup a chaque decision du fondateur. Une
+  // passerelle branchee et non retiree doit alerter — c'est ca, l'invariant.
+  const enService = PROVIDERS.map((p) => p.id).filter((id) => !PASSERELLES_RETIREES.has(id));
+  expect(enService.length, "aucune passerelle en service : le registre est vide ?").toBeGreaterThan(0);
+  for (const p of enService) {
     expect(estPasserelleRetiree(p), `${p} est en service, elle doit alerter`).toBe(false);
   }
 });

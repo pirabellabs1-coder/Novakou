@@ -51,3 +51,12 @@
   cette machine, c etait le DISQUE plein (0,3 Go libres) qui faisait echouer
   Playwright et les builds. Verifier l espace disque avant de suspecter une
   fuite memoire ou un test.
+- Un test qui FIGE une decision (ordre des passerelles, couverture d'un pays,
+  liste d'operateurs) ou qui assert sur le TEXTE d'un fichier source devient
+  rouge a chaque arbitrage legitime. Personne ne le met a jour, le job reste
+  rouge, et on cesse de le lire : la suite Playwright de Novakou est restee
+  rouge du 24 aout au 2 septembre pour cette seule raison. Preferer une
+  invariante DERIVEE de la source de verite (« tout pays sans route est
+  ferme ») a une liste recopiee (« CM, BF, KE »). Quand le figeage est
+  volontaire, ecrire dans le message d'echec qu'il faut mettre le test a jour
+  dans le meme commit.
