@@ -16,6 +16,7 @@ import {
   X,
   Wallet,
   Sparkles,
+  Pencil,
 } from "lucide-react";
 import { ImageUploader } from "@/components/formations/ImageUploader";
 import { useToastStore } from "@/store/toast";
@@ -58,6 +59,10 @@ export default function LiensPaiementPage() {
   const [embedFor, setEmbedFor] = useState<PayLink | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [testingId, setTestingId] = useState<string | null>(null);
+  const [editFor, setEditFor] = useState<PayLink | null>(null);
+  const [editRedirect, setEditRedirect] = useState("");
+  const [editWebhook, setEditWebhook] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const origin = typeof window !== "undefined" ? window.location.origin : "https://novakou.com";
   const fullUrl = (l: PayLink) => `${origin}${l.url}`;
@@ -132,6 +137,41 @@ export default function LiensPaiementPage() {
       toast("error", "Erreur réseau");
     } finally {
       setTestingId(null);
+    }
+  }
+
+  function openEdit(l: PayLink) {
+    setEditFor(l);
+    setEditRedirect(l.redirectUrl ?? "");
+    setEditWebhook(l.webhookUrl ?? "");
+  }
+
+  async function saveEdit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editFor) return;
+    setSavingEdit(true);
+    try {
+      const res = await fetch(`/api/formations/vendeur/liens-paiement/${editFor.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        // On envoie TOUJOURS les deux champs (vides = effacer) : le formulaire
+        // reflète l'état voulu du lien, pas un patch partiel.
+        body: JSON.stringify({ redirectUrl: editRedirect.trim(), webhookUrl: editWebhook.trim() }),
+      });
+      const json = await res.json();
+      if (!res.ok) { toast("error", json.error ?? "Erreur"); return; }
+      toast(
+        "success",
+        json.data?.secretRegenerated
+          ? "Enregistré — nouveau secret webhook généré (envoyé par e-mail)"
+          : "Modifications enregistrées",
+      );
+      setEditFor(null);
+      load();
+    } catch {
+      toast("error", "Erreur réseau");
+    } finally {
+      setSavingEdit(false);
     }
   }
 
@@ -404,6 +444,9 @@ export default function LiensPaiementPage() {
                         {copiedId === l.id ? <Check size={15} /> : <Copy size={15} />}
                         <span className="hidden sm:inline"><span translate="no">{copiedId === l.id ? "Copié" : "Copier"}</span></span>
                       </button>
+                      <button onClick={() => openEdit(l)} title="Modifier la redirection / le webhook" className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">
+                        <Pencil size={15} />
+                      </button>
                       <button onClick={() => setEmbedFor(l)} title="Code d'intégration" className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">
                         <Code2 size={15} />
                       </button>
@@ -421,6 +464,56 @@ export default function LiensPaiementPage() {
           </div>
         )}
       </div>
+
+      {/* Edit redirect / webhook modal */}
+      {editFor && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => !savingEdit && setEditFor(null)}>
+          <form onSubmit={saveEdit} className="bg-white rounded-2xl max-w-lg w-full p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="font-extrabold text-[#111827] flex items-center gap-2"><Pencil size={18} /> Modifier l&apos;intégration</h3>
+              <button type="button" onClick={() => setEditFor(null)} className="text-gray-400 hover:text-gray-700"><X size={20} /></button>
+            </div>
+            <p className="text-sm text-[#5c647a] mb-4 truncate">Lien : <span className="font-semibold text-[#111827]">{editFor.title}</span></p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-bold text-[#5c647a] mb-1">URL de redirection après paiement</label>
+                <input
+                  type="url" value={editRedirect} onChange={(e) => setEditRedirect(e.target.value)}
+                  placeholder="https://mon-site.com/merci"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
+                />
+                <p className="text-[10px] text-slate-400 mt-1">L&apos;acheteur y est renvoyé avec <code className="text-slate-500">?ref=…&amp;status=success</code>. Laissez vide pour retirer la redirection.</p>
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-[#5c647a] mb-1">URL de webhook (notification serveur, https)</label>
+                <input
+                  type="url" value={editWebhook} onChange={(e) => setEditWebhook(e.target.value)}
+                  placeholder="https://mon-site.com/api/novakou-webhook"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
+                />
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Changer cette URL génère un <strong>nouveau secret de signature</strong> (envoyé par e-mail). La garder à l&apos;identique conserve le secret actuel. Vide = webhook retiré.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-6">
+              <button type="button" onClick={() => setEditFor(null)} disabled={savingEdit} className="px-4 py-2.5 rounded-xl text-sm font-bold text-[#5c647a] hover:bg-gray-100 disabled:opacity-60">
+                Annuler
+              </button>
+              <button
+                type="submit" disabled={savingEdit}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-60"
+                style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+              >
+                {savingEdit ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                {savingEdit ? "Enregistrement…" : "Enregistrer"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* Embed modal */}
       {embedFor && (
