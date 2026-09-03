@@ -197,8 +197,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     // Les SIGNAUX (KYC, prix > 500 000…) ne jouent qu'au moment de PUBLIER :
     // renvoyer en file d'attente un produit déjà en ligne à chaque correction
     // de virgule le ferait disparaître de la marketplace sans raison.
-    const publication = statutDemande === "ACTIF" && existing.status !== "ACTIF";
-    const seraVisible = statutDemande === "ACTIF" || (statutDemande === undefined && existing.status === "ACTIF");
+    // Les LIENS DE PAIEMENT ne passent JAMAIS par la modération : ils sont créés
+    // directement ACTIF, cachés du marketplace, sans fiche produit ni bannière.
+    // Les soumettre à la garde de publication (qui exige une bannière) rendait
+    // IMPOSSIBLE la réactivation d'un lien mis en pause : ARCHIVE → ACTIF
+    // déclenchait decisionPublication, qui échouait sur « bannière manquante ».
+    const estLienPaiement = existing.isPaymentLink;
+    const publication = !estLienPaiement && statutDemande === "ACTIF" && existing.status !== "ACTIF";
+    const seraVisible = !estLienPaiement && (statutDemande === "ACTIF" || (statutDemande === undefined && existing.status === "ACTIF"));
     let statutFinal: string | undefined = statutDemande;
     if (seraVisible) {
       const decision = await decisionPublication({
