@@ -10,24 +10,25 @@ import { sendPaylinkWebhookSecretEmail } from "@/lib/email/paylink";
 /**
  * PATCH /api/formations/vendeur/liens-paiement/[id]
  *
- * Modifie l'INTÉGRATION d'un lien de paiement EXISTANT : URL de redirection et
- * URL de webhook. Le lien garde son slug — donc son URL de paiement publique
- * reste identique (le vendeur a pu la partager / l'intégrer).
+ * Modifie un lien de paiement EXISTANT — TOUS les paramètres de la création :
+ * titre, montant, type de prix (fixe / libre), image, description, URL de
+ * redirection et URL de webhook. Le lien garde son slug — donc son URL de
+ * paiement publique reste identique (le vendeur a pu la partager / l'intégrer).
  *
- * Un vendeur pouvait fixer ces URLs à la création mais jamais les changer : quand
- * il déplaçait sa page de redirection, l'ancienne adresse restait gravée dans le
- * lien et l'acheteur était renvoyé sur une page morte.
+ * Un vendeur pouvait tout fixer à la création mais rien changer ensuite : quand
+ * il déplaçait sa page de redirection ou corrigeait un montant, il devait
+ * supprimer et recréer le lien, ce qui changeait son URL.
  *
- * Règles :
- *  • Champ absent du corps → inchangé. Champ présent mais vide → effacé (null).
- *  • redirectUrl : http/https, pas d'adresse interne (mêmes règles qu'à la création).
+ * Règles (mêmes validations qu'à la création) :
+ *  • Champ absent du corps → inchangé. Un champ optionnel présent mais vide
+ *    (description, image, redirectUrl, webhookUrl) → effacé (null).
+ *  • title : ≥ 2 caractères.
+ *  • priceMode "fixed" → montant > 0 ; "libre" → montant ≥ 0 (suggestion).
+ *  • redirectUrl : http/https, pas d'adresse interne.
  *  • webhookUrl  : https requis. Le secret n'est RÉGÉNÉRÉ que si l'URL webhook
  *    change réellement (ou passe d'absente à présente) — sinon on garde le
  *    secret existant, pour ne pas invalider une intégration qui marche. Effacer
  *    l'URL efface le secret. Un nouveau secret est envoyé par e-mail au vendeur.
- *
- * Volontairement limité à redirection + webhook : le titre, le montant et le
- * prix libre touchent la vente elle-même et se gèrent ailleurs.
  */
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
@@ -40,11 +41,19 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   // Ownership : le lien doit appartenir au vendeur ET être un lien de paiement.
   const link = await prisma.digitalProduct.findFirst({
     where: { id, instructeurId: ctx.instructeurId, isPaymentLink: true },
-    select: { id: true, title: true, redirectUrl: true, webhookUrl: true, webhookSecret: true },
+    select: { id: true, title: true, allowCustomAmount: true, redirectUrl: true, webhookUrl: true, webhookSecret: true },
   });
   if (!link) return NextResponse.json({ error: "Lien introuvable" }, { status: 404 });
 
-  let body: { redirectUrl?: string | null; webhookUrl?: string | null };
+  let body: {
+    title?: string;
+    amount?: number | string;
+    priceMode?: string;
+    description?: string | null;
+    image?: string | null;
+    redirectUrl?: string | null;
+    webhookUrl?: string | null;
+  };
   try {
     body = await request.json();
   } catch {
@@ -52,10 +61,53 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   const data: {
+    title?: string;
+    price?: number;
+    allowCustomAmount?: boolean;
+    description?: string | null;
+    thumbnail?: string | null;
     redirectUrl?: string | null;
     webhookUrl?: string | null;
     webhookSecret?: string | null;
   } = {};
+
+  // ── Titre ──────────────────────────────────────────────────────────────
+  if ("title" in body) {
+    const t = typeof body.title === "string" ? body.title.trim() : "";
+    if (t.length < 2) {
+      return NextResponse.json({ error: "Le titre est trop court." }, { status: 400 });
+    }
+    data.title = t.slice(0, 80);
+  }
+
+  // ── Type de prix + montant ─────────────────────────────────────────────
+  // Les deux sont couplés : le montant se valide contre le type de prix voulu
+  // (celui du corps s'il est fourni, sinon celui déjà enregistré).
+  const allowCustom = "priceMode" in body ? body.priceMode === "libre" : link.allowCustomAmount;
+  if ("priceMode" in body) data.allowCustomAmount = allowCustom;
+  if ("amount" in body) {
+    const amountNum = parseFloat(String(body.amount ?? 0));
+    if (!allowCustom) {
+      if (!Number.isFinite(amountNum) || amountNum <= 0) {
+        return NextResponse.json({ error: "Le montant doit être supérieur à 0." }, { status: 400 });
+      }
+    } else if (!Number.isFinite(amountNum) || amountNum < 0) {
+      return NextResponse.json({ error: "Le montant suggéré est invalide." }, { status: 400 });
+    }
+    data.price = Math.round(amountNum);
+  }
+
+  // ── Description ─────────────────────────────────────────────────────────
+  if ("description" in body) {
+    const d = typeof body.description === "string" ? body.description.trim().slice(0, 2000) : "";
+    data.description = d || null;
+  }
+
+  // ── Image ───────────────────────────────────────────────────────────────
+  if ("image" in body) {
+    const img = typeof body.image === "string" ? body.image.trim() : "";
+    data.thumbnail = img || null;
+  }
 
   // ── Redirection ──────────────────────────────────────────────────────────
   if ("redirectUrl" in body) {
