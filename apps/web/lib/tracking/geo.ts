@@ -34,3 +34,49 @@ export function countryName(code: string | null | undefined): string {
   if (!code) return "Inconnu";
   return COUNTRY_NAMES[code.toUpperCase()] ?? code;
 }
+
+/** Nom -> forme comparable : sans accents, minuscule, lettres seules. */
+function normalizeName(s: string): string {
+  return s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z]+/g, " ")
+    .trim();
+}
+
+// Table inverse nom -> code ISO-2, construite depuis COUNTRY_NAMES + alias
+// fréquents (variantes FR/EN, sans accent). Sert à réconcilier des valeurs
+// `country` hétérogènes (certaines en code « CI », d'autres en nom « Cameroun »).
+const NAME_TO_CODE: Record<string, string> = (() => {
+  const m: Record<string, string> = {};
+  for (const [code, name] of Object.entries(COUNTRY_NAMES)) m[normalizeName(name)] = code;
+  Object.assign(m, {
+    "cote d ivoire": "CI", "ivory coast": "CI",
+    "benin": "BJ", "senegal": "SN", "cameroun": "CM", "cameroon": "CM",
+    "guinee": "GN", "guinea": "GN", "rd congo": "CD", "republique democratique du congo": "CD",
+    "congo brazzaville": "CG", "congo": "CG",
+    "etats unis": "US", "united states": "US", "usa": "US", "us": "US",
+    "royaume uni": "GB", "united kingdom": "GB", "uk": "GB",
+    "allemagne": "DE", "germany": "DE", "belgique": "BE", "belgium": "BE",
+    "suisse": "CH", "switzerland": "CH", "maroc": "MA", "morocco": "MA",
+    "nigeria": "NG", "ghana": "GH", "kenya": "KE", "rwanda": "RW",
+    "burkina faso": "BF", "mali": "ML", "niger": "NE", "tchad": "TD", "chad": "TD",
+    "gabon": "GA", "togo": "TG", "france": "FR", "canada": "CA",
+  });
+  return m;
+})();
+
+/**
+ * Normalise une valeur `country` (code ISO-2 « CI » OU nom « Côte d'Ivoire »,
+ * FR/EN, avec ou sans accents) vers un CODE ISO-2 majuscule, ou null si inconnu.
+ * Indispensable pour fusionner les doublons et afficher un vrai drapeau.
+ */
+export function toIso2(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const raw = value.trim();
+  if (!raw || raw === "??") return null;
+  const upper = raw.toUpperCase();
+  if (/^[A-Z]{2}$/.test(upper)) return upper; // déjà un code ISO-2
+  return NAME_TO_CODE[normalizeName(raw)] ?? null;
+}

@@ -6,6 +6,7 @@ import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { trackingStore } from "@/lib/tracking/tracking-store";
 import { PLATFORM_COMMISSION_RATE } from "@/lib/formations/constants";
+import { toIso2 } from "@/lib/tracking/geo";
 
 // Single source of truth (10% — see lib/formations/constants.ts)
 const PLATFORM_FEE = PLATFORM_COMMISSION_RATE;
@@ -259,7 +260,8 @@ export async function GET(request: Request) {
     // ── Sales by country ──
     const salesByCountryMap = new Map<string, { count: number; revenue: number }>();
     for (const t of periodTxns) {
-      const c = t.country || "??";
+      // Normalise en code ISO-2 : fusionne « CI » et « Côte d'Ivoire », etc.
+      const c = toIso2(t.country) ?? "??";
       const entry = salesByCountryMap.get(c) || { count: 0, revenue: 0 };
       entry.count += 1;
       entry.revenue += t.amount;
@@ -297,7 +299,7 @@ export async function GET(request: Request) {
 
     const viewsByCountryMap = new Map<string, number>();
     for (const e of productViewEvents) {
-      const c = e.country || sessionCountryMap.get(e.sessionId) || "??";
+      const c = toIso2(e.country || sessionCountryMap.get(e.sessionId)) ?? "??";
       viewsByCountryMap.set(c, (viewsByCountryMap.get(c) || 0) + 1);
     }
     const viewsByCountry = [...viewsByCountryMap.entries()]

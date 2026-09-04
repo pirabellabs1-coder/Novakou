@@ -22,6 +22,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { countryName } from "@/lib/tracking/geo";
+import { Flag } from "@/components/ui/Flag";
 import {
   StCard,
   StPageHeader,
@@ -172,16 +173,14 @@ export default function StatistiquesPage() {
 
   const funnelMax = funnel ? Math.max(funnel.views, funnel.productViews, funnel.purchases, 1) : 1;
 
-  // ── Top pays : part de chaque pays (revenus si dispo, sinon vues) ──
-  const countryRevTotal = countryRows.reduce((s, r) => s + r.revenue, 0);
-  const countryViewsTotal = countryRows.reduce((s, r) => s + r.views, 0);
-  const countryShare = (row: { revenue: number; views: number }) =>
-    countryRevTotal > 0
-      ? (row.revenue / countryRevTotal) * 100
-      : countryViewsTotal > 0
-        ? (row.views / countryViewsTotal) * 100
-        : 0;
+  // ── Top pays : CHIFFRES RÉELS (pas de %). Métrique = ventes s'il y en a,
+  // sinon vues. La barre est proportionnelle à cette métrique (pas une part).
+  const countrySalesTotal = countryRows.reduce((s, r) => s + r.sales, 0);
+  const countryMetricType: "ventes" | "vues" = countrySalesTotal > 0 ? "ventes" : "vues";
+  const countryMetric = (r: { sales: number; views: number }) =>
+    countryMetricType === "ventes" ? r.sales : r.views;
   const topCountries = countryRows.slice(0, 6);
+  const countryMax = Math.max(1, ...topCountries.map(countryMetric));
 
   // ── Tunnel de conversion (4 lignes maquette — Checkout non tracké : "—") ──
   const funnelRows: { label: string; value: number | null; pct: number | null; sub: string }[] = funnel
@@ -370,21 +369,19 @@ export default function StatistiquesPage() {
               <div>
                 {topCountries.map((row, i) => {
                   const isOther = row.country === "??";
-                  const tone = !isOther && i < 4
-                    ? { background: ST.greenSoft, color: ST.green }
-                    : { background: "#f1efe8", color: "#5f5e5a" };
                   return (
                     <div
                       key={row.country}
                       className="flex items-center gap-[11px] py-2"
                       style={i > 0 ? { borderTop: "1px solid #f3f6f4" } : undefined}
                     >
-                      <div
-                        className="w-[30px] h-[30px] rounded-full flex items-center justify-center text-[10px] font-extrabold flex-shrink-0"
-                        style={tone}
-                      >
-                        {isOther ? "—" : row.country.toUpperCase()}
-                      </div>
+                      <span className="w-[30px] h-[30px] rounded-full bg-[#f1efe8] flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        {isOther ? (
+                          <span className="text-[13px]">🌍</span>
+                        ) : (
+                          <Flag code={row.country} size="md" title={countryName(row.country)} />
+                        )}
+                      </span>
                       <span
                         className="text-[12.5px] font-extrabold w-[96px] truncate"
                         style={{ color: ST.text }}
@@ -394,14 +391,20 @@ export default function StatistiquesPage() {
                       <div className="flex-1 h-[7px] rounded-full overflow-hidden" style={{ background: ST.divider }}>
                         <div
                           className="h-full rounded-full"
-                          style={{ width: `${Math.min(countryShare(row), 100)}%`, background: ST.gradientH }}
+                          style={{ width: `${Math.round((countryMetric(row) / countryMax) * 100)}%`, background: ST.gradientH }}
                         />
                       </div>
-                      <span
-                        className="text-[12px] font-extrabold w-[38px] text-right tabular-nums"
-                        style={{ color: ST.text }}
-                      >
-                        {Math.round(countryShare(row))} %
+                      {/* Chiffres RÉELS (ventes + vues), jamais un pourcentage. */}
+                      <span className="text-right tabular-nums flex-shrink-0 leading-tight" style={{ color: ST.text }}>
+                        <span className="block text-[12.5px] font-extrabold">
+                          {row.sales.toLocaleString("fr-FR")}
+                          <span className="text-[10px] font-semibold ml-0.5" style={{ color: ST.textSecondary }}>
+                            {row.sales > 1 ? "ventes" : "vente"}
+                          </span>
+                        </span>
+                        <span className="block text-[10.5px] font-semibold" style={{ color: ST.textSecondary }}>
+                          {row.views.toLocaleString("fr-FR")} {row.views > 1 ? "vues" : "vue"}
+                        </span>
                       </span>
                     </div>
                   );

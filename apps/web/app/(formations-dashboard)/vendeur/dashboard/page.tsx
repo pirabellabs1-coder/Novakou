@@ -812,9 +812,13 @@ export default function VendeurDashboard() {
                     className="flex items-center gap-3 py-2"
                     style={i ? { borderTop: "1px solid #f3f6f4" } : undefined}
                   >
-                    <Flag code={tc.country} size="md" />
+                    {tc.country === "??" ? (
+                      <span className="text-[16px] leading-none">🌍</span>
+                    ) : (
+                      <Flag code={tc.country} size="md" title={countryName(tc.country)} />
+                    )}
                     <span className="text-[12.5px] font-extrabold w-28 truncate" style={{ color: ST.text }}>
-                      {countryName(tc.country)}
+                      {tc.country === "??" ? "Autres" : countryName(tc.country)}
                     </span>
                     <div className="flex-1 h-[7px] rounded-full overflow-hidden" style={{ background: ST.divider }}>
                       <div className="h-full rounded-full" style={{ width: `${pct}%`, background: ST.gradientH }} />

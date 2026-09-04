@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { getActiveShopId } from "@/lib/formations/active-shop";
+import { toIso2 } from "@/lib/tracking/geo";
 import { getOrCreateInstructeur } from "@/lib/formations/instructeur";
 import { PLATFORM_COMMISSION_RATE } from "@/lib/formations/constants";
 
@@ -508,7 +509,8 @@ export async function GET(request: Request) {
     // ── Top countries (by revenue, all time) ──
     const countryMap = new Map<string, { sales: number; revenue: number }>();
     for (const t of completedTxns) {
-      const c = t.country || "??";
+      // Normalise en code ISO-2 (fusionne « CI » et « Côte d'Ivoire »…).
+      const c = toIso2(t.country) ?? "??";
       const entry = countryMap.get(c) || { sales: 0, revenue: 0 };
       entry.sales += 1;
       entry.revenue += t.amount;
