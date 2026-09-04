@@ -94,6 +94,13 @@ export default function CheckoutInner() {
   const [email, setEmail] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:email`, "");
   const [phone, setPhone] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:phone`, "");
   const [countryCode, setCountryCode] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:countryCode`, "+221");
+  // Achat-cadeau : offrir la commande à quelqu'un d'autre (le destinataire).
+  const [giftEnabled, setGiftEnabled] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:giftEnabled`, false);
+  const [giftEmail, setGiftEmail] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:giftEmail`, "");
+  const [giftName, setGiftName] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:giftName`, "");
+  const [giftMessage, setGiftMessage] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:giftMessage`, "");
+  // Avertissement « le destinataire possède déjà » (régime avertir mais autoriser).
+  const [giftOwned, setGiftOwned] = useState<string[]>([]);
   // Sélection courante de l'écran de paiement, intégré plus bas dans CETTE
   // page. Le tunnel tenait sur deux écrans successifs ; un acheteur a écrit à
   // son vendeur que c'était trop long, au point qu'il a coupé ses publicités.
@@ -367,6 +374,28 @@ export default function CheckoutInner() {
   const formationIds = cartItems.filter((i) => i.kind === "formation").map((i) => i.id);
   const productIds = cartItems.filter((i) => i.kind === "product").map((i) => i.id);
 
+  // Achat-cadeau : vérifie (débounce) si le DESTINATAIRE possède déjà un item →
+  // avertissement (on autorise quand même). Clés en chaîne pour éviter les
+  // boucles d'identité de tableau.
+  const giftFids = formationIds.join(",");
+  const giftPids = productIds.join(",");
+  useEffect(() => {
+    if (!giftEnabled) { setGiftOwned([]); return; }
+    const em = giftEmail.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { setGiftOwned([]); return; }
+    const t = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({ email: em });
+        if (giftFids) params.set("fids", giftFids);
+        if (giftPids) params.set("pids", giftPids);
+        const r = await fetch(`/api/formations/gift/check?${params.toString()}`);
+        const j = await r.json();
+        setGiftOwned((j.data?.owned ?? []).map((o: { title: string }) => o.title));
+      } catch { setGiftOwned([]); }
+    }, 500);
+    return () => clearTimeout(t);
+  }, [giftEnabled, giftEmail, giftFids, giftPids]);
+
   /**
    * Lance le paiement depuis la page unique. Si un champ manque, on le dit et
    * on amène l'acheteur au bon endroit plutôt que de le laisser deviner.
@@ -391,6 +420,11 @@ export default function CheckoutInner() {
    * (« orange_sn », « card_xof »…). Le serveur choisit la passerelle.
    */
   async function startPayment({ operator, phone: payPhone }: { operator: string; phone?: string; hosted: boolean }) {
+    // Achat-cadeau : un e-mail destinataire valide est requis si l'option est cochée.
+    if (giftEnabled && !isAllowedBuyerEmail(giftEmail.trim().toLowerCase())) {
+      setError(`Destinataire du cadeau : ${ALLOWED_BUYER_EMAIL_MESSAGE}`);
+      return;
+    }
     setLoading(true);
     setError(null);
 
@@ -415,6 +449,14 @@ export default function CheckoutInner() {
           phone: fullPhone,
           // Opérateur déjà spécifique au pays, choisi sur l'écran unique.
           paymentMethod: operator,
+          // Achat-cadeau : la commande est livrée au destinataire, pas au payeur.
+          ...(giftEnabled && giftEmail.trim()
+            ? {
+                giftRecipientEmail: giftEmail.trim(),
+                giftRecipientName: giftName.trim() || undefined,
+                giftMessage: giftMessage.trim() || undefined,
+              }
+            : {}),
         }),
       });
       const json = await res.json();
@@ -517,6 +559,60 @@ export default function CheckoutInner() {
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f7f9fb] text-sm text-[#191c1e] placeholder:text-[#5c647a] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] disabled:opacity-60"
                 />
                 <p className="text-[10px] text-[#5c647a] mt-1">Votre reçu et accès seront envoyés à cette adresse.</p>
+              </div>
+
+              {/* ── Offrir en cadeau ─────────────────────────────────────── */}
+              <div className="rounded-xl border border-gray-200 bg-[#f7f9fb] p-3.5">
+                <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={giftEnabled}
+                    onChange={(e) => setGiftEnabled(e.target.checked)}
+                    className="w-4 h-4 rounded accent-[#006e2f]"
+                  />
+                  <span className="text-sm font-bold text-[#191c1e]">🎁 Offrir en cadeau à quelqu&apos;un d&apos;autre</span>
+                </label>
+                {giftEnabled && (
+                  <div className="mt-3 grid grid-cols-1 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#5c647a] mb-1.5">E‑mail du destinataire</label>
+                      <input
+                        type="email"
+                        value={giftEmail}
+                        onChange={(e) => setGiftEmail(e.target.value)}
+                        placeholder="destinataire@email.com"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-[#191c1e] placeholder:text-[#5c647a] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
+                      />
+                      <p className="text-[10px] text-[#5c647a] mt-1">La personne recevra un e‑mail avec un lien d&apos;accès (sans créer de compte). Vous, vous recevez le reçu.</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-[#5c647a] mb-1.5">Nom du destinataire <span className="font-normal">(optionnel)</span></label>
+                      <input
+                        type="text"
+                        value={giftName}
+                        onChange={(e) => setGiftName(e.target.value)}
+                        placeholder="Prénom / nom"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-[#191c1e] placeholder:text-[#5c647a] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-[#5c647a] mb-1.5">Message <span className="font-normal">(optionnel)</span></label>
+                      <textarea
+                        value={giftMessage}
+                        onChange={(e) => setGiftMessage(e.target.value)}
+                        rows={2}
+                        maxLength={500}
+                        placeholder="Un petit mot pour accompagner votre cadeau…"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-[#191c1e] placeholder:text-[#5c647a] resize-none focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
+                      />
+                    </div>
+                    {giftOwned.length > 0 && (
+                      <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-[12px] text-amber-800">
+                        ⚠️ Cette personne possède peut‑être déjà : <strong>{giftOwned.join(", ")}</strong>. Vous pouvez tout de même offrir.
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
             </div>
