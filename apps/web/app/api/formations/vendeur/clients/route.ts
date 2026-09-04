@@ -41,7 +41,7 @@ function completedStatus(ref: string | null, amount: number, refunded: boolean):
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user && !IS_DEV) {
@@ -53,9 +53,19 @@ export async function GET() {
     if (!ctx) return NextResponse.json({ data: { orders: [], summary: null } });
     const instructeurId = ctx.instructeurId;
 
-    const activeShopId = await getActiveShopId(session, {
-      devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
-    });
+    // Portée boutique : ?shopId= (all → null = cumulé, id → cette boutique,
+    // absent → boutique active). Même modèle que stats/dashboard.
+    const shopIdParam = (new URL(request.url).searchParams.get("shopId") ?? "").trim();
+    let activeShopId: string | null;
+    if (shopIdParam === "all") {
+      activeShopId = null;
+    } else if (shopIdParam) {
+      activeShopId = shopIdParam;
+    } else {
+      activeShopId = await getActiveShopId(session, {
+        devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+      });
+    }
     const shopFilter = activeShopId ? { shopId: activeShopId } : {};
 
     const [enrollments, purchases, bundlePurchases, subInvoices, attempts] = await Promise.all([

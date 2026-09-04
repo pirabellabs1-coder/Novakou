@@ -29,8 +29,12 @@ export async function GET(request: Request) {
     if (!session?.user && !IS_DEV) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
-    const rangeKey = new URL(request.url).searchParams.get("range") ?? "6m";
+    const url = new URL(request.url);
+    const rangeKey = url.searchParams.get("range") ?? "6m";
     const range = RANGES[rangeKey] ?? RANGES["6m"];
+    // Portée boutique : "all" → cumulé (toutes boutiques), "<id>" → cette
+    // boutique, absent → boutique active (cookie, compat). Même modèle que stats.
+    const shopIdParam = (url.searchParams.get("shopId") ?? "").trim();
     // Resolve the real user (by session.id OR session.email fallback) + ensure profile
     const ctx = await resolveVendorContext(session, {
       devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
@@ -38,10 +42,19 @@ export async function GET(request: Request) {
     if (!ctx) return NextResponse.json({ data: null });
     const userId = ctx.userId;
 
-    // Multi-shop : restreindre les stats à la boutique active
-    const activeShopId = await getActiveShopId(session, {
-      devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
-    });
+    // Multi-shop : portée effective pilotée par ?shopId= (all → null = cumulé,
+    // id → cette boutique, absent → boutique active). `activeShopId` reste le nom
+    // utilisé plus bas pour tous les filtres de ce handler.
+    let activeShopId: string | null;
+    if (shopIdParam === "all") {
+      activeShopId = null;
+    } else if (shopIdParam) {
+      activeShopId = shopIdParam;
+    } else {
+      activeShopId = await getActiveShopId(session, {
+        devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+      });
+    }
     const shopFilter = activeShopId ? { shopId: activeShopId } : {};
 
     // Get instructeur profile with formations + products — use resolved userId

@@ -18,11 +18,20 @@ export async function GET(request: Request) {
     if (!ctx) return NextResponse.json({ data: [] });
     const profile = { id: ctx.instructeurId };
 
-    // Multi-shop : transactions de la boutique active uniquement
-    const activeShopId = await getActiveShopId(session, {
-      devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
-    });
-    const shopFilter = activeShopId ? { shopId: activeShopId } : {};
+    // Portée boutique : ?shopId= (all → cumulé, id → cette boutique, absent →
+    // boutique active). Même modèle que stats/dashboard/clients.
+    const shopIdParam = (new URL(request.url).searchParams.get("shopId") ?? "").trim();
+    let shopFilter: { shopId: string } | Record<string, never> = {};
+    if (shopIdParam === "all") {
+      shopFilter = {};
+    } else if (shopIdParam) {
+      shopFilter = { shopId: shopIdParam };
+    } else {
+      const activeShopId = await getActiveShopId(session, {
+        devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+      });
+      shopFilter = activeShopId ? { shopId: activeShopId } : {};
+    }
 
     // Fetch enrollments + product purchases + bundle purchases + sub invoices in parallel
     const [enrollments, purchases, bundlePurchases, subInvoices] = await Promise.all([
