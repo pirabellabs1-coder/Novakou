@@ -29,7 +29,7 @@ export default function ShopSwitcher() {
     return (
       <Link
         href="/vendeur/boutiques"
-        className="hidden md:inline-flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
+        className="inline-flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
         title="Gérer mes boutiques"
       >
         <span
@@ -48,7 +48,7 @@ export default function ShopSwitcher() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="hidden md:inline-flex items-center gap-2 pl-1.5 pr-2 py-1 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
+        className="inline-flex items-center gap-2 pl-1.5 pr-2 py-1 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
       >
         {isAll ? (
           <>
