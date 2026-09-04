@@ -25,6 +25,7 @@ import {
   sendNewStudentNotificationEmail,
 } from "@/lib/email/formations";
 import { getCommissionRate } from "@/lib/formations/platform-settings";
+import { notifyGiftRecipient, notifyGiftSent } from "@/lib/email/gift";
 import { dispatchVendorEvent } from "@/lib/formations/vendor-webhooks";
 import { onFormationPurchase, onProductPurchase } from "@/lib/marketing/hooks";
 import { firePaylinkWebhook } from "@/lib/formations/paylink-webhook";
@@ -75,6 +76,16 @@ export interface FulfillParams {
    * bon marché avec des formations chères en plus ne donne rien de plus.
    */
   bundleId?: string | null;
+  /**
+   * ACHAT-CADEAU : quand présent, l'ACCÈS (Enrollment/DigitalProductPurchase) est
+   * créé pour ce destinataire au lieu de l'acheteur. L'acheteur reste le payeur ;
+   * le crédit vendeur/commission (PlatformRevenue, totalEarned) est INCHANGÉ (il
+   * ne dépend pas du bénéficiaire de l'accès). Le destinataire reçoit l'e-mail
+   * cadeau + le lien d'accès ; l'acheteur reçoit une confirmation « cadeau envoyé ».
+   */
+  recipientUserId?: string | null;
+  /** Message personnalisé de l'offreur, affiché dans l'e-mail cadeau. */
+  giftMessage?: string | null;
 }
 
 /** Levée quand le montant reçu ne correspond pas au prix recalculé serveur. */
@@ -156,6 +167,13 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
   ]);
 
   if (!user) throw new Error("Utilisateur introuvable");
+
+  // ── ACHAT-CADEAU : bénéficiaire = destinataire, payeur = acheteur ──────────
+  const isGift = !!p.recipientUserId && p.recipientUserId !== userId;
+  const beneficiaryId = isGift ? p.recipientUserId! : userId;
+  const beneficiary = isGift
+    ? (await prisma.user.findUnique({ where: { id: beneficiaryId }, select: { id: true, name: true, email: true } })) ?? user
+    : user;
 
   // Lien de paiement à PRIX LIBRE (commande d'un seul produit) : le montant
   // « attendu » N'EST PAS le prix suggéré mais le montant réellement payé par
@@ -281,12 +299,12 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
     try {
       enrollment = await prisma.$transaction(async (tx) => {
         const existing = await tx.enrollment.findUnique({
-          where: { userId_formationId: { userId, formationId: f.id } },
+          where: { userId_formationId: { userId: beneficiaryId, formationId: f.id } },
         });
         if (existing) return null;
 
         const created = await tx.enrollment.create({
-          data: { userId, formationId: f.id, paidAmount: finalPrice, stripeSessionId: sessionRef },
+          data: { userId: beneficiaryId, formationId: f.id, paidAmount: finalPrice, stripeSessionId: sessionRef },
         });
 
         await tx.instructeurProfile.update({
@@ -384,12 +402,12 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
     try {
       purchase = await prisma.$transaction(async (tx) => {
         const existing = await tx.digitalProductPurchase.findFirst({
-          where: { userId, productId: p.id },
+          where: { userId: beneficiaryId, productId: p.id },
         });
         if (existing) return null;
 
         const created = await tx.digitalProductPurchase.create({
-          data: { userId, productId: p.id, paidAmount: finalPrice, stripeSessionId: sessionRef },
+          data: { userId: beneficiaryId, productId: p.id, paidAmount: finalPrice, stripeSessionId: sessionRef },
         });
 
         await tx.instructeurProfile.update({
@@ -532,15 +550,17 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
       data: {
         userId,
         type: "ORDER",
-        title: "Achat confirmé",
-        message: `Votre achat est confirmé : ${summary}.`,
+        title: isGift ? "Cadeau envoyé 🎁" : "Achat confirmé",
+        message: isGift
+          ? `Votre cadeau « ${summary} » a été envoyé à ${beneficiary.email}.`
+          : `Votre achat est confirmé : ${summary}.`,
         link: buyerLink,
       },
     }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
-    // Push natif : l'acheteur est prévenu que son accès est disponible
+    // Push natif : l'acheteur est prévenu que son accès (ou son cadeau) est prêt
     sendPushToUser(userId, {
-      title: "Achat confirmé ✅",
-      body: `Votre accès est prêt : ${summary}.`,
+      title: isGift ? "Cadeau envoyé 🎁" : "Achat confirmé ✅",
+      body: isGift ? `Cadeau envoyé à ${beneficiary.email}.` : `Votre accès est prêt : ${summary}.`,
       url: buyerLink,
       tag: "purchase",
     });
@@ -553,14 +573,18 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
   for (const f of formations) {
     const created = createdEnrollments.find((e) => e.title === f.title);
     if (!created) continue;
-    sendEnrollmentConfirmedEmail({
-      email: user.email,
-      name: fName,
-      formationTitle: f.title,
-      formationSlug: f.slug,
-      paidAmount: Number((created.price / eurRate).toFixed(2)),
-      locale: "fr",
-    }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
+    // Cadeau : le destinataire reçoit la notice « cadeau » (plus bas), pas l'e-mail
+    // de confirmation d'achat destiné à l'acheteur.
+    if (!isGift) {
+      sendEnrollmentConfirmedEmail({
+        email: user.email,
+        name: fName,
+        formationTitle: f.title,
+        formationSlug: f.slug,
+        paidAmount: Number((created.price / eurRate).toFixed(2)),
+        locale: "fr",
+      }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
+    }
 
     const vendorEmail = f.instructeur?.user?.email;
     const vendorName = f.instructeur?.user?.name ?? "Vendeur";
@@ -614,18 +638,22 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
       ?? (await resolveStorageFileUrl(p.fileUrl, "order-deliveries", EMAIL_LINK_TTL_SECONDS))
       ?? dashboardFallback;
 
-    sendDigitalProductDeliveryEmail({
-      email: user.email,
-      name: fName,
-      productTitle: p.title,
-      downloadUrl,
-      files: resolvedFiles.length > 0 ? resolvedFiles : undefined,
-      // Référence de paiement (la MÊME que voit le vendeur) + reçu téléchargeable.
-      // Essentiel pour un lien de paiement, qui n'a aucun fichier à livrer.
-      paymentRef: sessionRef,
-      receiptUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/formations/payment/receipt?ref=${encodeURIComponent(sessionRef)}`,
-      locale: "fr",
-    }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
+    // Cadeau : le destinataire reçoit la notice « cadeau » (plus bas) au lieu de
+    // l'e-mail de livraison de l'acheteur.
+    if (!isGift) {
+      sendDigitalProductDeliveryEmail({
+        email: user.email,
+        name: fName,
+        productTitle: p.title,
+        downloadUrl,
+        files: resolvedFiles.length > 0 ? resolvedFiles : undefined,
+        // Référence de paiement (la MÊME que voit le vendeur) + reçu téléchargeable.
+        // Essentiel pour un lien de paiement, qui n'a aucun fichier à livrer.
+        paymentRef: sessionRef,
+        receiptUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/formations/payment/receipt?ref=${encodeURIComponent(sessionRef)}`,
+        locale: "fr",
+      }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
+    }
 
     const vendorEmail = p.instructeur?.user?.email;
     const vendorName = p.instructeur?.user?.name ?? "Vendeur";
@@ -654,6 +682,28 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
       // Push natif : le vendeur est prévenu même app fermée
       sendPushToUser(vendorUserId, { title: "Nouvelle vente ! 🎉", body: `${fName} a acheté « ${p.title} »`, url: "/vendeur/dashboard", tag: "sale" });
     }
+  }
+
+  // ── ACHAT-CADEAU : notice au destinataire + confirmation à l'offreur ────────
+  if (isGift && createdEnrollments.length + createdPurchases.length > 0) {
+    const all = [...createdEnrollments, ...createdPurchases];
+    const titres =
+      all.map((i) => i.title).slice(0, 3).join(", ") +
+      (all.length > 3 ? ` et ${all.length - 3} autre(s)` : "");
+    const gifterName = user.name?.trim() || user.email.split("@")[0];
+    await notifyGiftRecipient({
+      to: beneficiary.email,
+      recipientName: beneficiary.name,
+      itemTitle: titres,
+      gifterName,
+      message: p.giftMessage,
+    });
+    await notifyGiftSent({
+      to: user.email,
+      buyerName: user.name,
+      recipientEmail: beneficiary.email,
+      itemTitle: titres,
+    });
   }
 
   // ── Declenche les webhooks sortants 'order.paid' pour chaque vendeur
