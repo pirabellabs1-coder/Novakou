@@ -402,7 +402,7 @@ export default function CheckoutInner() {
    */
   function goToPayment() {
     if (!email) { setError("Adresse email requise."); return; }
-    // Invité : l'e-mail d'achat doit être une vraie adresse Gmail (anti faux comptes).
+    // Invité : l'e-mail d'achat doit avoir un format valide (tout fournisseur accepté).
     if (!session && !isAllowedBuyerEmail(email)) { setError(ALLOWED_BUYER_EMAIL_MESSAGE); return; }
     if (cartItems.length === 0) { setError("Votre panier est vide."); return; }
     // Commande gratuite (produit offert ou remise de 100 %) : rien à encaisser.
@@ -549,12 +549,12 @@ export default function CheckoutInner() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#5c647a] mb-1.5">Adresse Gmail</label>
+                <label className="block text-xs font-semibold text-[#5c647a] mb-1.5">Adresse e-mail</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="votre.nom@gmail.com"
+                  placeholder="votre.nom@email.com"
                   disabled={!!session?.user?.email}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f7f9fb] text-sm text-[#191c1e] placeholder:text-[#5c647a] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] disabled:opacity-60"
                 />
