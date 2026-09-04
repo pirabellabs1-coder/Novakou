@@ -108,7 +108,11 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
       }).catch(() => null);
       await refresh();
       await queryClient.invalidateQueries();
-      router.refresh();
+      // Changer de boutique RAMÈNE à l'accueil du tableau de bord de la nouvelle
+      // portée. Rester sur la page courante laissait des éléments de l'ancienne
+      // boutique se mélanger (fetch en cours, listes non remontées) : on repart
+      // d'un écran propre, entièrement re-rendu avec la nouvelle boutique.
+      router.push("/vendeur/dashboard");
     },
     [refresh, router, queryClient],
   );
