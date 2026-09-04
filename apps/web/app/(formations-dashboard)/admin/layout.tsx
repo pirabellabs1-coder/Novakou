@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 import {
+  Globe,
   LayoutDashboard,
   BrainCircuit,
   Bot,
@@ -45,6 +46,7 @@ const navItems: NavItem[] = [
   { icon: Bot, label: "Agents IA", href: "/admin/agents" },
   { icon: Package, label: "Produits", href: "/admin/produits" },
   { icon: Users, label: "Utilisateurs", href: "/admin/utilisateurs" },
+  { icon: Globe, label: "Par pays", href: "/admin/pays" },
   { icon: Receipt, label: "Transactions", href: "/admin/transactions" },
   // Trésorerie : soldes réels chez les passerelles + journal de tous les
   // mouvements (encaissements et versements), avec la passerelle de chacun.

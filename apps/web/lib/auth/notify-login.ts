@@ -57,6 +57,17 @@ export async function notifyLoginSuccess(params: {
       region: geo.region,
       countryName: geo.countryName,
     });
+    // Backfill du PAYS : les comptes Google/OAuth n'ont pas de pays (il n'est
+    // demandé qu'à l'inscription classique). On le déduit de l'IP à la connexion,
+    // UNIQUEMENT s'il est encore vide (on n'écrase jamais un choix explicite).
+    // Alimente les statistiques admin par pays.
+    if (geo.country) {
+      const { prisma } = await import("@freelancehigh/db");
+      await prisma.user.updateMany({
+        where: { id: userId, country: null },
+        data: { country: geo.country },
+      }).catch(() => null);
+    }
   } catch { /* ignore */ }
 
   // 4. Fire email (don't block — user already has a session)
