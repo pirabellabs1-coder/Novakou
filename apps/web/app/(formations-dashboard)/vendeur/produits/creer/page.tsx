@@ -770,7 +770,7 @@ export default function CreerProduitPage() {
             HERO HEADER — KAZA navy gradient + indicateur "Prêt à publier"
             ═══════════════════════════════════════════════════════════════ */}
         <header
-          className="relative overflow-hidden rounded-3xl mb-8 p-7 md:p-10 text-white"
+          className="relative overflow-hidden rounded-3xl mb-6 p-4 md:p-5 text-white"
           style={{
             background:
               "linear-gradient(135deg,#006e2f,#22c55e)",
@@ -788,29 +788,31 @@ export default function CreerProduitPage() {
             style={{ background: "radial-gradient(circle, #006e2f 0%, transparent 70%)" }}
           />
 
-          <div className="relative flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+          <div className="relative flex flex-col md:flex-row md:items-start md:justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <span
-                className="inline-flex items-center gap-1.5 px-3 py-1 mb-3 rounded-full text-[11px] font-bold uppercase tracking-widest text-white shadow-md"
-                style={{ background: "#f97316" }}
-              >
-                <CircleDot className="w-3 h-3" />
-                Étape {step} / {lastStep}
-              </span>
-              <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight leading-[1.05] mb-2">
-                Créer un nouveau produit
-              </h1>
-              <p className="text-sm md:text-base text-slate-200/80 max-w-2xl">
+              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                <span
+                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-white shadow-sm"
+                  style={{ background: "#f97316" }}
+                >
+                  <CircleDot className="w-3 h-3" />
+                  Étape {step} / {lastStep}
+                </span>
+                <h1 className="text-lg md:text-2xl font-extrabold tracking-tight leading-tight">
+                  Créer un nouveau produit
+                </h1>
+              </div>
+              <p className="text-[12.5px] md:text-sm text-slate-200/80 max-w-2xl">
                 {currentStepMeta?.label} — {currentStepMeta?.sub}.
                 {selected && (
                   <>
-                    {" "}Type sélectionné : <span className="font-bold text-white">{selected.label}</span>.
+                    {" "}Type : <span className="font-bold text-white">{selected.label}</span>.
                   </>
                 )}
               </p>
 
               {/* Indicateur "Prêt à publier" — barre de progression dynamique */}
-              <div className="mt-5 max-w-md">
+              <div className="mt-3 max-w-md">
                 <div className="flex items-center justify-between mb-1.5">
                   <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-200 inline-flex items-center gap-1.5">
                     <Sparkles className="w-3 h-3" />
@@ -826,7 +828,7 @@ export default function CreerProduitPage() {
                 </div>
               </div>
 
-              <div className="inline-flex flex-wrap items-center gap-2 mt-4">
+              <div className="inline-flex flex-wrap items-center gap-2 mt-3">
                 {draftLabel && (
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[11px] font-semibold text-emerald-200">
                     <Cloud className="w-3.5 h-3.5" />
