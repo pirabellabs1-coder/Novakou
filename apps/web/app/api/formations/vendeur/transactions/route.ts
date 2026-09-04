@@ -36,6 +36,7 @@ export async function GET(request: Request) {
           createdAt: true,
           refundedAt: true,
           refundRequested: true,
+          stripeSessionId: true,
           user: { select: { name: true, email: true } },
           formation: { select: { title: true } },
         },
@@ -48,6 +49,7 @@ export async function GET(request: Request) {
           id: true,
           paidAmount: true,
           createdAt: true,
+          stripeSessionId: true,
           user: { select: { name: true, email: true } },
           product: { select: { title: true, productType: true } },
         },
@@ -101,6 +103,9 @@ export async function GET(request: Request) {
       ...enrollments.map((e) => ({
         id: e.id,
         type: "formation",
+        // Référence de paiement (internalRef) — la MÊME que l'acheteur reçoit sur
+        // son reçu : c'est elle qui permet au vendeur de recouper un paiement.
+        reference: e.stripeSessionId ?? "",
         buyerName: e.user?.name ?? "Apprenant",
         buyerEmail: e.user?.email ?? "",
         productTitle: e.formation?.title ?? "Formation",
@@ -112,6 +117,7 @@ export async function GET(request: Request) {
       ...purchases.map((p) => ({
         id: p.id,
         type: "product",
+        reference: p.stripeSessionId ?? "",
         buyerName: p.user?.name ?? "Client",
         buyerEmail: p.user?.email ?? "",
         productTitle: p.product?.title ?? "Produit",
@@ -125,6 +131,7 @@ export async function GET(request: Request) {
         return {
           id: bp.id,
           type: "bundle",
+          reference: "",
           buyerName: u?.name ?? "Acheteur",
           buyerEmail: u?.email ?? "",
           productTitle: bp.bundle?.title ?? "Pack",
@@ -137,6 +144,7 @@ export async function GET(request: Request) {
       ...subInvoices.map((inv) => ({
         id: inv.id,
         type: "subscription",
+        reference: "",
         buyerName: inv.subscription.user?.name ?? "Abonné",
         buyerEmail: inv.subscription.user?.email ?? "",
         productTitle: inv.subscription.plan?.name ?? "Abonnement",

@@ -26,6 +26,8 @@ import {
 type Txn = {
   id: string;
   type: string;
+  /** Référence de paiement (internalRef) — la même que sur le reçu de l'acheteur. */
+  reference?: string;
   buyerName: string;
   buyerEmail: string;
   productTitle: string;
@@ -342,7 +344,16 @@ export default function TransactionsPage() {
                         {txn.buyerEmail && (
                           <p className="text-[10.5px] font-semibold truncate" style={{ color: ST.textFaint }}>{txn.buyerEmail}</p>
                         )}
-                        <p className="text-[10.5px] font-semibold tabular-nums" style={{ color: ST.textFaint }}>{txn.id.slice(0, 12)}…</p>
+                        {/* Référence de paiement : la MÊME que sur le reçu de
+                            l'acheteur. C'est elle que le vendeur recoupe quand un
+                            acheteur de lien de paiement la lui communique. */}
+                        <p
+                          className="text-[10.5px] font-bold tabular-nums truncate"
+                          style={{ color: ST.textMuted }}
+                          title={txn.reference || txn.id}
+                        >
+                          Réf : {txn.reference || `${txn.id.slice(0, 12)}…`}
+                        </p>
                       </div>
                     </div>
 
