@@ -281,19 +281,9 @@ function ConnexionInner() {
         target = "/acheteur/connexion?wrongPortal=1";
       }
 
-      // Vendeur multi-shop : si 2+ boutiques sans cookie actif, forcer le chooser
-      if (target.startsWith("/vendeur") && !callbackUrlParam) {
-        try {
-          const res = await fetch("/api/formations/vendeur/shops/active");
-          const json = await res.json();
-          const shops = json?.data?.shops ?? [];
-          if (shops.length >= 2 && json?.data?.needsChooser !== false) {
-            target = "/vendeur/choisir-boutique";
-          }
-        } catch {
-          /* fall back to dashboard */
-        }
-      }
+      // Vendeur multi-boutique : on n'impose PLUS le chooser à la connexion.
+      // Le tableau de bord atterrit sur la VUE GLOBALE (« Toutes les boutiques »,
+      // cumulé) ; la personne choisit ensuite une boutique via le sélecteur.
 
       router.push(target);
       router.refresh();

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 
 export interface VendorShopSummary {
@@ -15,11 +15,18 @@ export interface VendorShopSummary {
   customDomainVerified: boolean;
 }
 
+/** Portée d'affichage : "all" = vue globale cumulée, ou l'id d'une boutique. */
+export type ShopScope = "all" | string;
+
 interface ShopContextValue {
   loading: boolean;
   activeShop: VendorShopSummary | null;
   shops: VendorShopSummary[];
   shopCount: number;
+  /** Portée courante des pages vendeur : "all" (cumulé) ou un id de boutique. */
+  scope: ShopScope;
+  /** Change la portée d'affichage (et, pour une boutique, la cible d'écriture). */
+  setScope: (scope: ShopScope) => Promise<void>;
   refresh: () => Promise<void>;
   switchShop: (shopId: string) => Promise<void>;
 }
@@ -29,21 +36,22 @@ const ShopCtx = createContext<ShopContextValue>({
   activeShop: null,
   shops: [],
   shopCount: 0,
+  scope: "all",
+  setScope: async () => {},
   refresh: async () => {},
   switchShop: async () => {},
 });
 
-// Routes that don't need an active-shop guard (still inside vendor space)
-const BYPASS = ["/vendeur/choisir-boutique", "/vendeur/boutiques"];
-
 export function ShopProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const pathname = usePathname();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(true);
   const [activeShop, setActiveShop] = useState<VendorShopSummary | null>(null);
   const [shops, setShops] = useState<VendorShopSummary[]>([]);
   const [shopCount, setShopCount] = useState(0);
+  // Portée d'affichage. Défaut "all" = vue globale cumulée à l'atterrissage
+  // (souhait fondateur). On ne FORCE plus le choix d'une boutique.
+  const [scope, setScopeState] = useState<ShopScope>("all");
 
   const refresh = useCallback(async () => {
     try {
@@ -58,42 +66,43 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
       setActiveShop(json.data?.activeShop ?? null);
       setShops(json.data?.shops ?? []);
       setShopCount(json.data?.shopCount ?? 0);
-      // If multi-shop without an active selection → push to chooser
-      if (json.data?.needsChooser && pathname && !BYPASS.some((b) => pathname.startsWith(b))) {
-        router.replace("/vendeur/choisir-boutique");
-      }
+      // Plus de redirection forcée vers le chooser : la vue globale ("all") est
+      // le point d'entrée par défaut, même avec plusieurs boutiques.
     } finally {
       setLoading(false);
     }
-  }, [pathname, router]);
+  }, []);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
 
-  const switchShop = useCallback(
-    async (shopId: string) => {
-      const res = await fetch("/api/formations/vendeur/shops/active", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ shopId }),
-      });
-      if (!res.ok) return;
-      await refresh();
-      // Le cookie boutique est posé côté serveur, mais les pages vendeur sont
-      // des Client Components dont les requêtes React Query ont une clé stable
-      // (sans id de boutique) et un staleTime de 30-60 s : sans invalidation, la
-      // donnée de l'ANCIENNE boutique reste « fraîche » et n'est jamais
-      // re-fetchée → il fallait recharger la page. On invalide donc tout le
-      // cache : chaque requête repart et lit le nouveau cookie. MAJ automatique.
+  // Change la portée. Pour une boutique précise, on pose aussi le cookie
+  // `nk_active_shop` (cible d'écriture : création de produit/lien, etc.). Pour
+  // "all", le cookie reste sur la dernière boutique (une écriture a besoin d'une
+  // vraie boutique). Dans tous les cas on invalide React Query → MAJ auto.
+  const setScope = useCallback(
+    async (next: ShopScope) => {
+      setScopeState(next);
+      if (next !== "all") {
+        await fetch("/api/formations/vendeur/shops/active", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ shopId: next }),
+        }).catch(() => null);
+        await refresh();
+      }
       await queryClient.invalidateQueries();
       router.refresh();
     },
     [refresh, router, queryClient],
   );
 
+  // Compat : switchShop(shopId) = entrer dans une boutique.
+  const switchShop = useCallback((shopId: string) => setScope(shopId), [setScope]);
+
   return (
-    <ShopCtx.Provider value={{ loading, activeShop, shops, shopCount, refresh, switchShop }}>
+    <ShopCtx.Provider value={{ loading, activeShop, shops, shopCount, scope, setScope, refresh, switchShop }}>
       {children}
     </ShopCtx.Provider>
   );

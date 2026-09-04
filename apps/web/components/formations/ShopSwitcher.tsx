@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useActiveShop } from "@/components/formations/ShopProvider";
 
 export default function ShopSwitcher() {
-  const { activeShop, shops, shopCount, switchShop, loading } = useActiveShop();
+  const { activeShop, shops, shopCount, scope, setScope, loading } = useActiveShop();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -17,11 +17,15 @@ export default function ShopSwitcher() {
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  if (loading || !activeShop) return null;
+  if (loading) return null;
+
+  const isAll = scope === "all";
+  // Boutique affichée par le bouton quand une portée précise est active.
+  const current = isAll ? null : (shops.find((s) => s.id === scope) ?? activeShop);
 
   // Single shop: show a clean static chip (not clickable) so the user always
   // sees which shop they're in. Click goes to /vendeur/boutiques.
-  if (shopCount <= 1) {
+  if (shopCount <= 1 && activeShop) {
     return (
       <Link
         href="/vendeur/boutiques"
@@ -46,13 +50,24 @@ export default function ShopSwitcher() {
         onClick={() => setOpen((v) => !v)}
         className="hidden md:inline-flex items-center gap-2 pl-1.5 pr-2 py-1 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
       >
-        <span
-          className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[11px] font-extrabold"
-          style={{ background: activeShop.themeColor || "linear-gradient(135deg, #006e2f, #22c55e)" }}
-        >
-          {activeShop.name[0]?.toUpperCase()}
-        </span>
-        <span className="text-xs font-bold text-slate-800 max-w-[120px] md:max-w-[160px] truncate">{activeShop.name}</span>
+        {isAll ? (
+          <>
+            <span className="w-7 h-7 rounded-lg flex items-center justify-center text-white bg-[#191c1e]">
+              <span className="material-symbols-outlined text-[16px]">apps</span>
+            </span>
+            <span className="text-xs font-bold text-slate-800 max-w-[160px] truncate">Toutes les boutiques</span>
+          </>
+        ) : (
+          <>
+            <span
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[11px] font-extrabold"
+              style={{ background: current?.themeColor || "linear-gradient(135deg, #006e2f, #22c55e)" }}
+            >
+              {current?.name[0]?.toUpperCase()}
+            </span>
+            <span className="text-xs font-bold text-slate-800 max-w-[120px] md:max-w-[160px] truncate">{current?.name}</span>
+          </>
+        )}
         <span className={`material-symbols-outlined text-[16px] text-slate-500 transition-transform ${open ? "rotate-180" : ""}`}>
           expand_more
         </span>
@@ -66,14 +81,30 @@ export default function ShopSwitcher() {
             </p>
           </div>
           <div className="max-h-72 overflow-y-auto">
+            {/* Vue globale cumulée */}
+            <button
+              onClick={async () => { setOpen(false); if (!isAll) await setScope("all"); }}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${isAll ? "bg-[#006e2f]/5" : ""}`}
+            >
+              <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white bg-[#191c1e] flex-shrink-0">
+                <span className="material-symbols-outlined text-[18px]">apps</span>
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold text-[#191c1e] truncate">Toutes les boutiques</p>
+                <p className="text-[11px] text-[#5c647a] truncate">Vue globale cumulée</p>
+              </div>
+              {isAll && (
+                <span className="material-symbols-outlined text-[18px] text-[#006e2f] flex-shrink-0">check_circle</span>
+              )}
+            </button>
             {shops.map((s) => {
-              const isActive = s.id === activeShop.id;
+              const isActive = s.id === scope;
               return (
                 <button
                   key={s.id}
                   onClick={async () => {
                     setOpen(false);
-                    if (!isActive) await switchShop(s.id);
+                    if (!isActive) await setScope(s.id);
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
                     isActive ? "bg-[#006e2f]/5" : ""
