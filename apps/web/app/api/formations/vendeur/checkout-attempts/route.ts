@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { getActiveShopId } from "@/lib/formations/active-shop";
 
 /**
  * GET /api/formations/vendeur/checkout-attempts?status=failed|abandoned|all
@@ -33,6 +34,17 @@ export async function GET(request: NextRequest) {
     const statusParam = searchParams.get("status") ?? "unresolved";
     const limit = Math.min(Number(searchParams.get("limit") ?? "50"), 200);
 
+    // Isolation par boutique : sans ça, un vendeur multi-boutiques voyait les
+    // paniers abandonnés de TOUTES ses boutiques mélangés. En vue globale
+    // (activeShopId null) on ne filtre pas. Les anciens paniers sans shopId
+    // (null) restent visibles partout (repli, comme les autres listes).
+    const activeShopId = await getActiveShopId(session, {
+      devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+    });
+    const shopFilter = activeShopId
+      ? { OR: [{ shopId: activeShopId }, { shopId: null }] }
+      : {};
+
     let statusFilter: object;
     if (statusParam === "failed") statusFilter = { status: "FAILED" };
     else if (statusParam === "abandoned") statusFilter = { status: "ABANDONED" };
@@ -44,6 +56,7 @@ export async function GET(request: NextRequest) {
     const attempts = await prisma.checkoutAttempt.findMany({
       where: {
         instructeurId: ctx.instructeurId,
+        ...shopFilter,
         ...statusFilter,
       },
       orderBy: { createdAt: "desc" },
@@ -73,7 +86,7 @@ export async function GET(request: NextRequest) {
     // Aggregate stats
     const stats = await prisma.checkoutAttempt.groupBy({
       by: ["status"],
-      where: { instructeurId: ctx.instructeurId },
+      where: { instructeurId: ctx.instructeurId, ...shopFilter },
       _count: true,
       _sum: { amount: true },
     });

@@ -24,6 +24,7 @@ import {
   StTabs,
   ST,
 } from "@/components/stitch";
+import { useActiveShop } from "@/components/formations/ShopProvider";
 
 type Attempt = {
   id: string;
@@ -78,6 +79,7 @@ function waLink(phone: string, message: string): string {
 }
 
 export default function AbandonsPage() {
+  const { scope } = useActiveShop();
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [stats, setStats] = useState<Record<string, { count: number; amount: number }>>({});
   const [status, setStatus] = useState<StatusFilter>("unresolved");
@@ -96,7 +98,7 @@ export default function AbandonsPage() {
       setLoading(false);
     }
   }
-  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [status]);
+  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [status, scope]);
 
   async function markContacted(id: string) {
     await fetch("/api/formations/vendeur/checkout-attempts", {

@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { getActiveShopId } from "@/lib/formations/active-shop";
 
 /**
  * GET /api/formations/vendeur/reviews
@@ -22,10 +23,18 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const onlyUnanswered = url.searchParams.get("unanswered") === "1";
 
+  // Isolation par boutique : un avis suit la boutique de sa formation/produit.
+  // En vue globale (activeShopId null) → aucun filtre. Repli shopId null pour
+  // les items sans boutique (anciens), visibles partout.
+  const activeShopId = await getActiveShopId(session, {
+    devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+  });
+  const shopWhere = activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {};
+
   // Formations reviews
   const formationReviews = await prisma.formationReview.findMany({
     where: {
-      formation: { instructeurId: ctx.instructeurId },
+      formation: { instructeurId: ctx.instructeurId, ...shopWhere },
       ...(onlyUnanswered ? { response: null } : {}),
     },
     include: {
@@ -39,7 +48,7 @@ export async function GET(request: Request) {
   // Product reviews
   const productReviews = await prisma.digitalProductReview.findMany({
     where: {
-      product: { instructeurId: ctx.instructeurId },
+      product: { instructeurId: ctx.instructeurId, ...shopWhere },
       ...(onlyUnanswered ? { response: null } : {}),
     },
     include: {

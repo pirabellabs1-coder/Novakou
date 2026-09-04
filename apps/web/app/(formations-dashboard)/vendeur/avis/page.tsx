@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useToastStore } from "@/store/toast";
+import { useActiveShop } from "@/components/formations/ShopProvider";
 import {
   MessageSquare,
   Star,
@@ -62,6 +63,7 @@ export default function AvisPage() {
   const [responseText, setResponseText] = useState("");
   const [saving, setSaving] = useState(false);
   const toast = useToastStore.getState().addToast;
+  const { scope } = useActiveShop();
 
   async function load() {
     setLoading(true);
@@ -78,7 +80,7 @@ export default function AvisPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter]);
+  }, [filter, scope]);
 
   async function saveResponse(r: Review) {
     setSaving(true);
