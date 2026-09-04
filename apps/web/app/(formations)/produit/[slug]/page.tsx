@@ -27,6 +27,9 @@ const getProduct = cache(async (slug: string) =>
       select: {
         id: true, title: true, description: true, banner: true, thumbnail: true, price: true,
         rating: true, reviewsCount: true, salesCount: true,
+        // Catégorie réelle : sert le SEO (JSON-LD + fil d'Ariane) au lieu du
+        // « Digital Goods » générique. Le slug pointe vers /explorer filtré.
+        category: { select: { name: true, slug: true } },
         // Anonymat : identite = BOUTIQUE, jamais le nom perso du vendeur.
         shop: { select: { name: true } },
       },
@@ -65,6 +68,8 @@ export async function generateMetadata({
   return {
     title,
     description,
+    // Catégorie réelle en mot-clé : renforce la pertinence thématique de la fiche.
+    keywords: [product.category?.name, "Novakou", "produit numérique"].filter(Boolean) as string[],
     alternates: {
       canonical: `/produit/${slug}`,
       languages: {
@@ -147,7 +152,8 @@ export default async function ProduitPage({
                 ...(product.shop?.name
                   ? { brand: { "@type": "Brand", name: product.shop.name } }
                   : {}),
-                category: "Digital Goods",
+                // Catégorie RÉELLE du produit (repli générique si absente).
+                category: product.category?.name || "Produit numérique",
                 ...(product.reviewsCount > 0
                   ? {
                       aggregateRating: {
@@ -190,7 +196,17 @@ export default async function ProduitPage({
                 itemListElement: [
                   { "@type": "ListItem", position: 1, name: "Accueil", item: baseUrl },
                   { "@type": "ListItem", position: 2, name: "Explorer", item: `${baseUrl}/explorer` },
-                  { "@type": "ListItem", position: 3, name: product.title },
+                  // Niveau catégorie cliquable → /explorer filtré. Aide Google à
+                  // situer la fiche dans la taxonomie du site (rich breadcrumb).
+                  ...(product.category
+                    ? [{
+                        "@type": "ListItem",
+                        position: 3,
+                        name: product.category.name,
+                        item: `${baseUrl}/explorer?categorie=${product.category.slug}`,
+                      }]
+                    : []),
+                  { "@type": "ListItem", position: product.category ? 4 : 3, name: product.title },
                 ],
               }),
             }}

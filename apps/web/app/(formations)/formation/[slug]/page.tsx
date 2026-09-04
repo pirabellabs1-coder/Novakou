@@ -32,6 +32,8 @@ const getFormation = cache(async (slug: string) =>
         rating: true,
         reviewsCount: true,
         studentsCount: true,
+        // Catégorie réelle : sert le SEO (JSON-LD `about` + fil d'Ariane).
+        category: { select: { name: true, slug: true } },
         // Anonymat : identite = BOUTIQUE, jamais le nom perso du vendeur.
         shop: { select: { name: true } },
       },
@@ -67,6 +69,8 @@ export async function generateMetadata({
   return {
     title,
     description,
+    // Catégorie réelle en mot-clé : renforce la pertinence thématique.
+    keywords: [formation.category?.name, "Novakou", "formation en ligne"].filter(Boolean) as string[],
     alternates: {
       canonical: `/formation/${slug}`,
       languages: {
@@ -150,6 +154,10 @@ export default async function FormationPage({
                     }
                   : {}),
                 ...(formation.thumbnail ? { image: formation.thumbnail } : {}),
+                // Sujet réel de la formation (catégorie) → aide Google à la classer.
+                ...(formation.category
+                  ? { about: { "@type": "Thing", name: formation.category.name } }
+                  : {}),
                 // hasCourseInstance requis par Google pour valider Course
                 // rich results — sans ça, le snippet étoiles n'apparaît pas.
                 hasCourseInstance: {
@@ -209,7 +217,16 @@ export default async function FormationPage({
                 itemListElement: [
                   { "@type": "ListItem", position: 1, name: "Accueil", item: process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com" },
                   { "@type": "ListItem", position: 2, name: "Explorer", item: `${process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com"}/explorer` },
-                  { "@type": "ListItem", position: 3, name: formation.title },
+                  // Niveau catégorie cliquable → /explorer filtré (rich breadcrumb).
+                  ...(formation.category
+                    ? [{
+                        "@type": "ListItem",
+                        position: 3,
+                        name: formation.category.name,
+                        item: `${process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com"}/explorer?categorie=${formation.category.slug}`,
+                      }]
+                    : []),
+                  { "@type": "ListItem", position: formation.category ? 4 : 3, name: formation.title },
                 ],
               }),
             }}
