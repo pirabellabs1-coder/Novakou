@@ -23,6 +23,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { resolveActiveUserId } from "@/lib/formations/active-user";
+import { userHasProductAccess } from "@/lib/formations/access";
 import { IS_DEV } from "@/lib/env";
 import {
   resolveStorageFileUrl,
@@ -91,6 +92,7 @@ export async function GET(
         id: true,
         product: {
           select: {
+            id: true,
             title: true,
             fileUrl: true,
             files: {
@@ -105,6 +107,19 @@ export async function GET(
       return NextResponse.json(
         { error: "Achat introuvable ou non autorisé" },
         { status: 404 },
+      );
+    }
+
+    // ── ACCÈS TOUJOURS VALIDE ? ─────────────────────────────────────────────
+    // La ligne d'achat peut avoir été accordée par un ABONNEMENT (tag
+    // `sub_<id>`). Si cet abonnement a été résilié/expiré, l'accès doit être
+    // COUPÉ — la simple présence de la ligne ne suffit pas. userHasProductAccess
+    // revérifie le statut de l'abonnement d'origine (et laisse passer un vrai
+    // achat direct ou un autre abonnement actif couvrant le produit).
+    if (!(await userHasProductAccess(userId, purchase.product.id))) {
+      return NextResponse.json(
+        { error: "Accès expiré : cet abonnement a été résilié." },
+        { status: 403 },
       );
     }
 
