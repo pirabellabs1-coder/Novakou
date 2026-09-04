@@ -4,12 +4,14 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { getActiveShopId } from "@/lib/formations/active-shop";
 
 /**
  * GET /api/formations/vendeur/subscribers
  *
- * Liste les abonnés de TOUS les plans du vendeur (résiliés compris — l'historique
- * reste visible). Sert l'écran « Mes abonnés » où le vendeur peut résilier.
+ * Liste les abonnés des plans du vendeur (résiliés compris — l'historique reste
+ * visible). Sert l'écran « Mes abonnés » où le vendeur peut résilier.
+ * Isolé par boutique : un abonné suit la boutique de son plan.
  */
 export async function GET() {
   try {
@@ -18,8 +20,14 @@ export async function GET() {
     const ctx = await resolveVendorContext(session, { devFallback: IS_DEV ? "dev-instructeur-001" : undefined });
     if (!ctx) return NextResponse.json({ data: [] });
 
+    // Filtre boutique via le plan (SubscriptionPlan porte le shopId). En vue
+    // globale (null) → tous les plans. Repli shopId null pour les plans sans
+    // boutique (anciens), visibles partout.
+    const activeShopId = await getActiveShopId(session, { devFallback: IS_DEV ? "dev-instructeur-001" : undefined });
+    const shopWhere = activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {};
+
     const subs = await prisma.subscription.findMany({
-      where: { plan: { instructeurId: ctx.instructeurId } },
+      where: { plan: { instructeurId: ctx.instructeurId, ...shopWhere } },
       orderBy: { createdAt: "desc" },
       take: 500,
       select: {
