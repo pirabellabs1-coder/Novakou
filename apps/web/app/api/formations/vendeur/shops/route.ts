@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { ensurePrimaryShop } from "@/lib/formations/ensure-primary-shop";
+import { ensureDistinctShopColors, firstFreeShopColor } from "@/lib/formations/shop-colors";
 import { uniqueSlug } from "@/lib/formations/slugs";
 
 const MAX_SHOPS = 5;
@@ -32,6 +33,10 @@ export async function GET() {
     instructeurId: r.ctx.instructeurId,
     userId: r.ctx.userId,
   });
+
+  // Auto-répare les couleurs : deux boutiques d'un même vendeur ne doivent pas
+  // se ressembler. Recolore rétro-activement les boutiques existantes.
+  await ensureDistinctShopColors(r.ctx.instructeurId);
 
   // 1) Shops du propriétaire (instructeurId match) — après ensurePrimaryShop
   const ownShops = await prisma.vendorShop.findMany({
@@ -101,11 +106,10 @@ export async function POST(req: Request) {
   }
 
   // Couleur PAR DÉFAUT DISTINCTE : même sans choix du vendeur, deux boutiques ne
-  // doivent pas se ressembler. On prend la 1re couleur de la palette non encore
-  // utilisée (repli : rotation par nombre de boutiques).
-  const PALETTE = ["#006e2f", "#2563eb", "#db2777", "#f97316", "#7c3aed", "#0891b2", "#ca8a04", "#dc2626"];
+  // doivent pas se ressembler. 1re couleur de la palette non encore utilisée
+  // (une boutique sans couleur explicite compte comme le vert par défaut).
   const used = new Set(existing.map((s) => (s.themeColor?.trim() || "#006e2f").toLowerCase()));
-  const themeColor = PALETTE.find((c) => !used.has(c.toLowerCase())) ?? PALETTE[count % PALETTE.length];
+  const themeColor = firstFreeShopColor(used, count);
 
   // Slug lisible et unique : coupe sur une frontiere de mot, suffixe -2/-3
   // seulement en cas de collision reelle (lib partagee).
