@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { ImageUploader } from "@/components/formations/ImageUploader";
 import { useToastStore } from "@/store/toast";
+import { useActiveShop } from "@/components/formations/ShopProvider";
 
 interface PayLink {
   id: string;
@@ -43,6 +44,9 @@ const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n));
 
 export default function LiensPaiementPage() {
   const toast = useToastStore.getState().addToast;
+  // Portée active : recharge INSTANTANÉMENT au changement de boutique (fetch
+  // manuel = pas capté par l'invalidation React Query, comme la page bundles).
+  const { scope } = useActiveShop();
   const [links, setLinks] = useState<PayLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -84,7 +88,7 @@ export default function LiensPaiementPage() {
     }
   }, [toast]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load(); }, [load, scope]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();

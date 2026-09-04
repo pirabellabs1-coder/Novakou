@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useToastStore } from "@/store/toast";
 import { confirmAction } from "@/store/confirm";
+import { useActiveShop } from "@/components/formations/ShopProvider";
 import { ImageUploader } from "@/components/formations/ImageUploader";
 import { RichTextEditor } from "@/components/formations/RichTextEditor";
 import {
@@ -63,6 +64,10 @@ function fmtFCFA(n: number) {
 
 export default function VendorBundlesPage() {
   const toast = useToastStore.getState().addToast;
+  // Portée active : cette page fait un fetch manuel (pas React Query), donc
+  // l'invalidation globale au changement de boutique ne la touchait pas — le
+  // filtre ne s'appliquait qu'au remontage. On relit dès que la portée change.
+  const { scope } = useActiveShop();
   const [bundles, setBundles] = useState<Bundle[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -136,8 +141,10 @@ export default function VendorBundlesPage() {
   useEffect(() => {
     load();
     loadCatalog();
+    // `scope` en dépendance : changer de boutique (ou repasser en global)
+    // refiltre INSTANTANÉMENT la liste et le catalogue, comme les autres pages.
     /* eslint-disable-next-line */
-  }, []);
+  }, [scope]);
 
   function toggleItem(kind: "formation" | "digital", id: string) {
     setSelected((prev) => {

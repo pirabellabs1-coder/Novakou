@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { promptAction } from "@/store/prompt";
 import { confirmAction } from "@/store/confirm";
+import { useActiveShop } from "@/components/formations/ShopProvider";
 import {
   Network,
   Sparkles,
@@ -59,6 +60,7 @@ function timeAgo(iso: string) {
 
 export default function FunnelsListPage() {
   const router = useRouter();
+  const { scope } = useActiveShop();
   const [funnels, setFunnels] = useState<Funnel[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -79,8 +81,10 @@ export default function FunnelsListPage() {
   }
 
   useEffect(() => {
+    // scope en dépendance → refiltre instantanément au changement de boutique.
     load();
-  }, []);
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [scope]);
 
   async function handleCreate() {
     if (!newName.trim() || creating) return;
