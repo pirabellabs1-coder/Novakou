@@ -42,6 +42,14 @@ const ShopCtx = createContext<ShopContextValue>({
   switchShop: async () => {},
 });
 
+/** Lit la portée courante depuis le cookie `nk_active_shop` (id boutique ou "all"). */
+function readScopeCookie(): ShopScope {
+  if (typeof document === "undefined") return "all";
+  const m = document.cookie.match(/(?:^|;\s*)nk_active_shop=([^;]+)/);
+  const v = m ? decodeURIComponent(m[1]) : "";
+  return v || "all";
+}
+
 export function ShopProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -49,9 +57,10 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   const [activeShop, setActiveShop] = useState<VendorShopSummary | null>(null);
   const [shops, setShops] = useState<VendorShopSummary[]>([]);
   const [shopCount, setShopCount] = useState(0);
-  // Portée d'affichage. Défaut "all" = vue globale cumulée à l'atterrissage
-  // (souhait fondateur). On ne FORCE plus le choix d'une boutique.
-  const [scope, setScopeState] = useState<ShopScope>("all");
+  // Portée d'affichage — INITIALISÉE DEPUIS LE COOKIE : au rechargement complet,
+  // on reste sur la boutique sélectionnée (sinon on retombait sur « Toutes »).
+  // Absent → "all" (vue globale, l'atterrissage par défaut).
+  const [scope, setScopeState] = useState<ShopScope>(() => readScopeCookie());
 
   const refresh = useCallback(async () => {
     try {
@@ -63,9 +72,13 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       const json = await res.json();
+      const list: VendorShopSummary[] = json.data?.shops ?? [];
       setActiveShop(json.data?.activeShop ?? null);
-      setShops(json.data?.shops ?? []);
+      setShops(list);
       setShopCount(json.data?.shopCount ?? 0);
+      // Garde-fou : si la portée pointe une boutique qui n'existe plus (supprimée,
+      // cookie périmé), on retombe proprement sur la vue globale.
+      setScopeState((prev) => (prev !== "all" && !list.some((s) => s.id === prev) ? "all" : prev));
       // Plus de redirection forcée vers le chooser : la vue globale ("all") est
       // le point d'entrée par défaut, même avec plusieurs boutiques.
     } finally {
