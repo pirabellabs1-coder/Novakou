@@ -11,6 +11,7 @@ import { useToastStore } from "@/store/toast";
 import { ImageUploader } from "@/components/formations/ImageUploader";
 import { confirmAction } from "@/store/confirm";
 import { promptAction } from "@/store/prompt";
+import { useActiveShop } from "@/components/formations/ShopProvider";
 import {
   ArrowLeft,
   PlusSquare,
@@ -60,6 +61,7 @@ type Formation = {
   studentsCount: number;
   reviewsCount: number;
   hiddenFromMarketplace?: boolean;
+  shopId?: string | null;
   sections: Section[];
 };
 
@@ -85,6 +87,8 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
   const [isFree, setIsFree] = useState(false);
   const [thumbnail, setThumbnail] = useState("");
   const [hiddenFromMarketplace, setHiddenFromMarketplace] = useState(false);
+  const [shopId, setShopId] = useState("");
+  const { shops } = useActiveShop();
   const [dirty, setDirty] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
 
@@ -104,6 +108,7 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
       setIsFree(!!formation.isFree);
       setThumbnail(formation.thumbnail ?? "");
       setHiddenFromMarketplace(!!formation.hiddenFromMarketplace);
+      setShopId(formation.shopId ?? "");
       setDirty(false);
       if (formation.sections[0]?.lessons[0]) {
         setSelectedLessonId(formation.sections[0].lessons[0].id);
@@ -228,6 +233,7 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
       isFree,
       thumbnail,
       hiddenFromMarketplace,
+      ...(shops.length > 1 ? { shopId: shopId || null } : {}),
     });
   }
 
@@ -534,6 +540,22 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                       </button>
                     </div>
                   </div>
+
+                  {shops.length > 1 && (
+                    <div className="space-y-2 pt-2">
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Boutique</label>
+                      <select
+                        value={shopId}
+                        onChange={(e) => onFieldChange(setShopId, e.target.value)}
+                        className="w-full bg-transparent border-b border-[#bccbb9] py-2 focus:border-[#22c55e] outline-none text-xs transition-colors"
+                      >
+                        <option value="">Aucune (non rattaché)</option>
+                        {shops.map((s) => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
               </div>
 
