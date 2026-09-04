@@ -401,10 +401,12 @@ export default function WalletPage() {
         {/* `items-start` : sans lui, les colonnes s'égalisent en hauteur et le
             bandeau vert s'étire sur toute la hauteur du formulaire de retrait,
             laissant un grand aplat vide. Chaque carte garde sa hauteur propre. */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1.55fr_1fr] gap-3.5 mb-4 items-start">
-          {/* Hero gradient vert — solde disponible */}
+        <div className="mb-4">
+          {/* Hero gradient vert — solde disponible (PLEINE LARGEUR : évite le
+              grand vide à gauche quand le formulaire de droite est bien plus
+              haut que le bandeau). */}
           <div
-            className="relative overflow-hidden rounded-[20px] p-6 md:px-[26px] text-white"
+            className="relative overflow-hidden rounded-[20px] p-6 md:px-[26px] text-white mb-3.5"
             style={{ background: ST.gradient }}
           >
             <div aria-hidden className="absolute rounded-full" style={{ right: -50, top: -60, width: 210, height: 210, background: "rgba(255,255,255,.08)" }} />
@@ -454,8 +456,9 @@ export default function WalletPage() {
             </div>
           </div>
 
-          {/* Colonne droite : méthode de retrait + comment ça marche */}
-          <div className="flex flex-col gap-3.5">
+          {/* Sous le bandeau : formulaire de retrait (large) + « Comment ça
+              marche » côte à côte, pour remplir la largeur sans laisser de vide. */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-3.5 items-start">
             {/* Le retrait, EN DIRECT sur la page.
                 Il vivait dans une fenêtre modale, derrière un « moyen par
                 défaut » enregistré dans les paramètres — un réglage qui ne
