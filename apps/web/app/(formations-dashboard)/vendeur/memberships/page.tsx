@@ -33,6 +33,28 @@ type VendorProducts = {
   digitalProducts: Array<{ id: string; title: string }>;
 };
 
+type Subscriber = {
+  id: string;
+  status: string;
+  createdAt: string;
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+  cancelledAt: string | null;
+  totalPaid: number;
+  buyerName: string;
+  buyerEmail: string;
+  planName: string;
+  interval: string;
+};
+
+const SUB_STATUS_LABEL: Record<string, { label: string; cls: string }> = {
+  trialing: { label: "Essai", cls: "bg-blue-50 text-blue-700" },
+  active: { label: "Actif", cls: "bg-emerald-50 text-emerald-700" },
+  past_due: { label: "Impayé", cls: "bg-amber-50 text-amber-700" },
+  cancelled: { label: "Résilié", cls: "bg-gray-100 text-gray-500" },
+  expired: { label: "Expiré", cls: "bg-gray-100 text-gray-500" },
+};
+
 function formatFCFA(n: number) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(n));
 }
@@ -84,6 +106,45 @@ export default function MembershipsPage() {
     staleTime: 30_000,
   });
   const plans = plansResp?.data ?? [];
+
+  // ── Abonnés (liste + résiliation) ────────────────────────────────────────
+  const { data: subsResp, isLoading: subsLoading } = useQuery<{ data: Subscriber[] }>({
+    queryKey: ["vendeur-subscribers"],
+    queryFn: () => fetch("/api/formations/vendeur/subscribers").then((r) => r.json()),
+    staleTime: 30_000,
+  });
+  const subscribers = subsResp?.data ?? [];
+
+  const cancelSubMut = useMutation({
+    mutationFn: async (sub: Subscriber) => {
+      const res = await fetch(`/api/formations/vendeur/subscribers/${sub.id}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ atPeriodEnd: false }),
+      });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error || "Erreur");
+      return j;
+    },
+    onSuccess: () => {
+      setToast("Abonné résilié — accès coupé.");
+      qc.invalidateQueries({ queryKey: ["vendeur-subscribers"] });
+      qc.invalidateQueries({ queryKey: ["vendeur-subscription-plans"] });
+      setTimeout(() => setToast(null), 3000);
+    },
+    onError: (e: Error) => setToast(`Erreur : ${e.message}`),
+  });
+
+  async function handleCancelSub(sub: Subscriber) {
+    const ok = await confirmAction({
+      title: `Résilier l'abonnement de ${sub.buyerName} ?`,
+      message: "L'accès aux contenus du plan sera coupé immédiatement. L'abonné reste dans votre historique. Cette action est définitive.",
+      confirmLabel: "Résilier",
+      confirmVariant: "danger",
+      icon: "delete",
+    });
+    if (ok) cancelSubMut.mutate(sub);
+  }
 
   const { data: productsResp } = useQuery<{ data: VendorProducts }>({
     queryKey: ["vendeur-formations-light"],
@@ -440,6 +501,62 @@ export default function MembershipsPage() {
             </div>
         </div>
       )}
+
+      {/* ── Mes abonnés ─────────────────────────────────────────────────── */}
+      <div className="mt-10">
+        <h2 className="text-base font-extrabold text-[#13241b] mb-1">Mes abonnés</h2>
+        <p className="text-sm text-[#5c647a] mb-4">
+          Les personnes abonnées à vos plans. Résilier coupe l&apos;accès immédiatement ; l&apos;abonné reste dans l&apos;historique.
+        </p>
+
+        {subsLoading ? (
+          <div className="space-y-2">
+            {[0, 1, 2].map((i) => <div key={i} className="h-14 bg-white rounded-xl border border-gray-100 animate-pulse" />)}
+          </div>
+        ) : subscribers.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center text-sm text-[#5c647a]">
+            Aucun abonné pour le moment.
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden divide-y divide-gray-100">
+            {subscribers.map((s) => {
+              const st = SUB_STATUS_LABEL[s.status] ?? { label: s.status, cls: "bg-gray-100 text-gray-500" };
+              const resilie = s.status === "cancelled" || s.status === "expired";
+              return (
+                <div key={s.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-4">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-[#13241b] text-sm truncate">{s.buyerName}</span>
+                      <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${st.cls}`}>{st.label}</span>
+                      {s.cancelAtPeriodEnd && !resilie && (
+                        <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">Fin de période</span>
+                      )}
+                    </div>
+                    <div className="text-[12px] text-[#5c647a] mt-0.5 truncate">
+                      {s.buyerEmail && <span>{s.buyerEmail} · </span>}
+                      <span className="font-semibold">{s.planName}</span>
+                      {" · "}{formatFCFA(s.totalPaid)} FCFA cumulés
+                    </div>
+                    <div className="text-[11px] text-slate-400 mt-0.5">
+                      Depuis le {new Date(s.createdAt).toLocaleDateString("fr-FR")}
+                      {!resilie && s.currentPeriodEnd && <> · échéance {new Date(s.currentPeriodEnd).toLocaleDateString("fr-FR")}</>}
+                    </div>
+                  </div>
+                  {!resilie && (
+                    <button
+                      onClick={() => handleCancelSub(s)}
+                      disabled={cancelSubMut.isPending}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 disabled:opacity-50 flex-shrink-0"
+                    >
+                      <Trash2 size={14} /> Résilier
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
