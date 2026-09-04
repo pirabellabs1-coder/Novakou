@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 export interface VendorShopSummary {
   id: string;
@@ -38,6 +39,7 @@ const BYPASS = ["/vendeur/choisir-boutique", "/vendeur/boutiques"];
 export function ShopProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(true);
   const [activeShop, setActiveShop] = useState<VendorShopSummary | null>(null);
   const [shops, setShops] = useState<VendorShopSummary[]>([]);
@@ -78,9 +80,16 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
       });
       if (!res.ok) return;
       await refresh();
+      // Le cookie boutique est posé côté serveur, mais les pages vendeur sont
+      // des Client Components dont les requêtes React Query ont une clé stable
+      // (sans id de boutique) et un staleTime de 30-60 s : sans invalidation, la
+      // donnée de l'ANCIENNE boutique reste « fraîche » et n'est jamais
+      // re-fetchée → il fallait recharger la page. On invalide donc tout le
+      // cache : chaque requête repart et lit le nouveau cookie. MAJ automatique.
+      await queryClient.invalidateQueries();
       router.refresh();
     },
-    [refresh, router],
+    [refresh, router, queryClient],
   );
 
   return (
