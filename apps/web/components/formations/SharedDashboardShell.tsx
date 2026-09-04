@@ -4,72 +4,82 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
+import {
+  LayoutDashboard, BarChart3, Store, Link2, CreditCard, Layers, Receipt,
+  Contact, AlertCircle, Wallet, Megaphone, Sparkles, Brain, Bot, Zap,
+  MessageSquare, Star, HelpCircle, Users, Headphones, FolderOpen, KeyRound,
+  Webhook, BookOpen, ShieldCheck, Settings, Calendar, Package, UserCircle,
+  GraduationCap, Award, ShoppingCart, LogOut, Menu, X,
+  type LucideIcon,
+} from "lucide-react";
 
-type NavItem = { icon: string; label: string; href: string; section: string; badge?: string };
+type NavItem = { icon: LucideIcon; label: string; href: string; section: string; badge?: string };
 
 // IMPORTANT — these arrays must mirror exactly the navItems in the role-specific
 // layouts (apps/web/app/(formations-dashboard)/{vendeur,mentor,apprenant}/layout.tsx).
 // When the user lands on a shared route (/kyc, /wallet, /messages) they must see
 // the same sidebar as on their dashboard, not a different one.
 
+// ⚠️ Doit refléter EXACTEMENT vendeur/layout.tsx (icônes lucide, badges,
+// ordre, sections) — sinon Messages/Wallet/KYC affichent une autre sidebar.
 const VENDOR_NAV: NavItem[] = [
-  { icon: "dashboard", label: "Tableau de bord", href: "/vendeur/dashboard", section: "Vue" },
-  { icon: "bar_chart", label: "Statistiques", href: "/vendeur/statistiques", section: "Vue" },
-  { icon: "storefront", label: "Mes produits", href: "/vendeur/produits", section: "Catalogue" },
-  { icon: "link", label: "Liens de paiement", href: "/vendeur/liens-paiement", section: "Catalogue" },
-  { icon: "card_membership", label: "Abonnements", href: "/vendeur/memberships", section: "Catalogue" },
-  { icon: "category", label: "Bundles", href: "/vendeur/bundles", section: "Catalogue" },
-  { icon: "store", label: "Mes boutiques", href: "/vendeur/boutiques", section: "Catalogue" },
-  { icon: "receipt_long", label: "Transactions", href: "/vendeur/transactions", section: "Catalogue" },
-  { icon: "payments", label: "Abandons & Échecs", href: "/vendeur/abandons", section: "Catalogue" },
-  { icon: "account_balance_wallet", label: "Revenus & retraits", href: "/wallet", section: "Catalogue" },
-  { icon: "campaign", label: "Marketing", href: "/vendeur/marketing", section: "Croissance" },
-  { icon: "auto_awesome", label: "AI Studio", href: "/vendeur/ai-studio", section: "Croissance", badge: "IA" },
-  { icon: "psychology", label: "Coach IA", href: "/vendeur/ai-coach", section: "Croissance", badge: "IA" },
-  { icon: "smart_toy", label: "Bot support boutique", href: "/vendeur/support-ia", section: "Croissance", badge: "IA" },
-  { icon: "bolt", label: "Automatisations", href: "/vendeur/automatisations", section: "Croissance" },
-  { icon: "chat_bubble", label: "Messages", href: "/messages", section: "Engagement" },
-  { icon: "reviews", label: "Avis clients", href: "/vendeur/avis", section: "Engagement" },
-  { icon: "forum", label: "Questions acheteurs", href: "/vendeur/inquiries", section: "Engagement" },
-  { icon: "groups", label: "Communauté", href: "/vendeur/communaute", section: "Engagement" },
-  { icon: "support_agent", label: "Coaching", href: "/vendeur/coaching", section: "Engagement", badge: "Pro" },
-  { icon: "folder_open", label: "Ressources", href: "/vendeur/ressources", section: "Engagement" },
-  { icon: "key", label: "Clés API", href: "/vendeur/api-keys", section: "Développeur" },
-  { icon: "webhook", label: "Webhooks sortants", href: "/vendeur/webhooks", section: "Développeur" },
-  { icon: "menu_book", label: "Documentation API", href: "/vendeur/documentation-api", section: "Développeur" },
-  { icon: "account_circle", label: "Mon profil", href: "/vendeur/profil", section: "Compte" },
-  { icon: "groups", label: "Équipe", href: "/vendeur/parametres/equipe", section: "Compte" },
-  { icon: "verified_user", label: "Vérification KYC", href: "/kyc", section: "Compte" },
-  { icon: "settings", label: "Paramètres", href: "/vendeur/parametres", section: "Compte" },
+  { icon: LayoutDashboard, label: "Tableau de bord", href: "/vendeur/dashboard", section: "Vue" },
+  { icon: BarChart3, label: "Statistiques", href: "/vendeur/statistiques", section: "Vue" },
+  { icon: Store, label: "Mes produits", href: "/vendeur/produits", section: "Catalogue" },
+  { icon: Link2, label: "Liens de paiement", href: "/vendeur/liens-paiement", section: "Catalogue" },
+  { icon: CreditCard, label: "Abonnements", href: "/vendeur/memberships", section: "Catalogue" },
+  { icon: Layers, label: "Bundles", href: "/vendeur/bundles", section: "Catalogue" },
+  { icon: Store, label: "Mes boutiques", href: "/vendeur/boutiques", section: "Catalogue" },
+  { icon: Receipt, label: "Transactions", href: "/vendeur/transactions", section: "Catalogue" },
+  { icon: Contact, label: "Clients", href: "/vendeur/clients", section: "Catalogue" },
+  { icon: AlertCircle, label: "Abandons & Échecs", href: "/vendeur/abandons", section: "Catalogue" },
+  { icon: Wallet, label: "Revenus & retraits", href: "/wallet", section: "Catalogue" },
+  { icon: Megaphone, label: "Marketing", href: "/vendeur/marketing", section: "Croissance" },
+  { icon: Sparkles, label: "AI Studio", href: "/vendeur/ai-studio", section: "Croissance", badge: "IA" },
+  { icon: Brain, label: "Coach IA", href: "/vendeur/ai-coach", section: "Croissance", badge: "IA" },
+  { icon: Bot, label: "Bot support boutique", href: "/vendeur/support-ia", section: "Croissance", badge: "IA" },
+  { icon: Zap, label: "Automatisations", href: "/vendeur/automatisations", section: "Croissance" },
+  { icon: MessageSquare, label: "Messages", href: "/messages", section: "Engagement" },
+  { icon: Star, label: "Avis clients", href: "/vendeur/avis", section: "Engagement" },
+  { icon: HelpCircle, label: "Questions acheteurs", href: "/vendeur/inquiries", section: "Engagement" },
+  { icon: Users, label: "Communauté", href: "/vendeur/communaute", section: "Engagement" },
+  { icon: Headphones, label: "Coaching", href: "/vendeur/coaching", section: "Engagement", badge: "Pro" },
+  { icon: FolderOpen, label: "Ressources", href: "/vendeur/ressources", section: "Engagement" },
+  { icon: KeyRound, label: "Clés API", href: "/vendeur/api-keys", section: "Développeur" },
+  { icon: Webhook, label: "Webhooks sortants", href: "/vendeur/webhooks", section: "Développeur" },
+  { icon: BookOpen, label: "Documentation API", href: "/vendeur/documentation-api", section: "Développeur" },
+  { icon: Users, label: "Équipe", href: "/vendeur/parametres/equipe", section: "Compte" },
+  { icon: ShieldCheck, label: "Vérification KYC", href: "/kyc", section: "Compte" },
+  { icon: Settings, label: "Paramètres", href: "/vendeur/parametres", section: "Compte" },
 ];
 
 const MENTOR_NAV: NavItem[] = [
-  { icon: "dashboard", label: "Tableau de bord", href: "/mentor/dashboard", section: "Vue" },
-  { icon: "groups", label: "Mes apprenants", href: "/mentor/apprenants", section: "Vue" },
-  { icon: "event", label: "Mon calendrier", href: "/mentor/calendrier", section: "Vue" },
-  { icon: "category", label: "Packs de sessions", href: "/mentor/packs", section: "Catalogue" },
-  { icon: "folder_open", label: "Ressources", href: "/mentor/ressources", section: "Catalogue" },
-  { icon: "account_balance_wallet", label: "Revenus & retraits", href: "/wallet", section: "Finances" },
-  { icon: "payments", label: "Finances", href: "/mentor/finances", section: "Finances" },
-  { icon: "chat_bubble", label: "Messages", href: "/messages", section: "Engagement" },
-  { icon: "verified_user", label: "Vérification KYC", href: "/kyc", section: "Compte" },
-  { icon: "person", label: "Mon profil", href: "/mentor/profil", section: "Compte" },
+  { icon: LayoutDashboard, label: "Tableau de bord", href: "/mentor/dashboard", section: "Vue" },
+  { icon: Users, label: "Mes apprenants", href: "/mentor/apprenants", section: "Vue" },
+  { icon: Calendar, label: "Mon calendrier", href: "/mentor/calendrier", section: "Vue" },
+  { icon: Package, label: "Packs de sessions", href: "/mentor/packs", section: "Catalogue" },
+  { icon: FolderOpen, label: "Ressources", href: "/mentor/ressources", section: "Catalogue" },
+  { icon: Wallet, label: "Revenus & retraits", href: "/wallet", section: "Finances" },
+  { icon: Receipt, label: "Finances", href: "/mentor/finances", section: "Finances" },
+  { icon: MessageSquare, label: "Messages", href: "/messages", section: "Engagement" },
+  { icon: ShieldCheck, label: "Vérification KYC", href: "/kyc", section: "Compte" },
+  { icon: UserCircle, label: "Mon profil", href: "/mentor/profil", section: "Compte" },
 ];
 
 const APPRENANT_NAV: NavItem[] = [
-  { icon: "dashboard", label: "Tableau de bord", href: "/apprenant/dashboard", section: "Général" },
-  { icon: "school", label: "Mes formations", href: "/apprenant/mes-formations", section: "Général" },
-  { icon: "inventory_2", label: "Mes produits", href: "/apprenant/mes-produits", section: "Général" },
-  { icon: "workspace_premium", label: "Certificats", href: "/apprenant/certificats", section: "Général" },
-  { icon: "shopping_cart", label: "Panier", href: "/apprenant/panier", section: "Achats" },
-  { icon: "receipt_long", label: "Commandes", href: "/apprenant/commandes", section: "Achats" },
-  { icon: "account_balance_wallet", label: "Dépenses", href: "/apprenant/depenses", section: "Achats" },
-  { icon: "support_agent", label: "Mes mentors", href: "/apprenant/mentors", section: "Accompagnement" },
-  { icon: "event", label: "Mes sessions", href: "/apprenant/sessions", section: "Accompagnement" },
-  { icon: "forum", label: "Messages", href: "/messages", section: "Accompagnement" },
-  { icon: "psychology", label: "Coach IA", href: "/apprenant/ai-coach", section: "Accompagnement" },
-  { icon: "verified_user", label: "Vérification KYC", href: "/kyc", section: "Compte" },
-  { icon: "settings", label: "Paramètres", href: "/apprenant/parametres", section: "Compte" },
+  { icon: LayoutDashboard, label: "Tableau de bord", href: "/apprenant/dashboard", section: "Général" },
+  { icon: GraduationCap, label: "Mes formations", href: "/apprenant/mes-formations", section: "Général" },
+  { icon: Package, label: "Mes produits", href: "/apprenant/mes-produits", section: "Général" },
+  { icon: Award, label: "Certificats", href: "/apprenant/certificats", section: "Général" },
+  { icon: ShoppingCart, label: "Panier", href: "/apprenant/panier", section: "Achats" },
+  { icon: Receipt, label: "Commandes", href: "/apprenant/commandes", section: "Achats" },
+  { icon: Wallet, label: "Dépenses", href: "/apprenant/depenses", section: "Achats" },
+  { icon: Headphones, label: "Mes mentors", href: "/apprenant/mentors", section: "Accompagnement" },
+  { icon: Calendar, label: "Mes sessions", href: "/apprenant/sessions", section: "Accompagnement" },
+  { icon: MessageSquare, label: "Messages", href: "/messages", section: "Accompagnement" },
+  { icon: Brain, label: "Coach IA", href: "/apprenant/ai-coach", section: "Accompagnement" },
+  { icon: ShieldCheck, label: "Vérification KYC", href: "/kyc", section: "Compte" },
+  { icon: Settings, label: "Paramètres", href: "/apprenant/parametres", section: "Compte" },
 ];
 
 const NAV_BY_ROLE: Record<string, NavItem[]> = {
@@ -112,7 +122,7 @@ export function SharedDashboardShell({ children }: { children: React.ReactNode }
           onClick={() => setMobileOpen(true)}
           aria-label="Ouvrir le menu"
         >
-          <span className="material-symbols-outlined text-[22px]">menu</span>
+          <Menu size={22} />
         </button>
         <Link href="/" className="flex items-center gap-2 flex-shrink-0">
           <div
@@ -158,7 +168,7 @@ export function SharedDashboardShell({ children }: { children: React.ReactNode }
             onClick={() => setMobileOpen(false)}
             className="md:hidden absolute top-4 right-4 p-1.5 rounded-lg hover:bg-gray-100"
           >
-            <span className="material-symbols-outlined text-[20px] text-[#5c647a]">close</span>
+            <X size={20} className="text-[#5c647a]" />
           </button>
         )}
 
@@ -171,6 +181,7 @@ export function SharedDashboardShell({ children }: { children: React.ReactNode }
                 <ul className="space-y-0.5">
                   {items.map((item) => {
                     const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+                    const Icon = item.icon;
                     return (
                       <li key={item.href}>
                         <Link
@@ -178,19 +189,25 @@ export function SharedDashboardShell({ children }: { children: React.ReactNode }
                           onClick={() => setMobileOpen(false)}
                           className={`group flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-200 px-3 py-2.5 ${
                             isActive
-                              ? "bg-[#006e2f]/10 text-[#006e2f] font-semibold"
+                              ? "bg-[#e6f5eb] text-[#006e2f] font-bold"
                               : "text-[#5c647a] hover:bg-gray-50 hover:text-[#191c1e]"
                           }`}
                         >
-                          <span
-                            className="material-symbols-outlined text-[20px] flex-shrink-0"
-                            style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
-                          >
-                            {item.icon}
-                          </span>
+                          <Icon
+                            size={18}
+                            className={`flex-shrink-0 ${isActive ? "text-[#006e2f]" : "text-[#7d9486] group-hover:text-slate-700"}`}
+                          />
                           <span className="truncate">{item.label}</span>
                           {item.badge && (
-                            <span className="ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                            // Pastille cohérente avec la sidebar principale :
+                            // ambre pour « Pro », verte pour « IA ».
+                            <span
+                              className={`ml-auto text-[9px] font-extrabold px-1.5 py-0.5 rounded-full ${
+                                item.badge === "Pro"
+                                  ? "bg-[#fef3c7] text-[#92400e]"
+                                  : "bg-[#e6f5eb] text-[#006e2f]"
+                              }`}
+                            >
                               {item.badge}
                             </span>
                           )}
@@ -212,7 +229,7 @@ export function SharedDashboardShell({ children }: { children: React.ReactNode }
             }}
             className="flex items-center justify-center gap-2 w-full rounded-xl text-red-600 text-xs font-semibold hover:bg-red-50 transition-colors border border-red-200 py-2.5 px-4"
           >
-            <span className="material-symbols-outlined text-[16px]">logout</span>
+            <LogOut size={16} />
             Se déconnecter
           </button>
         </div>
