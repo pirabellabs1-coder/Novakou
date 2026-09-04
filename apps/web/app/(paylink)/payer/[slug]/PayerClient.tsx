@@ -158,26 +158,26 @@ export default function PayerClient({ link, pixels = [] }: { link: Link; pixels?
               </div>
             )}
 
-            {/* Email (masqué si connecté) */}
+            {/* E-mail : TOUJOURS affiché — c'est l'adresse où part le reçu de
+                paiement. Pré-rempli avec l'e-mail du compte si connecté. */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-[#5c647a] mb-1.5">Votre e-mail</label>
+              <input
+                type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
+                placeholder="vous@email.com"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
+              />
+              <p className="text-[11px] text-slate-400 mt-1">Votre reçu de paiement (avec la référence) sera envoyé à cette adresse.</p>
+            </div>
             {!session?.user?.id && (
-              <>
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#5c647a] mb-1.5">Votre e-mail</label>
-                  <input
-                    type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
-                    placeholder="vous@email.com"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#5c647a] mb-1.5">Votre nom (optionnel)</label>
-                  <input
-                    type="text" value={name} onChange={(e) => setName(e.target.value)}
-                    placeholder="Nom complet"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
-                  />
-                </div>
-              </>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#5c647a] mb-1.5">Votre nom (optionnel)</label>
+                <input
+                  type="text" value={name} onChange={(e) => setName(e.target.value)}
+                  placeholder="Nom complet"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
+                />
+              </div>
             )}
 
             {/* Pays + moyen, dans la page : c'était un second écran, il
