@@ -507,9 +507,13 @@ export async function sendDigitalProductDeliveryEmail(params: {
    *  redirige sur le dashboard où chaque fichier est listé avec un lien
    *  proxy frais. */
   files?: Array<{ name: string; url: string }>;
+  /** Vraie référence de paiement (internalRef) — la MÊME que voit le vendeur. */
+  paymentRef?: string;
+  /** URL du reçu PDF (téléchargeable) — surtout utile pour un lien de paiement. */
+  receiptUrl?: string;
   locale?: "fr" | "en";
 }) {
-  const { email, name, productTitle, files, locale = "fr" } = params;
+  const { email, name, productTitle, files, paymentRef, receiptUrl, locale = "fr" } = params;
   const isFr = locale === "fr";
   const fileCount = Array.isArray(files) ? files.length : 0;
   // Lien magic : auto-envoi OTP à l'email de l'acheteur + redirect vers ses produits.
@@ -576,10 +580,22 @@ export async function sendDigitalProductDeliveryEmail(params: {
       </p>
       <table style="width:100%;border-collapse:collapse;">
         <tr><td style="color:#6b7280;padding:5px 0;font-size:13px;">${isFr ? "Produit" : "Product"}</td><td style="color:#111827;font-weight:600;text-align:right;font-size:13px;">${productTitle}</td></tr>
-        <tr><td style="color:#6b7280;padding:5px 0;font-size:13px;">${isFr ? "Référence" : "Reference"}</td><td style="color:#6b7280;font-family:monospace;text-align:right;font-size:12px;">${reference}</td></tr>
+        <tr><td style="color:#6b7280;padding:5px 0;font-size:13px;">${isFr ? "Référence de paiement" : "Payment reference"}</td><td style="color:#111827;font-weight:700;font-family:monospace;text-align:right;font-size:12px;">${paymentRef || reference}</td></tr>
         <tr><td style="color:#6b7280;padding:5px 0;font-size:13px;">Date</td><td style="color:#111827;font-weight:600;text-align:right;font-size:13px;">${dateStr}</td></tr>
       </table>
-    </div>
+    </div>${receiptUrl
+      ? `
+
+    <div style="text-align:center;margin:0 0 24px;">
+      ${button(isFr ? "Télécharger le reçu" : "Download receipt", receiptUrl)}
+      <p style="color:#9ca3af;font-size:12px;line-height:1.6;margin:10px 0 0;">
+        ${isFr
+          ? "Conservez votre référence de paiement : elle peut vous être demandée pour confirmer votre achat."
+          : "Keep your payment reference: it may be required to confirm your purchase."}
+      </p>
+    </div>`
+      : ""
+    }
 
     <p style="color:#6b7280;line-height:1.6;font-size:13px;margin:0 0 8px;">
       ${isFr

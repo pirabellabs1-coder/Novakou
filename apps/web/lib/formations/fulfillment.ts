@@ -620,6 +620,10 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
       productTitle: p.title,
       downloadUrl,
       files: resolvedFiles.length > 0 ? resolvedFiles : undefined,
+      // Référence de paiement (la MÊME que voit le vendeur) + reçu téléchargeable.
+      // Essentiel pour un lien de paiement, qui n'a aucun fichier à livrer.
+      paymentRef: sessionRef,
+      receiptUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/formations/payment/receipt?ref=${encodeURIComponent(sessionRef)}`,
       locale: "fr",
     }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
 
