@@ -57,6 +57,19 @@ import {
 } from "@/components/stitch";
 
 // Bloc KPI comparable côté API (vote 7) — même shape pour `current` et `previous`
+type ShopOverview = {
+  id: string;
+  name: string;
+  slug: string | null;
+  logoUrl: string | null;
+  themeColor: string | null;
+  isPrimary: boolean;
+  revenue: number;
+  sales: number;
+  clients: number;
+  products: number;
+};
+
 type PeriodKpis = {
   revenue: number;
   sales: number;
@@ -231,12 +244,23 @@ export default function VendeurDashboard() {
   // Plage de visualisation des graphes (7 j → 1 an).
   const [range, setRange] = useState("6m");
   // Portée boutique : "all" (cumulé) ou un id. Dans la clé → refetch auto au switch.
-  const { scope } = useActiveShop();
+  const { scope, setScope, shops } = useActiveShop();
   const { data: response, isLoading } = useQuery<{ data: Dashboard | null }>({
     queryKey: ["vendeur-dashboard", range, scope],
     queryFn: () => fetch(`/api/formations/vendeur/dashboard?range=${range}&shopId=${encodeURIComponent(scope)}`).then((r) => r.json()),
     staleTime: 30_000,
   });
+
+  // Vue globale : stats PAR boutique (grille « Mes boutiques »), seulement en
+  // mode « Toutes » et s'il y a au moins deux boutiques.
+  const showShopsGrid = scope === "all" && shops.length > 1;
+  const { data: overviewResp } = useQuery<{ data: ShopOverview[] }>({
+    queryKey: ["vendeur-shops-overview"],
+    queryFn: () => fetch("/api/formations/vendeur/shops/overview").then((r) => r.json()),
+    staleTime: 30_000,
+    enabled: showShopsGrid,
+  });
+  const shopCards = overviewResp?.data ?? [];
 
   const { data: kycResp } = useQuery<{ data: { currentLevel: number; pending: { id: string } | null } }>({
     queryKey: ["kyc-status"],
@@ -548,6 +572,57 @@ export default function VendeurDashboard() {
             </div>
           </StCard>
         </div>
+
+        {/* ── Vue globale : Mes boutiques (mode « Toutes ») ── */}
+        {showShopsGrid && shopCards.length > 0 && (
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-2.5">
+              <h2 className="text-[15px] font-extrabold" style={{ color: ST.text }}>Mes boutiques</h2>
+              <span className="text-[12px] font-semibold" style={{ color: ST.textSecondary }}>
+                Sélectionnez une boutique pour l&apos;ouvrir
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5">
+              {shopCards.map((s) => (
+                <StCard key={s.id} className="!p-[16px_18px]">
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-extrabold flex-shrink-0"
+                      style={{ background: s.themeColor || "linear-gradient(135deg, #006e2f, #22c55e)" }}
+                    >
+                      {s.name[0]?.toUpperCase()}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13.5px] font-extrabold truncate" style={{ color: ST.text }}>{s.name}</p>
+                      <p className="text-[11.5px] font-semibold" style={{ color: ST.textSecondary }}>
+                        {s.products} produit{s.products > 1 ? "s" : ""} · {s.clients} client{s.clients > 1 ? "s" : ""}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 mt-3">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: ST.textSecondary }}>Revenus</p>
+                      <p className="text-[15px] font-extrabold" style={{ color: ST.green }}>{formatFCFA(s.revenue)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: ST.textSecondary }}>Ventes</p>
+                      <p className="text-[15px] font-extrabold" style={{ color: ST.text }}>{s.sales.toLocaleString("fr-FR")}</p>
+                    </div>
+                  </div>
+                  {s.id !== "__none__" && (
+                    <button
+                      onClick={() => { void setScope(s.id); }}
+                      className="mt-3 w-full inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-white text-[12.5px] font-bold hover:opacity-90"
+                      style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
+                    >
+                      Entrer dans la boutique
+                    </button>
+                  )}
+                </StCard>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── Chart 6 mois + "Que faire maintenant ?" (grille 1.65fr/1fr) ── */}
         <div className="grid grid-cols-1 lg:grid-cols-[1.65fr_1fr] gap-3.5 mb-4">
