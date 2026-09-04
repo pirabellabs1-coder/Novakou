@@ -20,6 +20,7 @@ const RichTextEditor = dynamic(
 import { ImageUploader } from "@/components/formations/ImageUploader";
 import { MultiFileUploader, type ProductFile } from "@/components/formations/MultiFileUploader";
 import { confirmAction } from "@/store/confirm";
+import { useActiveShop } from "@/components/formations/ShopProvider";
 import {
   type LucideIcon,
   ShoppingBag,
@@ -79,6 +80,7 @@ interface Product {
   currentBuyers?: number;
   salesEndAt?: string | null; // ISO datetime
   category: { id: string; slug: string; name: string } | null;
+  shopId?: string | null;
 }
 
 const PRODUCT_TYPES = [
@@ -140,6 +142,9 @@ export default function EditerProduitPage() {
   const [category, setCategory] = useDraftField<string>(`${draftPrefix}:category`, "");
   const [categorieLibre, setCategorieLibre] = useDraftField<string>(`${draftPrefix}:categorieLibre`, "");
   const categorieEffective = category === CATEGORIE_AUTRE ? categorieLibre.trim() : category;
+  // Boutique de rattachement du produit (déplaçable). Liste via le contexte.
+  const [shopId, setShopId] = useDraftField<string>(`${draftPrefix}:shopId`, "");
+  const { shops } = useActiveShop();
   const [dirty, setDirty] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   // Résultat de la dernière tentative de publication. Reste affiché tant que le
@@ -246,6 +251,8 @@ export default function EditerProduitPage() {
         setCategorieLibre(nomCategorie);
       }
     } else anyDraft = true;
+
+    if (!has("shopId")) setShopId(product.shopId ?? "");
 
     setDirty(anyDraft);
     setHasHydrated(true);
@@ -413,6 +420,9 @@ export default function EditerProduitPage() {
       salesEndAt: salesEndAtParsed,
       // Vide → champ absent : le serveur ne touche pas à la catégorie en place.
       ...(categorieEffective ? { category: categorieEffective } : {}),
+      // Boutique : on ne l'envoie que si le vendeur a plusieurs boutiques (sinon
+      // le sélecteur n'est pas affiché et il n'y a rien à déplacer).
+      ...(shops.length > 1 ? { shopId: shopId || null } : {}),
     };
   }
 
@@ -687,6 +697,23 @@ export default function EditerProduitPage() {
               />
             )}
           </div>
+
+          {shops.length > 1 && (
+            <div>
+              <label className="block text-xs font-semibold text-[#5c647a] uppercase tracking-wider mb-1.5">Boutique</label>
+              <select
+                value={shopId}
+                onChange={(e) => track(setShopId, e.target.value)}
+                className="w-full text-sm text-[#191c1e] bg-white px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/20"
+              >
+                <option value="">Aucune (non rattaché)</option>
+                {shops.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+              <p className="text-[11px] text-slate-400 mt-1">La boutique où ce produit est présenté. Vous pouvez le déplacer à tout moment.</p>
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-semibold text-[#5c647a] uppercase tracking-wider mb-1.5">Tags (séparés par des virgules)</label>
