@@ -504,6 +504,13 @@ export async function POST(request: Request) {
           // Achat-cadeau : bénéficiaire de l'ACCÈS (≠ payeur). Lu au fulfillment.
           recipientUserId: giftRecipientUserId || null,
           giftMessage: giftMessage || null,
+          // Lien de paiement : URL de retour vers le site du vendeur. Doit être
+          // DANS la metadata de la tentative (lue par readPaylinkRedirect et par
+          // le fulfillment pour l'e-mail), pas seulement dans providerMetadata.
+          paylinkRedirectUrl:
+            products.length === 1 && formations.length === 0 && products[0]?.isPaymentLink && products[0]?.redirectUrl
+              ? products[0].redirectUrl
+              : null,
         } as never,
       },
       select: { id: true },

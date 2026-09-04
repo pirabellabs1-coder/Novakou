@@ -44,8 +44,16 @@ export async function GET() {
   });
   if (!ctx) return NextResponse.json({ error: "Profil vendeur introuvable" }, { status: 401 });
 
+  // Isolation par boutique : le GET ne filtrait QUE par instructeurId → les
+  // liens apparaissaient dans TOUTES les boutiques. On aligne sur les autres
+  // listes (repli shopId null pour les liens créés en vue globale/anciens).
+  const activeShopId = await getActiveShopId(session, {
+    devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+  });
+  const shopFilter = activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {};
+
   const links = await prisma.digitalProduct.findMany({
-    where: { instructeurId: ctx.instructeurId, isPaymentLink: true },
+    where: { instructeurId: ctx.instructeurId, isPaymentLink: true, ...shopFilter },
     orderBy: { createdAt: "desc" },
     select: {
       id: true, slug: true, title: true, description: true, price: true,

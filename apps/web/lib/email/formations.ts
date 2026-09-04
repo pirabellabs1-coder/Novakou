@@ -511,9 +511,11 @@ export async function sendDigitalProductDeliveryEmail(params: {
   paymentRef?: string;
   /** URL du reçu PDF (téléchargeable) — surtout utile pour un lien de paiement. */
   receiptUrl?: string;
+  /** Lien de paiement : URL de retour vers le site du vendeur (bouton « Continuer »). */
+  redirectUrl?: string;
   locale?: "fr" | "en";
 }) {
-  const { email, name, productTitle, files, paymentRef, receiptUrl, locale = "fr" } = params;
+  const { email, name, productTitle, files, paymentRef, receiptUrl, redirectUrl, locale = "fr" } = params;
   const isFr = locale === "fr";
   const fileCount = Array.isArray(files) ? files.length : 0;
   // Lien magic : auto-envoi OTP à l'email de l'acheteur + redirect vers ses produits.
@@ -583,7 +585,19 @@ export async function sendDigitalProductDeliveryEmail(params: {
         <tr><td style="color:#6b7280;padding:5px 0;font-size:13px;">${isFr ? "Référence de paiement" : "Payment reference"}</td><td style="color:#111827;font-weight:700;font-family:monospace;text-align:right;font-size:12px;">${paymentRef || reference}</td></tr>
         <tr><td style="color:#6b7280;padding:5px 0;font-size:13px;">Date</td><td style="color:#111827;font-weight:600;text-align:right;font-size:13px;">${dateStr}</td></tr>
       </table>
-    </div>${receiptUrl
+    </div>${redirectUrl
+      ? `
+
+    <div style="text-align:center;margin:0 0 16px;">
+      ${button(isFr ? "Continuer vers le site du vendeur" : "Continue to the seller's site", redirectUrl)}
+      <p style="color:#9ca3af;font-size:12px;line-height:1.6;margin:10px 0 0;">
+        ${isFr
+          ? "Cliquez pour poursuivre votre parcours après le paiement."
+          : "Click to continue after your payment."}
+      </p>
+    </div>`
+      : ""
+    }${receiptUrl
       ? `
 
     <div style="text-align:center;margin:0 0 24px;">

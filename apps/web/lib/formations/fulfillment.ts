@@ -153,6 +153,8 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
             id: true, slug: true, title: true, price: true, productType: true, fileUrl: true,
             instructeurId: true, shopId: true,
             isPaymentLink: true, allowCustomAmount: true, webhookUrl: true, webhookSecret: true,
+            // Lien de redirection du lien de paiement (retour vers le site vendeur).
+            redirectUrl: true,
             // Stock gate (vote 23).
             maxBuyers: true, currentBuyers: true, salesCount: true,
             instructeur: { select: { user: { select: { id: true, email: true, name: true } } } },
@@ -651,6 +653,9 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
         // Essentiel pour un lien de paiement, qui n'a aucun fichier à livrer.
         paymentRef: sessionRef,
         receiptUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/formations/payment/receipt?ref=${encodeURIComponent(sessionRef)}`,
+        // Lien de paiement : bouton « Continuer » vers le site du vendeur, pour
+        // que l'acheteur poursuive son parcours depuis l'e-mail aussi.
+        redirectUrl: p.isPaymentLink && p.redirectUrl ? p.redirectUrl : undefined,
         locale: "fr",
       }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
     }
