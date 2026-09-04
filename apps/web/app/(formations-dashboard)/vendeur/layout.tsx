@@ -34,7 +34,6 @@ import {
   KeyRound,
   Webhook,
   BookOpen,
-  User,
   ShieldCheck,
   Settings,
   Menu,
@@ -107,7 +106,9 @@ const navItems: NavItem[] = [
   { icon: Webhook, label: "Webhooks sortants", href: "/vendeur/webhooks", section: "Développeur" },
   { icon: BookOpen, label: "Documentation API", href: "/vendeur/documentation-api", section: "Développeur" },
   // Compte
-  { icon: User, label: "Mon profil", href: "/vendeur/profil", section: "Compte" },
+  // « Mon profil » retiré du menu : dans le modèle multi-boutique, c'est
+  // l'identité de la BOUTIQUE qui est publique, pas le profil personnel. Le
+  // profil reste accessible via l'avatar en haut à droite et « Paramètres ».
   { icon: Users, label: "Équipe", href: "/vendeur/parametres/equipe", section: "Compte" },
   { icon: ShieldCheck, label: "Vérification KYC", href: "/kyc", section: "Compte" },
   { icon: Settings, label: "Paramètres", href: "/vendeur/parametres", section: "Compte" },
