@@ -60,7 +60,26 @@ export type CollectReconcileOutcome = {
     formationIds: string[];
     productIds: string[];
   };
+  /**
+   * Lien de paiement INTÉGRÉ : URL de retour vers le site du vendeur, telle
+   * qu'elle a été figée à l'init dans la metadata de la tentative. La page
+   * /payment/return y renvoie l'acheteur après un paiement réussi. Absente pour
+   * un achat marketplace ordinaire.
+   *
+   * Elle DOIT remonter même quand la tentative est déjà COMPLETED (le webhook a
+   * livré avant le retour de l'acheteur — le cas le plus fréquent) : sinon la
+   * redirection vendeur ne se déclenchait jamais et l'acheteur restait sur
+   * Novakou.
+   */
+  paylinkRedirectUrl?: string;
 };
+
+/** URL de redirection vendeur figée dans la metadata d'une tentative, ou undefined. */
+function readPaylinkRedirect(metadata: unknown): string | undefined {
+  const m = (metadata ?? {}) as Record<string, unknown>;
+  const u = m.paylinkRedirectUrl;
+  return typeof u === "string" && u.trim() ? u : undefined;
+}
 
 /** Fournisseurs qui savent encaisser en direct et répondre sur un statut. */
 const STATUS_CHECKERS: Record<
@@ -130,7 +149,13 @@ type AttemptRow = NonNullable<Awaited<ReturnType<typeof findAttemptByAnyRef>>>;
 export async function reconcileCollectAttempt(attempt: AttemptRow): Promise<CollectReconcileOutcome> {
   // Déjà finalisée : rien à refaire, et surtout pas un appel fournisseur.
   if (attempt.status === "COMPLETED") {
-    return { matched: true, status: "success", delivered: true, attemptId: attempt.id };
+    return {
+      matched: true, status: "success", delivered: true, attemptId: attempt.id,
+      // Cas le plus fréquent d'un lien de paiement : le webhook a livré avant
+      // que l'acheteur ne revienne. Sans cette ligne, la redirection vendeur
+      // était perdue à tous les coups.
+      paylinkRedirectUrl: readPaylinkRedirect(attempt.metadata),
+    };
   }
   if (attempt.status === "FAILED") {
     // Le motif enregistré au moment du refus : la page d'attente le réaffiche
@@ -421,6 +446,7 @@ export async function reconcileCollectAttempt(attempt: AttemptRow): Promise<Coll
       formationIds: livraison.enrollments.map((e) => e.id),
       productIds: livraison.purchases.map((p) => p.id),
     },
+    paylinkRedirectUrl: readPaylinkRedirect(attempt.metadata),
   };
 }
 

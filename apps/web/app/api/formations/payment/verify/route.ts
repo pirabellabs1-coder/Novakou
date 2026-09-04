@@ -59,7 +59,11 @@ export async function GET(request: Request) {
           fulfilled: r.delivered,
           amount: r.fulfilled?.totalAmount ?? 0,
           currency: "XOF",
-          metadata: { type: "formations_checkout" },
+          // paylinkRedirectUrl : sans lui, la page /payment/return ne pouvait
+          // JAMAIS renvoyer l'acheteur d'un lien de paiement vers le site du
+          // vendeur — il retombait sur son espace Novakou. Il vient de la
+          // metadata figée à l'init, remontée par la réconciliation.
+          metadata: { type: "formations_checkout", paylinkRedirectUrl: r.paylinkRedirectUrl ?? "" },
           result: {
             totalAmount: r.fulfilled?.totalAmount ?? 0,
             enrollments: (r.fulfilled?.formationIds ?? []).map((eid) => ({ id: eid })),
