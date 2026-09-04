@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveCollectProviders, activeProviders } from "@/lib/payments/gateways";
 import { resolveOperatorCode, getProvider, getOperator, countryFromPhone, currencyForOperator, type ProviderId } from "@/lib/payments/registry";
+import { toIso2 } from "@/lib/tracking/geo";
 import { montantAFacturer } from "@/lib/currency/rates";
 // Les taux modifies en admin doivent s'appliquer AU PAIEMENT, sinon on debite
 // l'acheteur avec une valeur du code que quelqu'un a justement corrigee.
@@ -39,6 +40,14 @@ export async function POST(request: Request) {
     let userEmail = session?.user?.email;
     let userName = session?.user?.name;
 
+    // Pays de l'acheteur : son choix explicite au paiement (body.country) ou, à
+    // défaut, déduit du préfixe de son numéro. Stocké en ISO-2 → c'est CE champ
+    // qui alimente le « Top pays » des stats. Sans ça, 82 % des ventes étaient
+    // sans pays et le classement était faux.
+    const buyerCountry =
+      toIso2(typeof body.country === "string" ? body.country : null) ??
+      toIso2(countryFromPhone(typeof body.phone === "string" ? body.phone : null));
+
     // Guest checkout
     if (!userId && body.guestEmail) {
       const email = String(body.guestEmail).trim().toLowerCase();
@@ -56,12 +65,22 @@ export async function POST(request: Request) {
             // UserRole n'a pas APPRENANT — CLIENT est le mapping correct pour Novakou.
             role: "CLIENT",
             status: "ACTIF",
+            country: buyerCountry,
           },
         });
       }
       userId = user.id;
       userEmail = user.email;
       userName = user.name;
+    }
+
+    // Renseigne le pays s'il manque encore (acheteur invité déjà connu, ou
+    // acheteur connecté sans pays). `updateMany ... country: null` n'écrase
+    // jamais un pays déjà rempli.
+    if (userId && buyerCountry) {
+      await prisma.user
+        .updateMany({ where: { id: userId, country: null }, data: { country: buyerCountry } })
+        .catch(() => null);
     }
 
     if (!userId) {
@@ -591,6 +610,19 @@ export async function POST(request: Request) {
     // un zéro de composition nationale (« 0712… » au Kenya) est retiré, c'est
     // le numéro corrigé qui part en passerelle.
     const opMeta = getOperator(chosenOperator);
+
+    // Source de pays la PLUS fiable (surtout pour le lien de paiement, qui
+    // n'envoie pas body.country) : l'opérateur Mobile Money encode son pays
+    // (ex. orange_ci → CI). On renseigne l'acheteur si son pays manque encore.
+    if (userId && opMeta?.country) {
+      const opCountry = toIso2(opMeta.country);
+      if (opCountry) {
+        await prisma.user
+          .updateMany({ where: { id: userId, country: null }, data: { country: opCountry } })
+          .catch(() => null);
+      }
+    }
+
     if (opMeta?.family === "mobile_money" && phoneRaw) {
       const { checkInternationalNumber } = await import("@/lib/payments/phone-rules");
       const verif = checkInternationalNumber(opMeta.country, phoneRaw);
