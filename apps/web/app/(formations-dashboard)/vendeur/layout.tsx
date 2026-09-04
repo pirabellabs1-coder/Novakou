@@ -396,15 +396,14 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
                                   {count > 99 ? "99+" : count}
                                 </span>
                               ) : item.badge ? (
+                                // Pastille douce et cohérente : ambre pour « Pro »,
+                                // verte pour « IA » (au lieu d'un gros cercle plein).
                                 <span
                                   className={`ml-auto text-[9px] font-extrabold px-1.5 py-0.5 rounded-full ${
-                                    item.badge === "Pro" ? "bg-[#fef3c7] text-[#92400e]" : "text-white"
-                                  }`}
-                                  style={
                                     item.badge === "Pro"
-                                      ? undefined
-                                      : { background: "linear-gradient(135deg,#006e2f,#22c55e)" }
-                                  }
+                                      ? "bg-[#fef3c7] text-[#92400e]"
+                                      : "bg-[#e6f5eb] text-[#006e2f]"
+                                  }`}
                                 >
                                   {item.badge}
                                 </span>
@@ -418,7 +417,7 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
                             />
                           )}
                           {collapsed && !mobileOpen && !showCountBadge && item.badge && (
-                            <span className="absolute ml-8 -mt-5 text-[8px] font-bold w-3 h-3 rounded-full bg-amber-400" />
+                            <span className={`absolute ml-8 -mt-5 w-2 h-2 rounded-full ${item.badge === "Pro" ? "bg-amber-400" : "bg-[#22c55e]"}`} />
                           )}
                         </Link>
                       </li>
