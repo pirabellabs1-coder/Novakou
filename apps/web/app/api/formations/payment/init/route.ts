@@ -11,6 +11,7 @@ import { montantAFacturer } from "@/lib/currency/rates";
 // l'acheteur avec une valeur du code que quelqu'un a justement corrigee.
 import { chargerTaux } from "@/lib/currency/taux-store";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
+import { findOrCreateBuyerByEmail } from "@/lib/formations/buyer-resolve";
 import { computeCheckoutDiscount } from "@/lib/formations/checkout-discount";
 import { isAllowedBuyerEmail, ALLOWED_BUYER_EMAIL_MESSAGE } from "@/lib/email/allowed-buyer-email";
 import { cookies } from "next/headers";
@@ -74,6 +75,24 @@ export async function POST(request: Request) {
       const u = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true } });
       userEmail = u?.email;
       userName = u?.name;
+    }
+
+    // ── ACHAT-CADEAU : résoudre le DESTINATAIRE (l'acheteur paie, le
+    // destinataire reçoit l'accès). On crée/retrouve son compte léger par e-mail.
+    // Résolu AVANT le chemin gratuit pour que le cadeau marche aussi si offert.
+    // Offrir à soi-même n'a pas de sens → on ignore le cadeau dans ce cas.
+    let giftRecipientUserId = "";
+    let giftMessage = "";
+    if (typeof body.giftRecipientEmail === "string" && body.giftRecipientEmail.trim()) {
+      const giftEmail = body.giftRecipientEmail.trim().toLowerCase();
+      if (!isAllowedBuyerEmail(giftEmail)) {
+        return NextResponse.json({ error: `Destinataire : ${ALLOWED_BUYER_EMAIL_MESSAGE}` }, { status: 400 });
+      }
+      const recipient = await findOrCreateBuyerByEmail(giftEmail, typeof body.giftRecipientName === "string" ? body.giftRecipientName : null);
+      if (recipient.id !== userId) {
+        giftRecipientUserId = recipient.id;
+        giftMessage = typeof body.giftMessage === "string" ? body.giftMessage.trim().slice(0, 500) : "";
+      }
     }
 
     const formationIds: string[] = Array.isArray(body.formationIds) ? body.formationIds : [];
@@ -209,7 +228,10 @@ export async function POST(request: Request) {
     // l'avait déjà), donc aucun revenu enregistré, aucun crédit vendeur — et
     // la tentative était tout de même marquée livrée. L'argent disparaissait
     // sans laisser la moindre trace.
-    if (formationIds.length > 0 || productIds.length > 0) {
+    // Cadeau : on NE bloque PAS sur ce que possède l'ACHETEUR (il offre à un
+    // tiers). L'avertissement « le destinataire possède déjà » est géré côté
+    // front (endpoint gift/check, régime « avertir mais autoriser »).
+    if (!giftRecipientUserId && (formationIds.length > 0 || productIds.length > 0)) {
       const [dejaInscrit, dejaAchete] = await Promise.all([
         formationIds.length
           ? prisma.enrollment.findMany({
@@ -357,6 +379,8 @@ export async function POST(request: Request) {
           // décidé ici pour que le fulfillment réparte le même montant.
           chargedDiscountAmount: discountAmount,
           bundleId: bundleId || null,
+          recipientUserId: giftRecipientUserId || null,
+          giftMessage: giftMessage || null,
         });
         return NextResponse.json({
           data: {
@@ -458,6 +482,9 @@ export async function POST(request: Request) {
           // réservation qui est confirmée, pas un contenu à livrer.
           mentorBookingId: mentorBookingId || null,
           membershipPlanId: membershipPlanId || null,
+          // Achat-cadeau : bénéficiaire de l'ACCÈS (≠ payeur). Lu au fulfillment.
+          recipientUserId: giftRecipientUserId || null,
+          giftMessage: giftMessage || null,
         } as never,
       },
       select: { id: true },
@@ -490,6 +517,9 @@ export async function POST(request: Request) {
         products.length === 1 && formations.length === 0 && products[0].isPaymentLink && products[0].redirectUrl
           ? products[0].redirectUrl
           : "",
+      // Achat-cadeau (metadata provider signée, relue par les webhooks).
+      recipientUserId: giftRecipientUserId,
+      giftMessage,
     };
 
     const returnUrl = `${appUrl}/payment/return?ref=${encodeURIComponent(internalRef)}&attempt=${attempt.id}&provider=${provider}`;

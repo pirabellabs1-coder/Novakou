@@ -397,6 +397,10 @@ export async function reconcileCollectAttempt(attempt: AttemptRow): Promise<Coll
       // reçu à la somme des prix unitaires et refuse une livraison pourtant
       // payée — un pack coûte moins cher que ses éléments pris séparément.
       bundleId: typeof meta.bundleId === "string" ? meta.bundleId : null,
+      // Achat-cadeau : bénéficiaire de l'accès (résolu à l'init, stocké en
+      // metadata de la tentative — non modifiable par le client après coup).
+      recipientUserId: typeof meta.recipientUserId === "string" ? meta.recipientUserId : null,
+      giftMessage: typeof meta.giftMessage === "string" ? meta.giftMessage : null,
     });
   } catch (err) {
     // L'argent EST encaissé. On laisse la tentative ouverte pour que le cron

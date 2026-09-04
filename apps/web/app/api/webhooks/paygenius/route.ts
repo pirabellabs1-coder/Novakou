@@ -200,6 +200,9 @@ export async function POST(req: Request) {
           metadata.discountAmount != null && String(metadata.discountAmount) !== ""
             ? Number(metadata.discountAmount)
             : undefined,
+        // Achat-cadeau : bénéficiaire de l'accès (metadata signée).
+        recipientUserId: typeof metadata.recipientUserId === "string" ? metadata.recipientUserId : null,
+        giftMessage: typeof metadata.giftMessage === "string" ? metadata.giftMessage : null,
       });
       // Attribution conversion campagne (lien UTM tracké). Idempotent : on ne
       // crédite que si le fulfillment a créé de nouveaux enregistrements.

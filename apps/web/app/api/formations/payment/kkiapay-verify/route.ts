@@ -116,6 +116,9 @@ export async function POST(req: NextRequest) {
         discountCodeStr: typeof meta.discountCode === "string" && meta.discountCode ? meta.discountCode : null,
         sessionRef: internalRef,
         bundleId: typeof meta.bundleId === "string" ? meta.bundleId : null,
+        // Achat-cadeau : bénéficiaire résolu à l'init (metadata de la tentative).
+        recipientUserId: typeof meta.recipientUserId === "string" ? meta.recipientUserId : null,
+        giftMessage: typeof meta.giftMessage === "string" ? meta.giftMessage : null,
       });
     } catch (err) {
       // Encaissé mais non livré : on laisse la tentative ouverte pour que le
