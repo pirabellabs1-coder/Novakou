@@ -61,7 +61,7 @@ function fileNotFoundPage(productTitle: string): string {
   <div class="card">
     <div class="icon">⚠</div>
     <h1>Fichier temporairement indisponible</h1>
-    <p>Le fichier du produit <strong>« ${productTitle.replace(/[<>&"']/g, "")}»</strong> n'est plus accessible. Cela arrive parfois sur d'anciens achats lorsque le vendeur a déplacé son contenu.</p>
+    <p>Le fichier du produit <strong>« ${productTitle.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;")} »</strong> n'est plus accessible. Cela arrive parfois sur d'anciens achats lorsque le vendeur a déplacé son contenu.</p>
     <p>Ton achat reste valide. Écris-nous à <a href="mailto:support@novakou.com" style="background:none;color:#006e2f;text-decoration:underline;padding:0;font-weight:600;">support@novakou.com</a> en précisant le nom du produit — on te le renverra sous 24h.</p>
     <a href="/apprenant/mes-produits">← Retour à mes produits</a>
   </div>

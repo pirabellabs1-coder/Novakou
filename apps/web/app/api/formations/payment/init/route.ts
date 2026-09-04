@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { randomBytes } from "crypto";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
@@ -408,7 +409,10 @@ export async function POST(request: Request) {
 
     // Init real payment via le provider sélectionné
     const refPrefix = "nk"; // référence interne Novakou
-    const internalRef = `${refPrefix}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
+    // Suffixe CRYPTOGRAPHIQUE (pas Math.random, PRNG non sûr) : la référence est
+    // le seul secret qui protège le reçu public (données personnelles). 9 octets
+    // = 18 hex = ~72 bits, imprévisible. Format inchangé (nk:<ts>:<suffixe>).
+    const internalRef = `${refPrefix}:${Date.now()}:${randomBytes(9).toString("hex")}`;
     const fName = userName ?? userEmail?.split("@")[0] ?? "Apprenant";
     const [first, ...rest] = fName.split(" ");
     const last = rest.join(" ") || "User";

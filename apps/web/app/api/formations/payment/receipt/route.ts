@@ -18,6 +18,7 @@
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { rateLimit } from "@/lib/api-rate-limit";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 import {
   FOREST, FOREST_LIGHT, TEXT_DARK, TEXT_MUTED, TEXT_BORDER, ROW_BG, WHITE,
@@ -30,6 +31,15 @@ export async function GET(request: Request) {
   try {
     const ref = (new URL(request.url).searchParams.get("ref") ?? "").trim();
     if (!ref) return NextResponse.json({ error: "Référence manquante" }, { status: 400 });
+
+    // Rate-limit par IP : cet endpoint est PUBLIC et expose des données
+    // personnelles (nom acheteur, montant…). 30 req/min coupe tout balayage,
+    // sans gêner un acheteur légitime qui télécharge son reçu.
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "anon";
+    const rl = await rateLimit(`receipt:${ip}`, 30, 60_000);
+    if (!rl.allowed) {
+      return NextResponse.json({ error: "Trop de requêtes. Réessayez dans un instant." }, { status: 429 });
+    }
 
     // Toutes les lignes rattachées à cette référence de paiement (un lien de
     // paiement = 1 produit, mais on gère un panier multi-lignes par robustesse).
@@ -172,7 +182,7 @@ export async function GET(request: Request) {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `inline; filename="recu-novakou-${safeRef}.pdf"`,
-        "Cache-Control": "private, max-age=300",
+        "Cache-Control": "private, no-store",
       },
     });
   } catch (err) {
