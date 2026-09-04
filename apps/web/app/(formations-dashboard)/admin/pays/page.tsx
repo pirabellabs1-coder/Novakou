@@ -1,6 +1,7 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Flag } from "@/components/ui/Flag";
 
 type Row = { code: string; name: string; users: number; vendors: number; buyers: number };
@@ -9,6 +10,7 @@ type Resp = { data: Row[]; totals: { users: number; vendors: number; buyers: num
 const fmt = (n: number) => n.toLocaleString("fr-FR");
 
 export default function AdminPaysPage() {
+  const qc = useQueryClient();
   const { data, isLoading } = useQuery<Resp>({
     queryKey: ["admin-stats-countries"],
     queryFn: () => fetch("/api/admin/stats/countries").then((r) => r.json()),
@@ -17,14 +19,49 @@ export default function AdminPaysPage() {
   const rows = data?.data ?? [];
   const totals = data?.totals ?? { users: 0, vendors: 0, buyers: 0 };
 
+  // Backfill du pays des comptes existants (par lots, depuis la dernière IP).
+  const [backfillMsg, setBackfillMsg] = useState<string | null>(null);
+  const backfill = useMutation({
+    mutationFn: async () => {
+      let totalUpdated = 0;
+      // On enchaîne les lots jusqu'à épuisement (borné pour ne pas boucler à l'infini).
+      for (let i = 0; i < 40; i++) {
+        const res = await fetch("/api/admin/stats/countries/backfill", { method: "POST" });
+        const j = await res.json();
+        if (!res.ok) throw new Error(j.error || "Erreur");
+        totalUpdated += j.data?.updated ?? 0;
+        setBackfillMsg(`En cours… ${totalUpdated} renseigné(s), ${j.data?.remaining ?? 0} restant(s)`);
+        if (j.data?.done || j.data?.treated === 0) break;
+      }
+      return totalUpdated;
+    },
+    onSuccess: (n) => {
+      setBackfillMsg(`Terminé : ${n} compte(s) renseigné(s).`);
+      qc.invalidateQueries({ queryKey: ["admin-stats-countries"] });
+    },
+    onError: (e: Error) => setBackfillMsg(`Erreur : ${e.message}`),
+  });
+
   return (
     <div className="min-h-screen bg-[#f7f9fb] p-5 md:p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-2xl font-extrabold text-[#111827] mb-1">Répartition par pays</h1>
-        <p className="text-sm text-[#5c647a] mb-6">
+        <p className="text-sm text-[#5c647a] mb-4">
           Utilisateurs, vendeurs et acheteurs par pays. Le pays des comptes Google est déduit à la
           connexion (« Inconnu » tant qu'il n'a pas été déterminé).
         </p>
+
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          <button
+            onClick={() => { setBackfillMsg(null); backfill.mutate(); }}
+            disabled={backfill.isPending}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-bold disabled:opacity-60"
+            style={{ background: "linear-gradient(135deg,#006e2f,#22c55e)" }}
+          >
+            {backfill.isPending ? "Traitement…" : "Renseigner les pays manquants"}
+          </button>
+          {backfillMsg && <span className="text-[12.5px] font-semibold text-[#5c647a]">{backfillMsg}</span>}
+        </div>
 
         <div className="grid grid-cols-3 gap-3 mb-5">
           {[
