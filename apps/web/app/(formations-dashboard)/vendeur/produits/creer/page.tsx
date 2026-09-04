@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
+import { useActiveShop } from "@/components/formations/ShopProvider";
 import { useMutation } from "@tanstack/react-query";
 import { useToastStore } from "@/store/toast";
 import {
@@ -188,6 +189,9 @@ function useToasts() {
 
 export default function CreerProduitPage() {
   const router = useRouter();
+  // Portée boutique : en vue globale (« Toutes les boutiques »), on interdit la
+  // création — il faut d'abord ENTRER dans une boutique. Gate ci-dessous.
+  const { scope, shops, setScope } = useActiveShop();
   // Persisted draft state — survives refresh, tab close, accidental nav. Each
   // field is debounced into localStorage under `nk-draft:${DRAFT_PREFIX}:*`.
   const [step, setStep] = useDraftField(`${DRAFT_PREFIX}:step`, 1);
@@ -650,6 +654,44 @@ export default function CreerProduitPage() {
       </div>
     </div>
   );
+
+  // ── GATE : création interdite en vue globale ────────────────────────────
+  // « Toutes les boutiques » n'est pas une boutique : on ne peut pas y créer.
+  // Le vendeur choisit une boutique, on l'y fait entrer (setScope), puis le
+  // formulaire s'affiche. (Placé APRÈS tous les hooks pour respecter leurs
+  // règles ; ne s'active que pour un vendeur multi-boutique en vue globale.)
+  if (scope === "all" && shops.length > 1) {
+    return (
+      <div className="min-h-screen bg-slate-50/50 flex items-center justify-center px-5 py-16" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
+        <div className="max-w-md w-full bg-white rounded-3xl border border-gray-100 p-7 text-center shadow-sm">
+          <div className="w-14 h-14 rounded-2xl bg-[#006e2f]/10 text-[#006e2f] flex items-center justify-center mx-auto mb-4">
+            <span className="material-symbols-outlined text-[28px]">storefront</span>
+          </div>
+          <h1 className="text-lg font-extrabold text-[#111827]">Dans quelle boutique ?</h1>
+          <p className="text-sm text-[#5c647a] mt-1.5 mb-5">
+            Vous êtes en vue « Toutes les boutiques ». Choisissez la boutique dans laquelle créer ce produit.
+          </p>
+          <div className="space-y-2 text-left">
+            {shops.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => { void setScope(s.id); }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 hover:border-[#006e2f] hover:bg-[#006e2f]/5 transition-colors"
+              >
+                <span
+                  className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-extrabold flex-shrink-0"
+                  style={{ background: s.themeColor || "linear-gradient(135deg, #006e2f, #22c55e)" }}
+                >
+                  {s.name[0]?.toUpperCase()}
+                </span>
+                <span className="font-bold text-[#111827] truncate">{s.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-32" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>

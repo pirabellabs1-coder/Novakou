@@ -271,7 +271,9 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
             second clic pour simplement regarder sa vitrine. Ouvre dans un
             nouvel onglet : il compare son rendu public sans perdre le tableau
             de bord ou le formulaire en cours de saisie. */}
-        {activeShop?.slug && (
+        {/* Masqué en vue globale (« Toutes les boutiques ») : aucune boutique
+            précise n'est sélectionnée, il n'y a donc pas de vitrine à ouvrir. */}
+        {scope !== "all" && activeShop?.slug && (
           <a
             href={`/${activeShop.slug}`}
             target="_blank"
