@@ -27,6 +27,13 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const period: Period = (searchParams.get("period") as Period) ?? "30d";
 
+    // Filtre BOUTIQUE. Absent / "all" → cumulé (toutes les boutiques du vendeur).
+    // Un id → seules les fiches de cette boutique. Comme les fiches chargées sont
+    // déjà celles du vendeur, un id étranger ne fuit rien : il renvoie juste un
+    // ensemble vide. Pas besoin d'une validation séparée.
+    const shopIdParam = (searchParams.get("shopId") ?? "").trim();
+    const shopFilter = shopIdParam && shopIdParam !== "all" ? { shopId: shopIdParam } : {};
+
     // ── Compute cutoff date for the period ──
     const now = new Date();
     // Le serveur tourne en UTC, le vendeur non : Cotonou est a UTC+1, Kampala
@@ -67,6 +74,7 @@ export async function GET(request: Request) {
       select: {
         id: true,
         formations: {
+          where: shopFilter,
           select: {
             id: true,
             title: true,
@@ -89,6 +97,7 @@ export async function GET(request: Request) {
           },
         },
         digitalProducts: {
+          where: shopFilter,
           select: {
             id: true,
             title: true,

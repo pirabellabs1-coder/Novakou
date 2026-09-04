@@ -30,6 +30,7 @@ import {
   StDeltaChip,
   ST,
 } from "@/components/stitch";
+import { useActiveShop } from "@/components/formations/ShopProvider";
 
 type Period = "today" | "yesterday" | "7d" | "30d" | "12m" | "all";
 
@@ -136,10 +137,13 @@ function LoadingBlock({ height = 212 }: { height?: number }) {
 
 export default function StatistiquesPage() {
   const [period, setPeriod] = useState<Period>("30d");
+  // Filtre boutique : "all" = cumulé (toutes les boutiques du vendeur).
+  const [shopId, setShopId] = useState<string>("all");
+  const { shops } = useActiveShop();
 
   const { data, isLoading } = useQuery<{ data: StatsData | null }>({
-    queryKey: ["vendeur-stats", period],
-    queryFn: () => fetch(`/api/formations/vendeur/stats?period=${period}&tz=${new Date().getTimezoneOffset()}`).then((r) => r.json()),
+    queryKey: ["vendeur-stats", period, shopId],
+    queryFn: () => fetch(`/api/formations/vendeur/stats?period=${period}&shopId=${encodeURIComponent(shopId)}&tz=${new Date().getTimezoneOffset()}`).then((r) => r.json()),
     staleTime: 30_000,
   });
 
@@ -220,17 +224,32 @@ export default function StatistiquesPage() {
           title="Statistiques"
           subtitle={rangeSubtitle(period)}
           actions={
-            <StTabs
-              tabs={[
-                { key: "today", label: "Aujourd'hui" },
-                { key: "yesterday", label: "Hier" },
-                { key: "7d", label: "7 j" },
-                { key: "30d", label: "30 j" },
-                { key: "12m", label: "1 an" },
-              ]}
-              active={period}
-              onChange={(key) => setPeriod(key as Period)}
-            />
+            <div className="flex flex-wrap items-center gap-2">
+              {shops.length > 1 && (
+                <select
+                  value={shopId}
+                  onChange={(e) => setShopId(e.target.value)}
+                  aria-label="Filtrer par boutique"
+                  className="rounded-lg border border-black/10 bg-white px-3 py-1.5 text-sm font-semibold text-zinc-700 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/20"
+                >
+                  <option value="all">Toutes les boutiques (cumulé)</option>
+                  {shops.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              )}
+              <StTabs
+                tabs={[
+                  { key: "today", label: "Aujourd'hui" },
+                  { key: "yesterday", label: "Hier" },
+                  { key: "7d", label: "7 j" },
+                  { key: "30d", label: "30 j" },
+                  { key: "12m", label: "1 an" },
+                ]}
+                active={period}
+                onChange={(key) => setPeriod(key as Period)}
+              />
+            </div>
           }
         />
 
