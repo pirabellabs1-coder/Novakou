@@ -60,6 +60,33 @@ export function paysAffichageCourant(): string {
   return window.localStorage.getItem(CLE_MEMOIRE) || paysDetecte || "BJ";
 }
 
+// ─── Taux de change, chargés UNE seule fois par page ────────────────────────
+//
+// Chaque prix affiché monte le hook useDeviseAffichage ; sur /explorer il y a
+// des dizaines de cartes → autant d'appels IDENTIQUES à /public/taux (rafale
+// observée : ~76 requêtes). On mutualise comme la détection géo : un seul
+// fetch partagé, puis on prévient la page pour réafficher les prix.
+let chargementTaux: Promise<void> | null = null;
+
+function chargerTaux(): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+  if (chargementTaux) return chargementTaux;
+  chargementTaux = fetch("/api/formations/public/taux")
+    .then((r) => r.json())
+    .then((j) => {
+      if (j?.data?.taux) {
+        appliquerTaux(j.data.taux);
+        // Les prix sont déjà rendus avec les taux du code : on prévient la page
+        // (comme un changement de pays) pour qu'ils se recalculent une fois.
+        window.dispatchEvent(new CustomEvent(EVENEMENT_DEVISE, { detail: paysAffichageCourant() }));
+      }
+    })
+    .catch(() => {
+      // Taux indisponibles : ceux du code font foi, l'affichage reste juste.
+    });
+  return chargementTaux;
+}
+
 /**
  * Devise d'affichage courante, qui se met à jour quand le visiteur change de
  * pays — sans rechargement, sinon il perdrait sa position dans la page.
@@ -79,18 +106,9 @@ export function useDeviseAffichage() {
     if (!window.localStorage.getItem(CLE_MEMOIRE)) void detecterPaysAffichage();
     // Taux modifies en admin : sans cette lecture, le visiteur verrait un prix
     // calcule avec la valeur du code et en paierait un autre au moment de
-    // valider — la meilleure facon de le perdre au dernier ecran.
-    fetch("/api/formations/public/taux")
-      .then((r) => r.json())
-      .then((j) => {
-        if (j?.data?.taux) {
-          appliquerTaux(j.data.taux);
-          relire();
-        }
-      })
-      .catch(() => {
-        // Taux indisponibles : ceux du code font foi, l'affichage reste juste.
-      });
+    // valider — la meilleure facon de le perdre au dernier ecran. Chargement
+    // MUTUALISE : une seule requete par page, partagee par tous les prix.
+    void chargerTaux();
     window.addEventListener(EVENEMENT_DEVISE, relire);
     // Un autre onglet a pu changer le choix : le localStorage nous en informe.
     window.addEventListener("storage", relire);
