@@ -23,6 +23,10 @@ function ReturnInner() {
   const [status, setStatus] = useState<Status>("loading");
   const [message, setMessage] = useState<string>("Vérification du paiement en cours…");
   const [redirectTo, setRedirectTo] = useState<string>("/apprenant/mes-formations");
+  // Référence de paiement (internalRef) — affichée à l'acheteur + reçu PDF.
+  const [ref, setRef] = useState<string>("");
+  // Lien de paiement intégré : URL de redirection vers le site du vendeur.
+  const [paylinkRedirect, setPaylinkRedirect] = useState<string>("");
 
   // Pixels marketing des vendeurs concernés + montant pour event Purchase
   const [purchasePixels, setPurchasePixels] = useState<Array<{ type: "FACEBOOK" | "GOOGLE" | "TIKTOK" | "SNAPCHAT" | "PINTEREST"; pixelId: string }>>([]);
@@ -81,17 +85,19 @@ function ReturnInner() {
         const metaType = String(verify.data.metadata?.type ?? "");
 
         if (paymentStatus === "success") {
+          // La référence de paiement connue de l'acheteur = l'id renvoyé en
+          // querystring (internalRef). On l'affiche et elle sert au reçu.
+          setRef(paymentId);
+
           // Lien de paiement INTÉGRÉ : le fulfillment (vente + webhook) a déjà été
-          // fait par /verify côté serveur. On renvoie l'acheteur sur le site du
-          // vendeur (au lieu de le garder sur Novakou), avec la référence.
-          const paylinkRedirect = String(verify.data.metadata?.paylinkRedirectUrl ?? "");
-          if (paylinkRedirect) {
+          // fait par /verify côté serveur. L'acheteur sera renvoyé sur le site du
+          // vendeur — mais on lui montre D'ABORD sa référence + le reçu (il devra
+          // souvent la saisir sur le site du vendeur), puis il continue.
+          const paylinkRedirectUrl = String(verify.data.metadata?.paylinkRedirectUrl ?? "");
+          if (paylinkRedirectUrl) {
             setStatus("success");
-            setMessage("Paiement confirmé ! Redirection en cours…");
-            const sep = paylinkRedirect.includes("?") ? "&" : "?";
-            setTimeout(() => {
-              window.location.href = `${paylinkRedirect}${sep}ref=${encodeURIComponent(paymentId)}&status=success`;
-            }, 1200);
+            setMessage("Paiement confirmé ! Notez votre référence de paiement avant de continuer.");
+            setPaylinkRedirect(paylinkRedirectUrl);
             return;
           }
 
@@ -171,13 +177,26 @@ function ReturnInner() {
     run();
   }, [params]);
 
-  // Auto-redirect on success after 3 seconds
+  // URL finale de redirection vers le site du vendeur (avec la référence).
+  function buildPaylinkUrl(): string {
+    const sep = paylinkRedirect.includes("?") ? "&" : "?";
+    return `${paylinkRedirect}${sep}ref=${encodeURIComponent(ref)}&status=success`;
+  }
+
+  // Auto-redirection sur succès.
+  //  • Lien intégré (paylinkRedirect) : on laisse ~10 s pour noter/télécharger la
+  //    référence, puis on renvoie vers le site du vendeur.
+  //  • Sinon : retour à l'espace apprenant après 3 s.
   useEffect(() => {
-    if (status === "success") {
-      const t = setTimeout(() => router.push(redirectTo), 3000);
+    if (status !== "success") return;
+    if (paylinkRedirect) {
+      const t = setTimeout(() => { window.location.href = buildPaylinkUrl(); }, 10000);
       return () => clearTimeout(t);
     }
-  }, [status, redirectTo, router]);
+    const t = setTimeout(() => router.push(redirectTo), 3000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, redirectTo, router, paylinkRedirect, ref]);
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4 py-16" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
@@ -212,15 +231,53 @@ function ReturnInner() {
             </div>
             <h1 className="text-3xl font-extrabold text-zinc-900 mb-2">Paiement réussi !</h1>
             <p className="text-zinc-600 mb-6">{message}</p>
-            <p className="text-xs text-zinc-400 mb-6 tabular-nums">Redirection automatique dans 3 sec…</p>
-            <Link
-              href={redirectTo}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white font-bold hover:opacity-90"
-              style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
-            >
-              Accéder à mes contenus
-              <ArrowRight size={18} />
-            </Link>
+
+            {/* Référence de paiement + reçu — utile surtout pour un lien de paiement */}
+            {ref && (
+              <div className="mb-6 rounded-2xl border border-[#006e2f]/20 bg-[#22c55e]/5 p-4 text-left">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Référence de paiement</p>
+                <p className="text-lg font-extrabold text-[#006e2f] break-all">{ref}</p>
+                <p className="text-xs text-zinc-500 mt-1 mb-3">
+                  {paylinkRedirect
+                    ? "Notez cette référence : elle vous sera demandée sur le site du vendeur pour confirmer votre paiement."
+                    : "Conservez cette référence comme preuve de paiement."}
+                </p>
+                <a
+                  href={`/api/formations/payment/receipt?ref=${encodeURIComponent(ref)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-[#006e2f] text-[#006e2f] font-bold text-sm hover:bg-[#006e2f]/5"
+                >
+                  Télécharger le reçu
+                </a>
+              </div>
+            )}
+
+            {paylinkRedirect ? (
+              <>
+                <p className="text-xs text-zinc-400 mb-3 tabular-nums">Redirection automatique dans 10 sec…</p>
+                <a
+                  href={buildPaylinkUrl()}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white font-bold hover:opacity-90"
+                  style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
+                >
+                  Continuer vers le site du vendeur
+                  <ArrowRight size={18} />
+                </a>
+              </>
+            ) : (
+              <>
+                <p className="text-xs text-zinc-400 mb-6 tabular-nums">Redirection automatique dans 3 sec…</p>
+                <Link
+                  href={redirectTo}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white font-bold hover:opacity-90"
+                  style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
+                >
+                  Accéder à mes contenus
+                  <ArrowRight size={18} />
+                </Link>
+              </>
+            )}
           </>
         )}
         {status === "pending" && (
