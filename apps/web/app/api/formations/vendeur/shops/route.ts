@@ -86,15 +86,26 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Nom de boutique trop court" }, { status: 400 });
   }
 
-  const count = await prisma.vendorShop.count({
+  // Couleurs déjà utilisées par le vendeur (une boutique sans couleur explicite
+  // s'affiche en vert #006e2f → on la compte comme telle).
+  const existing = await prisma.vendorShop.findMany({
     where: { instructeurId: r.ctx.instructeurId },
+    select: { themeColor: true },
   });
+  const count = existing.length;
   if (count >= MAX_SHOPS) {
     return NextResponse.json(
       { error: `Limite atteinte: ${MAX_SHOPS} boutiques maximum par vendeur` },
       { status: 403 },
     );
   }
+
+  // Couleur PAR DÉFAUT DISTINCTE : même sans choix du vendeur, deux boutiques ne
+  // doivent pas se ressembler. On prend la 1re couleur de la palette non encore
+  // utilisée (repli : rotation par nombre de boutiques).
+  const PALETTE = ["#006e2f", "#2563eb", "#db2777", "#f97316", "#7c3aed", "#0891b2", "#ca8a04", "#dc2626"];
+  const used = new Set(existing.map((s) => (s.themeColor?.trim() || "#006e2f").toLowerCase()));
+  const themeColor = PALETTE.find((c) => !used.has(c.toLowerCase())) ?? PALETTE[count % PALETTE.length];
 
   // Slug lisible et unique : coupe sur une frontiere de mot, suffixe -2/-3
   // seulement en cas de collision reelle (lib partagee).
@@ -107,6 +118,7 @@ export async function POST(req: Request) {
       name,
       slug,
       isPrimary: count === 0,
+      themeColor,
     },
     select: {
       id: true, name: true, slug: true, isPrimary: true,
