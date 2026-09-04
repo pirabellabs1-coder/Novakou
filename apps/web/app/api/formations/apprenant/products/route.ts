@@ -26,6 +26,7 @@ export async function GET() {
             banner: true,
             fileSize: true,
             fileUrl: true,
+            isPaymentLink: true,
             instructeurId: true,
             files: {
               orderBy: { order: "asc" },

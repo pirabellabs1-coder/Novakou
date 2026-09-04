@@ -47,6 +47,8 @@ type Purchase = {
   paidAmount: number;
   createdAt: string;
   downloadCount: number;
+  /** Référence de paiement (internalRef) — sert au reçu téléchargeable. */
+  stripeSessionId?: string | null;
   product?: {
     id: string;
     slug?: string | null;
@@ -55,6 +57,8 @@ type Purchase = {
     banner: string | null;
     fileSize: number | null;
     fileUrl: string | null;
+    /** Lien de paiement : produit sans fichier → on propose le reçu, pas un download. */
+    isPaymentLink?: boolean;
     files?: ProductFileLite[];
     instructeurId: string | null;
     reviews?: { id: string; rating: number; comment: string }[];
@@ -270,14 +274,34 @@ export default function ProduitsPage() {
                     </div>
                     <div className="flex flex-col items-end gap-2 flex-shrink-0">
                       <p className="text-[12px] font-extrabold" style={{ color: ST.green }}>{formatFcfa(p.paidAmount)}</p>
-                      <StButton
-                        onClick={() => handleDownload(p)}
-                        variant={isDown ? "secondary" : "primary"}
-                        size="sm"
-                        icon={isDown ? CheckCircle2 : Download}
-                      >
-                        {isDown ? "Re-télécharger" : "Télécharger"}
-                      </StButton>
+                      {p.product?.isPaymentLink ? (
+                        // Lien de paiement : pas de fichier à livrer → on donne le
+                        // REÇU (avec la référence de paiement), pas un « Télécharger »
+                        // qui échouerait faute de fichier.
+                        p.stripeSessionId ? (
+                          <a
+                            href={`/api/formations/payment/receipt?ref=${encodeURIComponent(p.stripeSessionId)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[11px] font-extrabold text-white transition-opacity hover:opacity-90"
+                            style={{ background: ST.green }}
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                            Télécharger le reçu
+                          </a>
+                        ) : (
+                          <span className="text-[11px] font-semibold" style={{ color: ST.textMuted }}>Reçu indisponible</span>
+                        )
+                      ) : (
+                        <StButton
+                          onClick={() => handleDownload(p)}
+                          variant={isDown ? "secondary" : "primary"}
+                          size="sm"
+                          icon={isDown ? CheckCircle2 : Download}
+                        >
+                          {isDown ? "Re-télécharger" : "Télécharger"}
+                        </StButton>
+                      )}
                       <button
                         onClick={() => setReviewTarget({
                           id: p.product?.id ?? "",
