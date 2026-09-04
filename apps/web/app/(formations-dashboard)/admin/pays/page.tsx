@@ -42,6 +42,28 @@ export default function AdminPaysPage() {
     onError: (e: Error) => setBackfillMsg(`Erreur : ${e.message}`),
   });
 
+  // Backfill depuis les paiements (numéro / opérateur) — plus précis pour les
+  // acheteurs Mobile Money que l'IP.
+  const backfillPay = useMutation({
+    mutationFn: async () => {
+      let totalUpdated = 0;
+      for (let i = 0; i < 40; i++) {
+        const res = await fetch("/api/admin/stats/countries/backfill-payments", { method: "POST" });
+        const j = await res.json();
+        if (!res.ok) throw new Error(j.error || "Erreur");
+        totalUpdated += j.data?.updated ?? 0;
+        setBackfillMsg(`En cours (paiements)… ${totalUpdated} renseigné(s), ${j.data?.remaining ?? 0} restant(s)`);
+        if (j.data?.done || j.data?.treated === 0) break;
+      }
+      return totalUpdated;
+    },
+    onSuccess: (n) => {
+      setBackfillMsg(`Terminé (paiements) : ${n} compte(s) renseigné(s).`);
+      qc.invalidateQueries({ queryKey: ["admin-stats-countries"] });
+    },
+    onError: (e: Error) => setBackfillMsg(`Erreur : ${e.message}`),
+  });
+
   return (
     <div className="min-h-screen bg-[#f7f9fb] p-5 md:p-8">
       <div className="max-w-4xl mx-auto">
@@ -53,12 +75,19 @@ export default function AdminPaysPage() {
 
         <div className="flex flex-wrap items-center gap-3 mb-6">
           <button
-            onClick={() => { setBackfillMsg(null); backfill.mutate(); }}
-            disabled={backfill.isPending}
+            onClick={() => { setBackfillMsg(null); backfillPay.mutate(); }}
+            disabled={backfillPay.isPending || backfill.isPending}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-bold disabled:opacity-60"
             style={{ background: "linear-gradient(135deg,#006e2f,#22c55e)" }}
           >
-            {backfill.isPending ? "Traitement…" : "Renseigner les pays manquants"}
+            {backfillPay.isPending ? "Traitement…" : "Renseigner depuis les paiements"}
+          </button>
+          <button
+            onClick={() => { setBackfillMsg(null); backfill.mutate(); }}
+            disabled={backfill.isPending || backfillPay.isPending}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold disabled:opacity-60 border border-[#cfe3d6] text-[#006e2f] bg-white"
+          >
+            {backfill.isPending ? "Traitement…" : "Compléter depuis l'IP"}
           </button>
           {backfillMsg && <span className="text-[12.5px] font-semibold text-[#5c647a]">{backfillMsg}</span>}
         </div>
