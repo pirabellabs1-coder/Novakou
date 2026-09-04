@@ -138,11 +138,11 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const { data: session } = useSession();
-  const { activeShop } = useActiveShop();
+  const { activeShop, scope } = useActiveShop();
 
   const { data: countsResp } = useQuery<{ data: SidebarCounts }>({
-    queryKey: ["vendeur-sidebar-counts"],
-    queryFn: () => fetch("/api/formations/vendeur/sidebar-counts").then((r) => r.json()),
+    queryKey: ["vendeur-sidebar-counts", scope],
+    queryFn: () => fetch(`/api/formations/vendeur/sidebar-counts?shopId=${encodeURIComponent(scope)}`).then((r) => r.json()),
     staleTime: 60_000,
     refetchInterval: 60_000,
   });

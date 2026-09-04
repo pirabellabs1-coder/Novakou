@@ -12,7 +12,7 @@ import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { getActiveShopId } from "@/lib/formations/active-shop";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user && !IS_DEV) {
@@ -24,9 +24,12 @@ export async function GET() {
     if (!ctx) {
       return NextResponse.json({ data: { abandons: 0, inquiries: 0, retraits: 0 } });
     }
-    const activeShopId = await getActiveShopId(session, {
-      devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
-    });
+    // Portée : ?shopId= (all → null = cumulé, id → cette boutique, absent → active).
+    const shopIdParam = (new URL(request.url).searchParams.get("shopId") ?? "").trim();
+    let activeShopId: string | null;
+    if (shopIdParam === "all") activeShopId = null;
+    else if (shopIdParam) activeShopId = shopIdParam;
+    else activeShopId = await getActiveShopId(session, { devFallback: IS_DEV ? "dev-instructeur-001" : undefined });
     const shopFilter = activeShopId ? { shopId: activeShopId } : {};
 
     const [abandons, inquiries, retraits] = await Promise.all([

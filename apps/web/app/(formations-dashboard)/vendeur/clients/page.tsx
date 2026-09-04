@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Users, Wallet, Hourglass, XCircle, Search, Receipt } from "lucide-react";
 import { StCard, StPageHeader, StKpi, StAvatar, ST } from "@/components/stitch";
+import { useActiveShop } from "@/components/formations/ShopProvider";
 
 type OrderStatus =
   | "paye" | "gratuit" | "offert" | "abonnement" | "pack" | "rembourse"
@@ -60,9 +61,10 @@ function StatusBadge({ status }: { status: OrderStatus }) {
 }
 
 export default function VendeurClientsPage() {
+  const { scope } = useActiveShop();
   const { data: response, isLoading } = useQuery<{ data: { orders: Order[]; summary: Summary | null } }>({
-    queryKey: ["vendeur-clients"],
-    queryFn: () => fetch("/api/formations/vendeur/clients").then((r) => r.json()),
+    queryKey: ["vendeur-clients", scope],
+    queryFn: () => fetch(`/api/formations/vendeur/clients?shopId=${encodeURIComponent(scope)}`).then((r) => r.json()),
     staleTime: 30_000,
   });
 

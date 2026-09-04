@@ -41,6 +41,7 @@ import {
 import { countryName } from "@/lib/tracking/geo";
 import { Flag } from "@/components/ui/Flag";
 import { CommunityBanner } from "@/components/formations/CommunityBanner";
+import { useActiveShop } from "@/components/formations/ShopProvider";
 import {
   StCard,
   StPageHeader,
@@ -229,9 +230,11 @@ export default function VendeurDashboard() {
 
   // Plage de visualisation des graphes (7 j → 1 an).
   const [range, setRange] = useState("6m");
+  // Portée boutique : "all" (cumulé) ou un id. Dans la clé → refetch auto au switch.
+  const { scope } = useActiveShop();
   const { data: response, isLoading } = useQuery<{ data: Dashboard | null }>({
-    queryKey: ["vendeur-dashboard", range],
-    queryFn: () => fetch(`/api/formations/vendeur/dashboard?range=${range}`).then((r) => r.json()),
+    queryKey: ["vendeur-dashboard", range, scope],
+    queryFn: () => fetch(`/api/formations/vendeur/dashboard?range=${range}&shopId=${encodeURIComponent(scope)}`).then((r) => r.json()),
     staleTime: 30_000,
   });
 

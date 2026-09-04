@@ -22,6 +22,7 @@ import {
   StAvatar,
   ST,
 } from "@/components/stitch";
+import { useActiveShop } from "@/components/formations/ShopProvider";
 
 type Txn = {
   id: string;
@@ -87,9 +88,10 @@ export default function TransactionsPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
 
+  const { scope } = useActiveShop();
   const { data: response, isLoading } = useQuery<{ data: Txn[]; summary: Summary }>({
-    queryKey: ["vendeur-transactions"],
-    queryFn: () => fetch("/api/formations/vendeur/transactions").then((r) => r.json()),
+    queryKey: ["vendeur-transactions", scope],
+    queryFn: () => fetch(`/api/formations/vendeur/transactions?shopId=${encodeURIComponent(scope)}`).then((r) => r.json()),
     staleTime: 30_000,
   });
 
