@@ -8,7 +8,6 @@ import { computeVendorBalance, computeMentorBalance } from "@/lib/formations/wal
 import { sendWithdrawalRequestedEmail } from "@/lib/email/withdrawals";
 import { resolveActiveUserId } from "@/lib/formations/active-user";
 import { getOrCreateInstructeur } from "@/lib/formations/instructeur";
-import { getActiveShopId } from "@/lib/formations/active-shop";
 import { VENDOR_NET_RATE } from "@/lib/formations/constants";
 import {
   getPayoutMethod,
@@ -78,10 +77,11 @@ export async function GET() {
       refusedReason: string | null;
     }> = [];
     if (inst) {
-      // Multi-shop : per-shop wallet — filter sales by active shop's products
-      const activeShopId = await getActiveShopId(session, {
-        devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
-      });
+      // Retrait = COMPTE UNIQUE du vendeur : les revenus de TOUTES les boutiques
+      // convergent vers un seul solde retirable. On ne filtre donc jamais par
+      // boutique ici — sinon le montant dépendrait de la boutique active alors
+      // que la page n'a même plus de sélecteur (incohérence signalée).
+      const activeShopId: string | null = null;
 
       // Solde via la source UNIQUE (wallet-balance) : mêmes règles que le
       // gate de retrait et le cron auto-payout (4 types, réversions immédiates).
@@ -463,10 +463,10 @@ export async function POST(request: Request) {
       if (!inst)
         return NextResponse.json({ error: "Profil vendeur introuvable" }, { status: 404 });
 
-      // Multi-shop : compute available + record withdrawal scoped to the active shop
-      const activeShopId = await getActiveShopId(session, {
-        devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
-      });
+      // Compte de retrait UNIQUE : on retire du solde GLOBAL (toutes boutiques
+      // confondues), jamais d'une boutique précise. Le retrait porte sur le
+      // profil vendeur de l'utilisateur connecté (son propre compte).
+      const activeShopId: string | null = null;
 
       // ── RESTRICTION OWNER : seul le propriétaire de la boutique peut retirer ──
       // Les collaborateurs (MANAGER, EDITOR) n'ont PAS accès aux retraits.
