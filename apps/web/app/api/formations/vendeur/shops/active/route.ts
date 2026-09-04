@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { resolveActiveShop, ACTIVE_SHOP_COOKIE } from "@/lib/formations/active-shop";
+import { ensureDistinctShopColors } from "@/lib/formations/shop-colors";
 
 /** GET — return the active shop + the full list to populate the switcher. */
 export async function GET() {
@@ -17,6 +18,11 @@ export async function GET() {
     devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
   });
   if (!ctx) return NextResponse.json({ error: "Aucune boutique" }, { status: 404 });
+
+  // Répare les couleurs AVANT de lire la liste : c'est cette route que le
+  // dashboard et le sélecteur appellent (pas /shops), donc c'est ici que la
+  // recoloration rétro-active doit tourner pour être visible. Idempotent.
+  await ensureDistinctShopColors(ctx.instructeurId);
 
   const allShops = await prisma.vendorShop.findMany({
     where: { instructeurId: ctx.instructeurId },
