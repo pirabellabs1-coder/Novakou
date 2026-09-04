@@ -42,6 +42,7 @@ import {
   StGhostCard,
   ST,
 } from "@/components/stitch";
+import { useActiveShop } from "@/components/formations/ShopProvider";
 
 type Product = {
   id: string;
@@ -60,6 +61,8 @@ type Product = {
   productKind: string;
   revenue: number;
   sales: number;
+  shopId: string | null;
+  shopName: string | null;
 };
 
 type FormationsData = {
@@ -165,6 +168,9 @@ export default function ProduitsPage() {
   const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState<Tab>("all");
   const [searchQ, setSearchQ] = useState("");
+  // Filtre boutique, appliqué CÔTÉ CLIENT sur la liste « toutes boutiques ».
+  const [shopFilter, setShopFilter] = useState<string>("all");
+  const { shops } = useActiveShop();
   const [toast, setToast] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [linksFor, setLinksFor] = useState<Product | null>(null);
@@ -185,9 +191,11 @@ export default function ProduitsPage() {
       .catch(() => setToast("Copie impossible"));
   }
 
+  // « Mes produits » montre TOUTES les boutiques (shopId=all) ; le filtre
+  // boutique ci-dessous se fait côté client, sans re-requête.
   const { data: response, isLoading } = useQuery<{ data: FormationsData | null }>({
-    queryKey: ["vendeur-formations"],
-    queryFn: () => fetch("/api/formations/vendeur/formations").then((r) => r.json()),
+    queryKey: ["vendeur-formations", "all-shops"],
+    queryFn: () => fetch("/api/formations/vendeur/formations?shopId=all").then((r) => r.json()),
     staleTime: 30_000,
   });
 
@@ -301,12 +309,17 @@ export default function ProduitsPage() {
     if (activeTab === "actif") items = items.filter(isActive);
     else if (activeTab === "brouillon") items = items.filter(isDraft);
     else if (activeTab === "archive") items = items.filter(isArchived);
+    if (shopFilter === "none") items = items.filter((p) => !p.shopId);
+    else if (shopFilter !== "all") items = items.filter((p) => p.shopId === shopFilter);
     if (searchQ.trim()) {
       const q = searchQ.trim().toLowerCase();
       items = items.filter((p) => p.title.toLowerCase().includes(q));
     }
     return items;
-  }, [allItems, activeTab, searchQ]);
+  }, [allItems, activeTab, searchQ, shopFilter]);
+
+  // Y a-t-il des produits non rattachés à une boutique ? (pour l'option « Sans boutique »)
+  const hasOrphans = useMemo(() => allItems.some((p) => !p.shopId), [allItems]);
 
   const ratingAvg = useMemo(() => {
     const rated = allItems.filter((p) => p.reviewsCount > 0);
@@ -382,22 +395,39 @@ export default function ProduitsPage() {
           />
         </div>
 
-        {/* ── Tabs + recherche (maquette) ── */}
+        {/* ── Tabs + filtre boutique + recherche (maquette) ── */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
           <StTabs tabs={tabs} active={activeTab} onChange={(k) => setActiveTab(k as Tab)} />
-          <div
-            className="flex items-center gap-2 bg-white rounded-[12px] px-3.5 py-2.5 w-full md:w-[280px]"
-            style={{ border: `1px solid ${ST.cardBorder}` }}
-          >
-            <Search size={15} style={{ color: ST.textMuted }} />
-            <input
-              type="search"
-              value={searchQ}
-              onChange={(e) => setSearchQ(e.target.value)}
-              placeholder="Filtrer par nom…"
-              className="flex-1 bg-transparent text-[12.5px] font-semibold focus:outline-none"
-              style={{ color: ST.text }}
-            />
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            {shops.length > 1 && (
+              <select
+                value={shopFilter}
+                onChange={(e) => setShopFilter(e.target.value)}
+                aria-label="Filtrer par boutique"
+                className="bg-white rounded-[12px] px-3 py-2.5 text-[12.5px] font-semibold focus:outline-none"
+                style={{ border: `1px solid ${ST.cardBorder}`, color: ST.text }}
+              >
+                <option value="all">Toutes les boutiques</option>
+                {shops.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+                {hasOrphans && <option value="none">Sans boutique</option>}
+              </select>
+            )}
+            <div
+              className="flex items-center gap-2 bg-white rounded-[12px] px-3.5 py-2.5 flex-1 md:w-[280px]"
+              style={{ border: `1px solid ${ST.cardBorder}` }}
+            >
+              <Search size={15} style={{ color: ST.textMuted }} />
+              <input
+                type="search"
+                value={searchQ}
+                onChange={(e) => setSearchQ(e.target.value)}
+                placeholder="Filtrer par nom…"
+                className="flex-1 bg-transparent text-[12.5px] font-semibold focus:outline-none"
+                style={{ color: ST.text }}
+              />
+            </div>
           </div>
         </div>
 
@@ -451,6 +481,16 @@ export default function ProduitsPage() {
                     >
                       {kindLabel(product.productKind)}
                     </span>
+                    {shops.length > 1 && product.shopName && (
+                      <span
+                        className="absolute top-2.5 right-2.5 inline-flex items-center gap-1 text-[10px] font-extrabold px-[9px] py-[3px] rounded-full max-w-[55%] truncate"
+                        style={{ background: "rgba(0,0,0,.55)", color: "#fff" }}
+                        title={product.shopName}
+                      >
+                        <Store size={10} className="shrink-0" />
+                        <span className="truncate">{product.shopName}</span>
+                      </span>
+                    )}
                   </div>
                   {/* Body */}
                   <div className="px-4 pt-3 pb-4">

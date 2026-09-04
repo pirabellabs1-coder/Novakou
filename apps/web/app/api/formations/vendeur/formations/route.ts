@@ -7,7 +7,7 @@ import { resolveVendorContext } from "@/lib/formations/active-user";
 import { getActiveShopId } from "@/lib/formations/active-shop";
 import { getOrCreateInstructeur } from "@/lib/formations/instructeur";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user && !IS_DEV) {
@@ -17,14 +17,27 @@ export async function GET() {
     if (!ctx) return NextResponse.json({ data: null });
     const userId = ctx.userId;
 
-    // Multi-shop : ne montrer que les produits de la boutique active.
-    // On inclut AUSSI les produits sans boutique (shopId: null) — auto-guérison
-    // des produits créés par une route qui a oublié de poser shopId (ex. API v1,
-    // anciens imports) : sinon ils sont publics mais INVISIBLES pour le vendeur.
-    const activeShopId = await getActiveShopId(session, {
-      devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
-    });
-    const shopWhere = activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : undefined;
+    // Portée BOUTIQUE, pilotée par le paramètre `shopId` :
+    //   • "all"     → tout le vendeur, toutes boutiques confondues (défaut de la
+    //                 page « Mes produits », qui gère son propre filtre) ;
+    //   • "<id>"    → uniquement cette boutique ;
+    //   • absent    → la boutique ACTIVE (compat des autres consommateurs qui
+    //                 appellent cette route sans paramètre).
+    // On inclut AUSSI les produits sans boutique (shopId: null) dans la vue
+    // active — auto-guérison des produits créés sans shopId (API v1, imports) :
+    // sinon ils sont publics mais INVISIBLES pour le vendeur.
+    const shopParam = (new URL(request.url).searchParams.get("shopId") ?? "").trim();
+    let shopWhere: { shopId: string } | { OR: Array<{ shopId: string | null }> } | undefined;
+    if (shopParam === "all") {
+      shopWhere = undefined;
+    } else if (shopParam) {
+      shopWhere = { shopId: shopParam };
+    } else {
+      const activeShopId = await getActiveShopId(session, {
+        devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+      });
+      shopWhere = activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : undefined;
+    }
 
     const profile = await prisma.instructeurProfile.findUnique({
       where: { userId },
@@ -48,6 +61,8 @@ export async function GET() {
             publishedAt: true,
             createdAt: true,
             refuseReason: true,
+            shopId: true,
+            shop: { select: { name: true } },
             enrollments: {
               select: { paidAmount: true, refundedAt: true },
             },
@@ -71,6 +86,8 @@ export async function GET() {
             salesCount: true,
             createdAt: true,
             refuseReason: true,
+            shopId: true,
+            shop: { select: { name: true } },
             purchases: {
               select: { paidAmount: true },
             },
@@ -99,6 +116,8 @@ export async function GET() {
         publishedAt: f.publishedAt,
         createdAt: f.createdAt,
         refuseReason: f.refuseReason,
+        shopId: f.shopId,
+        shopName: f.shop?.name ?? null,
         productKind: "formation",
         revenue: active.reduce((s, e) => s + e.paidAmount, 0),
         sales: active.length,
@@ -119,6 +138,8 @@ export async function GET() {
       publishedAt: null,
       createdAt: p.createdAt,
       refuseReason: p.refuseReason,
+      shopId: p.shopId,
+      shopName: p.shop?.name ?? null,
       productKind: p.productType,
       revenue: p.purchases.reduce((s, pu) => s + pu.paidAmount, 0),
       sales: p.purchases.length,
