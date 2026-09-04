@@ -84,14 +84,16 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   const setScope = useCallback(
     async (next: ShopScope) => {
       setScopeState(next);
-      if (next !== "all") {
-        await fetch("/api/formations/vendeur/shops/active", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ shopId: next }),
-        }).catch(() => null);
-        await refresh();
-      }
+      // On pose TOUJOURS le cookie de portée (y compris « all ») : c'est lui qui
+      // rend cumulées, côté serveur, toutes les pages vendeur qui lisent le
+      // cookie — sans avoir à les modifier une par une. Pour une boutique
+      // précise, le cookie sert aussi de cible d'écriture (création).
+      await fetch("/api/formations/vendeur/shops/active", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ shopId: next }),
+      }).catch(() => null);
+      await refresh();
       await queryClient.invalidateQueries();
       router.refresh();
     },

@@ -64,13 +64,25 @@ export async function POST(req: Request) {
   const shopId = (body.shopId ?? "").trim();
   if (!shopId) return NextResponse.json({ error: "shopId requis" }, { status: 400 });
 
+  const cookieStore = await cookies();
+
+  // Portée « TOUTES LES BOUTIQUES » (vue cumulée) : on pose une valeur sentinelle
+  // « all » dans le cookie. getActiveShopId la traduit en null (aucun filtre),
+  // donc TOUTES les pages vendeur qui lisent le cookie deviennent cumulées, sans
+  // les modifier une par une. Pas de boutique à valider ici.
+  if (shopId === "all") {
+    cookieStore.set(ACTIVE_SHOP_COOKIE, "all", {
+      path: "/", sameSite: "lax", httpOnly: false, maxAge: 60 * 60 * 24 * 30,
+    });
+    return NextResponse.json({ data: { activeShopId: "all" } });
+  }
+
   const shop = await prisma.vendorShop.findFirst({
     where: { id: shopId, instructeurId: ctx.instructeurId },
     select: { id: true, name: true, slug: true },
   });
   if (!shop) return NextResponse.json({ error: "Boutique introuvable" }, { status: 404 });
 
-  const cookieStore = await cookies();
   cookieStore.set(ACTIVE_SHOP_COOKIE, shop.id, {
     path: "/",
     sameSite: "lax",

@@ -104,6 +104,15 @@ export async function getActiveShopId(
   session: Session | null,
   opts: { devFallback?: string } = {},
 ): Promise<string | null> {
+  // Portée « TOUTES LES BOUTIQUES » : le cookie porte la sentinelle « all » →
+  // aucun filtre boutique (vue cumulée). C'est ce qui fait que toutes les pages
+  // vendeur lisant le cookie deviennent cumulées en vue globale.
+  try {
+    const c = (await cookies()).get(ACTIVE_SHOP_COOKIE)?.value;
+    if (c === "all") return null;
+  } catch {
+    /* hors contexte requête */
+  }
   const ctx = await resolveActiveShop(session, opts);
   if (!ctx || ctx.needsChooser) return null;
   return ctx.shop.id;
