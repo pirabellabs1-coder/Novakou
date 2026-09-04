@@ -9,6 +9,7 @@ import { resolveVendorContext } from "@/lib/formations/active-user";
 import { resolveStorageFileUrl, getStorageObjectPath } from "@/lib/supabase-storage";
 import { revalidatePublicCatalog } from "@/lib/formations/revalidate-public";
 import { getOrCreateCategory } from "@/lib/formations/categories";
+import { resolveShopRelationUpdate } from "@/lib/formations/shop-assign";
 
 // Reconvertit une URL Supabase Storage (signée ou non) en chemin brut pour la DB.
 // Pour les URLs externes (Cloudinary, http public), conserve la valeur telle quelle.
@@ -34,7 +35,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         productType: true, thumbnail: true, banner: true, price: true, originalPrice: true,
         rating: true, reviewsCount: true, salesCount: true, viewsCount: true,
         tags: true, status: true, fileUrl: true,
-        hiddenFromMarketplace: true,
+        hiddenFromMarketplace: true, shopId: true,
         affiliateEnabled: true, affiliateCommissionPct: true,
         // Limites de vente (pour le formulaire vendeur)
         maxBuyers: true, currentBuyers: true, salesEndAt: true,
@@ -189,6 +190,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       categoryUpdate = { category: { connect: { id: cat.id } } };
     }
 
+    // Boutique : un produit peut être déplacé d'une boutique à l'autre (ou
+    // détaché). Le champ n'est appliqué que s'il est présent dans le corps.
+    let shopUpdate: { connect: { id: string } } | { disconnect: true } | undefined;
+    try {
+      shopUpdate = await resolveShopRelationUpdate(ctx.instructeurId, body.shopId);
+    } catch {
+      return NextResponse.json({ error: "Boutique invalide." }, { status: 400 });
+    }
+
     // ── RÈGLES DE PUBLICATION (mêmes qu'à la création) ───────────────────
     // Elles ne s'appliquent que si le produit SERA visible : publication
     // demandée, ou produit déjà en ligne qu'on modifie (sinon on pourrait
@@ -280,6 +290,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
             : undefined,
         ...(filesUpdate ? { files: filesUpdate } : {}),
         ...(categoryUpdate ?? {}),
+        ...(shopUpdate ? { shop: shopUpdate } : {}),
       },
       include: {
         files: {

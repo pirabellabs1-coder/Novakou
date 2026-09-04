@@ -6,6 +6,7 @@ import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { revalidatePublicCatalog } from "@/lib/formations/revalidate-public";
 import { decisionPublication, notifierMiseEnAttente } from "@/lib/formations/publication-gate";
+import { resolveShopRelationUpdate } from "@/lib/formations/shop-assign";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -23,7 +24,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         id: true, slug: true, title: true, shortDesc: true, description: true,
         thumbnail: true, previewVideo: true, price: true, originalPrice: true,
         isFree: true, customCategory: true, status: true, rating: true, studentsCount: true,
-        reviewsCount: true, hiddenFromMarketplace: true, createdAt: true, updatedAt: true,
+        reviewsCount: true, hiddenFromMarketplace: true, shopId: true, createdAt: true, updatedAt: true,
         sections: {
           orderBy: { order: "asc" },
           select: {
@@ -154,6 +155,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       if (publication) statutFinal = decision.statut;
     }
 
+    // Boutique : une formation peut être déplacée d'une boutique à l'autre (ou
+    // détachée). Appliqué seulement si `shopId` est présent dans le corps.
+    let shopUpdate: { connect: { id: string } } | { disconnect: true } | undefined;
+    try {
+      shopUpdate = await resolveShopRelationUpdate(ctx.instructeurId, body.shopId);
+    } catch {
+      return NextResponse.json({ error: "Boutique invalide." }, { status: 400 });
+    }
+
     // V2.2 — publishedAt: stamp lors du passage à ACTIF (si pas déjà set), null sur retour BROUILLON.
     // Un passage en EN_ATTENTE ne date rien : la mise en ligne sera l'approbation.
     let publishedAtVal: Date | null | undefined;
@@ -178,6 +188,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         status: (statutFinal as never) ?? undefined,
         publishedAt: publishedAtVal,
         hiddenFromMarketplace: typeof body.hiddenFromMarketplace === "boolean" ? body.hiddenFromMarketplace : undefined,
+        ...(shopUpdate ? { shop: shopUpdate } : {}),
       },
     });
 
