@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useActiveShop } from "@/components/formations/ShopProvider";
 import {
   type LucideIcon,
   Clapperboard,
@@ -43,6 +44,7 @@ const KIND_LABEL: Record<Resource["kind"], string> = {
 };
 
 export default function VendorResourcesPage() {
+  const { scope } = useActiveShop();
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
@@ -58,7 +60,8 @@ export default function VendorResourcesPage() {
         setLoading(false);
       }
     })();
-  }, []);
+    // scope en dépendance → refiltre au changement de boutique.
+  }, [scope]);
 
   const filtered = useMemo(() => {
     let list = resources;

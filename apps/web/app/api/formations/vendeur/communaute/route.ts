@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { getOrCreateInstructeur } from "@/lib/formations/instructeur";
+import { getActiveShopId } from "@/lib/formations/active-shop";
 
 /**
  * POST /api/formations/vendeur/communaute
@@ -122,8 +123,16 @@ export async function GET() {
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
+    // Isolation par boutique : on ne retient que les formations de la boutique
+    // active → discussions, réponses et inscrits suivent automatiquement.
+    // Vue globale (null) = toutes ; repli shopId null pour les sans-boutique.
+    const activeShopId = await getActiveShopId(session, {
+      devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+    });
+    const shopWhere = activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {};
+
     const formations = await prisma.formation.findMany({
-      where: { instructeurId: profile.id },
+      where: { instructeurId: profile.id, ...shopWhere },
       select: { id: true },
     });
     const formationIds = formations.map((f) => f.id);

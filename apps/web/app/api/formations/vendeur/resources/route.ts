@@ -15,6 +15,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { getActiveShopId } from "@/lib/formations/active-shop";
 import { IS_DEV } from "@/lib/env";
 
 function guessKind(url: string): "video" | "pdf" | "image" | "audio" | "other" {
@@ -33,10 +34,18 @@ export async function GET() {
   });
   if (!ctx) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
+  // Isolation par boutique : les ressources = assets des formations/produits,
+  // qui portent un shopId. On filtre les deux sources. Vue globale (null) =
+  // tout ; repli shopId null pour les contenus sans boutique.
+  const activeShopId = await getActiveShopId(session, {
+    devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+  });
+  const shopWhere = activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {};
+
   try {
     const [formations, products] = await Promise.all([
       prisma.formation.findMany({
-        where: { instructeurId: ctx.instructeurId },
+        where: { instructeurId: ctx.instructeurId, ...shopWhere },
         select: {
           id: true,
           title: true,
@@ -46,7 +55,7 @@ export async function GET() {
         },
       }),
       prisma.digitalProduct.findMany({
-        where: { instructeurId: ctx.instructeurId },
+        where: { instructeurId: ctx.instructeurId, ...shopWhere },
         select: {
           id: true,
           title: true,
