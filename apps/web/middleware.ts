@@ -196,12 +196,37 @@ const APP_HOSTS = new Set<string>([
   "127.0.0.1",
 ]);
 
+const ROOT_DOMAIN = "novakou.com";
+
+// Sous-domaines réservés à l'infra — ne mappent jamais vers une boutique.
+const RESERVED_SUBDOMAINS = new Set<string>([
+  "www", "api", "admin", "app", "mail", "ftp", "cdn", "assets", "static",
+  "staging", "preview", "dashboard", "backoffice", "acheteur", "blog", "help",
+  "support", "docs", "status", "m", "vercel",
+]);
+
+/**
+ * Sous-domaine BOUTIQUE (`<slug>.novakou.com`) → renvoie `<slug>`, sinon null.
+ * Un sous-domaine de novakou.com est le MÊME app : toutes les routes marchent,
+ * on ne réécrit que la racine vers la vitrine (voir middleware).
+ */
+function shopSubdomain(host: string | null): string | null {
+  if (!host) return null;
+  const h = host.split(":")[0].toLowerCase();
+  if (!h.endsWith(`.${ROOT_DOMAIN}`)) return null;
+  const sub = h.slice(0, -(`.${ROOT_DOMAIN}`.length));
+  if (!sub || sub.includes(".") || RESERVED_SUBDOMAINS.has(sub)) return null;
+  return sub;
+}
+
 function isAppHost(host: string | null) {
   if (!host) return true;
   const h = host.split(":")[0].toLowerCase();
   if (APP_HOSTS.has(h)) return true;
   // Vercel preview deploys: *-<team>.vercel.app
   if (h.endsWith(".vercel.app")) return true;
+  // Sous-domaines novakou.com : ce sont l'app elle-même (routes normales).
+  if (h.endsWith(`.${ROOT_DOMAIN}`)) return true;
   return false;
 }
 
@@ -217,6 +242,17 @@ export async function middleware(req: NextRequest) {
   // Route admin-login secrete — laisser passer (la verification du token se fait cote client+API)
   if (pathname.startsWith(ADMIN_LOGIN_PREFIX)) {
     return NextResponse.next();
+  }
+
+  // ── Sous-domaine boutique gratuit : <slug>.novakou.com ──
+  // Le sous-domaine EST l'app (mêmes routes) : on ne réécrit QUE la racine vers
+  // la vitrine ; fiche produit, checkout, etc. passent par le routing normal
+  // (adresses courtes /<slug>), donc TOUT fonctionne sans routing dédié.
+  const sub = shopSubdomain(host);
+  if (sub && (pathname === "/" || pathname === "")) {
+    const url = req.nextUrl.clone();
+    url.pathname = `/boutique/by-domain/${(host ?? "").split(":")[0].toLowerCase()}`;
+    return NextResponse.rewrite(url);
   }
 
   // ── Custom domain: rewrite to /boutique/by-domain/<host><path> ──

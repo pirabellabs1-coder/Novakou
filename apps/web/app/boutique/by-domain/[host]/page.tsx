@@ -10,9 +10,15 @@ interface Props {
 
 async function resolve(hostParam: string) {
   const normalized = decodeURIComponent(hostParam).toLowerCase().replace(/^www\./, "");
+  // Sous-domaine gratuit <slug>.novakou.com → résolution par SLUG.
+  // Domaine personnalisé (autre host) → résolution par customDomain.
+  const ROOT = "novakou.com";
+  const where = normalized.endsWith(`.${ROOT}`)
+    ? { slug: normalized.slice(0, -(`.${ROOT}`.length)) }
+    : { customDomain: normalized };
   try {
     const shop = await prisma.vendorShop.findFirst({
-      where: { customDomain: normalized },
+      where,
       select: {
         id: true,
         name: true,
