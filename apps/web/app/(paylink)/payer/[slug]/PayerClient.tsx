@@ -120,28 +120,44 @@ export default function PayerClient({ link, pixels = [] }: { link: Link; pixels?
   }
 
   return (
-    <div className="max-w-md mx-auto px-5 py-8 md:py-12">
+    <div className="max-w-5xl mx-auto px-5 py-8 md:py-12">
       {/* Pixels du vendeur (FB/Google/TikTok) — event ViewContent pour le suivi des pubs. */}
       <PixelInjector pixels={pixels as Pixel[]} event={{ name: "ViewContent", value: link.price, currency: "XOF" }} />
-      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 overflow-hidden">
-        {/* Visuel */}
-        {link.thumbnail && (
-          <div className="relative aspect-[16/9] bg-slate-100">
-            <AdaptiveImage src={link.thumbnail} alt={link.title} />
-          </div>
-        )}
-        <div className="p-6 md:p-8">
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{ color: themeColor, background: `${themeColor}12` }}>
-            <ShieldCheck size={13} /> Paiement sécurisé
-          </span>
-          <h1 className="text-xl md:text-2xl font-extrabold text-[#111827] mt-3">{link.title}</h1>
-          {link.description && (
-            <p className="text-sm text-[#5c647a] mt-2 leading-relaxed whitespace-pre-line">{link.description}</p>
-          )}
 
-          <form onSubmit={goToPayment} className="mt-6 space-y-4">
-            {/* Montant */}
-            {link.allowCustomAmount ? (
+      {/* Deux colonnes sur desktop : présentation à gauche, formulaire à droite,
+          pour éviter une longue colonne verticale. Empilé sur mobile. */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        {/* ── Présentation produit ─────────────────────────────────────── */}
+        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 overflow-hidden lg:sticky lg:top-8">
+          {link.thumbnail && (
+            <div className="relative aspect-[16/9] bg-slate-100">
+              <AdaptiveImage src={link.thumbnail} alt={link.title} />
+            </div>
+          )}
+          <div className="p-6 md:p-8">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{ color: themeColor, background: `${themeColor}12` }}>
+              <ShieldCheck size={13} /> Paiement sécurisé
+            </span>
+            <h1 className="text-xl md:text-2xl font-extrabold text-[#111827] mt-3">{link.title}</h1>
+            {link.description && (
+              <p className="text-sm text-[#5c647a] mt-2 leading-relaxed whitespace-pre-line">{link.description}</p>
+            )}
+            {/* Prix fixe mis en avant côté présentation (le montant libre est
+                saisi dans le formulaire, à droite). */}
+            {!link.allowCustomAmount && (
+              <div className="mt-6 rounded-xl bg-slate-50 border border-slate-100 px-4 py-3 flex items-baseline justify-between">
+                <span className="text-sm font-semibold text-[#5c647a]">Montant</span>
+                <span className="text-2xl font-extrabold" style={{ color: themeColor }}>{fmt(link.price)} FCFA</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Formulaire de paiement ───────────────────────────────────── */}
+        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 p-6 md:p-8">
+          <form onSubmit={goToPayment} className="space-y-4">
+            {/* Montant libre : saisi ici (prix fixe affiché à gauche). */}
+            {link.allowCustomAmount && (
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-[#5c647a] mb-1.5">Montant à payer (FCFA)</label>
                 <input
@@ -150,11 +166,6 @@ export default function PayerClient({ link, pixels = [] }: { link: Link; pixels?
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-lg font-bold focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
                 />
                 <p className="text-[11px] text-slate-400 mt-1">Vous choisissez le montant (minimum 100 FCFA).</p>
-              </div>
-            ) : (
-              <div className="rounded-xl bg-slate-50 border border-slate-100 px-4 py-3 flex items-baseline justify-between">
-                <span className="text-sm font-semibold text-[#5c647a]">Montant</span>
-                <span className="text-2xl font-extrabold" style={{ color: themeColor }}>{fmt(link.price)} FCFA</span>
               </div>
             )}
 
@@ -214,6 +225,7 @@ export default function PayerClient({ link, pixels = [] }: { link: Link; pixels?
           </form>
         </div>
       </div>
+
       <p className="text-center text-[11px] text-slate-400 mt-5">
         Propulsé par <a href="https://novakou.com" className="font-semibold text-emerald-700">Novakou</a>
       </p>
