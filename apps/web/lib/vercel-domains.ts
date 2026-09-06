@@ -10,6 +10,15 @@
 
 const API = "https://api.vercel.com";
 
+/**
+ * Les domaines personnalisés sont-ils activés côté plateforme ? Sans token +
+ * project id Vercel, aucun appel n'aboutit : on l'expose pour que les routes
+ * renvoient un état « non configuré » clair au lieu d'un 500 cryptique.
+ */
+export function vercelDomainsConfigured(): boolean {
+  return !!process.env.VERCEL_API_TOKEN && !!process.env.VERCEL_PROJECT_ID;
+}
+
 function token() {
   const t = process.env.VERCEL_API_TOKEN;
   if (!t) throw new Error("VERCEL_API_TOKEN missing");

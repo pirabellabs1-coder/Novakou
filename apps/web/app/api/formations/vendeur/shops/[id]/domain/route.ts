@@ -4,7 +4,11 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
-import { addDomain, getDomain, getDomainConfig, removeDomain, dnsInstructions } from "@/lib/vercel-domains";
+import { addDomain, getDomain, getDomainConfig, removeDomain, dnsInstructions, vercelDomainsConfigured } from "@/lib/vercel-domains";
+
+/** Message unique quand la plateforme n'a pas (encore) branché l'API Vercel. */
+const NOT_CONFIGURED_MSG =
+  "Les domaines personnalisés ne sont pas encore activés sur la plateforme. Réessayez plus tard ou contactez le support.";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -53,9 +57,23 @@ export async function GET(_req: Request, { params }: Params) {
   const r = await ctxAndShop(id);
   if ("error" in r) return NextResponse.json({ error: r.error }, { status: r.status });
 
+  // Plateforme non configurée : on renvoie l'état enregistré sans appeler Vercel,
+  // avec le drapeau `configured:false` pour que l'UI affiche un message clair.
+  if (!vercelDomainsConfigured()) {
+    return NextResponse.json({
+      data: {
+        connected: !!r.shop.customDomain,
+        domain: r.shop.customDomain,
+        verified: r.shop.customDomainVerified,
+        records: [],
+        configured: false,
+      },
+    });
+  }
+
   if (!r.shop.customDomain) {
     return NextResponse.json({
-      data: { connected: false, domain: null, verified: false, records: [] },
+      data: { connected: false, domain: null, verified: false, records: [], configured: true },
     });
   }
 
@@ -95,6 +113,10 @@ export async function POST(req: Request, { params }: Params) {
   const { id } = await params;
   const r = await ctxAndShop(id);
   if ("error" in r) return NextResponse.json({ error: r.error }, { status: r.status });
+
+  if (!vercelDomainsConfigured()) {
+    return NextResponse.json({ error: NOT_CONFIGURED_MSG, code: "DOMAINS_NOT_CONFIGURED" }, { status: 503 });
+  }
 
   let body: { domain?: string };
   try {

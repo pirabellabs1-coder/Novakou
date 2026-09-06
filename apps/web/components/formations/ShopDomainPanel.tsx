@@ -24,6 +24,8 @@ interface DomainState {
   currentDns?: { aValues: string[]; cnames: string[] };
   records: DnsRecord[];
   addedAt?: string | null;
+  /** false = l'API Vercel n'est pas branchée côté plateforme (token manquant). */
+  configured?: boolean;
 }
 
 function Copy({ value }: { value: string }) {
@@ -162,7 +164,23 @@ export default function ShopDomainPanel({ shopId }: { shopId: string }) {
         </p>
       </div>
 
-      {!state?.connected ? (
+      {state?.configured === false ? (
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200">
+          <span className="material-symbols-outlined text-amber-500 flex-shrink-0">schedule</span>
+          <div className="text-sm text-amber-900 leading-relaxed">
+            <p className="font-bold">Fonctionnalité bientôt disponible</p>
+            <p className="text-xs mt-1">
+              Les domaines personnalisés ne sont pas encore activés sur la plateforme. Vous pourrez
+              connecter votre domaine dès qu&apos;ils seront ouverts.
+            </p>
+            {state.domain && (
+              <p className="text-xs mt-2">
+                Domaine enregistré : <span className="font-mono font-bold">{state.domain}</span>
+              </p>
+            )}
+          </div>
+        </div>
+      ) : !state?.connected ? (
         <div className="flex flex-col md:flex-row gap-3">
           <div className="flex-1 relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#5c647a] pointer-events-none">

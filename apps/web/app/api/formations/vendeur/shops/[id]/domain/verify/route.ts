@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
-import { verifyDomain, getDomainConfig, dnsInstructions } from "@/lib/vercel-domains";
+import { verifyDomain, getDomainConfig, dnsInstructions, vercelDomainsConfigured } from "@/lib/vercel-domains";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -24,6 +24,13 @@ export async function POST(_req: Request, { params }: Params) {
   });
   if (!shop?.customDomain)
     return NextResponse.json({ error: "Aucun domaine connecté à cette boutique" }, { status: 400 });
+
+  if (!vercelDomainsConfigured()) {
+    return NextResponse.json(
+      { error: "Les domaines personnalisés ne sont pas encore activés sur la plateforme.", code: "DOMAINS_NOT_CONFIGURED" },
+      { status: 503 },
+    );
+  }
 
   const result = await verifyDomain(shop.customDomain);
   if (!result.ok) {
