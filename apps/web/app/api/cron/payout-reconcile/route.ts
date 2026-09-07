@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireCronAuth } from "@/lib/cron/auth";
 import { reconcilePayout, type ReconcileStatus } from "@/lib/payout/reconcile";
+import { sonderMaintenant } from "@/lib/payout/cadence-sonde";
 
 /**
  * GET /api/cron/payout-reconcile
@@ -28,6 +29,7 @@ const MAX_PER_RUN = 40;
 
 /** Fenêtre : au-delà, une référence n'est plus interrogeable utilement. */
 const WINDOW_DAYS = 14;
+
 
 type ProviderId = "feexpay" | "fedapay" | "pawapay";
 
@@ -76,20 +78,22 @@ export async function GET(request: NextRequest) {
       where,
       orderBy: { createdAt: "asc" },
       take: MAX_PER_RUN,
-      select: { id: true, paymentRef: true, paymentProvider: true },
+      select: { id: true, paymentRef: true, paymentProvider: true, createdAt: true },
     }),
     prisma.affiliateWithdrawal.findMany({
       where,
       orderBy: { createdAt: "asc" },
       take: MAX_PER_RUN,
-      select: { id: true, paymentRef: true, paymentProvider: true },
+      select: { id: true, paymentRef: true, paymentProvider: true, createdAt: true },
     }),
   ]);
 
+  const maintenant = new Date();
   const rows = [
     ...vendeurs.map((w) => ({ ...w, kind: "vendeur" as const })),
     ...affilies.map((w) => ({ ...w, kind: "affilie" as const })),
-  ];
+    // Seul FeexPay est espacé : lui seul consomme le forfait du proxy.
+  ].filter((w) => w.paymentProvider !== "feexpay" || sonderMaintenant(w.createdAt, maintenant));
 
   const results: Array<{ kind: string; id: string; status: string; applied?: string }> = [];
   let paid = 0;

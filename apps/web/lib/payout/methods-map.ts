@@ -73,7 +73,11 @@ export const PAYOUT_METHOD_MAP: Record<string, PayoutMethodMapping> = {
   mtn_ci:   { country: "ci", currency: "XOF", feexpay: { endpoint: "mtn_ci" } },
   orange_ci:{ country: "ci", currency: "XOF", feexpay: { endpoint: "orange_ci" } },
   moov_ci:  { country: "ci", currency: "XOF", feexpay: { endpoint: "moov_ci" } },
-  wave_ci:  { country: "ci", currency: "XOF", feexpay: { endpoint: "wave_ci" } },
+  // wave_ci : endpoint RETIRÉ le 2026-09-06. FeexPay refuse le versement avec
+  // MISSING_WAVE_AGGREGATED_MERCHANT — notre boutique FeexPay n'a pas
+  // d'identité « marchand agrégé » déclarée chez Wave, dans aucun des deux
+  // sens (voir le registre). Le rétablir dès que la boutique est configurée.
+  wave_ci:  { country: "ci", currency: "XOF" },
   // djamo_ci : ni FeexPay ni FedaPay → seulement la passerelle.
   djamo_ci: { country: "ci", currency: "XOF" },
 

@@ -277,7 +277,19 @@ const ADAPTATEURS: Record<PayoutProviderId, AdaptateurVersement> = {
   feexpay: {
     libelle: "FeexPay",
     configure: isFeexpayConfigured,
-    route: (m) => m.feexpay ?? null,
+    // DEUX tables décrivaient le versement FeexPay : le REGISTRE (« cet
+    // opérateur est-il servi ? ») et la table des méthodes (« par quel
+    // endpoint ? »). Rien ne les tenait d'accord, et elles ont déjà divergé —
+    // Celtiis, servable au registre, absent de la table : tous les retraits
+    // refusés avec « opérateur non servi par cette passerelle », un message
+    // qui accusait la passerelle alors que la table était incomplète.
+    // Le registre TRANCHE, la table dit seulement COMMENT. Même règle que
+    // PawaPay, et le test `payment-routing` vérifie que les deux concordent.
+    route: (m) => {
+      const code = (m as { code?: string }).code;
+      if (code && !routeFor(code, "feexpay", "payout")) return null;
+      return m.feexpay ?? null;
+    },
     classer: classifyFeexpayError,
     envoyer: async ({ input, route, motif }) => {
       const r = await feexpayInit({

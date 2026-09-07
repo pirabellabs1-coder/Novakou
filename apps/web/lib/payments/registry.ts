@@ -221,7 +221,14 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     // chaque affichage était un échec garanti au moment de payer. Rétablir la
     // route correspondante ici dès que le fournisseur a ouvert l'accès.
     collect: {},
-    payout: { feexpay: { code: "wave_ci" } } },
+    // VERSEMENT FERMÉ AUSSI (constat production 2026-09-06). On avait laissé
+    // la route de versement ouverte en supposant que le blocage ne visait que
+    // l'encaissement. C'est faux : un versement Wave CI de 100 F a été refusé
+    // par le MÊME code, MISSING_WAVE_AGGREGATED_MERCHANT — le marchand agrégé
+    // Wave n'est pas activé sur le compte, dans aucun des deux sens. Laisser
+    // la route ouverte offrait aux vendeurs ivoiriens un moyen de retrait qui
+    // ne pouvait aboutir, et déposait le retrait dans la file admin sans issue.
+    payout: {} },
   mtn_ci: {
     label: "MTN Mobile Money (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
     collect: {

@@ -190,15 +190,44 @@ export function classifyFeexpayError(
         "(proxy à IP fixe ou liste blanche FeexPay). Réessayer ne changera rien tant que ce n'est pas fait.",
     };
   }
-  // Payout non activé / réseau indisponible → FeexPay ne peut pas servir ce
-  // virement maintenant ; l'orchestrateur bascule vers un autre fournisseur.
-  if (
-    lower.includes("payout_not_enabled") ||
-    lower.includes("network_unavailable") || lower.includes("network unavailable")
-  ) {
+  // MARCHAND AGRÉGÉ WAVE NON ACTIVÉ. FeexPay répond HTTP 400 avec le code
+  // MISSING_WAVE_AGGREGATED_MERCHANT quand notre compte n'a pas le marchand
+  // agrégé Wave configuré. C'est un REFUS DE CONFIGURATION rendu avant toute
+  // création de transfert : aucune référence n'est renvoyée, aucun argent ne
+  // bouge. Faute de le reconnaître, il tombait dans « unknown », que
+  // l'orchestrateur traite en AMBIGU — donc arrêt de sûreté, retrait gelé en
+  // attente, et un message demandant à l'admin d'aller vérifier un tableau de
+  // bord où il n'y a rien à voir (constaté le 2026-09-06 sur un versement
+  // Wave CI). Le classer « not_available » dit la vérité et laisse
+  // l'orchestrateur passer au fournisseur suivant sans risque.
+  if (lower.includes("missing_wave_aggregated_merchant") || lower.includes("aggregated merchant")) {
     return {
       category: "not_available",
-      userMessage: "FeexPay est temporairement indisponible pour ce versement.",
+      userMessage:
+        "FeexPay : le marchand agrégé Wave n'est pas activé sur notre compte. " +
+        "Rien n'a été envoyé. À demander à FeexPay — réessayer ne changera rien d'ici là.",
+    };
+  }
+
+  // VERSEMENT NON ACTIVÉ SUR NOTRE COMPTE. Ce n'est PAS temporaire, et le
+  // dire « temporairement indisponible » a coûté cher : quatre retraits ont
+  // été refusés sous ce libellé entre le 4 et le 20 août, chacun invitant à
+  // réessayer une situation qui ne pouvait pas changer toute seule. Même
+  // leçon que pour IP_NOT_AUTHORIZED juste au-dessus : une configuration à
+  // faire de NOTRE côté doit se dire comme telle.
+  if (lower.includes("payout_not_enabled")) {
+    return {
+      category: "not_available",
+      userMessage:
+        "FeexPay : le versement n'est pas activé pour cet opérateur sur notre boutique. " +
+        "Rien n'a été envoyé. À activer dans le tableau de bord FeexPay — réessayer ne changera rien d'ici là.",
+    };
+  }
+  // Réseau de l'opérateur momentanément indisponible : là, c'est bien passager.
+  if (lower.includes("network_unavailable") || lower.includes("network unavailable")) {
+    return {
+      category: "not_available",
+      userMessage: "Le réseau de cet opérateur est momentanément indisponible chez FeexPay.",
     };
   }
   if (lower.includes("invalid_phone") || lower.includes("invalid phone") || lower.includes("invalid_amount") || lower.includes("validation")) {

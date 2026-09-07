@@ -8,6 +8,7 @@ import {
   countryFromPhone,
   listOperators,
 } from "../lib/payments/registry";
+import { PAYOUT_METHOD_MAP } from "../lib/payout/methods-map";
 
 /**
  * Cohérence du routage de paiement.
@@ -230,4 +231,44 @@ test("le Mobile Money garde le débit direct en tête", () => {
   const r = routeFor("mtn_bj", "feexpay", "collect");
   expect(r, "FeexPay doit servir MTN Bénin en débit direct").toBeTruthy();
   expect(r?.params?.hosted).toBeUndefined();
+});
+
+test("registre et table des méthodes disent la même chose sur FeexPay", () => {
+  // DEUX tables décrivent le versement FeexPay : le registre dit SI un
+  // opérateur est servi, `PAYOUT_METHOD_MAP` dit PAR QUEL endpoint. Rien ne
+  // les tenait d'accord, et elles ont déjà divergé dans les deux sens :
+  //   • Celtiis servable au registre, absent de la table → tous les retraits
+  //     refusés avec « opérateur non servi par cette passerelle » ;
+  //   • Wave CI fermé au registre, endpoint encore dans la table → le moteur
+  //     appelait FeexPay pour un opérateur qu'on avait décidé de ne plus servir.
+  // Invariante DÉRIVÉE, pas une liste recopiée : elle survit à tout arbitrage
+  // légitime tant que les deux tables sont modifiées ensemble.
+  const desaccords: string[] = [];
+  for (const [code, m] of Object.entries(PAYOUT_METHOD_MAP)) {
+    const dansTable = Boolean(m.feexpay);
+    const dansRegistre = Boolean(routeFor(code, "feexpay", "payout"));
+    if (dansTable !== dansRegistre) {
+      desaccords.push(
+        `${code} : table=${dansTable ? "endpoint présent" : "aucun"}, ` +
+          `registre=${dansRegistre ? "servable" : "fermé"}`,
+      );
+    }
+  }
+  expect(
+    desaccords,
+    "Fermer ou ouvrir un versement FeexPay se fait DANS LES DEUX fichiers, " +
+      "registry.ts et payout/methods-map.ts, dans le même commit.",
+  ).toEqual([]);
+});
+
+test("tout opérateur versable par FeexPay au registre a un endpoint", () => {
+  // L'autre sens : le registre promet une route que le moteur ne saurait pas
+  // appeler. C'est le cas Celtiis, qui a coûté des retraits refusés.
+  const sansEndpoint: string[] = [];
+  for (const code of Object.keys(OPERATORS)) {
+    if (routeFor(code, "feexpay", "payout") && !PAYOUT_METHOD_MAP[code]?.feexpay) {
+      sansEndpoint.push(code);
+    }
+  }
+  expect(sansEndpoint, "opérateurs versables au registre mais sans endpoint FeexPay").toEqual([]);
 });

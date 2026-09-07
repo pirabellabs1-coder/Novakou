@@ -47,7 +47,18 @@ export async function GET() {
     hint =
       "PAYOUT_PROXY_URL absente de ce déploiement. Vérifie la variable sur Vercel (Production) puis redéploie.";
   } else if (proxied.ip && proxied.ip !== direct.ip) {
-    hint = `OK — le proxy fonctionne. IP à whitelister chez FeexPay + FedaPay : ${proxied.ip} (IP directe Vercel, sans proxy : ${direct.ip ?? "?"}).`;
+    // ⚠️ Ne PAS laisser croire qu'une seule IP suffit. Fixie expose plusieurs
+    // « Outbound IPs » et en attribue une par client : sondé six fois d'affilée
+    // depuis un même poste, le proxy a rendu six fois 54.217.142.99, tandis que
+    // la production sortait au même moment par 54.195.3.54. Le message ne
+    // nommait que l'IP observée — n'en whitelister qu'une fait refuser les
+    // versements partis par les autres, au hasard et sans motif lisible.
+    hint =
+      `OK — le proxy fonctionne. IP de sortie observée ici : ${proxied.ip} ` +
+      `(IP directe Vercel, sans proxy : ${direct.ip ?? "?"}). ` +
+      "⚠️ Whitelister chez FeexPay TOUTES les « Outbound IPs » du tableau de bord " +
+      "Fixie, pas seulement celle-ci : le proxy en attribue une par client, et " +
+      "celle vue ici n'est pas forcément celle qu'un autre appel utilisera.";
   } else if (proxied.error) {
     hint = `Le proxy est configuré mais l'appel a échoué : ${proxied.error}. Un 407 = identifiants Fixie incorrects dans l'URL ; un timeout = hôte/port erronés.`;
   } else {
