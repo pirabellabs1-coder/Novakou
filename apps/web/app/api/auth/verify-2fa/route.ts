@@ -9,6 +9,7 @@ import { checkRateLimit, recordFailedAttempt } from "@/lib/auth/rate-limiter";
 import { IS_DEV, USE_PRISMA_FOR_DATA } from "@/lib/env";
 import { getClientInfoFromContext } from "@/lib/auth/client-info";
 import { notifyLoginSuccess } from "@/lib/auth/notify-login";
+import { lireSecretTotp } from "@/lib/crypto/two-factor-secret";
 
 /**
  * POST /api/auth/verify-2fa — verify the user's TOTP code during login.
@@ -83,7 +84,7 @@ export async function POST(request: Request) {
             { status: 400 }
           );
         }
-        storedSecret = user?.twoFactorSecret ?? null;
+        storedSecret = lireSecretTotp(user?.twoFactorSecret);
         storedName = user?.name ?? storedName;
       } catch {
         return NextResponse.json(

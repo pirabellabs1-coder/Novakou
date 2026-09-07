@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { generateSecret, generateURI, verifySync } from "otplib";
 import { IS_DEV, USE_PRISMA_FOR_DATA } from "@/lib/env";
+import { chiffrerSecretTotp, lireSecretTotp } from "@/lib/crypto/two-factor-secret";
 
 // POST: Generer un nouveau secret 2FA + QR code URL
 export async function POST() {
@@ -34,12 +35,16 @@ export async function POST() {
       });
     }
 
+    // Chiffré AVANT le try : si la clé manque, il faut une vraie erreur, pas
+    // un QR code dont le secret ne sera jamais stocké.
+    const secretChiffre = chiffrerSecretTotp(secret);
+
     // Production: Prisma
     try {
       const { prisma } = await import("@/lib/prisma");
       await prisma.user.update({
         where: { id: session.user.id },
-        data: { twoFactorSecret: secret, twoFactorEnabled: false },
+        data: { twoFactorSecret: secretChiffre, twoFactorEnabled: false },
       });
     } catch {
       // DB non connectee — on continue quand meme avec le secret
@@ -87,7 +92,7 @@ export async function PUT(request: Request) {
           where: { id: session.user.id },
           select: { twoFactorSecret: true },
         });
-        storedSecret = user?.twoFactorSecret ?? null;
+        storedSecret = lireSecretTotp(user?.twoFactorSecret);
       } catch {
         // DB non connectee
       }
@@ -182,8 +187,9 @@ export async function DELETE(request: Request) {
         where: { id: session.user.id },
         select: { twoFactorEnabled: true, twoFactorSecret: true },
       });
-      if (user?.twoFactorEnabled && user.twoFactorSecret) {
-        if (!/^\d{6}$/.test(code) || !verifySync({ token: code, secret: user.twoFactorSecret }).valid) {
+      const secretDelete = lireSecretTotp(user?.twoFactorSecret);
+      if (user?.twoFactorEnabled && secretDelete) {
+        if (!/^\d{6}$/.test(code) || !verifySync({ token: code, secret: secretDelete }).valid) {
           return NextResponse.json({ error: "Code 2FA requis pour désactiver." }, { status: 400 });
         }
       }
