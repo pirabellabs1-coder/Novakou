@@ -8,6 +8,11 @@
  *   VERCEL_TEAM_ID     — optional, for team-owned projects
  */
 
+import {
+  slugUtilisableEnSousDomaine,
+  sousDomaineDeBoutique,
+} from "@/lib/formations/shop-subdomain";
+
 const API = "https://api.vercel.com";
 
 /**
@@ -207,4 +212,66 @@ export function dnsInstructions(domain: string, apexName?: string) {
     });
   }
   return { domain, apex, records };
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Sous-domaine gratuit de boutique — `<slug>.novakou.com`
+ *
+ * Vercel n'accepte un domaine WILDCARD (`*.novakou.com`) que si le domaine
+ * utilise SES serveurs de noms : le certificat wildcard passe par un défi
+ * DNS-01 qu'il doit poser lui-même. novakou.com reste chez Cloudflare (MX de
+ * la boîte du fondateur, SPF, DKIM Resend, DMARC) — basculer les NS pour un
+ * sous-domaine gratuit risquerait l'e-mail transactionnel de toute la
+ * plateforme.
+ *
+ * On inscrit donc CHAQUE sous-domaine individuellement sur le projet. Vercel
+ * délivre alors un certificat par hôte (défi HTTP-01, aucun accès DNS requis)
+ * et le CNAME joker posé une fois chez Cloudflare suffit à router le trafic.
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+/** Un domaine du projet, réduit à ce qui sert à décider quoi faire. */
+export interface ProjectDomain {
+  name: string;
+  verified: boolean;
+}
+
+/**
+ * TOUS les domaines du projet. La page est plafonnée à 100 par l'API : sans
+ * pagination, un projet à 641 boutiques renverrait un inventaire tronqué, et
+ * la synchronisation réinscrirait en boucle des domaines déjà présents.
+ */
+export async function listProjectDomains(): Promise<{ ok: boolean; domains: ProjectDomain[]; error?: string }> {
+  const out: ProjectDomain[] = [];
+  let until: number | null = null;
+  // Garde-fou : 200 pages = 20 000 domaines. Au-delà, c'est une boucle, pas un inventaire.
+  for (let page = 0; page < 200; page++) {
+    const q = `limit=100${until ? `&until=${until}` : ""}`;
+    const res: { ok: boolean; status: number; data: { domains?: ProjectDomain[]; pagination?: { next: number | null } } | null; error?: string } =
+      await call(`/v9/projects/${projectId()}/domains?${q}`, { method: "GET" });
+    if (!res.ok || !res.data) return { ok: false, domains: out, error: res.error ?? `vercel-list-failed:${res.status}` };
+    for (const d of res.data.domains ?? []) out.push({ name: d.name, verified: !!d.verified });
+    const next = res.data.pagination?.next ?? null;
+    if (!next) return { ok: true, domains: out };
+    until = next;
+  }
+  return { ok: true, domains: out };
+}
+
+/**
+ * Inscrit le sous-domaine gratuit d'une boutique au moment où elle est créée,
+ * pour qu'il soit joignable tout de suite plutôt qu'au prochain passage du
+ * cron `sous-domaines-boutiques`.
+ *
+ * Ne lève JAMAIS : une indisponibilité de l'API Vercel ne doit pas empêcher un
+ * vendeur de créer sa boutique. Le cron rattrape ce qui a échoué ici.
+ */
+export async function ensureShopSubdomain(slug: string): Promise<void> {
+  if (!vercelDomainsConfigured()) return;
+  if (!slugUtilisableEnSousDomaine(slug)) return;
+  try {
+    const res = await addDomain(sousDomaineDeBoutique(slug));
+    if (!res.ok) console.warn("[sous-domaine boutique] ajout refusé:", slug, res.error);
+  } catch (err) {
+    console.warn("[sous-domaine boutique] ajout impossible:", slug, err);
+  }
 }

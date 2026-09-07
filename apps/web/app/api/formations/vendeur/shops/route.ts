@@ -7,6 +7,7 @@ import { resolveVendorContext } from "@/lib/formations/active-user";
 import { ensurePrimaryShop } from "@/lib/formations/ensure-primary-shop";
 import { ensureDistinctShopColors, firstFreeShopColor } from "@/lib/formations/shop-colors";
 import { uniqueSlug } from "@/lib/formations/slugs";
+import { ensureShopSubdomain } from "@/lib/vercel-domains";
 
 const MAX_SHOPS = 5;
 const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/;
@@ -129,6 +130,10 @@ export async function POST(req: Request) {
       customDomain: true, customDomainVerified: true,
     },
   });
+
+  // Adresse gratuite <slug>.novakou.com joignable tout de suite. N'échoue
+  // jamais : le cron `sous-domaines-boutiques` rattrape ce qui a raté ici.
+  await ensureShopSubdomain(shop.slug);
 
   return NextResponse.json({ data: { shop } }, { status: 201 });
 }

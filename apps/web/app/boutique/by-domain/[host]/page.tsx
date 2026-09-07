@@ -1,5 +1,8 @@
+import { cache } from "react";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
+import { ROOT_DOMAIN } from "@/lib/formations/shop-subdomain";
 import BoutiqueView from "@/components/formations/BoutiqueView";
 import { shopFontHref } from "@/lib/formations/shop-fonts";
 import { productImageSrc } from "@/lib/utils/image-url";
@@ -8,13 +11,15 @@ interface Props {
   params: Promise<{ host: string }>;
 }
 
-async function resolve(hostParam: string) {
+/** Mémorisé pour la durée de la requête (React `cache`) : `generateMetadata`
+ *  et le composant de page l'appellent tous les deux — sans ça, les cinq
+ *  requêtes Prisma de la vitrine partaient en double à chaque affichage. */
+const resolve = cache(async (hostParam: string) => {
   const normalized = decodeURIComponent(hostParam).toLowerCase().replace(/^www\./, "");
   // Sous-domaine gratuit <slug>.novakou.com → résolution par SLUG.
   // Domaine personnalisé (autre host) → résolution par customDomain.
-  const ROOT = "novakou.com";
-  const where = normalized.endsWith(`.${ROOT}`)
-    ? { slug: normalized.slice(0, -(`.${ROOT}`.length)) }
+  const where = normalized.endsWith(`.${ROOT_DOMAIN}`)
+    ? { slug: normalized.slice(0, -(`.${ROOT_DOMAIN}`.length)) }
     : { customDomain: normalized };
   try {
     const shop = await prisma.vendorShop.findFirst({
@@ -86,6 +91,51 @@ async function resolve(hostParam: string) {
     console.error("[boutique/by-domain] lookup failed:", err);
     return null;
   }
+});
+
+/**
+ * Sans ça, une boutique servie sur son domaine (ou sur <slug>.novakou.com)
+ * héritait du titre du layout racine — donc TOUTES affichaient le même
+ * intitulé de plateforme dans l'onglet et dans les partages.
+ *
+ * Canonique : l'adresse courte novakou.com/<slug> reste la principale pour un
+ * sous-domaine gratuit (même page à trois adresses, sinon contenu dupliqué) ;
+ * un domaine personnalisé est en revanche canonique de lui-même — c'est LUI
+ * que le vendeur veut voir indexé.
+ */
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { host } = await params;
+  const data = await resolve(host);
+  if (!data) {
+    return { title: "Boutique introuvable", robots: { index: false, follow: false } };
+  }
+  const { shop, normalized } = data;
+
+  const title = `${shop.name} · Boutique Novakou`;
+  const description =
+    shop.description?.slice(0, 160) || `Découvrez la boutique de ${shop.name} sur Novakou.`;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `https://${ROOT_DOMAIN}`;
+  const canonical = normalized.endsWith(`.${ROOT_DOMAIN}`)
+    ? `${baseUrl}/${shop.slug}`
+    : `https://${normalized}/`;
+  const image =
+    shop.coverUrl ||
+    shop.logoUrl ||
+    `${baseUrl}/api/og?type=boutique&title=${encodeURIComponent(shop.name)}&subtitle=${encodeURIComponent(description.slice(0, 100))}`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      title,
+      description,
+      images: [{ url: image, width: 1200, height: 630, alt: shop.name }],
+      type: "website",
+      url: canonical,
+    },
+    twitter: { card: "summary_large_image", title, description, images: [image] },
+  };
 }
 
 export default async function BoutiqueByDomainPage({ params }: Props) {
