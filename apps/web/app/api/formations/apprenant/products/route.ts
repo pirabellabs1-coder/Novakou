@@ -27,6 +27,10 @@ export async function GET() {
             fileSize: true,
             fileUrl: true,
             isPaymentLink: true,
+            // Lien de paiement : l'adresse où le vendeur veut renvoyer
+            // l'acheteur. Elle sert aussi APRÈS coup — un acheteur qui a fermé
+            // l'onglet pendant la redirection ne pouvait plus la retrouver.
+            redirectUrl: true,
             instructeurId: true,
             files: {
               orderBy: { order: "asc" },

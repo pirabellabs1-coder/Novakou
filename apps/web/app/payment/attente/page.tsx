@@ -19,6 +19,17 @@ import { trackEvents } from "@/lib/tracking/events";
 const POLL_MS = 4000;
 const TIMEOUT_MS = 5 * 60 * 1000; // 5 min : au-delà, l'opérateur a expiré
 
+/**
+ * URL de retour vers le site du vendeur, avec la référence du paiement.
+ * Même contrat que /payment/return et que la documentation du lien intégré :
+ * `?ref=<référence>&status=success`, pour que le site du vendeur puisse
+ * reconnaître la commande sans nous redemander quoi que ce soit.
+ */
+function urlVendeur(base: string, ref: string): string {
+  const sep = base.includes("?") ? "&" : "?";
+  return `${base}${sep}ref=${encodeURIComponent(ref)}&status=success`;
+}
+
 function AttenteInner() {
   const params = useSearchParams();
   const router = useRouter();
@@ -46,6 +57,13 @@ function AttenteInner() {
   // pouvoir mesurer ce qu'elle rapportait.
   const [achatPixels, setAchatPixels] = useState<Pixel[]>([]);
   const [achatMontant, setAchatMontant] = useState(0);
+
+  // Lien de paiement intégré : le vendeur veut récupérer l'acheteur sur SON
+  // site après le paiement. Cette page renvoyait tout le monde vers
+  // /apprenant/mes-produits sans jamais lire cette consigne — et comme le
+  // Mobile Money passe TOUJOURS par ici, la redirection ne se produisait
+  // jamais sur la majorité des ventes.
+  const [redirectVendeur, setRedirectVendeur] = useState("");
 
   useEffect(() => {
     // Page ouverte sans référence de paiement (lien tronqué, retour arrière,
@@ -110,6 +128,15 @@ function AttenteInner() {
           // Assez de temps pour que les pixels partent avant la navigation.
           // 2,5 s suffisaient à lire la confirmation, pas forcément à laisser
           // aboutir des requêtes vers trois régies sur un réseau lent.
+          const vendeur = String(j?.data?.paylinkRedirectUrl ?? "");
+          if (vendeur) {
+            setRedirectVendeur(vendeur);
+            // Plus long que les 4 s habituelles : la page affiche la référence
+            // de paiement, et l'acheteur doit avoir le temps de la noter avant
+            // de quitter Novakou. Un bouton permet de partir tout de suite.
+            setTimeout(() => { window.location.href = urlVendeur(vendeur, ref); }, 8000);
+            return;
+          }
           setTimeout(() => router.push("/apprenant/mes-produits"), 4000);
           return;
         }
@@ -174,6 +201,26 @@ function AttenteInner() {
                 ? "Merci ! Votre achat est disponible dans votre espace."
                 : "Merci ! Votre paiement est bien reçu. La mise à disposition de votre achat est en cours — vous recevrez un e-mail dès qu'il sera prêt."}
             </p>
+            {redirectVendeur && (
+              <>
+                <p className="text-[13px] text-[#5c647a] mt-4">
+                  Vous allez être redirigé vers le site du vendeur.
+                </p>
+                {/* La référence est le numéro commun acheteur/vendeur : elle doit
+                    rester lisible avant de quitter Novakou. */}
+                {ref && (
+                  <p className="text-[12px] text-[#98a1b3] mt-1">
+                    Référence : <span className="font-mono text-[#5c647a]">{ref}</span>
+                  </p>
+                )}
+                <a
+                  href={urlVendeur(redirectVendeur, ref)}
+                  className="inline-flex items-center justify-center w-full mt-5 h-11 rounded-xl bg-[#006e2f] text-white text-[14px] font-semibold hover:bg-[#005c27] transition-colors"
+                >
+                  Continuer maintenant
+                </a>
+              </>
+            )}
           </>
         )}
 

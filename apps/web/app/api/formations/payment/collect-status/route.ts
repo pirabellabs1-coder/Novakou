@@ -39,10 +39,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Commande introuvable" }, { status: 404 });
     }
 
-    // Déjà finalisée : on ne réinterroge pas le fournisseur pour rien.
-    if (attempt.status === "COMPLETED") {
-      return NextResponse.json({ data: { status: "success", alreadyDone: true } });
-    }
+    // Le court-circuit « déjà COMPLETED » vivait ICI et renvoyait un succès nu.
+    // Il perdait l'URL de redirection du vendeur — or c'est le cas le PLUS
+    // fréquent sur un lien de paiement : le webhook livre avant que l'acheteur
+    // ne revienne. `reconcileCollectAttempt` traite déjà ce cas, sans rappeler
+    // le fournisseur, ET rend la redirection. Deux implémentations pour une
+    // seule règle, c'était une divergence programmée.
 
     // Statut réel + livraison : exactement ce que fait le cron et le webhook.
     // Ce suivi refaisait la même chose de son côté ; deux implémentations pour
@@ -72,6 +74,11 @@ export async function GET(req: NextRequest) {
         status: "success",
         delivered: r.delivered,
         ref,
+        // Lien de paiement intégré : le vendeur a demandé que l'acheteur
+        // revienne sur SON site. Sans cette ligne, la page d'attente renvoyait
+        // tout le monde vers l'espace acheteur et la consigne du vendeur était
+        // perdue — sur le parcours Mobile Money, donc sur la majorité des ventes.
+        paylinkRedirectUrl: r.paylinkRedirectUrl ?? "",
         ...(r.fulfilled
           ? {
               amount: r.fulfilled.totalAmount,

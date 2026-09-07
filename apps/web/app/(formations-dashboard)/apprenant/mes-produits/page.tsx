@@ -17,6 +17,7 @@ import {
 import {
   Package,
   Download,
+  ExternalLink,
   DownloadCloud,
   CheckCircle2,
   BookOpen,
@@ -59,6 +60,8 @@ type Purchase = {
     fileUrl: string | null;
     /** Lien de paiement : produit sans fichier → on propose le reçu, pas un download. */
     isPaymentLink?: boolean;
+    /** Adresse de suite définie par le vendeur (page de licence, groupe, cours…). */
+    redirectUrl?: string | null;
     files?: ProductFileLite[];
     instructeurId: string | null;
     reviews?: { id: string; rating: number; comment: string }[];
@@ -301,6 +304,26 @@ export default function ProduitsPage() {
                         >
                           {isDown ? "Re-télécharger" : "Télécharger"}
                         </StButton>
+                      )}
+
+                      {/* Adresse de suite du vendeur (page de licence, groupe privé,
+                          espace de cours…). Elle n'existait QUE dans la redirection
+                          juste après le paiement : un acheteur qui fermait l'onglet,
+                          ou qui revenait le lendemain, n'avait plus aucun moyen de la
+                          retrouver. Elle vit désormais à côté du reçu. */}
+                      {p.product?.isPaymentLink && p.product?.redirectUrl && (
+                        <a
+                          href={p.stripeSessionId
+                            ? `${p.product.redirectUrl}${p.product.redirectUrl.includes("?") ? "&" : "?"}ref=${encodeURIComponent(p.stripeSessionId)}&status=success`
+                            : p.product.redirectUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[11px] font-extrabold transition-opacity hover:opacity-90"
+                          style={{ background: "#f0faf3", color: ST.green }}
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          Accéder au contenu
+                        </a>
                       )}
                       <button
                         onClick={() => setReviewTarget({
