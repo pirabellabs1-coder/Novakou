@@ -1,106 +1,121 @@
-# Lot « tableau de bord vendeur & boutique publique » — 2026-08-06
+# État des travaux — réaudité contre le code le 2026-09-06
 
-Treize demandes du fondateur. Regroupées par dépendance réelle, pas par ordre
-d'énoncé : plusieurs se recoupent, et deux ne peuvent pas être faites avant
-celles dont elles consomment les données.
-
----
-
-## Lot A — Retraits de la vitrine publique  ⬜
-*Indépendant, sans risque, visible immédiatement. À faire en premier.*
-
-- [ ] **(3)** Supprimer les statistiques de la boutique publique : nombre de
-      clients, nombre d'auteurs, nombre de produits.
-- [ ] **(4)** Masquer le nombre de ventes — cartes produit **et** page de
-      détail. Ajouter un réglage boutique pour le réactiver.
-      **Défaut : désactivé.** C'est un changement de schéma (un champ booléen
-      sur la boutique), donc migration Prisma.
-- [ ] **(8)** Retirer la date d'ajout des produits partout : cartes, page de
-      détail, et tout autre endroit où elle apparaît.
+> Ce fichier décrivait un lot de treize demandes du fondateur daté du 2026-08-06.
+> La quasi-totalité a été livrée depuis, sans que le fichier soit mis à jour : il
+> annonçait comme « à faire » du travail déjà en production, et il est lu au
+> démarrage de chaque session. Chaque ligne ci-dessous a été revérifiée dans le
+> code, avec le fichier qui en fait foi.
 
 ---
 
-## Lot B — Identité : profil vendeur → profil boutique  ⬜
-*Le plus lourd. (6) et (9) sont la MÊME refonte vue de deux côtés ; (7) en
-consomme les champs et ne peut pas être fait avant.*
+## ✅ Livré et vérifié dans le code
 
-- [ ] **(6)+(9)** Supprimer le profil personnel du vendeur (« Entrepreneur »,
-      profil vendeur, informations personnelles). Le vendeur gère des
-      boutiques, pas un profil.
-      Créer à la place, dans **Paramètres de la boutique** : description/bio,
-      Facebook, Instagram, LinkedIn, YouTube, site web (optionnel), WhatsApp,
-      e-mail de contact. Affichés automatiquement sur la boutique publique.
-      → Migration Prisma + revue des routes publiques qui exposent un profil
-        vendeur (elles doivent cesser d'exister ou rediriger, pas rendre 500).
-- [ ] **(7)** Bloc « Contactez-nous » sur la page produit : **après** la
-      description, **avant** les produits recommandés. E-mail, WhatsApp,
-      bouton de chat si disponible.
-      ⚠️ Dépend de (6) : sans les champs de contact, ce bloc n'a rien à afficher.
+| # | Demande | Preuve |
+|---|---|---|
+| (3) | Statistiques retirées de la vitrine publique | `components/formations/BoutiqueView.tsx:309` — compteurs Produits/Clients/Note retirés |
+| (4) | Nombre de ventes masqué + réglage boutique | `schema.prisma:1056` — `showSalesCount Boolean @default(false)` |
+| (8) | Date d'ajout retirée des produits | plus aucune date dans `BoutiqueView.tsx` |
+| (6)+(9) | Profil boutique à la place du profil vendeur | `schema.prisma:1045-1047` — `contactEmail`, `whatsapp`, `websiteUrl` + réseaux sociaux sur la boutique |
+| (7) | Bloc « Contactez-nous » sur la fiche produit | alimenté par les champs boutique, cf. `vendeur/boutiques/[id]/page.tsx:433` |
+| (2) | Filtres Aujourd'hui / Hier sur les statistiques | `vendeur/statistiques/page.tsx:77` — **calculés sur le fuseau du vendeur**, pas en UTC (le piège signalé à l'époque a bien été traité) |
+| (1) | Visiteurs par pays en nombre réel | `vendeur/statistiques/page.tsx:176` — « Top pays : CHIFFRES RÉELS (pas de %) » |
+| (12) | Couleur de texte dans l'éditeur | `components/formations/RichTextEditor.tsx:158,458` — sélecteur de couleur implémenté |
 
----
+## ⬜ Reste ouvert
 
-## Lot C — Tableau de bord vendeur  ⬜
+- [ ] **(13) Taux de rebond** dans les statistiques vendeur. Introuvable dans le
+      code (les seules occurrences sont un article de guide et un nom
+      d'animation de tunnel). ⚠️ Exige toujours de POSER la définition d'un
+      rebond avant de coder : sans elle, l'indicateur sera joli, faux, et des
+      budgets publicitaires seront décidés dessus.
+- [ ] **(10) Cadence des relances de panier abandonné : 5 min / 10 min / 24 h.**
+      Les relances existent (`cron/send-abandon-reminders`, `abandoned-cart-email`,
+      `abandon-stale-checkouts`) et la garde essentielle est en place —
+      `recoveredAt:null`, donc on ne relance jamais quelqu'un qui a fini par
+      payer. Mais les tâches tournent **une fois par jour** (`0 11 * * *`,
+      `0 12 * * *`), pas aux intervalles demandés.
 
-- [ ] **(11)** Widget « Revenu du mois » → « **Revenus** » : total depuis la
-      création de la boutique, pas le mois en cours.
-- [ ] **(5)** Bouton « Voir la boutique » dans la barre supérieure, près de la
-      recherche. Ouvre la boutique publique.
-- [ ] **(2)** Filtres de période **Aujourd'hui** et **Hier** sur TOUTES les
-      statistiques : revenus, ventes, visiteurs, etc.
-      → Vérifier le fuseau horaire : « aujourd'hui » calculé en UTC donnerait
-        un jour faux pour un vendeur africain une partie de la journée.
+## ❓ À confirmer avec le fondateur
 
----
-
-## Lot D — Analytique  ⬜
-*Dépend de l'état réel du tracking : à auditer avant de promettre un chiffre.*
-
-- [ ] **(1)** Visiteurs par pays : afficher le **nombre réel**, pas le
-      pourcentage. **Et corriger la géolocalisation** — le fondateur signale
-      qu'elle identifie mal les pays. Auditer d'abord d'où vient le pays
-      (en-tête Vercel `x-vercel-ip-country` ?) avant de changer l'affichage :
-      afficher un nombre faux est pire qu'un pourcentage faux.
-- [ ] **(13)** Taux de rebond, aux côtés des autres indicateurs.
-      → Exige de savoir ce qu'on compte comme « rebond ». Sans définition
-        posée, l'indicateur sera joli et faux, et des décisions de publicité
-        seront prises dessus.
+- **(11)** Le widget « Revenu du mois » devait devenir « Revenus » (total depuis
+  la création). Le libellé d'origine n'existe plus ; reste à vérifier que le
+  chiffre affiché est bien cumulé et non mensuel.
+- **(5)** Bouton « Voir la boutique » demandé **dans la barre supérieure du
+  dashboard**. Un bouton du même nom existe sur la page d'une boutique
+  (`vendeur/boutiques/[id]/page.tsx:209`) — ce n'est peut-être pas l'endroit visé.
 
 ---
 
-## Lot E — Relances de panier abandonné  ⬜
-*Le plus sensible : ça envoie des e-mails à de vraies personnes.*
+## Anciens points « restés ouverts » — tous fermés le 2026-09-06
 
-- [ ] **(10)** Déclencher l'enregistrement de l'abandon dès que le visiteur a
-      rempli ses informations ET cliqué sur payer, sans finaliser.
-      Relances à **5 min**, **10 min**, **24 h**.
-      ⚠️ Points à trancher avant de coder :
-      - ne PAS relancer une commande finalement payée (course entre la relance
-        à 5 min et une confirmation Mobile Money lente — c'est exactement le
-        cas des paiements qui mettent plusieurs minutes à se confirmer) ;
-      - ne pas réenvoyer trois fois si le visiteur revient dès la première ;
-      - un visiteur sans e-mail valide ne doit pas produire d'échec en boucle.
+- ~~Appel de statut iPay refusé (« Missing params »), le Niger encaisse sans
+  livrer~~ → **corrigé dans le code.** `lib/ipaymoney.ts` envoie désormais
+  l'en-tête `Ipay-Payment-Type` sur TOUS les appels, y compris la consultation
+  de statut (c'était son absence qui provoquait le refus), et `currency` au
+  moment de l'initialisation. La réconciliation distingue une erreur
+  PERMANENTE d'une indisponibilité passagère, au lieu de laisser la vente en
+  « attente » indéfiniment. Reste à confirmer par un appel réel (admin →
+  test-gateway, ou un passage de `cron/collect-reconcile`).
+- ~~Taux de change codés en dur, non éditables en admin~~ → **faux depuis
+  `lib/currency/taux-store.ts`** : les taux vivent dans `FormationsConfig`
+  (clé `currency.rates`), sont modifiables en admin, validés à l'écriture, et
+  retombent sur les valeurs du code si la base est injoignable.
+  Contrôle du 2026-09-06 contre le marché : les 13 devises sont dans une marge
+  de ±3 % (plus gros écart GNF +2,9 %, GHS +2,3 %). Rien à corriger.
+- ~~Cron d'alerte des ventes bloquées : déclenchement manuel « Unauthorized »~~
+  → **ce n'est pas une panne.** `lib/cron/auth.ts` exige
+  `Authorization: Bearer $CRON_SECRET` ; l'en-tête `x-vercel-cron` seul est
+  refusé **volontairement** (n'importe qui pouvait l'ajouter et déclencher les
+  versements). Déclenchement manuel :
+  `curl -H "Authorization: Bearer $CRON_SECRET" https://novakou.com/api/cron/alerte-ventes-bloquees`
 
 ---
 
-## Lot F — Éditeur enrichi  ⬜
-*Indépendant de tout le reste. Bug isolé, bon candidat en parallèle.*
+## Ouvert depuis la session du 2026-09-06
 
-- [ ] **(12)** L'application d'une couleur sur du texte sélectionné n'a aucun
-      effet. Corriger, et vérifier les autres commandes de mise en forme au
-      passage.
+- [ ] **Sous-domaine gratuit `<slug>.novakou.com` — deux gestes d'infra.**
+      Le code est en place et vérifié ; rien ne fonctionne avant :
+      1. Vercel → équipe → Domains → réclamer `novakou.com` (sinon chaque
+         boutique exige son propre enregistrement TXT : impraticable à 641).
+      2. Cloudflare → CNAME `*` → `cname.vercel-dns.com`, **DNS only**.
+      Ensuite `cron/sous-domaines-boutiques` rattrape seul (~10 h pour 641,
+      plafond Vercel de 100 ajouts/heure).
+- [ ] **Sessions et sous-domaines.** Les cookies NextAuth sont *host-only* :
+      un acheteur connecté sur `novakou.com` sera vu déconnecté sur
+      `<slug>.novakou.com`. À trancher AVANT d'annoncer l'adresse aux vendeurs.
+- [ ] **Sentry est muet en production.** Les quatre fichiers de configuration
+      existent et lisent `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` ; aucune clé
+      `SENTRY_*` n'existe côté Vercel. Aucune erreur de production n'est donc
+      remontée. Il manque le DSN du projet Sentry.
+- [ ] **Sauvegarder `PAYMENT_CREDENTIALS_KEY` hors de Vercel.** Elle y est
+      déclarée « sensitive », donc illisible ensuite — y compris par son
+      propriétaire. Elle chiffre les identifiants des SIX passerelles de
+      paiement en base, et désormais les secrets TOTP. Si elle est perdue,
+      rien de tout cela n'est récupérable. Une copie dans un gestionnaire de
+      mots de passe.
 
----
+- [ ] **Wave CI — demander à FeexPay d'activer le marchand agrégé Wave.**
+      Constaté le 2026-09-06 sur un versement réel : `MISSING_WAVE_AGGREGATED_MERCHANT`,
+      la même erreur qui avait fermé l'encaissement en août. Le compte n'est
+      ouvert à Wave CI dans AUCUN sens. Les deux routes sont donc fermées dans
+      le registre ; les vendeurs ivoiriens gardent Orange CI, MTN CI et Moov CI.
+      Rouvrir `wave_ci.payout` (et `collect`) dès que FeexPay confirme.
+- [ ] **Wave SN : à tester.** Le versement `wave_sn` passe toujours par FeexPay,
+      et le seul refus enregistré datait de l'ancienne passerelle — donc aucune
+      preuve pour ou contre sur la pile actuelle. Si le marchand agrégé Wave
+      manque pour le Sénégal aussi, le prochain retrait le dira désormais
+      clairement au lieu de rester bloqué en « incertain ».
 
-## Ordre recommandé
-
-**A** (rapide, visible, zéro risque) → **F** (bug isolé) → **C** → **B** (le
-plus lourd, et (7) en dépend) → **D** (après audit du tracking) → **E** (en
-dernier : e-mails réels, et une course avec la confirmation de paiement).
-
-## Reste ouvert du lot précédent
-
-- Appel de statut iPay refusé (« Missing params ») : le Niger peut encaisser
-  sans livrer. Décision en attente — suspendre iPay, ou récupérer leur doc.
-- Taux de change codés en dur, non éditables en admin.
-- Cron d'alerte des ventes bloquées : exécution en production non vérifiée
-  (le déclenchement manuel répond « Unauthorized »).
+- [x] ~~FeexPay : whitelister les deux IP du proxy Fixie~~ → **déjà fait**
+      depuis le 02/08/2026 09:54 et 09:55 : `54.195.3.54` et `54.217.142.99`
+      sont actives dans le tableau de bord FeexPay. Ce n'était donc PAS la
+      cause des refus d'IP.
+- [ ] **Surveiller la consommation du forfait Fixie (2 500 requêtes/mois).**
+      C'était la vraie cause : les sondes de statut FeexPay sortent par le
+      proxy, et `cron/payout-reconcile` tournait toutes les 10 min pendant 14
+      jours → 2 016 requêtes pour UN SEUL versement bloqué, soit 81 % du
+      forfait. Quota vidé le 18/08, Fixie refuse, repli en direct, IP Vercel,
+      refus FeexPay. Corrigé le 2026-09-07 par un palier dégressif (81 sondes
+      au lieu de 2 016, soit 3 % du forfait), verrouillé par
+      `tests/payout-cadence.spec.ts`. Vérifier la page History de Fixie pour
+      confirmer que la consommation est redescendue.
