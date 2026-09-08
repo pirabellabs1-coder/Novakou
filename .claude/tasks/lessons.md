@@ -194,3 +194,30 @@
   la main — pas un script local. Et il ne doit rien déplacer : lecture de
   configuration, ou demande d'encaissement vers un numéro de test que personne
   ne validera.
+
+- Ce que le registre DÉCLARE et ce que le compte SAIT FAIRE sont deux choses.
+  Sonde du 2026-09-08 : PawaPay a l'encaissement ouvert sur nos 25 opérateurs et
+  le versement ouvert sur AUCUN — les 21 routes de versement PawaPay du registre
+  étaient toutes des promesses vides, dont quinze étaient la seule route de leur
+  opérateur. Personne ne l'avait vu parce que l'ordre de bascule mettait PawaPay
+  en premier : chaque retrait commençait par un refus « versement non activé »,
+  puis passait au suivant — ou ne passait nulle part. Demander au fournisseur sa
+  configuration active (/v2/active-conf) vaut plus que n'importe quelle table.
+- « Disponible chez le fournisseur » ne veut pas dire « activé sur notre compte ».
+  Le fondateur avait raison de dire que FeexPay propose Wave ; la sonde du
+  2026-09-08 a répondu, sur NOTRE boutique : Wave SN accepté (HTTP 201), Wave CI
+  refusé (« aggregated merchant not configured for this merchant », HTTP 400).
+  Même fournisseur, même compte, deux pays, deux réponses. Et pourtant Wave SN
+  n'a PAS été rouvert : « WAVE SN » n'existe dans aucune liste officielle (le
+  SDK React ne connaît que ORANGE SN et FREE SN). Une API qui ACCEPTE un libellé
+  ne prouve pas qu'elle le route — un 201 sans téléphone qui sonne n'est pas
+  une preuve. Deux confirmations indépendantes avant d'ouvrir. Seule une demande
+  réelle vers un numéro de test tranche — et elle est reproductible à volonté.
+
+- Ne JAMAIS lancer la suite Playwright (ou un `next dev`) pendant un `next build`.
+  Les deux écrivent dans `apps/web/.next/` : le build compile avec succès puis
+  meurt sur « Cannot find module .next/server/middleware-manifest.json » — le
+  serveur de test a remplacé le dossier sous ses pieds. Le symptôme ressemble à
+  un module manquant dans le code ; la cause est un parallélisme de mes propres
+  commandes. Un build se lance seul, depuis la racine, et rien ne touche
+  `.next/` avant son verdict.

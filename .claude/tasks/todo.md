@@ -173,8 +173,25 @@ fonctionnel, passerelle par passerelle, partout.
       disponible ».
 - [x] ~~`lib/paygenius-payout-methods.ts`~~ → **supprimé** (aucun import,
       passerelle retirée).
-- [ ] **Sonde de couverture déployée** (`cron/diagnostic-couverture`, manuelle,
-      CRON_SECRET) : PawaPay `/v2/active-conf` confronté au registre dans les
-      deux sens, et demande d'encaissement Wave CI / Wave SN chez FeexPay vers
-      un numéro de test. À appeler après déploiement ; ses résultats décident
-      des dernières fermetures/réouvertures.
+- [x] ~~Sonde de couverture~~ → **déployée et interrogée le 2026-09-08 à 18h02 UTC.**
+      PawaPay : DEPOSIT ouvert sur 25 opérateurs, PAYOUT sur **aucun** → les 21
+      routes de versement PawaPay sont retirées du registre. Quinze opérateurs
+      n'avaient que celle-là et quittent les moyens de retrait : Congo (MTN,
+      Airtel), Cameroun (MTN), Gabon, RDC (Orange, Airtel), Ouganda, Kenya,
+      Rwanda, Zambie, Sierra Leone. Bénin, Côte d'Ivoire et Sénégal gardent
+      FeexPay et/ou FedaPay.
+      FeexPay : Wave SN **accepté par l'API** (HTTP 201) mais absent de toute
+      liste officielle (NETWORK_API_MAPPING du SDK React : ORANGE SN, FREE SN
+      seulement) → **non rouvert**, à confirmer par un paiement de test validé
+      sur un téléphone Wave Sénégal.
+      **Wave CI toujours non activé** sur notre boutique (HTTP 400, « aggregated
+      merchant not configured for this merchant »).
+- [ ] **Relancer la sonde après chaque activation côté fournisseur** :
+      `curl -H "Authorization: Bearer $CRON_SECRET" https://www.novakou.com/api/cron/diagnostic-couverture`
+      Elle dit, opérateur par opérateur, ce qui peut être rouvert.
+- [ ] **Demander à PawaPay l'ouverture du PAYOUT** sur les opérateurs où on
+      encaisse — c'est le seul moyen de rendre le retrait à quinze pays.
+- [ ] **Wave CI : fournir à FeexPay le dossier de marchand agrégé Wave** (nom,
+      activité, type, registre de commerce, site, responsable) — voir
+      docs.wave.com/aggregated-merchants. Tant que ce n'est pas fait, ni
+      l'encaissement ni le versement Wave CI ne peuvent marcher, quoi qu'on code.
