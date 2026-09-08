@@ -7,7 +7,7 @@ import { resolveVendorContext } from "@/lib/formations/active-user";
 import { trackingStore } from "@/lib/tracking/tracking-store";
 import { PLATFORM_COMMISSION_RATE } from "@/lib/formations/constants";
 import { toIso2 } from "@/lib/tracking/geo";
-import { visiteursParPays, visiteursUniques } from "@/lib/formations/stats-pays";
+import { visiteursParPays, visiteursUniques, tauxRebond } from "@/lib/formations/stats-pays";
 
 // Single source of truth (10% — see lib/formations/constants.ts)
 const PLATFORM_FEE = PLATFORM_COMMISSION_RATE;
@@ -135,6 +135,9 @@ export async function GET(request: Request) {
       salesByCountry: [] as { country: string; count: number; revenue: number }[],
       viewsByCountry: [] as { country: string; count: number }[],
       visitorsByCountry: [] as { country: string; visitors: number; views: number }[],
+      bounceRate: null as number | null,
+      bounceSessions: 0,
+      bounceCount: 0,
       topProducts: [] as { id: string; title: string; type: string; sales: number; revenue: number }[],
       ratingDist: [5,4,3,2,1].map((star) => ({ star, count: 0 })),
       conversionFunnel: { views: 0, productViews: 0, purchases: 0, conversionRate: 0 },
@@ -344,6 +347,10 @@ export async function GET(request: Request) {
     // la fonction ne filtre rien elle-meme.
     const visitorsByCountry = visiteursParPays(scopedEvents, sessionCountryMap);
 
+    // Taux de rebond : part des visiteurs repartis apres une seule page, sans
+    // aucune interaction. Meme perimetre vendeur que ci-dessus.
+    const bounce = tauxRebond(scopedEvents);
+
     // ── Conversion funnel ──
     // Corrige : `allEvents` n'est PAS filtre par vendeur. Compter ses page_view
     // affichait a CHAQUE vendeur le trafic de TOUTE la plateforme — un chiffre
@@ -408,6 +415,9 @@ export async function GET(request: Request) {
         salesByCountry,
         viewsByCountry,
         visitorsByCountry,
+        bounceRate: bounce.taux,
+        bounceSessions: bounce.sessions,
+        bounceCount: bounce.rebonds,
         topProducts,
         ratingDist,
         conversionFunnel,

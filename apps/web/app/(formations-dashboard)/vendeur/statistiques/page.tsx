@@ -49,6 +49,9 @@ type StatsData = {
   salesByCountry: { country: string; count: number; revenue: number }[];
   viewsByCountry: { country: string; count: number }[];
   visitorsByCountry: { country: string; visitors: number; views: number }[];
+  bounceRate: number | null;
+  bounceSessions: number;
+  bounceCount: number;
   topProducts: { id: string; title: string; type: string; sales: number; revenue: number }[];
   ratingDist: { star: number; count: number }[];
   conversionFunnel: { views: number; productViews: number; purchases: number; conversionRate: number };
@@ -112,7 +115,18 @@ function rangeSubtitle(period: Period): string {
 }
 
 /* ── KPI card (maquette : label 12px 700, valeur 20px 800, chip delta) ──── */
-function KpiCard({ label, value, delta }: { label: string; value: ReactNode; delta?: number | null }) {
+function KpiCard({
+  label,
+  value,
+  delta,
+  note,
+}: {
+  label: string;
+  value: ReactNode;
+  delta?: number | null;
+  /** Precision sous la valeur : sur quoi le chiffre porte, en clair. */
+  note?: string;
+}) {
   return (
     <StCard className="!p-[15px_18px]">
       <div className="text-[12px] font-bold" style={{ color: ST.textSecondary }}>{label}</div>
@@ -120,6 +134,11 @@ function KpiCard({ label, value, delta }: { label: string; value: ReactNode; del
         {value}
       </div>
       {delta !== undefined && <StDeltaChip pct={delta} />}
+      {note && (
+        <div className="text-[10.5px] font-semibold leading-tight" style={{ color: ST.textSecondary }}>
+          {note}
+        </div>
+      )}
     </StCard>
   );
 }
@@ -155,6 +174,10 @@ export default function StatistiquesPage() {
   const salesByCountry = d?.salesByCountry ?? [];
   const viewsByCountry = d?.viewsByCountry ?? [];
   const visitorsByCountry = d?.visitorsByCountry ?? [];
+  // null = aucune session mesuree. Distinct de 0 %, qui serait un exploit.
+  const bounceRate = d?.bounceRate ?? null;
+  const bounceSessions = d?.bounceSessions ?? 0;
+  const bounceCount = d?.bounceCount ?? 0;
   const topProducts = d?.topProducts ?? [];
   const funnel = d?.conversionFunnel;
   const monthlyTrend = d?.monthlyTrend ?? [];
@@ -247,7 +270,7 @@ export default function StatistiquesPage() {
         />
 
         {/* ── 4 KPI (maquette) ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3.5 mb-4">
           <KpiCard
             label="Revenus"
             value={isLoading ? "—" : `${formatFCFA(overview?.revenue ?? 0)} FCFA`}
@@ -265,6 +288,17 @@ export default function StatistiquesPage() {
           <KpiCard
             label="Panier moyen"
             value={isLoading ? "—" : `${formatFCFA(overview?.avgOrder ?? 0)} FCFA`}
+          />
+          <KpiCard
+            label="Taux de rebond"
+            // « — » et non « 0 % » sans données : 0 % de rebond se lit comme
+            // une excellente nouvelle alors que cela veut dire « rien mesuré ».
+            value={isLoading || bounceRate === null ? "—" : `${formatPct1(bounceRate)} %`}
+            note={
+              isLoading || bounceRate === null
+                ? "Repartis après une seule page"
+                : `${bounceCount.toLocaleString("fr-FR")} sur ${bounceSessions.toLocaleString("fr-FR")} ${bounceSessions > 1 ? "visiteurs" : "visiteur"}`
+            }
           />
         </div>
 

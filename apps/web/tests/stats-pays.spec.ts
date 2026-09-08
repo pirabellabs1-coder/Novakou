@@ -3,6 +3,7 @@ import {
   visiteursParPays,
   visiteursUniques,
   PAYS_INCONNU,
+  tauxRebond,
   type EvenementSuivi,
 } from "../lib/formations/stats-pays";
 
@@ -100,4 +101,74 @@ test("les visiteurs uniques du tunnel comptent des personnes, pas des pages", ()
   // de TOUTE la plateforme. Elle compte desormais des sessions du vendeur.
   expect(visiteursUniques([e("s1"), e("s1"), e("s2"), e("s2"), e("s2")])).toBe(2);
   expect(visiteursUniques([])).toBe(0);
+});
+
+// ── Taux de rebond ────────────────────────────────────────────────────────
+
+/**
+ * Le taux de rebond juge la qualite d'une page d'arrivee : trop haut, la
+ * publicite amene les mauvaises personnes, ou la page ne tient pas sa promesse.
+ * Un vendeur peut couper une campagne sur ce chiffre — il doit etre juste.
+ */
+
+const ev = (sessionId: string, type: string): EvenementSuivi => ({ sessionId, type });
+
+test("une session d'une seule page, sans rien faire, est un rebond", () => {
+  expect(tauxRebond([ev("s1", "shop_view")])).toMatchObject({ sessions: 1, rebonds: 1, taux: 100 });
+});
+
+test("une session qui lit deux pages n'est pas un rebond", () => {
+  expect(tauxRebond([ev("s1", "shop_view"), ev("s1", "product_view")])).toMatchObject({
+    sessions: 1,
+    rebonds: 0,
+    taux: 0,
+  });
+});
+
+test("un visiteur d'une seule page qui CLIQUE n'est pas un rebond", () => {
+  // Le point de la definition : compter cet acheteur potentiel comme un rebond
+  // donnerait au vendeur un chiffre decourageant et faux.
+  const r = tauxRebond([ev("s1", "product_view"), ev("s1", "add_to_cart")]);
+  expect(r).toMatchObject({ sessions: 1, rebonds: 0 });
+});
+
+test("un achat depuis une seule page n'est jamais un rebond", () => {
+  expect(tauxRebond([ev("s1", "product_view"), ev("s1", "purchase")]).rebonds).toBe(0);
+});
+
+test("le taux se calcule sur l'ensemble des sessions", () => {
+  const r = tauxRebond([
+    ev("s1", "shop_view"),                          // rebond
+    ev("s2", "shop_view"),                          // rebond
+    ev("s3", "shop_view"), ev("s3", "product_view"), // non
+    ev("s4", "product_view"), ev("s4", "cta_click"), // non
+  ]);
+  expect(r).toMatchObject({ sessions: 4, rebonds: 2, taux: 50 });
+});
+
+test("le taux garde une decimale plutot que d'arrondir a l'entier", () => {
+  // 1 rebond sur 3 = 33,3 % : arrondir a 33 % suffirait, mais la decimale rend
+  // les petites variations lisibles quand le trafic est faible.
+  const r = tauxRebond([
+    ev("s1", "shop_view"),
+    ev("s2", "shop_view"), ev("s2", "product_view"),
+    ev("s3", "shop_view"), ev("s3", "product_view"),
+  ]);
+  expect(r.taux).toBe(33.3);
+});
+
+test("sans aucune session, le taux est indetermine et non pas zero", () => {
+  // « 0 % de rebond » se lit comme une excellente nouvelle. C'est un piege :
+  // cela veut dire « aucune donnee ». L'ecran doit afficher « — ».
+  expect(tauxRebond([])).toMatchObject({ sessions: 0, rebonds: 0, taux: null });
+});
+
+test("un evenement sans type est traite en consultation, pas en interaction", () => {
+  // Prudence sur la collecte ancienne : surestimer l'engagement flatterait le
+  // chiffre, ce qui est la pire erreur possible sur cet indicateur.
+  expect(tauxRebond([{ sessionId: "s1" }]).rebonds).toBe(1);
+});
+
+test("une session qui n'a QU'une interaction ne compte pas comme un rebond", () => {
+  expect(tauxRebond([ev("s1", "cta_click")])).toMatchObject({ sessions: 1, rebonds: 0 });
 });

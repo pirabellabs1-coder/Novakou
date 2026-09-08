@@ -33,6 +33,8 @@ function paysAffichable(brut: string | null | undefined): string {
 export interface EvenementSuivi {
   sessionId: string;
   country?: string | null;
+  /** Type d'evenement. Requis pour le taux de rebond, ignore ailleurs. */
+  type?: string | null;
 }
 
 export interface VisiteursParPays {
@@ -88,4 +90,75 @@ export function visiteursParPays(
 /** Visiteurs uniques, tous pays confondus. Sert la ligne « Visiteurs » du tunnel. */
 export function visiteursUniques(evenements: readonly EvenementSuivi[]): number {
   return new Set(evenements.map((e) => e.sessionId)).size;
+}
+
+
+// ── Taux de rebond ────────────────────────────────────────────────────────
+
+/**
+ * Types d'evenements qui sont des CONSULTATIONS. Tout le reste — clic, ajout
+ * au panier, checkout, achat, recherche, message — est une INTERACTION.
+ */
+const TYPES_VUE = new Set([
+  "page_view",
+  "product_view",
+  "formation_view",
+  "shop_view",
+  "mentor_view",
+  "affiliate_landing_view",
+  "profile_viewed",
+  "service_viewed", // legacy
+  "formation_viewed", // legacy
+]);
+
+export interface Rebond {
+  /** Sessions retenues dans le calcul. */
+  sessions: number;
+  /** Sessions ayant rebondi. */
+  rebonds: number;
+  /** Pourcentage a une decimale, ou null faute de donnees. */
+  taux: number | null;
+}
+
+/**
+ * Part des visiteurs repartis sans rien faire.
+ *
+ * Definition retenue : une session rebondit si elle n'a vu QU'UNE page chez ce
+ * vendeur ET n'a declenche AUCUNE interaction. Un visiteur qui atterrit sur une
+ * seule fiche mais clique « Acheter » n'est donc PAS un rebond — le compter
+ * comme tel donnerait au vendeur un chiffre decourageant et faux.
+ *
+ * Le taux vaut null, et non zero, quand aucune session n'a ete observee :
+ * « 0 % de rebond » se lit comme une excellente nouvelle alors que cela
+ * signifie « aucune donnee ». L'ecran doit afficher « — ».
+ *
+ * @param evenements evenements DEJA restreints au perimetre du vendeur. Un
+ *                   visiteur qui lit trois pages CHEZ UN AUTRE vendeur puis une
+ *                   seule chez celui-ci a bien rebondi ici.
+ */
+export function tauxRebond(evenements: readonly EvenementSuivi[]): Rebond {
+  const vuesParSession = new Map<string, number>();
+  const aInteragi = new Set<string>();
+
+  for (const e of evenements) {
+    // Un evenement sans type vient d'une collecte ancienne : on le traite en
+    // consultation, jamais en interaction — surestimer l'engagement flatterait
+    // le chiffre.
+    if (!e.type || TYPES_VUE.has(e.type)) {
+      vuesParSession.set(e.sessionId, (vuesParSession.get(e.sessionId) ?? 0) + 1);
+    } else {
+      aInteragi.add(e.sessionId);
+      if (!vuesParSession.has(e.sessionId)) vuesParSession.set(e.sessionId, 0);
+    }
+  }
+
+  const sessions = vuesParSession.size;
+  if (sessions === 0) return { sessions: 0, rebonds: 0, taux: null };
+
+  let rebonds = 0;
+  for (const [sessionId, vues] of vuesParSession) {
+    if (vues <= 1 && !aInteragi.has(sessionId)) rebonds++;
+  }
+
+  return { sessions, rebonds, taux: Math.round((rebonds / sessions) * 1000) / 10 };
 }
