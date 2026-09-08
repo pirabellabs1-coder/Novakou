@@ -272,3 +272,57 @@ test("tout opérateur versable par FeexPay au registre a un endpoint", () => {
   }
   expect(sansEndpoint, "opérateurs versables au registre mais sans endpoint FeexPay").toEqual([]);
 });
+
+// ── Même règle pour FedaPay ─────────────────────────────────────────────────
+// L'adaptateur FedaPay lisait `m.fedapay` dans la table des méthodes sans
+// jamais consulter le registre — exactement le défaut corrigé pour FeexPay le
+// 2026-09-07. Conséquence mesurée le 2026-09-08 : Airtel Niger était « versable »
+// au registre (sa SEULE route), absent de la table → proposé au retrait, jamais
+// exécutable. Et l'inverse : mtn_bj / moov_bj / togocel avaient un mode FedaPay
+// dans la table que le registre ne déclarait pas.
+test("registre et table des méthodes disent la même chose sur FedaPay", () => {
+  const desaccords: string[] = [];
+  for (const [code, m] of Object.entries(PAYOUT_METHOD_MAP)) {
+    const dansTable = Boolean(m.fedapay);
+    const dansRegistre = Boolean(routeFor(code, "fedapay", "payout"));
+    if (dansTable !== dansRegistre) {
+      desaccords.push(
+        `${code} : table=${dansTable ? "mode présent" : "aucun"}, ` +
+          `registre=${dansRegistre ? "servable" : "fermé"}`,
+      );
+    }
+  }
+  expect(
+    desaccords,
+    "Fermer ou ouvrir un versement FedaPay se fait DANS LES DEUX fichiers, " +
+      "registry.ts et payout/methods-map.ts, dans le même commit.",
+  ).toEqual([]);
+});
+
+test("tout opérateur versable par FedaPay au registre a un mode", () => {
+  const sansMode: string[] = [];
+  for (const code of Object.keys(OPERATORS)) {
+    if (routeFor(code, "fedapay", "payout") && !PAYOUT_METHOD_MAP[code]?.fedapay) {
+      sansMode.push(code);
+    }
+  }
+  expect(sansMode, "opérateurs versables au registre mais sans mode FedaPay").toEqual([]);
+});
+
+test("un moyen de retrait proposé a AU MOINS une route que le moteur sait appeler", () => {
+  // La promesse faite au vendeur (« ce moyen est disponible ») doit être tenue
+  // par le moteur. Un opérateur servable au registre dont AUCUNE passerelle
+  // n'a de route exécutable serait proposé puis bloqué en attente pour toujours.
+  const orphelins: string[] = [];
+  for (const code of Object.keys(OPERATORS)) {
+    if (!providersFor(code, "payout").length) continue;
+    const m = PAYOUT_METHOD_MAP[code];
+    const executable =
+      Boolean(routeFor(code, "pawapay", "payout")) ||
+      Boolean(routeFor(code, "monetbil", "payout")) ||
+      Boolean(m?.feexpay && routeFor(code, "feexpay", "payout")) ||
+      Boolean(m?.fedapay && routeFor(code, "fedapay", "payout"));
+    if (!executable) orphelins.push(code);
+  }
+  expect(orphelins, "servables au registre mais sans route exécutable").toEqual([]);
+});

@@ -37,9 +37,11 @@ export type PayoutMethodMapping = {
  * Clé = code interne du moyen (cf. lib/payments/payout-catalog.ts).
  *
  * feexpay : codes relevés dans la doc FeexPay 2026-07 (section API > Payout).
- * fedapay : SEULS mtn_bj/moov_bj/togocel sont confirmés par la doc (exemple
- *           `mode:"mtn_open"` country "bj", plus `moov`, `togocel`). Les autres
- *           attendent confirmation dans le dashboard FedaPay → laissés vides.
+ * fedapay : SEULS les modes confirmés par leur documentation de VERSEMENT :
+ *           mtn_open / moov / sbin (Bénin), togocel (Togo), mtn_ci (Côte
+ *           d'Ivoire). free_sn, airtel_ne et moov_tg n'y sont confirmés qu'à
+ *           l'ENCAISSEMENT → laissés vides ici, et retirés du registre le
+ *           2026-09-08 pour que les deux tables disent la même chose.
  */
 export const PAYOUT_METHOD_MAP: Record<string, PayoutMethodMapping> = {
   // ── Bénin (XOF) ──
@@ -69,8 +71,12 @@ export const PAYOUT_METHOD_MAP: Record<string, PayoutMethodMapping> = {
     fedapay: { mode: "sbin" },
   },
 
-  // ── Côte d'Ivoire (XOF) ── (FedaPay : à confirmer)
-  mtn_ci:   { country: "ci", currency: "XOF", feexpay: { endpoint: "mtn_ci" } },
+  // ── Côte d'Ivoire (XOF) ──
+  // « mtn_ci » : mode de VERSEMENT confirmé par la documentation FedaPay
+  // (payouts-management, 2026-09-08). Le registre le déclarait déjà ; sans
+  // cette ligne le moteur sautait FedaPay pour MTN CI — deux tables qui se
+  // contredisaient, une fois de plus.
+  mtn_ci:   { country: "ci", currency: "XOF", feexpay: { endpoint: "mtn_ci" }, fedapay: { mode: "mtn_ci" } },
   orange_ci:{ country: "ci", currency: "XOF", feexpay: { endpoint: "orange_ci" } },
   moov_ci:  { country: "ci", currency: "XOF", feexpay: { endpoint: "moov_ci" } },
   // wave_ci : endpoint RETIRÉ le 2026-09-06. FeexPay refuse le versement avec

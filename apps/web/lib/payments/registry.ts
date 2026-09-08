@@ -265,7 +265,11 @@ export const OPERATORS: Record<string, OperatorEntry> = {
       pawapay: { code: "FREE_SEN" },
       feexpay: { code: "FREE SN" },
       fedapay: { code: "free_sn" } },
-    payout: { pawapay: { code: "FREE_SEN" }, feexpay: { code: "free_sn" }, fedapay: { code: "free_sn" } } },
+    // Versement FedaPay RETIRÉ le 2026-09-08 : leur documentation confirme
+    // « free_sn » à l'ENCAISSEMENT seulement — aucun mode de versement Sénégal
+    // n'y figure. Le moteur ne l'avait d'ailleurs jamais su appeler (absent de
+    // payout/methods-map). PawaPay et FeexPay restent.
+    payout: { pawapay: { code: "FREE_SEN" }, feexpay: { code: "free_sn" } } },
   e_money_sn: {
     label: "E-Money (Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
     collect: {},
@@ -285,9 +289,11 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     collect: {
       feexpay: { code: "MOOV TG" },
       fedapay: { code: "moov_tg" } },
+    // Versement FedaPay RETIRÉ le 2026-09-08 : « moov_tg » est confirmé à
+    // l'encaissement, pas au versement (leur doc ne cite Moov Togo qu'en
+    // métadonnée). Jamais appelable par le moteur de toute façon. FeexPay reste.
     payout: {
-      feexpay: { code: "togo", params: { network: "MOOV TG" } },
-      fedapay: { code: "moov_tg" } } },
+      feexpay: { code: "togo", params: { network: "MOOV TG" } } } },
   togocel: {
     // Clé interne `togocel` CONSERVÉE (= mode FedaPay confirmé + réseau FeexPay
     // « TOGOCOM TG »). Seul le libellé suit le rebranding : Togocel → T-Money
@@ -332,7 +338,13 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     collect: {
       fedapay: { code: "airtel_ne" },
       ipaymoney: { code: "mobile", params: { country: "NE" } } },
-    payout: { fedapay: { code: "airtel_ne" } } },
+    // VERSEMENT FERMÉ le 2026-09-08. FedaPay était la SEULE route, et leur
+    // documentation confirme « airtel_ne » à l'ENCAISSEMENT seulement. Le
+    // moteur n'a jamais su l'appeler (absent de payout/methods-map) : Airtel
+    // Niger était proposé au retrait puis restait bloqué « en attente » sans
+    // issue. Règle 3 : un moyen qu'aucune passerelle ne sait verser n'est pas
+    // proposé. Rouvrir quand FedaPay ou iPay confirme un mode de versement.
+    payout: {} },
   zamani_ne: {
     label: "Zamani Money (Niger)", country: "ne", currency: "XOF", family: "mobile_money",
     // iPay Money identifie l'opérateur d'après le numéro : un seul code

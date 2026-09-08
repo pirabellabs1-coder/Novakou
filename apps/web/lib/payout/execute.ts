@@ -107,7 +107,15 @@ const ADAPTATEURS: Record<PayoutProviderId, AdaptateurVersement> = {
     // comme elle est la première passerelle essayée, aucun retrait Bénin/Togo
     // ne pouvait passer par elle. Le vendeur STAPS Market a vu ce refus le
     // 2026-08-18 sur 200 F Moov Bénin.
-    route: (m) => (m.fedapay ? { ...m.fedapay, country: m.country } : null),
+    // Le REGISTRE tranche, la table dit seulement COMMENT — même règle que
+    // PawaPay et, depuis le 2026-09-07, FeexPay. Sans ce garde-fou, la table
+    // et le registre divergeaient en silence : Airtel Niger « versable » au
+    // registre mais absent ici, donc proposé au retrait et jamais exécutable.
+    route: (m) => {
+      const code = (m as { code?: string }).code;
+      if (code && !routeFor(code, "fedapay", "payout")) return null;
+      return m.fedapay ? { ...m.fedapay, country: m.country } : null;
+    },
     classer: classifyFedapayError,
     envoyer: async ({ input, route, currency, motif }) => {
       const pays = (route as { country?: string }).country ?? "";

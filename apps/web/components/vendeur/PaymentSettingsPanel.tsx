@@ -10,8 +10,10 @@
  *   - Méthodes de retrait : accounts where the vendor receives payouts.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useToastStore } from "@/store/toast";
+import { getAvailablePayoutMethods, shortMethodLabel } from "@/lib/payments/payout-catalog";
+import { listOperators } from "@/lib/payments/registry";
 
 interface PayoutMethod {
   id: string;
@@ -28,30 +30,50 @@ interface Settings {
   payoutMethods: PayoutMethod[];
 }
 
-// Moyens d'ENCAISSEMENT proposables à l'acheteur.
-// PayPal et le virement bancaire ont été retirés : la passerelle n'expose aucun
-// moyen PayPal, et son unique virement est réservé au Nigeria/NGN. Les laisser
-// cochables faisait croire au vendeur qu'il les acceptait, alors que l'acheteur
-// était systématiquement renvoyé vers le paiement mobile.
-// (Ils restent disponibles plus bas comme moyens de RETRAIT, versés à la main.)
-const PAYMENT_METHODS: Array<{ id: string; label: string; icon: string; mobileMoney?: boolean }> = [
-  { id: "orange_money", label: "Orange Money", icon: "phone_iphone", mobileMoney: true },
-  { id: "wave", label: "Wave", icon: "phone_iphone", mobileMoney: true },
-  { id: "mtn_momo", label: "MTN Mobile Money", icon: "phone_iphone", mobileMoney: true },
-  { id: "moov_money", label: "Moov Money", icon: "phone_iphone", mobileMoney: true },
-  { id: "card", label: "Carte bancaire (Visa/Mastercard)", icon: "credit_card" },
+// Moyens d'ENCAISSEMENT proposables à l'acheteur, par FAMILLE.
+//
+// Cette liste était figée et proposait « Wave » à tous les vendeurs alors
+// qu'aucune passerelle branchée ne l'encaisse nulle part (marchand agrégé
+// absent). Un vendeur le cochait, croyait l'accepter, et ses clients ne le
+// voyaient jamais au checkout. Une famille n'est proposée QUE si le registre
+// a au moins un opérateur encaissable de cette famille.
+const FAMILLES_ENCAISSEMENT: Array<{ id: string; label: string; icon: string; prefixe?: string; mobileMoney?: boolean }> = [
+  { id: "orange_money", label: "Orange Money", icon: "phone_iphone", prefixe: "orange_", mobileMoney: true },
+  { id: "wave", label: "Wave", icon: "phone_iphone", prefixe: "wave_", mobileMoney: true },
+  { id: "mtn_momo", label: "MTN Mobile Money", icon: "phone_iphone", prefixe: "mtn_", mobileMoney: true },
+  { id: "moov_money", label: "Moov Money", icon: "phone_iphone", prefixe: "moov_", mobileMoney: true },
+  { id: "card", label: "Carte bancaire (Visa/Mastercard)", icon: "credit_card", prefixe: "card_" },
   { id: "free", label: "Gratuit / bons cadeaux", icon: "redeem" },
 ];
 
-const PAYOUT_METHODS: Array<{ id: string; label: string; icon: string; field: "phone" | "iban" | "email" }> = [
-  { id: "orange_money", label: "Orange Money", icon: "phone_iphone", field: "phone" },
-  { id: "wave", label: "Wave", icon: "phone_iphone", field: "phone" },
-  { id: "mtn_momo", label: "MTN Mobile Money", icon: "phone_iphone", field: "phone" },
-  { id: "moov_money", label: "Moov Money", icon: "phone_iphone", field: "phone" },
-  { id: "bank_transfer", label: "Virement bancaire (IBAN)", icon: "account_balance", field: "iban" },
-  { id: "paypal", label: "PayPal", icon: "account_balance_wallet", field: "email" },
-];
+function famillesEncaissables() {
+  const encaissables = new Set(listOperators({ direction: "collect" }).map((o) => o.code));
+  return FAMILLES_ENCAISSEMENT.filter(
+    (f) => !f.prefixe || [...encaissables].some((code) => code.startsWith(f.prefixe as string)),
+  );
+}
 
+const PAYMENT_METHODS = famillesEncaissables();
+
+type ChoixRetrait = { id: string; label: string; icon: string; field: "phone" | "iban" };
+
+// Le virement reste traité À LA MAIN par l'admin : il n'a pas de route de
+// passerelle, mais il existe vraiment. PayPal a été retiré : aucune passerelle,
+// aucun retrait jamais enregistré.
+const VIREMENT: ChoixRetrait = { id: "bank_transfer", label: "Virement bancaire (IBAN)", icon: "account_balance", field: "iban" };
+
+// Moyens de RETRAIT : dérivés du registre, pour le pays du vendeur. Un moyen
+// qu'aucune passerelle ne sait verser n'apparaît pas — plutôt que d'accepter
+// un compte de retrait qui resterait « en attente » pour toujours.
+function choixRetrait(country: string | null): ChoixRetrait[] {
+  const mobile = getAvailablePayoutMethods(country).map((m) => ({
+    id: m.id,
+    label: m.label,
+    icon: m.icon,
+    field: "phone" as const,
+  }));
+  return [...mobile, VIREMENT];
+}
 export default function PaymentSettingsPanel() {
   const toast = useToastStore.getState().addToast;
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -59,7 +81,7 @@ export default function PaymentSettingsPanel() {
   const [savingAccepted, setSavingAccepted] = useState(false);
   const [showAddPayout, setShowAddPayout] = useState(false);
   const [newPayout, setNewPayout] = useState({
-    method: "orange_money",
+    method: "",
     label: "",
     phone: "",
     iban: "",
@@ -69,12 +91,28 @@ export default function PaymentSettingsPanel() {
     email: "",
   });
   const [savingPayout, setSavingPayout] = useState(false);
+  const [country, setCountry] = useState<string | null>(null);
+  const payoutChoices = useMemo(() => choixRetrait(country), [country]);
+
+  // Le moyen sélectionné doit toujours être un de ceux proposés : quand le
+  // pays arrive (ou change), on retombe sur le premier choix disponible.
+  useEffect(() => {
+    if (!payoutChoices.some((c) => c.id === newPayout.method)) {
+      setNewPayout((p) => ({ ...p, method: payoutChoices[0]?.id ?? "" }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [payoutChoices]);
 
   async function load() {
     setLoading(true);
     try {
-      const res = await fetch("/api/formations/vendeur/payment-settings");
+      const [res, paysRes] = await Promise.all([
+        fetch("/api/formations/vendeur/payment-settings"),
+        fetch("/api/formations/wallet/payout-methods"),
+      ]);
       const j = await res.json();
+      const paysJson = await paysRes.json().catch(() => ({}));
+      setCountry(paysJson?.data?.userCountry ?? null);
       setSettings({
         acceptedPaymentMethods: j?.data?.acceptedPaymentMethods ?? [],
         payoutMethods: j?.data?.payoutMethods ?? [],
@@ -124,7 +162,7 @@ export default function PaymentSettingsPanel() {
 
   async function addPayout() {
     if (!settings) return;
-    const spec = PAYOUT_METHODS.find((m) => m.id === newPayout.method);
+    const spec = payoutChoices.find((m) => m.id === newPayout.method);
     if (!spec) return;
     const entry: PayoutMethod & { bic?: string; bank_name?: string; account_holder?: string } = {
       id: `pm-${Date.now()}`,
@@ -141,15 +179,13 @@ export default function PaymentSettingsPanel() {
       if (newPayout.bic.trim()) entry.bic = newPayout.bic.trim();
       if (newPayout.bank_name.trim()) entry.bank_name = newPayout.bank_name.trim();
       if (newPayout.account_holder.trim()) entry.account_holder = newPayout.account_holder.trim();
-    } else if (spec.field === "email") {
-      entry.email = newPayout.email.trim();
     }
 
     setSavingPayout(true);
     try {
       await persist({ payoutMethods: [...settings.payoutMethods, entry] });
       setShowAddPayout(false);
-      setNewPayout({ method: "orange_money", label: "", phone: "", iban: "", bic: "", bank_name: "", account_holder: "", email: "" });
+      setNewPayout({ method: payoutChoices[0]?.id ?? "", label: "", phone: "", iban: "", bic: "", bank_name: "", account_holder: "", email: "" });
     } finally { setSavingPayout(false); }
   }
 
@@ -173,7 +209,7 @@ export default function PaymentSettingsPanel() {
   }
   if (!settings) return null;
 
-  const payoutSpec = PAYOUT_METHODS.find((m) => m.id === newPayout.method);
+  const payoutSpec = payoutChoices.find((m) => m.id === newPayout.method);
 
   return (
     <div className="space-y-6">
@@ -246,7 +282,7 @@ export default function PaymentSettingsPanel() {
                   onChange={(e) => setNewPayout((p) => ({ ...p, method: e.target.value }))}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm"
                 >
-                  {PAYOUT_METHODS.map((m) => (
+                  {payoutChoices.map((m) => (
                     <option key={m.id} value={m.id}>{m.label}</option>
                   ))}
                 </select>
@@ -322,19 +358,7 @@ export default function PaymentSettingsPanel() {
                 </div>
               </>
             )}
-            {payoutSpec?.field === "email" && (
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Email PayPal</label>
-                <input
-                  type="email"
-                  value={newPayout.email}
-                  onChange={(e) => setNewPayout((p) => ({ ...p, email: e.target.value }))}
-                  placeholder="vous@example.com"
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
-                />
-              </div>
-            )}
-            <div className="flex gap-2">
+                        <div className="flex gap-2">
               <button
                 onClick={addPayout}
                 disabled={savingPayout}
@@ -364,7 +388,7 @@ export default function PaymentSettingsPanel() {
         ) : (
           <div className="space-y-2.5">
             {settings.payoutMethods.map((pm) => {
-              const spec = PAYOUT_METHODS.find((m) => m.id === pm.method);
+              const spec = payoutChoices.find((m) => m.id === pm.method) ?? { label: shortMethodLabel(pm.method), icon: "account_balance" };
               return (
                 <div
                   key={pm.id}

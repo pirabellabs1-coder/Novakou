@@ -146,3 +146,35 @@
 - [ ] **Wave CI coûte des ventes maintenant.** 396 de ses 446 visiteurs sont en
       Côte d'Ivoire, et Wave y est fermé à l'encaissement depuis le 08/08.
       Ils ne voient qu'Orange, MTN et Moov.
+
+---
+
+## Audit des moyens de retrait et d'encaissement — 2026-09-08
+
+Demande du fondateur : ne laisser sur le site QUE ce qui est réellement
+fonctionnel, passerelle par passerelle, partout.
+
+- [x] ~~FedaPay : quatre routes de versement promises sans que le moteur sache
+      les appeler~~ → **corrigé.** L'adaptateur consulte désormais le registre
+      (même règle que PawaPay et FeexPay). `mtn_ci` ajouté à la table (mode
+      confirmé par leur doc de versement) ; `freemoney_sn`, `airtel_ne`,
+      `moov_tg` retirés du registre au versement (confirmés à l'encaissement
+      seulement). **Airtel Niger n'est plus proposé au retrait** : c'était sa
+      seule route et elle n'a jamais été exécutable. Trois invariantes le
+      verrouillent, dont « tout moyen proposé a une route exécutable ».
+- [x] ~~Panneau « Paiements » du vendeur : Wave et PayPal proposés à tous~~ →
+      **corrigé.** Comptes de retrait dérivés du registre pour le pays du
+      vendeur (+ virement, traité à la main) ; familles d'encaissement
+      affichées seulement si le registre en encaisse au moins un opérateur.
+      Les anciens codes génériques enregistrés restent lisibles et
+      re-sauvegardables, résolus par pays au retrait.
+- [x] ~~API affilié : repli sur le catalogue COMPLET quand un pays n'a aucune
+      route~~ → **corrigé.** Liste vide, et l'écran dit « pas encore
+      disponible ».
+- [x] ~~`lib/paygenius-payout-methods.ts`~~ → **supprimé** (aucun import,
+      passerelle retirée).
+- [ ] **Sonde de couverture déployée** (`cron/diagnostic-couverture`, manuelle,
+      CRON_SECRET) : PawaPay `/v2/active-conf` confronté au registre dans les
+      deux sens, et demande d'encaissement Wave CI / Wave SN chez FeexPay vers
+      un numéro de test. À appeler après déploiement ; ses résultats décident
+      des dernières fermetures/réouvertures.

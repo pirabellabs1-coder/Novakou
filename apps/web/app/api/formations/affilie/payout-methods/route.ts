@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
-import { getAvailablePayoutMethods, PAYOUT_METHODS } from "@/lib/payments/payout-catalog";
+import { getAvailablePayoutMethods } from "@/lib/payments/payout-catalog";
 
 /**
  * GET /api/formations/affilie/payout-methods
@@ -19,7 +19,10 @@ export async function GET() {
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { country: true } });
     const country = user?.country ?? null;
     const available = getAvailablePayoutMethods(country);
-    const methods = (available.length > 0 ? available : PAYOUT_METHODS).map((m) => ({
+    // Jamais de repli sur le catalogue COMPLET : il contient des moyens qu'aucune
+    // passerelle branchée ne sait verser. Un pays sans route reçoit une liste
+    // vide, et l'écran affiche « retrait pas encore disponible » — c'est vrai.
+    const methods = available.map((m) => ({
       id: m.id,
       label: m.label,
       icon: m.icon,

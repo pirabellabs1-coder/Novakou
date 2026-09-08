@@ -167,3 +167,30 @@
   produit — alors que chaque tentative de paiement est une LIGNE en base avec
   son `productId`. Une écriture serveur est en prime insensible aux bloqueurs
   de publicité, contrairement à un événement de traceur.
+
+- Un adaptateur de versement qui lit SA table sans consulter le registre finit
+  toujours par diverger. Après FeexPay (07/09), FedaPay (08/09) : Airtel Niger
+  était « versable » au registre — sa SEULE route — mais absent de la table que
+  le moteur lit. Résultat : proposé au retrait, jamais exécutable, bloqué « en
+  attente » sans issue. La règle tient en une ligne dans chaque adaptateur : le
+  registre TRANCHE, la table dit seulement COMMENT. Et l'invariante qui compte
+  n'est pas « les deux tables concordent » mais « tout moyen PROPOSÉ a une route
+  que le moteur sait appeler » — c'est celle-là qui a démasqué l'orphelin.
+- Une liste figée dans un composant est une troisième source de vérité. Le
+  panneau « Paiements » du vendeur proposait Wave et PayPal à tout le monde,
+  sans regarder ni le pays ni le registre. Le garde-fou serveur refusait bien
+  le retrait ensuite — mais le vendeur avait déjà enregistré un compte
+  inutilisable et cru que ça marchait. Dériver du registre, partout, y compris
+  dans les écrans qui ne font « que » de la configuration.
+- Ne retirer une route qu'avec une PREUVE, et la nommer : la doc du fournisseur
+  (free_sn, airtel_ne, moov_tg confirmés à l'encaissement seulement), un code
+  d'erreur de compte (MISSING_WAVE_AGGREGATED_MERCHANT), ou la configuration
+  active lue chez lui (/v2/active-conf). Un refus « INSUFFICIENT_BALANCE » ou
+  « PAYER_NOT_FOUND » vient de l'acheteur, pas de notre compte : il ne prouve
+  rien contre la route.
+- Les identifiants de passerelle ne sont déchiffrables QU'en production. Un
+  diagnostic qui a besoin de demander au fournisseur ce que le compte sait faire
+  doit donc être une route déployée, authentifiée par CRON_SECRET, déclenchée à
+  la main — pas un script local. Et il ne doit rien déplacer : lecture de
+  configuration, ou demande d'encaissement vers un numéro de test que personne
+  ne validera.

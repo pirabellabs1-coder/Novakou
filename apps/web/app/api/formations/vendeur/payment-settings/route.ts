@@ -16,6 +16,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { IS_DEV } from "@/lib/env";
+import { getPayoutMethod, isPayoutMethodServable } from "@/lib/payments/payout-catalog";
 
 const VALID_PAYMENT_METHODS = new Set([
   "orange_money",
@@ -30,15 +31,17 @@ const VALID_PAYMENT_METHODS = new Set([
   "free",
 ]);
 
-const VALID_PAYOUT_METHODS = new Set([
-  "orange_money",
-  "wave",
-  "mtn_momo",
-  "moov_money",
-  "bank_transfer",
-  "paypal",
-  "stripe",
-]);
+// Anciens codes GÉNÉRIQUES (« wave », « orange_money »…) : encore présents dans
+// des profils enregistrés avant que le panneau ne dérive du registre. On les
+// accepte à la RE-sauvegarde pour ne pas effacer les comptes d'un vendeur qui
+// en supprime un autre ; ils sont résolus par pays au moment du retrait, et le
+// garde-fou de servabilité y refuse ce qu'aucune passerelle ne verse. Le
+// formulaire, lui, ne les propose plus.
+const LEGACY_PAYOUT_METHODS = new Set(["orange_money", "wave", "mtn_momo", "moov_money", "paypal", "stripe"]);
+
+function methodeDeRetraitAcceptable(method: string): boolean {
+  return method === "bank_transfer" || isPayoutMethodServable(method) || LEGACY_PAYOUT_METHODS.has(method);
+}
 
 interface PayoutMethod {
   id: string;
@@ -113,7 +116,7 @@ export async function PUT(req: Request) {
     for (const raw of body.payoutMethods.slice(0, 10)) {
       if (!raw || typeof raw !== "object") continue;
       const method = String(raw.method ?? "").toLowerCase().trim();
-      if (!VALID_PAYOUT_METHODS.has(method)) continue;
+      if (!methodeDeRetraitAcceptable(method)) continue;
 
       const entry: PayoutMethod = {
         id: String(raw.id ?? `pm-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`),
@@ -123,7 +126,7 @@ export async function PUT(req: Request) {
       };
 
       // Method-specific fields
-      if (["orange_money", "wave", "mtn_momo", "moov_money"].includes(method)) {
+      if (getPayoutMethod(method)?.category === "mobile_money" || ["orange_money", "wave", "mtn_momo", "moov_money"].includes(method)) {
         const phone = String(raw.phone ?? "").trim();
         if (!/^\+?\d{7,20}$/.test(phone)) {
           return NextResponse.json(

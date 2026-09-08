@@ -171,6 +171,56 @@ export async function activeConfiguration(): Promise<PawapayOperateur[]> {
 }
 
 /**
+ * Configuration BRUTE du compte, opération par opération.
+ *
+ * `activeConfiguration` ne retient que le DÉPÔT : c'est ce que le chemin de
+ * paiement consomme. Le diagnostic de couverture a besoin des deux sens — un
+ * opérateur peut être ouvert à l'encaissement et fermé au versement, ou
+ * l'inverse — et de la liste des types d'opération telle que PawaPay la
+ * renvoie, sans interprétation.
+ */
+export type PawapayOperationBrute = {
+  pays: string;
+  provider: string;
+  devise: string;
+  /** Clés de `operationTypes` telles quelles : « DEPOSIT », « PAYOUT », « REFUND »… */
+  operations: string[];
+  authDepot: string | null;
+};
+
+export async function configurationBrute(): Promise<PawapayOperationBrute[]> {
+  type Rep = {
+    countries?: Array<{
+      country?: string;
+      providers?: Array<{
+        provider?: string;
+        currencies?: Array<{
+          currency?: string;
+          operationTypes?: Record<string, { authType?: string } | undefined>;
+        }>;
+      }>;
+    }>;
+  };
+  const rep = await appel<Rep>("/v2/active-conf");
+  const out: PawapayOperationBrute[] = [];
+  for (const p of rep.countries ?? []) {
+    for (const op of p.providers ?? []) {
+      for (const dev of op.currencies ?? []) {
+        if (!p.country || !op.provider || !dev.currency) continue;
+        const types = dev.operationTypes ?? {};
+        out.push({
+          pays: p.country,
+          provider: op.provider,
+          devise: dev.currency,
+          operations: Object.keys(types),
+          authDepot: types.DEPOSIT?.authType ?? null,
+        });
+      }
+    }
+  }
+  return out;
+}
+/**
  * Mode d'autorisation du dépôt pour UN opérateur, tel que PawaPay le déclare
  * pour NOTRE compte.
  *
