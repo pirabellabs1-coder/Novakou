@@ -7,6 +7,7 @@ import { resolveVendorContext } from "@/lib/formations/active-user";
 import { trackingStore } from "@/lib/tracking/tracking-store";
 import { PLATFORM_COMMISSION_RATE } from "@/lib/formations/constants";
 import { toIso2 } from "@/lib/tracking/geo";
+import { visiteursParPays, visiteursUniques } from "@/lib/formations/stats-pays";
 
 // Single source of truth (10% — see lib/formations/constants.ts)
 const PLATFORM_FEE = PLATFORM_COMMISSION_RATE;
@@ -74,6 +75,13 @@ export async function GET(request: Request) {
       where: { userId },
       select: {
         id: true,
+        // Les boutiques servent a rattacher au vendeur les visiteurs de sa
+        // VITRINE — ceux qui n'ouvrent aucune fiche produit et echappaient
+        // donc entierement au comptage par pays.
+        shops: {
+          where: shopIdParam && shopIdParam !== "all" ? { id: shopIdParam } : {},
+          select: { id: true },
+        },
         formations: {
           where: shopFilter,
           select: {
@@ -126,6 +134,7 @@ export async function GET(request: Request) {
       revenueOverTime: [] as { date: string; amount: number; orders: number }[],
       salesByCountry: [] as { country: string; count: number; revenue: number }[],
       viewsByCountry: [] as { country: string; count: number }[],
+      visitorsByCountry: [] as { country: string; visitors: number; views: number }[],
       topProducts: [] as { id: string; title: string; type: string; sales: number; revenue: number }[],
       ratingDist: [5,4,3,2,1].map((star) => ({ star, count: 0 })),
       conversionFunnel: { views: 0, productViews: 0, purchases: 0, conversionRate: 0 },
@@ -274,10 +283,24 @@ export async function GET(request: Request) {
 
     // ── Views by country (from tracking store) ──
     const productIds = [...profile.formations.map((f) => f.id), ...profile.digitalProducts.map((p) => p.id)];
-    const [allEvents, sessions] = await Promise.all([
+    // Entites du vendeur : ses boutiques ET son catalogue. Un evenement qui
+    // porte l'une d'elles lui appartient — c'est notre seul rattachement fiable.
+    const vendorEntityIds = [...profile.shops.map((b) => b.id), ...productIds];
+
+    const [allEvents, scopedEvents, sessions] = await Promise.all([
       trackingStore.getEvents({
         startDate: cutoff ? cutoff.toISOString() : undefined,
       }),
+      // Filtre pousse en BASE, pas en memoire : getEvents plafonne a 5 000
+      // evenements recents TOUTE PLATEFORME confondue. Sur un catalogue actif,
+      // filtrer apres coup ferait disparaitre le trafic des petits vendeurs
+      // sous celui des gros.
+      vendorEntityIds.length > 0
+        ? trackingStore.getEvents({
+            startDate: cutoff ? cutoff.toISOString() : undefined,
+            entityIds: vendorEntityIds,
+          })
+        : Promise.resolve([]),
       trackingStore.getSessions(),
     ]);
     const sessionCountryMap = new Map(sessions.map((s) => [s.id, s.country] as const));
@@ -307,8 +330,26 @@ export async function GET(request: Request) {
       .sort((a, b) => b.count - a.count)
       .slice(0, 15);
 
+    // ── Visiteurs par pays ──────────────────────────────────────────────
+    // « Visiteurs » compte des SESSIONS UNIQUES, pas des pages vues : un
+    // curieux qui ouvre huit fiches reste un visiteur. C'est ce que le vendeur
+    // entend par « d'ou viennent mes visiteurs ».
+    //
+    // Difference avec viewsByCountry juste au-dessus : celui-ci ne comptait que
+    // les vues de FICHES PRODUIT. Un visiteur qui arrivait sur la vitrine et
+    // repartait n'apparaissait nulle part — c'est precisement le trafic qu'un
+    // vendeur veut voir pour juger de sa publicite.
+    // Agregation en lib/formations/stats-pays.ts, couverte par
+    // tests/stats-pays.spec.ts. `scopedEvents` est DEJA restreint au vendeur :
+    // la fonction ne filtre rien elle-meme.
+    const visitorsByCountry = visiteursParPays(scopedEvents, sessionCountryMap);
+
     // ── Conversion funnel ──
-    const totalViews = allEvents.filter((e) => e.type === "page_view").length;
+    // Corrige : `allEvents` n'est PAS filtre par vendeur. Compter ses page_view
+    // affichait a CHAQUE vendeur le trafic de TOUTE la plateforme — un chiffre
+    // identique pour tous, et un taux de conversion sans aucun sens. On compte
+    // desormais les sessions uniques du perimetre du vendeur.
+    const totalViews = visiteursUniques(scopedEvents);
     const productViews = productViewEvents.length;
     const purchases = periodTxns.length;
     const conversionFunnel = {
@@ -366,6 +407,7 @@ export async function GET(request: Request) {
         revenueOverTime,
         salesByCountry,
         viewsByCountry,
+        visitorsByCountry,
         topProducts,
         ratingDist,
         conversionFunnel,

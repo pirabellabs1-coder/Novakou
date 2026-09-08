@@ -134,3 +134,16 @@
   hypothèse est souvent une DATE. Comparer l'horodatage d'un correctif avec
   celui de l'incident avant de conclure qu'il l'a réglé (ici le second refus
   tombe six heures APRÈS le dernier correctif : ce n'était pas le code).
+- Avant de construire une fonctionnalite demandee, VERIFIER si elle existe
+  deja. Le « top pays » vendeur existait ; il paraissait absent parce que la
+  boutique du fondateur n'avait aucun trafic, et parce qu'il vivait sur la page
+  Statistiques et non sur le Tableau de bord. Un tableau vide ressemble a une
+  fonctionnalite manquante.
+- Un agregat de statistiques doit etre restreint AU VENDEUR en base, pas apres
+  coup. `getEvents()` plafonne a 5 000 evenements recents toute plateforme
+  confondue : filtrer en memoire faisait disparaitre le trafic des petits
+  vendeurs sous celui des gros, et la ligne « Visiteurs » du tunnel affichait a
+  chacun le trafic de TOUTE la plateforme.
+- Un code pays de deux lettres n'est pas un pays : Cloudflare envoie « XX »
+  (inconnu) et « T1 » (Tor), qui traversaient la collecte et la normalisation.
+  Ils s'affichaient comme des pays, drapeau casse.

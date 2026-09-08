@@ -48,6 +48,7 @@ type StatsData = {
   revenueOverTime: { date: string; amount: number; orders: number }[];
   salesByCountry: { country: string; count: number; revenue: number }[];
   viewsByCountry: { country: string; count: number }[];
+  visitorsByCountry: { country: string; visitors: number; views: number }[];
   topProducts: { id: string; title: string; type: string; sales: number; revenue: number }[];
   ratingDist: { star: number; count: number }[];
   conversionFunnel: { views: number; productViews: number; purchases: number; conversionRate: number };
@@ -153,22 +154,30 @@ export default function StatistiquesPage() {
   const revenueOverTime = d?.revenueOverTime ?? [];
   const salesByCountry = d?.salesByCountry ?? [];
   const viewsByCountry = d?.viewsByCountry ?? [];
+  const visitorsByCountry = d?.visitorsByCountry ?? [];
   const topProducts = d?.topProducts ?? [];
   const funnel = d?.conversionFunnel;
   const monthlyTrend = d?.monthlyTrend ?? [];
 
-  const countryMap = new Map<string, { country: string; views: number; sales: number; revenue: number }>();
+  type LignePays = { country: string; visitors: number; views: number; sales: number; revenue: number };
+  const countryMap = new Map<string, LignePays>();
+  const ligne = (c: string): LignePays =>
+    countryMap.get(c) ?? { country: c, visitors: 0, views: 0, sales: 0, revenue: 0 };
+  // Les VISITEURS amorcent la carte : un pays d'ou l'on vient sans ouvrir la
+  // moindre fiche doit apparaitre — c'est precisement ce qui manquait.
+  for (const v of visitorsByCountry) {
+    countryMap.set(v.country, { ...ligne(v.country), visitors: v.visitors, views: v.views });
+  }
   for (const v of viewsByCountry) {
-    countryMap.set(v.country, { country: v.country, views: v.count, sales: 0, revenue: 0 });
+    const e = ligne(v.country);
+    countryMap.set(v.country, { ...e, views: Math.max(e.views, v.count) });
   }
   for (const s of salesByCountry) {
-    const entry = countryMap.get(s.country) || { country: s.country, views: 0, sales: 0, revenue: 0 };
-    entry.sales = s.count;
-    entry.revenue = s.revenue;
-    countryMap.set(s.country, entry);
+    const e = ligne(s.country);
+    countryMap.set(s.country, { ...e, sales: s.count, revenue: s.revenue });
   }
   const countryRows = [...countryMap.values()]
-    .sort((a, b) => b.revenue - a.revenue || b.views - a.views)
+    .sort((a, b) => b.revenue - a.revenue || b.visitors - a.visitors || b.views - a.views)
     .slice(0, 10);
 
   const funnelMax = funnel ? Math.max(funnel.views, funnel.productViews, funnel.purchases, 1) : 1;
@@ -176,9 +185,9 @@ export default function StatistiquesPage() {
   // ── Top pays : CHIFFRES RÉELS (pas de %). Métrique = ventes s'il y en a,
   // sinon vues. La barre est proportionnelle à cette métrique (pas une part).
   const countrySalesTotal = countryRows.reduce((s, r) => s + r.sales, 0);
-  const countryMetricType: "ventes" | "vues" = countrySalesTotal > 0 ? "ventes" : "vues";
-  const countryMetric = (r: { sales: number; views: number }) =>
-    countryMetricType === "ventes" ? r.sales : r.views;
+  const countryMetricType: "ventes" | "visiteurs" = countrySalesTotal > 0 ? "ventes" : "visiteurs";
+  const countryMetric = (r: { sales: number; visitors: number }) =>
+    countryMetricType === "ventes" ? r.sales : r.visitors;
   const topCountries = countryRows.slice(0, 6);
   const countryMax = Math.max(1, ...topCountries.map(countryMetric));
 
@@ -396,14 +405,27 @@ export default function StatistiquesPage() {
                       </div>
                       {/* Chiffres RÉELS (ventes + vues), jamais un pourcentage. */}
                       <span className="text-right tabular-nums flex-shrink-0 leading-tight" style={{ color: ST.text }}>
+                        {/* Chiffres RÉELS, jamais un pourcentage. Tant qu'aucune
+                            vente n'est tombée, le visiteur porte l'information :
+                            il dit d'où vient l'audience, la vente ne dirait rien. */}
                         <span className="block text-[12.5px] font-extrabold">
-                          {row.sales.toLocaleString("fr-FR")}
+                          {countryMetricType === "ventes"
+                            ? row.sales.toLocaleString("fr-FR")
+                            : row.visitors.toLocaleString("fr-FR")}
                           <span className="text-[10px] font-semibold ml-0.5" style={{ color: ST.textSecondary }}>
-                            {row.sales > 1 ? "ventes" : "vente"}
+                            {countryMetricType === "ventes"
+                              ? row.sales > 1
+                                ? "ventes"
+                                : "vente"
+                              : row.visitors > 1
+                                ? "visiteurs"
+                                : "visiteur"}
                           </span>
                         </span>
                         <span className="block text-[10.5px] font-semibold" style={{ color: ST.textSecondary }}>
-                          {row.views.toLocaleString("fr-FR")} {row.views > 1 ? "vues" : "vue"}
+                          {countryMetricType === "ventes"
+                            ? `${row.visitors.toLocaleString("fr-FR")} ${row.visitors > 1 ? "visiteurs" : "visiteur"}`
+                            : `${row.views.toLocaleString("fr-FR")} ${row.views > 1 ? "vues" : "vue"}`}
                         </span>
                       </span>
                     </div>
