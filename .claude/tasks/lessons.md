@@ -147,3 +147,23 @@
 - Un code pays de deux lettres n'est pas un pays : Cloudflare envoie « XX »
   (inconnu) et « T1 » (Tor), qui traversaient la collecte et la normalisation.
   Ils s'affichaient comme des pays, drapeau casse.
+
+- Un filtre d'appartenance appliqué EN MÉMOIRE après une requête plafonnée est
+  un piège double. `getEvents` ramenait les 5 000 derniers événements de toute
+  la plateforme, triés du plus récent au plus ancien, puis le code gardait ceux
+  du vendeur : (1) le compteur « Visiteurs » comptait le trafic des AUTRES,
+  (2) demander 30 jours n'en rendait que 4 — le plafond était atteint avant
+  d'arriver au début de la période, sans le moindre avertissement. Le filtre
+  appartient à la requête. Vérifier systématiquement : un `take:` combiné à un
+  filtrage a posteriori tronque en silence.
+- Avant de durcir un filtre anti-robots, REGARDER les user-agents concernés. Un
+  vendeur soupçonnait des robots derrière ses 4 263 « visiteurs » ; 887 des 923
+  événements de sa fiche venaient du navigateur interne de TikTok — de vraies
+  personnes venues de sa publicité. Ajouter « TikTok » à la liste des robots
+  aurait effacé toute son audience. Le vrai coupable était notre compteur.
+- Un indicateur affiché « — » parce que la donnée manque dans le traceur mérite
+  qu'on cherche la même information ailleurs. L'étage « Checkout » de
+  l'entonnoir était vide car les événements `checkout_started` ne portent aucun
+  produit — alors que chaque tentative de paiement est une LIGNE en base avec
+  son `productId`. Une écriture serveur est en prime insensible aux bloqueurs
+  de publicité, contrairement à un événement de traceur.

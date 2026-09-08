@@ -86,6 +86,7 @@ export async function GET(request: Request) {
           where: shopFilter,
           select: {
             id: true,
+            slug: true,
             title: true,
             studentsCount: true,
             rating: true,
@@ -109,6 +110,7 @@ export async function GET(request: Request) {
           where: shopFilter,
           select: {
             id: true,
+            slug: true,
             title: true,
             salesCount: true,
             rating: true,
@@ -140,7 +142,7 @@ export async function GET(request: Request) {
       bounceCount: 0,
       topProducts: [] as { id: string; title: string; type: string; sales: number; revenue: number }[],
       ratingDist: [5,4,3,2,1].map((star) => ({ star, count: 0 })),
-      conversionFunnel: { views: 0, productViews: 0, purchases: 0, conversionRate: 0 },
+      conversionFunnel: { views: 0, productViews: 0, checkouts: 0, purchases: 0, conversionRate: 0 },
       monthlyTrend: [] as { month: string; revenue: number; orders: number }[],
       revenueByType: [] as { type: string; value: number }[],
       // Legacy keys preserved for backward compat with old UI
@@ -287,41 +289,59 @@ export async function GET(request: Request) {
     // ── Views by country (from tracking store) ──
     const productIds = [...profile.formations.map((f) => f.id), ...profile.digitalProducts.map((p) => p.id)];
     // Entites du vendeur : ses boutiques ET son catalogue. Un evenement qui
-    // porte l'une d'elles lui appartient — c'est notre seul rattachement fiable.
+    // porte l'une d'elles lui appartient.
     const vendorEntityIds = [...profile.shops.map((b) => b.id), ...productIds];
 
-    const [allEvents, scopedEvents, sessions] = await Promise.all([
+    // …mais la moitié des événements ne portent AUCUN entityId : la page
+    // publique enregistre « /produit/mon-ebook » et rien d'autre. Mesuré sur un
+    // vrai catalogue : 464 événements avec entityId, 457 identifiés par le seul
+    // chemin. Filtrer sur le seul entityId perdait donc la moitié du trafic.
+    const scopePaths = [
+      ...profile.formations.map((f) => `/formation/${f.slug}`),
+      ...profile.digitalProducts.map((p) => `/produit/${p.slug}`),
+    ].filter((c) => !c.endsWith("/"));
+
+    // ÉTAGE « PAIEMENT LANCÉ » DE L'ENTONNOIR.
+    //
+    // Il affichait « — » parce qu'on le cherchait dans le traceur : les
+    // événements `checkout_started` ne portent NI entityId NI produit — juste
+    // le chemin « /checkout » et un montant. Impossible de les rattacher à un
+    // vendeur.
+    //
+    // La vérité est en base : une tentative de paiement EST une ligne avec son
+    // `productId`. C'est aussi un meilleur signal — un bloqueur de publicité
+    // empêche un événement de traceur, pas une écriture serveur.
+    const checkoutsPromise = prisma.checkoutAttempt.count({
+      where: {
+        ...(cutoff ? { createdAt: { gte: cutoff } } : {}),
+        OR: [
+          { productId: { in: profile.digitalProducts.map((x) => x.id) } },
+          { formationId: { in: profile.formations.map((x) => x.id) } },
+        ],
+      },
+    });
+
+    const [scopedEvents, sessions] = await Promise.all([
+      // Filtre poussé en BASE, jamais en mémoire : `getEvents` plafonne à
+      // 5 000 événements récents TOUTE PLATEFORME confondue. Filtrer après
+      // coup faisait disparaître le trafic des petits vendeurs sous celui des
+      // gros — et tronquait la période demandée aux ~4 derniers jours.
       trackingStore.getEvents({
         startDate: cutoff ? cutoff.toISOString() : undefined,
+        productScope: { ids: vendorEntityIds, paths: scopePaths },
       }),
-      // Filtre pousse en BASE, pas en memoire : getEvents plafonne a 5 000
-      // evenements recents TOUTE PLATEFORME confondue. Sur un catalogue actif,
-      // filtrer apres coup ferait disparaitre le trafic des petits vendeurs
-      // sous celui des gros.
-      vendorEntityIds.length > 0
-        ? trackingStore.getEvents({
-            startDate: cutoff ? cutoff.toISOString() : undefined,
-            entityIds: vendorEntityIds,
-          })
-        : Promise.resolve([]),
       trackingStore.getSessions(),
     ]);
+    const checkouts = await checkoutsPromise;
     const sessionCountryMap = new Map(sessions.map((s) => [s.id, s.country] as const));
 
-    // Views = all page_view/service_viewed/formation_viewed/product_view events
-    // whose entityId matches our products OR path contains the product id.
-    // We accept many type names so the same backend serves both old client
-    // tracking (formation_viewed) and the new one (formation_view, product_view).
-    const productViewEvents = allEvents.filter(
-      (e) =>
-        (e.type === "service_viewed" ||
-          e.type === "formation_viewed" ||
-          e.type === "formation_view" ||
-          e.type === "product_view" ||
-          e.type === "page_view") &&
-        ((e.entityId && productIds.includes(e.entityId)) ||
-          productIds.some((id) => e.path?.includes(id))),
-    );
+    // `scopedEvents` est DÉJÀ restreint aux pages de ce vendeur par la requête.
+    // Ne reste ici que le tri par TYPE — on accepte plusieurs noms pour servir
+    // l'ancien traceur (formation_viewed) comme le nouveau (product_view).
+    const TYPES_VUE = new Set([
+      "service_viewed", "formation_viewed", "formation_view", "product_view", "page_view",
+    ]);
+    const productViewEvents = scopedEvents.filter((e) => TYPES_VUE.has(e.type));
 
     const viewsByCountryMap = new Map<string, number>();
     for (const e of productViewEvents) {
@@ -352,16 +372,31 @@ export async function GET(request: Request) {
     const bounce = tauxRebond(scopedEvents);
 
     // ── Conversion funnel ──
-    // Corrige : `allEvents` n'est PAS filtre par vendeur. Compter ses page_view
-    // affichait a CHAQUE vendeur le trafic de TOUTE la plateforme — un chiffre
-    // identique pour tous, et un taux de conversion sans aucun sens. On compte
-    // desormais les sessions uniques du perimetre du vendeur.
+    // « Visiteurs » comptait TOUS les `page_view` de la PLATEFORME, toutes
+    // boutiques confondues : la requête ne portait aucun filtre vendeur. Chacun
+    // voyait donc les milliers de pages vues par les clients des AUTRES,
+    // comparées à ses propres vues produit — deux populations différentes, et
+    // une chute de « −97 % » parfaitement mécanique. Signalé le 2026-09-07 par
+    // un vendeur qui pilotait une campagne TikTok sur ce chiffre.
+    //
+    // Les DEUX premiers étages comptent désormais des PERSONNES (sessions
+    // distinctes) : mélanger des visiteurs uniques et des vues brutes ferait
+    // remonter l'entonnoir au deuxième étage.
     const totalViews = visiteursUniques(scopedEvents);
-    const productViews = productViewEvents.length;
+    const sessionsFiche = new Set(
+      productViewEvents
+        .filter((e) => e.type !== "page_view")
+        .map((e) => e.sessionId)
+        .filter(Boolean),
+    );
+    // Repli : si le traceur n'émet que des `page_view` (ancien client), on
+    // n'affiche pas un zéro trompeur au deuxième étage.
+    const productViews = sessionsFiche.size > 0 ? sessionsFiche.size : totalViews;
     const purchases = periodTxns.length;
     const conversionFunnel = {
       views: totalViews,
       productViews,
+      checkouts,
       purchases,
       conversionRate: productViews > 0 ? Math.round((purchases / productViews) * 10000) / 100 : 0,
     };

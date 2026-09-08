@@ -61,6 +61,22 @@ export interface GetEventsOpts {
   entityType?: string;
   userId?: string;
   limit?: number;
+  /**
+ * Restreint la requête aux pages d'UN vendeur, EN BASE.
+ *
+   * Sans ça, les statistiques vendeur chargeaient les événements de TOUTE la
+   * plateforme puis filtraient en mémoire. Deux dégâts : le compteur
+   * « Visiteurs » comptait le trafic des autres, et surtout le plafond de
+   * 5 000 lignes (tri antichronologique) coupait la période demandée aux
+   * ~4 derniers jours — un vendeur demandait 30 jours et en obtenait 4, sans
+   * aucun avertissement. Le filtre appartient à la requête, pas au code qui
+   * la lit.
+   *
+   * `ids` : identifiants produit/formation (champ `entityId`).
+   * `paths` : fragments de chemin (« /produit/mon-ebook »), pour les
+   * événements enregistrés sans `entityId`.
+   */
+  productScope?: { ids: string[]; paths: string[] };
 }
 
 export interface PeriodStats {
@@ -185,10 +201,21 @@ export const trackingStore = {
     if (opts.entityIds && opts.entityIds.length > 0) where.entityId = { in: opts.entityIds };
     if (opts.entityType) where.entityType = opts.entityType;
     if (opts.userId) where.userId = opts.userId;
+    if (opts.productScope) {
+      const { ids, paths } = opts.productScope;
+      const ou: Record<string, unknown>[] = [];
+      if (ids.length > 0) ou.push({ entityId: { in: ids } });
+      for (const chemin of paths) if (chemin) ou.push({ path: { contains: chemin } });
+      // Vendeur sans aucun produit : une clause OR vide est refusée par Prisma,
+      // et surtout elle ne doit RIEN ramener plutôt que tout ramener.
+      where.OR = ou.length > 0 ? ou : [{ entityId: "__aucun_produit__" }];
+    }
     return prisma.trackingEventLog.findMany({
       where,
       orderBy: { createdAt: "desc" },
-      take: opts.limit ?? 5000,
+      // Une requête déjà restreinte à UN vendeur tient largement sous ce
+      // plafond : il ne sert plus qu'à borner un cas pathologique.
+      take: opts.limit ?? (opts.productScope ? 50000 : 5000),
     });
   },
 

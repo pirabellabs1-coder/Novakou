@@ -54,7 +54,7 @@ type StatsData = {
   bounceCount: number;
   topProducts: { id: string; title: string; type: string; sales: number; revenue: number }[];
   ratingDist: { star: number; count: number }[];
-  conversionFunnel: { views: number; productViews: number; purchases: number; conversionRate: number };
+  conversionFunnel: { views: number; productViews: number; checkouts: number; purchases: number; conversionRate: number };
   monthlyTrend: { month: string; revenue: number; orders: number }[];
   revenueByType: { type: string; value: number }[];
 };
@@ -203,7 +203,7 @@ export default function StatistiquesPage() {
     .sort((a, b) => b.revenue - a.revenue || b.visitors - a.visitors || b.views - a.views)
     .slice(0, 10);
 
-  const funnelMax = funnel ? Math.max(funnel.views, funnel.productViews, funnel.purchases, 1) : 1;
+  const funnelMax = funnel ? Math.max(funnel.views, funnel.productViews, funnel.checkouts ?? 0, funnel.purchases, 1) : 1;
 
   // ── Top pays : CHIFFRES RÉELS (pas de %). Métrique = ventes s'il y en a,
   // sinon vues. La barre est proportionnelle à cette métrique (pas une part).
@@ -214,7 +214,10 @@ export default function StatistiquesPage() {
   const topCountries = countryRows.slice(0, 6);
   const countryMax = Math.max(1, ...topCountries.map(countryMetric));
 
-  // ── Tunnel de conversion (4 lignes maquette — Checkout non tracké : "—") ──
+  // ── Tunnel de conversion ──
+  // « Checkout » affichait « — » : les événements du traceur ne portaient pas
+  // le produit. Il compte desormais les vraies tentatives de paiement, lues en
+  // base — un chiffre qu'un bloqueur de publicite ne peut pas escamoter.
   const funnelRows: { label: string; value: number | null; pct: number | null; sub: string }[] = funnel
     ? [
         { label: "Visiteurs", value: funnel.views, pct: (funnel.views / funnelMax) * 100, sub: "" },
@@ -224,7 +227,17 @@ export default function StatistiquesPage() {
           pct: (funnel.productViews / funnelMax) * 100,
           sub: funnel.views > 0 ? `− ${Math.round((1 - funnel.productViews / funnel.views) * 100)} %` : "",
         },
-        { label: "Checkout", value: null, pct: null, sub: "" },
+        {
+          // « Paiement lancé » et non « Checkout » : on compte les demandes de
+          // paiement RÉELLEMENT envoyées, pas les arrivées sur la page.
+          label: "Paiement lancé",
+          value: funnel.checkouts ?? 0,
+          pct: ((funnel.checkouts ?? 0) / funnelMax) * 100,
+          sub:
+            funnel.productViews > 0
+              ? `− ${Math.round((1 - (funnel.checkouts ?? 0) / funnel.productViews) * 100)} %`
+              : "",
+        },
         {
           label: "Achat",
           value: funnel.purchases,
@@ -233,7 +246,7 @@ export default function StatistiquesPage() {
         },
       ]
     : [];
-  const funnelEmpty = !funnel || (funnel.views === 0 && funnel.productViews === 0 && funnel.purchases === 0);
+  const funnelEmpty = !funnel || (funnel.views === 0 && funnel.productViews === 0 && (funnel.checkouts ?? 0) === 0 && funnel.purchases === 0);
 
   // ── Chart : journalier (7j/30j/90j), repli mensuel sinon ──
   const chartIsDaily = revenueOverTime.length > 0;

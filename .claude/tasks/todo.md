@@ -119,3 +119,30 @@
       au lieu de 2 016, soit 3 % du forfait), verrouillé par
       `tests/payout-cadence.spec.ts`. Vérifier la page History de Fixie pour
       confirmer que la consommation est redescendue.
+
+---
+
+## Signalé par un vendeur le 2026-09-07 (Jean Yves Ouguin, campagne TikTok)
+
+- [x] ~~« Visiteurs » affichait 4 263 pour une boutique neuve~~ → **corrigé.**
+      Le compteur additionnait les `page_view` de TOUTE la plateforme
+      (`getEvents` sans filtre vendeur). Il compte désormais les sessions
+      distinctes sur les pages du vendeur : 447 au lieu de 4 030 sur 30 jours.
+- [x] ~~Les périodes 7/30/90 jours ne remontaient que ~4 jours~~ → **corrigé.**
+      `take: 5000` sur un tri antichronologique plateforme : le plafond était
+      atteint avant le début de la période. La requête est maintenant
+      restreinte au vendeur en base (`productScope`).
+- [x] ~~Étage « Checkout » de l'entonnoir vide (« — »)~~ → **corrigé.** Il lit
+      les tentatives de paiement en base (`CheckoutAttempt.productId`), et
+      s'appelle « Paiement lancé » — ce qu'il mesure vraiment.
+- [x] ~~Soupçon de trafic robot~~ → **écarté, preuve à l'appui.** La détection
+      existe et rejette les robots dès l'ingestion (204, jamais stockés). 887
+      des 923 événements de sa fiche viennent du navigateur interne TikTok :
+      du trafic humain. NE PAS ajouter TikTok au filtre.
+- [ ] **11 demandes KYC en attente, aucune revue.** La sienne date du
+      2026-09-07 19h27 (passeport complet). Le KYC ne bloque ni le paiement ni
+      le tracking (`placeOrder` exige le niveau 1) — mais il bloquera son
+      RETRAIT le jour où il vendra.
+- [ ] **Wave CI coûte des ventes maintenant.** 396 de ses 446 visiteurs sont en
+      Côte d'Ivoire, et Wave y est fermé à l'encaissement depuis le 08/08.
+      Ils ne voient qu'Orange, MTN et Moov.
