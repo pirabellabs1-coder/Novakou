@@ -20,8 +20,11 @@ import {
  *   1. Compte suspendu/banni            → refus net (403).
  *   2. Fiche non conforme aux règles    → refus net (400) avec la liste des
  *      corrections (complétude, prix plancher, majuscules, promesses…).
- *   3. Fiche conforme MAIS signal       → EN_ATTENTE : la file de validation
- *      admin (prix > 500 000, vendeur sans KYC, e-mail non confirmé).
+ *   3. Fiche conforme MAIS signal       → EN_ATTENTE (prix > 500 000, vendeur
+ *      sans KYC, e-mail non confirmé). Décidée ensuite par l'agent de
+ *      validation autonome (`lib/agents/impl/product-verification.ts`, cron
+ *      toutes les 15 min) — publie ou refuse avec motif, sans intervention
+ *      admin. `/admin/produits` reste disponible pour un cas litigieux.
  *   4. Fiche conforme, aucun signal     → ACTIF, en ligne immédiatement.
  */
 export type DecisionPublication =

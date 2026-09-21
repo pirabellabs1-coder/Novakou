@@ -10,15 +10,29 @@ export async function getAgentConfig(key: AgentKey): Promise<Record<string, stri
   return mergeConfig(key, agent?.config ?? null);
 }
 
-/** Crée les 5 agents en base s'ils n'existent pas (désactivés par défaut). */
+/**
+ * Crée les agents en base s'ils n'existent pas.
+ *
+ * ACTIVÉS et en autonomie "auto" DÈS LA CRÉATION : il n'existe plus d'écran
+ * admin pour les activer à la main (le tableau de bord Agents a été retiré,
+ * décision fondateur 2026-09-21) — la vérification KYC et la validation des
+ * fiches doivent tourner SANS intervention. Créer ces deux agents désactivés
+ * les rendrait silencieusement inertes, sans aucun moyen de le corriger.
+ */
 export async function ensureAgentsSeeded(): Promise<void> {
   for (const a of AGENTS) {
     await prisma.aiAgent.upsert({
       where: { key: a.key },
       update: { name: a.name, description: a.description },
-      create: { key: a.key, name: a.name, description: a.description, enabled: false, autonomy: "mixed" },
+      create: { key: a.key, name: a.name, description: a.description, enabled: true, autonomy: "auto" },
     });
   }
+  // Nettoie les 7 agents de l'ancien tableau de bord (assistant, support,
+  // modération, rétention, finance, avis, onboarding, contenu) : cascade sur
+  // leurs runs/actions, qui n'ont plus aucun lecteur depuis la suppression de
+  // `/admin/agents`. `ensureAgentsSeeded` tourne à chaque exécution du cron,
+  // donc ce nettoyage n'a besoin d'aucune migration dédiée.
+  await prisma.aiAgent.deleteMany({ where: { key: { notIn: AGENTS.map((a) => a.key) } } });
 }
 
 export async function getAgentRecord(key: AgentKey) {

@@ -34,7 +34,8 @@
     { "path": "/api/marketing/sequences/process",        "schedule": "0 7 * * *" },
     { "path": "/api/cron/automation-scheduled",          "schedule": "*/15 * * * *" },
     { "path": "/api/cron/sous-domaines-boutiques",       "schedule": "20 * * * *" },
-    { "path": "/api/cron/chiffrer-secrets-2fa",          "schedule": "40 4 * * *" }
+    { "path": "/api/cron/chiffrer-secrets-2fa",          "schedule": "40 4 * * *" },
+    { "path": "/api/cron/agents",                        "schedule": "*/15 * * * *" }
   ],
   "headers": [
     {

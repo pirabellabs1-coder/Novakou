@@ -15,7 +15,7 @@ export async function notifyAdmins(opts: {
   url?: string;      // lien d'action (tableau de bord)
 }): Promise<void> {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
-  const link = opts.url || `${appUrl}/admin/agents`;
+  const link = opts.url || `${appUrl}/admin/dashboard`;
 
   // 1) Telegram (instantané) si configuré
   const token = process.env.TELEGRAM_BOT_TOKEN;

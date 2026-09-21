@@ -35,6 +35,21 @@ export const MODELE_DEFAUT = process.env.OPENROUTER_MODEL?.trim() || "anthropic/
 
 export type MessageIA = { role: "system" | "user" | "assistant"; content: string };
 
+/**
+ * Contenu MULTIMODAL (texte + image), format OpenAI/OpenRouter standard.
+ * `image_url.url` accepte aussi bien une URL publique (Cloudinary) qu'une
+ * URL signée à courte durée de vie — utile pour les documents privés (KYC)
+ * qu'on ne veut jamais exposer publiquement.
+ */
+export type PartieMessageIA =
+  | { type: "text"; text: string }
+  | { type: "image_url"; image_url: { url: string } };
+
+export type MessageIAVision = {
+  role: "system" | "user" | "assistant";
+  content: string | PartieMessageIA[];
+};
+
 export type ReponseIA = {
   texte: string;
   modele: string;
@@ -46,20 +61,21 @@ export function estOpenRouterConfigure(): boolean {
   return Boolean(process.env.OPENROUTER_API_KEY?.trim());
 }
 
-/**
- * Appelle un modèle. Lève une erreur explicite plutôt que de renvoyer un texte
- * vide : un écran qui affiche « » sans rien dire laisse l'utilisateur croire
- * que l'IA n'a rien à répondre, alors que la clé est absente ou le crédit épuisé.
- */
-export async function chatIA(params: {
-  messages: MessageIA[];
+type AppelBrut = {
+  messages: unknown[];
   modele?: string;
   temperature?: number;
   maxTokens?: number;
-  /** Force une réponse JSON stricte (extraction, classement). */
   json?: boolean;
   timeoutMs?: number;
-}): Promise<ReponseIA> {
+};
+
+/**
+ * Cœur de l'appel HTTP, partagé par `chatIA` (texte) et `chatVisionIA`
+ * (texte + image) : même endpoint, même format de réponse OpenAI — seule la
+ * FORME du contenu des messages diffère (chaîne vs tableau de parties).
+ */
+async function appellerOpenRouter(params: AppelBrut): Promise<ReponseIA> {
   const cle = process.env.OPENROUTER_API_KEY?.trim();
   if (!cle) {
     throw new Error("OPENROUTER_API_KEY absente — l'IA n'est pas configurée.");
@@ -112,6 +128,40 @@ export async function chatIA(params: {
   } finally {
     clearTimeout(minuteur);
   }
+}
+
+/**
+ * Appelle un modèle. Lève une erreur explicite plutôt que de renvoyer un texte
+ * vide : un écran qui affiche « » sans rien dire laisse l'utilisateur croire
+ * que l'IA n'a rien à répondre, alors que la clé est absente ou le crédit épuisé.
+ */
+export async function chatIA(params: {
+  messages: MessageIA[];
+  modele?: string;
+  temperature?: number;
+  maxTokens?: number;
+  /** Force une réponse JSON stricte (extraction, classement). */
+  json?: boolean;
+  timeoutMs?: number;
+}): Promise<ReponseIA> {
+  return appellerOpenRouter(params);
+}
+
+/**
+ * Variante MULTIMODALE : mêmes garanties que `chatIA` (erreur explicite,
+ * jamais de texte vide), messages pouvant porter des images. Utilisée par les
+ * agents de vérification (KYC, fiches produit) pour analyser des photos —
+ * netteté, légitimité apparente du document, cohérence avec le texte fourni.
+ */
+export async function chatVisionIA(params: {
+  messages: MessageIAVision[];
+  modele?: string;
+  temperature?: number;
+  maxTokens?: number;
+  json?: boolean;
+  timeoutMs?: number;
+}): Promise<ReponseIA> {
+  return appellerOpenRouter(params);
 }
 
 /**
