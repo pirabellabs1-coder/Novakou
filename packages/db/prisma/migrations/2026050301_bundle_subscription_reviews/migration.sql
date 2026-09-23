@@ -1,10 +1,10 @@
--- AlterTable
-ALTER TABLE "ProductBundle" ADD COLUMN     "rating" DOUBLE PRECISION NOT NULL DEFAULT 0,
-ADD COLUMN     "reviewsCount" INTEGER NOT NULL DEFAULT 0;
+-- AlterTable (idempotent)
+ALTER TABLE "ProductBundle" ADD COLUMN IF NOT EXISTS "rating" DOUBLE PRECISION NOT NULL DEFAULT 0;
+ALTER TABLE "ProductBundle" ADD COLUMN IF NOT EXISTS "reviewsCount" INTEGER NOT NULL DEFAULT 0;
 
--- AlterTable
-ALTER TABLE "SubscriptionPlan" ADD COLUMN     "rating" DOUBLE PRECISION NOT NULL DEFAULT 0,
-ADD COLUMN     "reviewsCount" INTEGER NOT NULL DEFAULT 0;
+-- AlterTable (idempotent)
+ALTER TABLE "SubscriptionPlan" ADD COLUMN IF NOT EXISTS "rating" DOUBLE PRECISION NOT NULL DEFAULT 0;
+ALTER TABLE "SubscriptionPlan" ADD COLUMN IF NOT EXISTS "reviewsCount" INTEGER NOT NULL DEFAULT 0;
 
 -- CreateTable
 CREATE TABLE IF NOT EXISTS "ProductBundleReview" (
@@ -54,14 +54,18 @@ CREATE INDEX IF NOT EXISTS "SubscriptionPlanReview_userId_idx" ON "SubscriptionP
 -- CreateIndex
 CREATE UNIQUE INDEX IF NOT EXISTS "SubscriptionPlanReview_userId_planId_key" ON "SubscriptionPlanReview"("userId", "planId");
 
--- AddForeignKey
-ALTER TABLE "ProductBundleReview" ADD CONSTRAINT "ProductBundleReview_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ProductBundleReview" ADD CONSTRAINT "ProductBundleReview_bundleId_fkey" FOREIGN KEY ("bundleId") REFERENCES "ProductBundle"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "SubscriptionPlanReview" ADD CONSTRAINT "SubscriptionPlanReview_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "SubscriptionPlanReview" ADD CONSTRAINT "SubscriptionPlanReview_planId_fkey" FOREIGN KEY ("planId") REFERENCES "SubscriptionPlan"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+-- AddForeignKey (idempotent)
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ProductBundleReview_userId_fkey') THEN
+    ALTER TABLE "ProductBundleReview" ADD CONSTRAINT "ProductBundleReview_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ProductBundleReview_bundleId_fkey') THEN
+    ALTER TABLE "ProductBundleReview" ADD CONSTRAINT "ProductBundleReview_bundleId_fkey" FOREIGN KEY ("bundleId") REFERENCES "ProductBundle"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'SubscriptionPlanReview_userId_fkey') THEN
+    ALTER TABLE "SubscriptionPlanReview" ADD CONSTRAINT "SubscriptionPlanReview_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'SubscriptionPlanReview_planId_fkey') THEN
+    ALTER TABLE "SubscriptionPlanReview" ADD CONSTRAINT "SubscriptionPlanReview_planId_fkey" FOREIGN KEY ("planId") REFERENCES "SubscriptionPlan"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;

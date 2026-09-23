@@ -1,7 +1,12 @@
 -- Collaborateurs par boutique : plusieurs users peuvent être membres d'une boutique
+-- Migration rendue idempotente (le déploiement Vercel peut rejouer par-dessus un db push).
 
 -- Enum des rôles
-CREATE TYPE "ShopMemberRole" AS ENUM ('OWNER', 'MANAGER', 'EDITOR');
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'ShopMemberRole') THEN
+    CREATE TYPE "ShopMemberRole" AS ENUM ('OWNER', 'MANAGER', 'EDITOR');
+  END IF;
+END $$;
 
 -- Membres (liaison user ↔ shop)
 CREATE TABLE IF NOT EXISTS "ShopMember" (
@@ -16,10 +21,17 @@ CREATE TABLE IF NOT EXISTS "ShopMember" (
 CREATE UNIQUE INDEX IF NOT EXISTS "ShopMember_shopId_userId_key" ON "ShopMember"("shopId", "userId");
 CREATE INDEX IF NOT EXISTS "ShopMember_userId_idx" ON "ShopMember"("userId");
 CREATE INDEX IF NOT EXISTS "ShopMember_shopId_role_idx" ON "ShopMember"("shopId", "role");
-ALTER TABLE "ShopMember" ADD CONSTRAINT "ShopMember_shopId_fkey"
-  FOREIGN KEY ("shopId") REFERENCES "VendorShop"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "ShopMember" ADD CONSTRAINT "ShopMember_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ShopMember_shopId_fkey') THEN
+    ALTER TABLE "ShopMember" ADD CONSTRAINT "ShopMember_shopId_fkey"
+      FOREIGN KEY ("shopId") REFERENCES "VendorShop"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ShopMember_userId_fkey') THEN
+    ALTER TABLE "ShopMember" ADD CONSTRAINT "ShopMember_userId_fkey"
+      FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
 
 -- Invitations (avec token unique envoyé par email)
 CREATE TABLE IF NOT EXISTS "ShopInvitation" (
@@ -38,7 +50,14 @@ CREATE UNIQUE INDEX IF NOT EXISTS "ShopInvitation_inviteCode_key" ON "ShopInvita
 CREATE INDEX IF NOT EXISTS "ShopInvitation_email_idx" ON "ShopInvitation"("email");
 CREATE INDEX IF NOT EXISTS "ShopInvitation_inviteCode_idx" ON "ShopInvitation"("inviteCode");
 CREATE INDEX IF NOT EXISTS "ShopInvitation_shopId_idx" ON "ShopInvitation"("shopId");
-ALTER TABLE "ShopInvitation" ADD CONSTRAINT "ShopInvitation_shopId_fkey"
-  FOREIGN KEY ("shopId") REFERENCES "VendorShop"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "ShopInvitation" ADD CONSTRAINT "ShopInvitation_invitedBy_fkey"
-  FOREIGN KEY ("invitedBy") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ShopInvitation_shopId_fkey') THEN
+    ALTER TABLE "ShopInvitation" ADD CONSTRAINT "ShopInvitation_shopId_fkey"
+      FOREIGN KEY ("shopId") REFERENCES "VendorShop"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ShopInvitation_invitedBy_fkey') THEN
+    ALTER TABLE "ShopInvitation" ADD CONSTRAINT "ShopInvitation_invitedBy_fkey"
+      FOREIGN KEY ("invitedBy") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+  END IF;
+END $$;
