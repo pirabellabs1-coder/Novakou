@@ -183,6 +183,21 @@ export async function runProductVerification() {
     }) => {
       if (Date.now() - DEBUT > BUDGET_MS) { coupees++; return; }
 
+      // Purge des anciennes AgentAction bloquantes : le produit est TOUJOURS
+      // EN_ATTENTE (sinon il ne serait pas dans la file), donc toute action
+      // précédente auto_executed / proposed / executed est OBSOLÈTE — elle
+      // empêche la déduplication de proposer une nouvelle décision. On les
+      // marque skipped pour que proposeAction accepte de recréer.
+      await prisma.agentAction.updateMany({
+        where: {
+          agentKey: "product_verification",
+          type: "product_decision",
+          targetType: kind, targetId: item.id,
+          status: { in: ["proposed", "approved", "executed", "auto_executed"] },
+        },
+        data: { status: "skipped" },
+      }).catch(() => null);
+
       const ctx = await contexteVendeur(item.instructeurId);
       let verdict = await analyserFiche({ kind, ...item, contexte: ctx }, consignes);
 
