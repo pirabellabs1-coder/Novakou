@@ -26,6 +26,11 @@ BEGIN
       'ALTER TABLE %I DROP CONSTRAINT IF EXISTS %I;',
       tbl, tbl || '_shopId_fkey'
     );
+    -- Nettoyer les shopId orphelins (VendorShop supprimé ou jamais créé) AVANT d'ajouter la FK.
+    EXECUTE format(
+      'UPDATE %I t SET "shopId" = NULL WHERE t."shopId" IS NOT NULL AND NOT EXISTS (SELECT 1 FROM "VendorShop" vs WHERE vs."id" = t."shopId");',
+      tbl
+    );
     EXECUTE format(
       'ALTER TABLE %I ADD CONSTRAINT %I FOREIGN KEY ("shopId") REFERENCES "VendorShop"("id") ON DELETE SET NULL ON UPDATE CASCADE;',
       tbl, tbl || '_shopId_fkey'
