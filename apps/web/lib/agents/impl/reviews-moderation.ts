@@ -4,6 +4,7 @@ import { agentSystemUserId } from "../system-user";
 import { createNotification } from "@/lib/notifications/service";
 import { createAuditLog } from "@/lib/admin/audit";
 import { chatIA, estOpenRouterConfigure } from "@/lib/ai/openrouter";
+import { playbookPour } from "../playbooks";
 
 /**
  * Agent MODÉRATION AVIS.
@@ -31,6 +32,9 @@ function extraireJson(texte: string): Verdict | null {
 
 async function analyserAvis(a: { rating: number; comment: string; kind: "product" | "formation"; produitTitre: string }, consignes: string): Promise<Verdict | null> {
   const systeme = [
+    playbookPour("reviews_moderation"),
+    "",
+    "── AVIS À TRAITER MAINTENANT ──",
     "Tu es l'agent de modération des avis de Novakou.",
     "Ta décision est FINALE : personne ne la relit avant qu'elle s'applique. Sois strict sur la fraude évidente, tolérant sur les avis simplement mal écrits ou pas gentils.",
     "",

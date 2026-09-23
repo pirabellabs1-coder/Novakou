@@ -3,6 +3,7 @@ import { recordRun, proposeAction, getAgentConfig } from "../runtime";
 import { agentSystemUserId } from "../system-user";
 import { appliquerDecisionProduit, type KindProduit } from "@/lib/formations/produit-decision";
 import { chatVisionIA, estOpenRouterConfigure, type PartieMessageIA } from "@/lib/ai/openrouter";
+import { playbookPour } from "../playbooks";
 
 /**
  * AGENT DE VALIDATION DES FICHES — autonome.
@@ -90,6 +91,9 @@ async function analyserFiche(f: {
   contexte: ContexteVendeur;
 }, consignes: string): Promise<Verdict | null> {
   const systeme = [
+    playbookPour("product_verification"),
+    "",
+    "── CONTEXTE PRÉCIS DE CETTE FICHE ──",
     "Tu es l'agent de validation des fiches de Novakou, une marketplace africaine de formations et produits numériques.",
     "Ta décision est FINALE et autonome. Sois rigoureux sur la fraude et l'illégal, tolérant sur le style.",
     "",

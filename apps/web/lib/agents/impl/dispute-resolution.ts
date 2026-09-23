@@ -5,6 +5,7 @@ import { createAuditLog } from "@/lib/admin/audit";
 import { createNotification } from "@/lib/notifications/service";
 import { notifyAdmins } from "@/lib/agents/notify";
 import { chatIA, estOpenRouterConfigure } from "@/lib/ai/openrouter";
+import { playbookPour } from "../playbooks";
 
 /**
  * Agent RÉSOLUTION DES LITIGES (remboursements).
@@ -106,6 +107,9 @@ export async function runDisputeResolution() {
         const acheve = !!d.enrollment?.completedAt;
 
         const systeme = [
+          playbookPour("dispute_resolution"),
+          "",
+          "── LITIGE À TRAITER MAINTENANT ──",
           "Tu es l'agent de résolution des litiges de Novakou.",
           "Décision autonome et FINALE (personne ne relit).",
           "",

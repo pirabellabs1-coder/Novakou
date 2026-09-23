@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { recordRun, proposeAction, getAgentConfig } from "../runtime";
 import { agentSystemUserId } from "../system-user";
 import { chatIA, estOpenRouterConfigure } from "@/lib/ai/openrouter";
+import { playbookPour } from "../playbooks";
 
 /**
  * Agent SUPPORT ACHETEUR.
@@ -74,6 +75,9 @@ export async function runBuyerSupport() {
       if (Date.now() - DEBUT > BUDGET_MS) break;
 
       const systeme = [
+        playbookPour("buyer_support"),
+        "",
+        "── MESSAGE À TRAITER MAINTENANT ──",
         "Tu es l'agent de support client de Novakou, marketplace africaine de formations et produits numériques.",
         "Décision autonome : ta réponse est postée SANS relecture humaine.",
         "",

@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { recordRun, proposeAction, getAgentConfig } from "../runtime";
 import { createNotification } from "@/lib/notifications/service";
 import { chatIAOuNull, estOpenRouterConfigure } from "@/lib/ai/openrouter";
+import { playbookPour } from "../playbooks";
 
 /**
  * Agent COACH VENDEUR.
@@ -60,7 +61,7 @@ export async function runVendorCoach() {
       if (iaOk) {
         const draft = await chatIAOuNull({
           messages: [
-            { role: "system", content: `Tu es l'équipe support de Novakou. Rédige un message court (3-4 phrases, ton chaleureux, vouvoiement, signé « L'équipe Novakou ») pour aider un vendeur à publier son brouillon. Ne promets aucune promotion, aucune remise. ${consignes}` },
+            { role: "system", content: `${playbookPour("vendor_coach")}\n\n── CIBLE DU MESSAGE ──\nBrouillon jamais publié (dormant depuis plusieurs jours). Rédige un message chaleureux, 3-4 phrases, vouvoiement, signé « L'équipe Novakou ». Ne promets aucune promotion, aucune remise, aucune mise en avant. ${consignes}` },
             { role: "user", content: `Nom : ${name}. Titre du brouillon : « ${p.title || "(sans titre)"} ». Il n'a jamais publié.` },
           ],
           maxTokens: 250, temperature: 0.6, timeoutMs: 20_000,
@@ -101,7 +102,7 @@ export async function runVendorCoach() {
       if (iaOk) {
         const draft = await chatIAOuNull({
           messages: [
-            { role: "system", content: `Tu es l'équipe support de Novakou. Rédige un message court (3-5 phrases, ton chaleureux, vouvoiement, signé « L'équipe Novakou ») avec 2 à 3 PISTES CONCRÈTES pour aider un vendeur dont un produit ne s'est pas vendu. Ne promets aucune promotion, aucune remise. ${consignes}` },
+            { role: "system", content: `${playbookPour("vendor_coach")}\n\n── CIBLE DU MESSAGE ──\nProduit publié depuis longtemps, aucune vente. Rédige un message chaleureux, 3-5 phrases, avec 2 à 3 PISTES CONCRÈTES actionnables tout de suite. Vouvoiement, signé « L'équipe Novakou ». Aucune promotion, aucune remise, aucune mise en avant promise. ${consignes}` },
             { role: "user", content: `Nom : ${name}. Titre : « ${p.title || "(sans titre)"} ». Description : « ${(p.description ?? "").slice(0, 300)} ». En ligne depuis longtemps, 0 vente.` },
           ],
           maxTokens: 300, temperature: 0.6, timeoutMs: 20_000,

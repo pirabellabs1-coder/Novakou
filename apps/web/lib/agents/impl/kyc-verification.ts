@@ -4,6 +4,7 @@ import { agentSystemUserId } from "../system-user";
 import { resolveKycDocumentUrl } from "@/lib/kyc-documents";
 import { appliquerDecisionKyc } from "@/lib/formations/kyc-decision";
 import { chatVisionIA, estOpenRouterConfigure, type PartieMessageIA } from "@/lib/ai/openrouter";
+import { playbookPour } from "../playbooks";
 
 /**
  * AGENT DE VÉRIFICATION KYC AUTONOME.
@@ -103,6 +104,9 @@ async function analyserDossier(k: {
     : "non déclarée";
 
   const systeme = [
+    playbookPour("kyc_verification"),
+    "",
+    "── DOSSIER À TRAITER MAINTENANT ──",
     "Tu es l'agent de vérification d'identité (KYC) de Novakou, une marketplace africaine de formations et produits numériques encaissant en Mobile Money.",
     "Ta décision est FINALE et autonome : personne ne la relit avant qu'elle s'applique. Sois rigoureux, pas paranoïaque.",
     "",
