@@ -184,8 +184,58 @@ export async function runProductVerification() {
       if (Date.now() - DEBUT > BUDGET_MS) { coupees++; return; }
 
       const ctx = await contexteVendeur(item.instructeurId);
-      const verdict = await analyserFiche({ kind, ...item, contexte: ctx }, consignes);
-      if (!verdict) { indetermines++; return; }
+      let verdict = await analyserFiche({ kind, ...item, contexte: ctx }, consignes);
+
+      // Fallback déterministe si l'IA échoue : on ne peut PAS laisser une fiche
+      // bloquer indéfiniment en EN_ATTENTE. Après N échecs IA consécutifs sur
+      // le MÊME item, on décide selon des règles simples et le principe
+      // fondateur « le doute raisonnable va à la publication ».
+      if (!verdict) {
+        const echecsAnterieurs = await prisma.agentAction.count({
+          where: {
+            agentKey: "product_verification",
+            targetType: kind, targetId: item.id,
+            status: "failed",
+          },
+        });
+        // Après 2 échecs IA consécutifs, on tranche déterministement.
+        if (echecsAnterieurs >= 2) {
+          const ficheVide =
+            item.titre.trim().length < 3 ||
+            (!item.lienDePaiement && item.images.length === 0 && item.description.trim().length < 20);
+          if (ficheVide) {
+            verdict = {
+              decision: "REFUSE",
+              motif: "Fiche incomplète — le titre, la description ou l'image sont manquants ou insuffisants pour permettre à un acheteur de comprendre ce qu'il obtient. Complétez la fiche puis resoumettez.",
+              signaux: ["fallback_deterministe", "fiche_incomplete"],
+            };
+          } else {
+            verdict = {
+              decision: "PUBLIE",
+              motif: "Fiche jugée publiable — le contenu paraît honnête et complet. Le doute raisonnable va à la publication.",
+              signaux: ["fallback_deterministe", "doute_raisonnable"],
+            };
+          }
+          console.warn(`[product-verification] ${kind}:${item.id} — décidé par fallback déterministe après ${echecsAnterieurs} échec(s) IA.`);
+        } else {
+          // Journalise l'échec IA comme AgentAction "failed" pour que le
+          // compteur monte au prochain passage et déclenche le fallback.
+          await prisma.agentAction.create({
+            data: {
+              agentKey: "product_verification",
+              type: "product_decision",
+              risk: "low",
+              title: `${kind === "formation" ? "Formation" : "Produit"} « ${item.titre.slice(0, 50)} » — IA indéterminée (tentative ${echecsAnterieurs + 1})`,
+              reasoning: "L'appel IA n'a pas produit de verdict exploitable (timeout, JSON invalide, ou refus modèle). Nouvelle tentative au prochain passage ; décision déterministe après 2 échecs.",
+              targetType: kind, targetId: item.id,
+              status: "failed",
+              payload: { auto: true, retry: echecsAnterieurs + 1 } as object,
+            },
+          }).catch(() => null);
+          indetermines++;
+          return;
+        }
+      }
 
       const publie = verdict.decision === "PUBLIE";
       const a = await proposeAction({
