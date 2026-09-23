@@ -12,6 +12,6 @@
 --
 -- Préalable : vérifié 0 doublon via scripts/check-platform-revenue-dupes.mjs
 
-CREATE UNIQUE INDEX "PlatformRevenue_orderId_orderType_unique_positive"
+CREATE UNIQUE INDEX IF NOT EXISTS "PlatformRevenue_orderId_orderType_unique_positive"
   ON "PlatformRevenue" ("orderId", "orderType")
   WHERE "grossAmount" > 0;

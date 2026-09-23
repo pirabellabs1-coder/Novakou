@@ -4,7 +4,7 @@
 CREATE TYPE "ShopMemberRole" AS ENUM ('OWNER', 'MANAGER', 'EDITOR');
 
 -- Membres (liaison user ↔ shop)
-CREATE TABLE "ShopMember" (
+CREATE TABLE IF NOT EXISTS "ShopMember" (
   "id"        TEXT NOT NULL,
   "shopId"    TEXT NOT NULL,
   "userId"    TEXT NOT NULL,
@@ -13,16 +13,16 @@ CREATE TABLE "ShopMember" (
   "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "ShopMember_pkey" PRIMARY KEY ("id")
 );
-CREATE UNIQUE INDEX "ShopMember_shopId_userId_key" ON "ShopMember"("shopId", "userId");
-CREATE INDEX "ShopMember_userId_idx" ON "ShopMember"("userId");
-CREATE INDEX "ShopMember_shopId_role_idx" ON "ShopMember"("shopId", "role");
+CREATE UNIQUE INDEX IF NOT EXISTS "ShopMember_shopId_userId_key" ON "ShopMember"("shopId", "userId");
+CREATE INDEX IF NOT EXISTS "ShopMember_userId_idx" ON "ShopMember"("userId");
+CREATE INDEX IF NOT EXISTS "ShopMember_shopId_role_idx" ON "ShopMember"("shopId", "role");
 ALTER TABLE "ShopMember" ADD CONSTRAINT "ShopMember_shopId_fkey"
   FOREIGN KEY ("shopId") REFERENCES "VendorShop"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "ShopMember" ADD CONSTRAINT "ShopMember_userId_fkey"
   FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- Invitations (avec token unique envoyé par email)
-CREATE TABLE "ShopInvitation" (
+CREATE TABLE IF NOT EXISTS "ShopInvitation" (
   "id"         TEXT NOT NULL,
   "shopId"     TEXT NOT NULL,
   "email"      TEXT NOT NULL,
@@ -34,10 +34,10 @@ CREATE TABLE "ShopInvitation" (
   "createdAt"  TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "ShopInvitation_pkey" PRIMARY KEY ("id")
 );
-CREATE UNIQUE INDEX "ShopInvitation_inviteCode_key" ON "ShopInvitation"("inviteCode");
-CREATE INDEX "ShopInvitation_email_idx" ON "ShopInvitation"("email");
-CREATE INDEX "ShopInvitation_inviteCode_idx" ON "ShopInvitation"("inviteCode");
-CREATE INDEX "ShopInvitation_shopId_idx" ON "ShopInvitation"("shopId");
+CREATE UNIQUE INDEX IF NOT EXISTS "ShopInvitation_inviteCode_key" ON "ShopInvitation"("inviteCode");
+CREATE INDEX IF NOT EXISTS "ShopInvitation_email_idx" ON "ShopInvitation"("email");
+CREATE INDEX IF NOT EXISTS "ShopInvitation_inviteCode_idx" ON "ShopInvitation"("inviteCode");
+CREATE INDEX IF NOT EXISTS "ShopInvitation_shopId_idx" ON "ShopInvitation"("shopId");
 ALTER TABLE "ShopInvitation" ADD CONSTRAINT "ShopInvitation_shopId_fkey"
   FOREIGN KEY ("shopId") REFERENCES "VendorShop"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "ShopInvitation" ADD CONSTRAINT "ShopInvitation_invitedBy_fkey"

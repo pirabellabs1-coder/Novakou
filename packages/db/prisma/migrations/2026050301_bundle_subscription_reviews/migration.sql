@@ -7,7 +7,7 @@ ALTER TABLE "SubscriptionPlan" ADD COLUMN     "rating" DOUBLE PRECISION NOT NULL
 ADD COLUMN     "reviewsCount" INTEGER NOT NULL DEFAULT 0;
 
 -- CreateTable
-CREATE TABLE "ProductBundleReview" (
+CREATE TABLE IF NOT EXISTS "ProductBundleReview" (
     "id" TEXT NOT NULL,
     "rating" INTEGER NOT NULL,
     "comment" TEXT NOT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE "ProductBundleReview" (
 );
 
 -- CreateTable
-CREATE TABLE "SubscriptionPlanReview" (
+CREATE TABLE IF NOT EXISTS "SubscriptionPlanReview" (
     "id" TEXT NOT NULL,
     "rating" INTEGER NOT NULL,
     "comment" TEXT NOT NULL,
@@ -37,22 +37,22 @@ CREATE TABLE "SubscriptionPlanReview" (
 );
 
 -- CreateIndex
-CREATE INDEX "ProductBundleReview_bundleId_idx" ON "ProductBundleReview"("bundleId");
+CREATE INDEX IF NOT EXISTS "ProductBundleReview_bundleId_idx" ON "ProductBundleReview"("bundleId");
 
 -- CreateIndex
-CREATE INDEX "ProductBundleReview_userId_idx" ON "ProductBundleReview"("userId");
+CREATE INDEX IF NOT EXISTS "ProductBundleReview_userId_idx" ON "ProductBundleReview"("userId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ProductBundleReview_userId_bundleId_key" ON "ProductBundleReview"("userId", "bundleId");
+CREATE UNIQUE INDEX IF NOT EXISTS "ProductBundleReview_userId_bundleId_key" ON "ProductBundleReview"("userId", "bundleId");
 
 -- CreateIndex
-CREATE INDEX "SubscriptionPlanReview_planId_idx" ON "SubscriptionPlanReview"("planId");
+CREATE INDEX IF NOT EXISTS "SubscriptionPlanReview_planId_idx" ON "SubscriptionPlanReview"("planId");
 
 -- CreateIndex
-CREATE INDEX "SubscriptionPlanReview_userId_idx" ON "SubscriptionPlanReview"("userId");
+CREATE INDEX IF NOT EXISTS "SubscriptionPlanReview_userId_idx" ON "SubscriptionPlanReview"("userId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "SubscriptionPlanReview_userId_planId_key" ON "SubscriptionPlanReview"("userId", "planId");
+CREATE UNIQUE INDEX IF NOT EXISTS "SubscriptionPlanReview_userId_planId_key" ON "SubscriptionPlanReview"("userId", "planId");
 
 -- AddForeignKey
 ALTER TABLE "ProductBundleReview" ADD CONSTRAINT "ProductBundleReview_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
