@@ -200,6 +200,13 @@ export default function KycPage() {
   const qc = useQueryClient();
   const [targetLevel, setTargetLevel] = useState<2 | 4>(2);
   const [documentType, setDocumentType] = useState("CNI");
+  // Identité déclarée par la personne : ce que l'agent va comparer à ce
+  // qu'il lit sur la pièce. Sans ces champs, la vérification autonome n'a
+  // aucun ancrage textuel.
+  const [nomLegal, setNomLegal] = useState("");
+  const [prenomLegal, setPrenomLegal] = useState("");
+  const [dateNaissance, setDateNaissance] = useState("");
+  const [numeroDocument, setNumeroDocument] = useState("");
   const [documentUrl, setDocumentUrl] = useState("");
   const [versoUrl, setVersoUrl] = useState("");
   const [versoPreviewUrl, setVersoPreviewUrl] = useState("");
@@ -270,6 +277,10 @@ export default function KycPage() {
           documentVersoUrl: versoUrl.trim(),
           selfieUrl: selfieUrl.trim(),
           requestedLevel: targetLevel,
+          nomLegal: nomLegal.trim(),
+          prenomLegal: prenomLegal.trim(),
+          dateNaissance: dateNaissance || null,
+          numeroDocument: numeroDocument.trim(),
         }),
       });
       if (!res.ok) throw new Error((await res.json()).error ?? "Erreur");
@@ -402,6 +413,64 @@ export default function KycPage() {
           </p>
 
           <div className="space-y-5">
+            {/* ── IDENTITÉ DÉCLARÉE ──────────────────────────────────────
+                L'agent de vérification autonome compare ce que la personne
+                DÉCLARE ici à ce qu'il LIT sur la pièce. Le nom du compte
+                peut être un pseudo — ces champs-ci sont annoncés comme
+                « ce qui est écrit sur ma pièce ». */}
+            {targetLevel === 2 && (
+              <div className="rounded-xl border border-slate-200 bg-slate-50/40 p-4">
+                <p className="text-[11px] font-bold uppercase text-[#5c647a] mb-3">Vos informations d&apos;identité (comme sur la pièce)</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Nom de famille</label>
+                    <input
+                      type="text"
+                      value={nomLegal}
+                      onChange={(e) => setNomLegal(e.target.value)}
+                      placeholder="Ex. Ouedraogo"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                      autoComplete="family-name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Prénom(s)</label>
+                    <input
+                      type="text"
+                      value={prenomLegal}
+                      onChange={(e) => setPrenomLegal(e.target.value)}
+                      placeholder="Ex. Aminata"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                      autoComplete="given-name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Date de naissance</label>
+                    <input
+                      type="date"
+                      value={dateNaissance}
+                      onChange={(e) => setDateNaissance(e.target.value)}
+                      max={new Date().toISOString().slice(0, 10)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Numéro de la pièce</label>
+                    <input
+                      type="text"
+                      value={numeroDocument}
+                      onChange={(e) => setNumeroDocument(e.target.value)}
+                      placeholder="Numéro tel qu'il figure sur la pièce"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                    />
+                  </div>
+                </div>
+                <p className="text-[11px] text-slate-500 mt-3">
+                  Ces informations doivent correspondre EXACTEMENT à ce qui figure sur votre pièce d&apos;identité —
+                  l&apos;agent de vérification s&apos;en sert pour valider votre dossier.
+                </p>
+              </div>
+            )}
             <div>
               <label className="text-[11px] font-bold uppercase text-[#5c647a] block mb-2">Type de document</label>
               <div className={`grid ${targetLevel === 4 ? "grid-cols-2 md:grid-cols-4" : "grid-cols-3"} gap-2`}>

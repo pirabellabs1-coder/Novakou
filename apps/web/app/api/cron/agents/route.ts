@@ -3,26 +3,32 @@ import { requireCronAuth } from "@/lib/cron/auth";
 import { ensureAgentsSeeded } from "@/lib/agents/runtime";
 import { runKycVerification } from "@/lib/agents/impl/kyc-verification";
 import { runProductVerification } from "@/lib/agents/impl/product-verification";
+import { runBuyerSupport } from "@/lib/agents/impl/buyer-support";
+import { runFraudDetection } from "@/lib/agents/impl/fraud-detection";
+import { runReviewsModeration } from "@/lib/agents/impl/reviews-moderation";
+import { runDisputeResolution } from "@/lib/agents/impl/dispute-resolution";
+import { runVendorCoach } from "@/lib/agents/impl/vendor-coach";
+import { runAccountDeletion } from "@/lib/agents/impl/account-deletion";
 
 /**
  * GET /api/cron/agents
  *
- * Fait tourner les DEUX agents de vérification autonomes : KYC et fiches
- * produit. Chacun DÉCIDE — approuve ou refuse avec un motif envoyé à la
- * personne — sans intervention admin (décision fondateur 2026-09-21).
- *
- * `?agent=kyc_verification|product_verification` exécute un seul agent.
+ * Fait tourner les huit agents autonomes. Chacun s'auto-limite en temps
+ * (BUDGET_MS interne, 220 s) pour rester sous le plafond de fonction.
+ * `?agent=<key>` exécute un seul agent.
  */
 export const dynamic = "force-dynamic";
-// Chaque dossier/fiche analysée coûte un appel vision (jusqu'à 45 s). Les
-// agents s'arrêtent d'eux-mêmes avant d'approcher cette limite (voir
-// `BUDGET_MS` dans chaque impl) et laissent le reste au passage suivant,
-// 15 min plus tard — le plafond ici n'est qu'un filet de sécurité.
-export const maxDuration = 280;
+export const maxDuration = 300;
 
 const RUNNERS: Record<string, () => Promise<unknown>> = {
   kyc_verification: runKycVerification,
   product_verification: runProductVerification,
+  buyer_support: runBuyerSupport,
+  fraud_detection: runFraudDetection,
+  reviews_moderation: runReviewsModeration,
+  dispute_resolution: runDisputeResolution,
+  vendor_coach: runVendorCoach,
+  account_deletion: runAccountDeletion,
 };
 
 export async function GET(req: NextRequest) {

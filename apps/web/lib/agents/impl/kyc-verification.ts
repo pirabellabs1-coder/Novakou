@@ -6,37 +6,24 @@ import { appliquerDecisionKyc } from "@/lib/formations/kyc-decision";
 import { chatVisionIA, estOpenRouterConfigure, type PartieMessageIA } from "@/lib/ai/openrouter";
 
 /**
- * AGENT DE VÉRIFICATION KYC — autonome, décision fondateur 2026-09-21.
+ * AGENT DE VÉRIFICATION KYC AUTONOME.
  *
- * Remplace la revue manuelle admin : ce module DÉCIDE (approuve ou refuse
- * avec un motif envoyé à la personne), il ne se contente pas de recommander.
- * L'admin garde un accès (`/admin/kyc`) pour un cas litigieux, mais rien
- * n'exige plus son intervention.
+ * Analyse chaque dossier EN_ATTENTE avec TROIS sources d'information :
+ *  1. Les trois photos (recto, verso, selfie) — vision multimodale.
+ *  2. L'identité DÉCLARÉE par la personne à la soumission (nom, prénom,
+ *     date de naissance, numéro de pièce). Comparaison exigée avec ce qui est
+ *     lisible sur la pièce.
+ *  3. Le CONTEXTE du compte (pays profil, indicatif téléphonique, date
+ *     d'inscription, e-mail vérifié, historique de ventes/retraits). Un
+ *     compte neuf qui demande directement un niveau élevé n'est pas jugé
+ *     comme un compte établi.
  *
- * ── CE QUE L'AGENT PEUT RAISONNABLEMENT JUGER, ET CE QU'IL NE PEUT PAS ─────
- * Un modèle de vision généraliste peut évaluer : la pièce est-elle lisible,
- * plausible (mise en page d'un document officiel, pas une image quelconque),
- * complète (recto ET verso cohérents entre eux), et le selfie montre-t-il
- * réellement un visage humain net — pas un dessin, un écran, une photo de
- * photo. Il NE fait PAS de reconnaissance faciale biométrique certifiée : on
- * ne prétend pas « cette personne EST ce document » avec une certitude
- * cryptographique, seulement l'absence de signal d'incohérence évidente
- * (âge/sexe manifestement incompatibles, visage absent, document flou au
- * point d'être illisible). C'est le même niveau d'exigence qu'un contrôle
- * humain rapide — pas plus, pas moins.
- *
- * ── SÛRETÉ : UNE ERREUR TECHNIQUE NE DEVIENT JAMAIS UNE DÉCISION ───────────
- * Si l'IA échoue à répondre ou renvoie un format inexploitable, le dossier
- * reste EN_ATTENTE pour le prochain passage. On ne refuse ni n'approuve
- * jamais par défaut sur une panne — un doute technique de notre côté ne doit
- * pas ressembler à un jugement sur la personne.
+ * Sûreté : une panne IA ne devient jamais une décision. Une incohérence
+ * technique de notre côté (URL de stockage illisible) laisse le dossier
+ * EN_ATTENTE.
  */
 
-type Verdict = {
-  decision: "APPROUVE" | "REFUSE";
-  motif: string;
-  signaux: string[];
-};
+type Verdict = { decision: "APPROUVE" | "REFUSE"; motif: string; signaux: string[] };
 
 function extraireJson(texte: string): Verdict | null {
   try {
@@ -44,9 +31,6 @@ function extraireJson(texte: string): Verdict | null {
     if (!m) return null;
     const j = JSON.parse(m[0]) as Partial<Verdict>;
     if (j.decision !== "APPROUVE" && j.decision !== "REFUSE") return null;
-    // < 10 caractères : `appliquerDecisionKyc` refuserait ce motif comme
-    // refus de publication. On le rejette ici plutôt que de laisser le
-    // dossier repartir en « failed » pour une raison qu'on peut prévenir.
     if (!j.motif || typeof j.motif !== "string" || j.motif.trim().length < 10) return null;
     return { decision: j.decision, motif: j.motif.trim(), signaux: Array.isArray(j.signaux) ? j.signaux.map(String) : [] };
   } catch {
@@ -56,12 +40,50 @@ function extraireJson(texte: string): Verdict | null {
 
 const LIBELLES_DOCUMENT: Record<string, string> = {
   CNI: "Carte Nationale d'Identité",
+  CIP: "Certificat d'Identification Personnelle",
   PASSEPORT: "Passeport",
-  PERMIS: "Permis de conduire",
+  PERMIS_CONDUIRE: "Permis de conduire",
   CARTE_CONSULAIRE: "Carte consulaire",
+  RECEPISSE: "Récépissé d'identité",
   CARTE_ELECTEUR: "Carte d'électeur",
   CARTE_RESIDENT: "Carte de résident",
 };
+
+type ContexteCompte = {
+  pays: string | null;
+  ancienneteJours: number;
+  emailVerifie: boolean;
+  kycActuel: number;
+  ventesReussies: number;
+  retraitsFaits: number;
+};
+
+async function contexteCompte(userId: string): Promise<ContexteCompte> {
+  const u = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      country: true, createdAt: true, emailVerified: true, kyc: true,
+      instructeurProfile: {
+        select: {
+          digitalProducts: { select: { _count: { select: { purchases: true } } } },
+          formations: { select: { _count: { select: { enrollments: true } } } },
+          withdrawals: { where: { status: "TRAITE" }, select: { id: true } },
+        },
+      },
+    },
+  });
+  const ventes =
+    (u?.instructeurProfile?.digitalProducts ?? []).reduce((n, p) => n + (p._count?.purchases ?? 0), 0) +
+    (u?.instructeurProfile?.formations ?? []).reduce((n, f) => n + (f._count?.enrollments ?? 0), 0);
+  return {
+    pays: u?.country ?? null,
+    ancienneteJours: u ? Math.floor((Date.now() - u.createdAt.getTime()) / 86400_000) : 0,
+    emailVerifie: !!u?.emailVerified,
+    kycActuel: u?.kyc ?? 1,
+    ventesReussies: ventes,
+    retraitsFaits: u?.instructeurProfile?.withdrawals?.length ?? 0,
+  };
+}
 
 async function analyserDossier(k: {
   documentType: string;
@@ -69,8 +91,16 @@ async function analyserDossier(k: {
   documentUrl: string;
   documentVersoUrl: string;
   selfieUrl: string;
-}): Promise<Verdict | null> {
+  nomLegal: string | null;
+  prenomLegal: string | null;
+  dateNaissance: Date | null;
+  numeroDocument: string | null;
+  contexte: ContexteCompte;
+}, consignes: string): Promise<Verdict | null> {
   const libelle = LIBELLES_DOCUMENT[k.documentType] ?? k.documentType;
+  const dateFr = k.dateNaissance
+    ? k.dateNaissance.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" })
+    : "non déclarée";
 
   const systeme = [
     "Tu es l'agent de vérification d'identité (KYC) de Novakou, une marketplace africaine de formations et produits numériques encaissant en Mobile Money.",
@@ -79,16 +109,32 @@ async function analyserDossier(k: {
     "Trois photos te sont fournies dans l'ordre : (1) RECTO du document, (2) VERSO du document, (3) SELFIE de la personne.",
     `Type de document déclaré : ${libelle}. Niveau KYC demandé : ${k.requestedLevel}.`,
     "",
-    "APPROUVE si, et seulement si, les trois conditions suivantes sont réunies :",
-    "  1. Le recto ET le verso sont des photos NETTES et LISIBLES d'un document d'identité officiel plausible — pas une capture d'écran, pas une photo d'un écran, pas une image sans rapport (facture, paysage, texte quelconque).",
+    "IDENTITÉ DÉCLARÉE par la personne (à comparer avec ce que tu LIS sur la pièce) :",
+    `  Nom : ${k.nomLegal ?? "(non déclaré)"}`,
+    `  Prénom : ${k.prenomLegal ?? "(non déclaré)"}`,
+    `  Date de naissance : ${dateFr}`,
+    `  Numéro de la pièce : ${k.numeroDocument ?? "(non déclaré)"}`,
+    "",
+    "CONTEXTE DU COMPTE (à titre indicatif — ne refuse PAS pour ces seuls signaux, ils ne servent qu'à graduer la vigilance) :",
+    `  Pays du profil : ${k.contexte.pays ?? "(non renseigné)"}`,
+    `  Ancienneté du compte : ${k.contexte.ancienneteJours} jour(s)`,
+    `  E-mail vérifié : ${k.contexte.emailVerifie ? "oui" : "non"}`,
+    `  Niveau KYC actuel : ${k.contexte.kycActuel}`,
+    `  Ventes réussies : ${k.contexte.ventesReussies} · Retraits faits : ${k.contexte.retraitsFaits}`,
+    "",
+    "APPROUVE si TOUTES ces conditions sont réunies :",
+    "  1. Le recto ET le verso sont NETS et LISIBLES d'un document d'identité officiel plausible — pas une capture d'écran, pas une photo d'écran, pas une image sans rapport.",
     "  2. Recto et verso sont cohérents entre eux (même type de document, même mise en page officielle).",
-    "  3. Le selfie montre clairement le visage d'une personne réelle — pas un dessin, un logo, une image vide, un objet, ou une photo si floue qu'aucun visage n'est distinguable.",
+    "  3. Le selfie montre clairement le visage d'une personne réelle — pas un dessin, un logo, un objet, ou une photo si floue qu'aucun visage n'est distinguable.",
+    "  4. Le NOM et le PRÉNOM lisibles sur la pièce correspondent (ordre, orthographe majeure) à ceux qui ont été DÉCLARÉS. Une divergence évidente (« Kouassi Jean-Claude » sur la pièce vs « Marie Diarra » déclaré) est un refus. Les diacritiques et petites variations d'orthographe sont TOLÉRÉS.",
+    "  5. La date de naissance et le numéro de pièce lisibles correspondent aux déclarations, quand ils sont lisibles.",
     "",
-    "REFUSE dans tous les autres cas, avec un motif PRÉCIS et ACTIONNABLE (que la personne peut corriger en resoumettant) : nomme EXACTEMENT ce qui cloche (ex. « Le verso de la pièce est flou et le numéro de document n'est pas lisible », « Le selfie ne montre pas de visage humain reconnaissable »).",
+    "REFUSE dans tous les autres cas, avec un motif PRÉCIS et ACTIONNABLE : nomme EXACTEMENT ce qui cloche (ex. « Le nom sur la pièce (KOUAME AKISSI) ne correspond pas au nom déclaré (DIALLO FATOU). Vérifiez votre saisie et resoumettez. »).",
     "",
-    "Ne refuse JAMAIS pour un motif que la personne ne peut pas corriger (âge, origine apparente, qualité de l'appareil photo si l'image reste lisible). Le doute raisonnable sur la LISIBILITÉ ou la LÉGITIMITÉ va au refus motivé — pas à l'approbation par défaut : une identité mal vérifiée peut ensuite débloquer un retrait d'argent réel.",
+    "Ne refuse JAMAIS pour un motif que la personne ne peut pas corriger (âge, origine, qualité d'appareil photo tant que la pièce reste lisible). Le doute raisonnable sur la LISIBILITÉ ou l'IDENTITÉ va au refus motivé — pas à l'approbation par défaut : une identité mal vérifiée peut ensuite débloquer un retrait d'argent réel.",
+    consignes ? `\nConsignes personnalisées de l'équipe Novakou : ${consignes}` : "",
     "",
-    'Réponds STRICTEMENT en JSON, rien d\'autre : {"decision":"APPROUVE"|"REFUSE","motif":"phrase claire en français, à destination de la personne","signaux":["mot-clé1","mot-clé2"]}',
+    'Réponds STRICTEMENT en JSON, rien d\'autre : {"decision":"APPROUVE"|"REFUSE","motif":"phrase claire en français, à destination de la personne","signaux":["mot-clé1"]}',
   ].join("\n");
 
   const contenu: PartieMessageIA[] = [
@@ -104,7 +150,7 @@ async function analyserDossier(k: {
         { role: "system", content: systeme },
         { role: "user", content: contenu },
       ],
-      maxTokens: 500,
+      maxTokens: 600,
       temperature: 0.2,
       timeoutMs: 45_000,
     });
@@ -131,6 +177,7 @@ export async function runKycVerification() {
         id: true, requestedLevel: true, documentType: true,
         documentUrl: true, documentVersoUrl: true, selfieUrl: true,
         userId: true, createdAt: true,
+        nomLegal: true, prenomLegal: true, dateNaissance: true, numeroDocument: true,
       },
       orderBy: { createdAt: "asc" },
       take: lot,
@@ -141,41 +188,41 @@ export async function runKycVerification() {
     let indetermines = 0;
     const agentId = await agentSystemUserId();
 
-    // Budget de temps : chaque appel vision peut prendre jusqu'à 45 s. Au-delà
-    // de ce seuil on s'arrête net et on laisse le reste au passage suivant
-    // (cron toutes les 15 min) plutôt que de risquer le timeout de la fonction
-    // (`maxDuration` 280 s) — un dossier resterait alors EN_ATTENTE sans même
-    // avoir été journalisé comme tenté.
     const DEBUT = Date.now();
     const BUDGET_MS = 220_000;
 
     for (const k of dossiers) {
       if (Date.now() - DEBUT > BUDGET_MS) break;
 
-      // Dossier incomplet : refus immédiat, sans appel IA — recto, verso et
-      // selfie sont OBLIGATOIRES pour toute demande (règle produit KYC).
-      if (!k.documentUrl || !k.documentVersoUrl || !k.selfieUrl) {
+      // Dossier incomplet : refus immédiat, sans appel IA.
+      const manquant: string[] = [];
+      if (!k.documentUrl) manquant.push("recto");
+      if (!k.documentVersoUrl) manquant.push("verso");
+      if (!k.selfieUrl) manquant.push("selfie");
+      // L'identité déclarée est optionnelle en base (colonnes nullables) pour
+      // les anciennes soumissions, mais obligatoire pour les nouvelles depuis
+      // 2026-09-23. Un dossier sans identité déclarée est refusé net.
+      if (!k.nomLegal || !k.prenomLegal) manquant.push("nom/prénom déclarés");
+      if (manquant.length > 0) {
         const a = await proposeAction({
           agentKey: "kyc_verification",
           type: "kyc_decision",
           risk: "low",
-          title: `KYC refusé — pièces manquantes`,
-          reasoning: "Recto, verso et selfie sont tous obligatoires. Dossier incomplet.",
+          title: `KYC refusé — pièces ou informations manquantes`,
+          reasoning: `Éléments absents : ${manquant.join(", ")}.`,
           targetType: "kycRequest",
           targetId: k.id,
-          payload: { auto: true, motif: "incomplet" },
+          payload: { auto: true, motif: "incomplet", manquant },
           dedupeKey: `kyc_verification-${k.id}`,
           execute: async () => {
             const d = await appliquerDecisionKyc({
               kycRequestId: k.id,
               action: "refuse",
               refuseReason:
-                "Dossier incomplet : la pièce d'identité (recto ET verso) ainsi qu'un selfie sont tous obligatoires. Soumettez une nouvelle demande avec les trois photos.",
+                `Dossier incomplet — éléments manquants : ${manquant.join(", ")}. ` +
+                "Soumettez une nouvelle demande complète (nom, prénom, date de naissance, numéro de pièce, recto, verso et selfie).",
               decidePar: agentId,
             });
-            // `proposeAction` ne marque « auto_executed » que sur une vraie
-            // réussite : lever ici évite qu'un dossier déjà traité entre-temps
-            // (course avec l'admin) reste faussement marqué exécuté.
             if (!d.ok) throw new Error(d.erreur);
             return d;
           },
@@ -189,21 +236,21 @@ export async function runKycVerification() {
         resolveKycDocumentUrl(k.documentVersoUrl),
         resolveKycDocumentUrl(k.selfieUrl),
       ]);
-      if (!recto || !verso || !selfie) {
-        // URL de stockage illisible (objet supprimé, bucket injoignable) : ce
-        // n'est PAS la faute de la personne — on laisse EN_ATTENTE plutôt que
-        // de la pénaliser pour un problème de notre côté.
-        indetermines++;
-        continue;
-      }
+      if (!recto || !verso || !selfie) { indetermines++; continue; }
 
+      const ctx = await contexteCompte(k.userId);
       const verdict = await analyserDossier({
         documentType: k.documentType,
         requestedLevel: k.requestedLevel,
         documentUrl: recto,
         documentVersoUrl: verso,
         selfieUrl: selfie,
-      });
+        nomLegal: k.nomLegal,
+        prenomLegal: k.prenomLegal,
+        dateNaissance: k.dateNaissance,
+        numeroDocument: k.numeroDocument,
+        contexte: ctx,
+      }, consignes);
       if (!verdict) { indetermines++; continue; }
 
       const approuve = verdict.decision === "APPROUVE";
@@ -212,10 +259,10 @@ export async function runKycVerification() {
         type: "kyc_decision",
         risk: "low",
         title: `KYC niveau ${k.requestedLevel} — ${approuve ? "approuvé" : "refusé"} par l'agent`,
-        reasoning: `${verdict.motif}${consignes ? `\n\nConsignes appliquées : ${consignes}` : ""}`,
+        reasoning: verdict.motif,
         targetType: "kycRequest",
         targetId: k.id,
-        payload: { auto: true, verdict },
+        payload: { auto: true, verdict, contexte: ctx },
         dedupeKey: `kyc_verification-${k.id}`,
         execute: async () => {
           const d = await appliquerDecisionKyc({
@@ -236,7 +283,7 @@ export async function runKycVerification() {
       actionsCreated: decides,
       summary:
         `${dossiers.length} dossier(s) examiné(s) · ${decides} décidé(s)` +
-        (incomplets ? ` (dont ${incomplets} refusé(s) pour pièces manquantes)` : "") +
+        (incomplets ? ` (dont ${incomplets} refus pour incomplétude)` : "") +
         (indetermines ? ` · ${indetermines} laissé(s) en attente (panne technique)` : ""),
     };
   });

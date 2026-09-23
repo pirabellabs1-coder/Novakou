@@ -722,6 +722,14 @@ model KycRequest {
   /// Photo du visage, tenue par la personne. C'est elle qui relie la pièce à
   /// son porteur : sans elle, une pièce trouvée ou empruntée suffit à passer.
   selfieUrl      String?
+  /// Identité DÉCLARÉE par la personne au moment de la soumission — ce que
+  /// l'agent de vérification compare à ce qu'il lit sur la pièce. Le nom du
+  /// COMPTE (User.name) peut être un pseudo ; ces champs-ci, non : ils sont
+  /// annoncés comme « ce qui est écrit sur ma pièce ».
+  nomLegal        String?
+  prenomLegal     String?
+  dateNaissance   DateTime?
+  numeroDocument  String?
   status         KycStatus @default(EN_ATTENTE)
   reviewedBy     String?
   reviewedAt     DateTime?

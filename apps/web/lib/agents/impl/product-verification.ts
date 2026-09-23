@@ -5,15 +5,16 @@ import { appliquerDecisionProduit, type KindProduit } from "@/lib/formations/pro
 import { chatVisionIA, estOpenRouterConfigure, type PartieMessageIA } from "@/lib/ai/openrouter";
 
 /**
- * AGENT DE VALIDATION DES FICHES — autonome, décision fondateur 2026-09-21.
+ * AGENT DE VALIDATION DES FICHES — autonome.
  *
- * Complète `publication-gate.ts`, qui reste le premier filtre (refus net,
- * déterministe, sans IA, sur les règles de complétude/prix/promesses). Ce
- * qui PASSE ce filtre mais porte un SIGNAL (prix élevé, vendeur non vérifié,
- * e-mail non confirmé) partait auparavant en file d'attente admin. Cet agent
- * DÉCIDE à la place : publie ou refuse avec un motif envoyé au vendeur.
- * L'admin garde `/admin/produits` pour un cas litigieux, mais rien n'exige
- * plus son intervention.
+ * Deux règles ABSOLUES posées par le fondateur :
+ *  - Le PRIX seul n'est jamais un motif de refus. Un vendeur peut fixer le
+ *    prix qu'il veut, y compris au-dessus de 500 000 FCFA.
+ *  - Le fait d'être un NOUVEAU vendeur n'est jamais un motif de refus.
+ *
+ * Le contexte vendeur (KYC, ancienneté, produits déjà publiés, ventes) est
+ * fourni au modèle pour graduer la vigilance, PAS pour justifier un refus.
+ * Seuls la fraude, l'illégal et la tromperie manifeste bloquent.
  */
 
 type Verdict = { decision: "PUBLIE" | "REFUSE"; motif: string; signaux: string[] };
@@ -31,6 +32,54 @@ function extraireJson(texte: string): Verdict | null {
   }
 }
 
+type ContexteVendeur = {
+  ancienneteJours: number;
+  emailVerifie: boolean;
+  kycNiveau: number;
+  produitsPublies: number;
+  ventesReussies: number;
+  refusAnterieurs: number;
+};
+
+async function contexteVendeur(instructeurId: string): Promise<ContexteVendeur> {
+  const inst = await prisma.instructeurProfile.findUnique({
+    where: { id: instructeurId },
+    select: {
+      user: { select: { createdAt: true, emailVerified: true, kyc: true } },
+      digitalProducts: {
+        select: {
+          status: true, refuseReason: true,
+          _count: { select: { purchases: true } },
+        },
+      },
+      formations: {
+        select: {
+          status: true, refuseReason: true,
+          _count: { select: { enrollments: true } },
+        },
+      },
+    },
+  });
+  if (!inst) {
+    return { ancienneteJours: 0, emailVerifie: false, kycNiveau: 1, produitsPublies: 0, ventesReussies: 0, refusAnterieurs: 0 };
+  }
+  const items = [...inst.digitalProducts, ...inst.formations];
+  const publies = items.filter((x) => x.status === "ACTIF").length;
+  const refuses = items.filter((x) => x.refuseReason && x.refuseReason.length > 0).length;
+  const ventes = items.reduce(
+    (n, x) => n + ("_count" in x ? ((x._count as { purchases?: number; enrollments?: number }).purchases ?? (x._count as { enrollments?: number }).enrollments ?? 0) : 0),
+    0,
+  );
+  return {
+    ancienneteJours: Math.floor((Date.now() - inst.user.createdAt.getTime()) / 86400_000),
+    emailVerifie: !!inst.user.emailVerified,
+    kycNiveau: inst.user.kyc ?? 1,
+    produitsPublies: publies,
+    ventesReussies: ventes,
+    refusAnterieurs: refuses,
+  };
+}
+
 async function analyserFiche(f: {
   kind: KindProduit;
   titre: string;
@@ -38,23 +87,33 @@ async function analyserFiche(f: {
   prix: number;
   images: string[];
   lienDePaiement: boolean;
-}): Promise<Verdict | null> {
+  contexte: ContexteVendeur;
+}, consignes: string): Promise<Verdict | null> {
   const systeme = [
     "Tu es l'agent de validation des fiches de Novakou, une marketplace africaine de formations et produits numériques.",
-    "Ta décision est FINALE et autonome : personne ne la relit avant qu'elle s'applique. Sois rigoureux sur la fraude et l'illégal, tolérant sur le style.",
+    "Ta décision est FINALE et autonome. Sois rigoureux sur la fraude et l'illégal, tolérant sur le style.",
+    "",
+    "── DEUX RÈGLES ABSOLUES ──",
+    "1. Le PRIX seul n'est JAMAIS un motif de refus. Un vendeur peut publier à 500 000 FCFA ou plus, c'est son droit.",
+    "2. Être un NOUVEAU vendeur (compte récent, peu de ventes) n'est JAMAIS un motif de refus. On accueille les nouveaux comme les anciens.",
     "",
     `Type de fiche : ${f.kind === "formation" ? "formation vidéo" : f.lienDePaiement ? "lien de paiement (titre + prix, sans image ni description détaillée attendue)" : "produit numérique (ebook, template, audio…)"}.`,
     `Prix : ${Math.round(f.prix)} FCFA.`,
+    "",
+    "CONTEXTE VENDEUR (à titre indicatif) :",
+    `  Ancienneté : ${f.contexte.ancienneteJours} jour(s) · E-mail vérifié : ${f.contexte.emailVerifie ? "oui" : "non"}`,
+    `  KYC : niveau ${f.contexte.kycNiveau} · Produits publiés : ${f.contexte.produitsPublies} · Ventes réussies : ${f.contexte.ventesReussies}`,
+    `  Refus antérieurs (motif renseigné) : ${f.contexte.refusAnterieurs}`,
     "",
     "REFUSE si tu observes l'un de ces signaux :",
     "  - Promesse de gains mensongère ou trompeuse (« devenez riche », rendements garantis, pyramide/MLM déguisé).",
     "  - Contenu manifestement illégal, dangereux, ou sexuel.",
     "  - Titre et description SANS RAPPORT avec ce que montrent les images (tromperie sur le produit vendu).",
-    "  - Image(s) clairement volée(s)/génériques sans rapport avec un produit réel (ex. capture d'écran de résultats bancaires irréalistes comme preuve de gains).",
-    "  - Prix manifestement incohérent avec un contenu numérique inexistant ou vide (arnaque probable).",
+    "  - Image(s) manifestement volée(s) sans rapport avec un produit réel (ex. capture d'écran de résultats bancaires irréalistes présentée comme preuve de gains).",
+    "  - Contenu VIDE : titre-bidon (« aa », « test »), description absente, image générique sans lien.",
     "",
-    "PUBLIE dans tous les autres cas — y compris une fiche perfectible mais honnête, un style commercial normal, ou un lien de paiement minimaliste (c'est son format normal, ne le pénalise pas pour son absence d'image).",
-    "Le DOUTE RAISONNABLE va à la publication : ce filtre n'est pas là pour juger la qualité marketing, seulement pour écarter la fraude et l'illégal manifestes — la modération humaine reste possible après coup sur signalement.",
+    "PUBLIE dans tous les autres cas — y compris une fiche perfectible mais honnête, un style commercial normal, un prix élevé, un vendeur nouveau, un lien de paiement minimaliste (c'est son format normal). Le doute raisonnable va à la publication.",
+    consignes ? `\nConsignes personnalisées de l'équipe Novakou : ${consignes}` : "",
     "",
     'Réponds STRICTEMENT en JSON, rien d\'autre : {"decision":"PUBLIE"|"REFUSE","motif":"phrase claire en français, à destination du vendeur","signaux":["mot-clé1"]}',
   ].join("\n");
@@ -94,13 +153,13 @@ export async function runProductVerification() {
     const [formations, produits] = await Promise.all([
       prisma.formation.findMany({
         where: { status: "EN_ATTENTE" },
-        select: { id: true, title: true, description: true, shortDesc: true, price: true, thumbnail: true },
+        select: { id: true, title: true, description: true, shortDesc: true, price: true, thumbnail: true, instructeurId: true },
         orderBy: { createdAt: "asc" },
         take: lot,
       }),
       prisma.digitalProduct.findMany({
         where: { status: "EN_ATTENTE" },
-        select: { id: true, title: true, description: true, price: true, thumbnail: true, banner: true, isPaymentLink: true },
+        select: { id: true, title: true, description: true, price: true, thumbnail: true, banner: true, isPaymentLink: true, instructeurId: true },
         orderBy: { createdAt: "asc" },
         take: lot,
       }),
@@ -111,19 +170,17 @@ export async function runProductVerification() {
     let indetermines = 0;
     let coupees = 0;
 
-    // Même garde-fou que l'agent KYC : on s'arrête avant le timeout de la
-    // fonction (280 s) et on laisse le reste au passage suivant (15 min).
     const DEBUT = Date.now();
     const BUDGET_MS = 220_000;
 
     const traiter = async (kind: KindProduit, item: {
-      id: string; titre: string; description: string; prix: number; images: string[]; lienDePaiement: boolean;
+      id: string; instructeurId: string;
+      titre: string; description: string; prix: number; images: string[]; lienDePaiement: boolean;
     }) => {
       if (Date.now() - DEBUT > BUDGET_MS) { coupees++; return; }
-      // Aucune image à montrer : décision sur texte seul plutôt que de
-      // laisser un tableau vide faire échouer l'appel — un lien de paiement
-      // n'a légitimement pas d'image.
-      const verdict = await analyserFiche({ kind, ...item });
+
+      const ctx = await contexteVendeur(item.instructeurId);
+      const verdict = await analyserFiche({ kind, ...item, contexte: ctx }, consignes);
       if (!verdict) { indetermines++; return; }
 
       const publie = verdict.decision === "PUBLIE";
@@ -132,10 +189,10 @@ export async function runProductVerification() {
         type: "product_decision",
         risk: "low",
         title: `${kind === "formation" ? "Formation" : "Produit"} « ${item.titre.slice(0, 50)} » — ${publie ? "publié" : "refusé"} par l'agent`,
-        reasoning: `${verdict.motif}${consignes ? `\n\nConsignes appliquées : ${consignes}` : ""}`,
+        reasoning: verdict.motif,
         targetType: kind,
         targetId: item.id,
-        payload: { auto: true, verdict },
+        payload: { auto: true, verdict, contexte: ctx },
         dedupeKey: `product_verification-${kind}-${item.id}`,
         execute: async () => {
           const d = await appliquerDecisionProduit({
@@ -154,21 +211,17 @@ export async function runProductVerification() {
 
     for (const f of formations) {
       await traiter("formation", {
-        id: f.id,
-        titre: f.title,
-        description: f.description || f.shortDesc || "",
-        prix: f.price,
-        images: f.thumbnail ? [f.thumbnail] : [],
+        id: f.id, instructeurId: f.instructeurId,
+        titre: f.title, description: f.description || f.shortDesc || "",
+        prix: f.price, images: f.thumbnail ? [f.thumbnail] : [],
         lienDePaiement: false,
       });
     }
     for (const p of produits) {
       await traiter("product", {
-        id: p.id,
-        titre: p.title,
-        description: p.description || "",
-        prix: p.price,
-        images: [p.thumbnail, p.banner].filter((u): u is string => !!u),
+        id: p.id, instructeurId: p.instructeurId,
+        titre: p.title, description: p.description || "",
+        prix: p.price, images: [p.thumbnail, p.banner].filter((u): u is string => !!u),
         lienDePaiement: p.isPaymentLink,
       });
     }

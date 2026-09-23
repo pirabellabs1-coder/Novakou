@@ -77,12 +77,28 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { documentType, documentUrl, documentVersoUrl, selfieUrl, requestedLevel } = body as {
+    const {
+      documentType,
+      documentUrl,
+      documentVersoUrl,
+      selfieUrl,
+      requestedLevel,
+      nomLegal,
+      prenomLegal,
+      dateNaissance,
+      numeroDocument,
+    } = body as {
       documentType?: string;
       documentUrl?: string;
       documentVersoUrl?: string;
       selfieUrl?: string;
       requestedLevel?: number;
+      // Identité déclarée : c'est ce que l'agent va comparer à ce qu'il lit
+      // sur la pièce. Obligatoire pour toute nouvelle soumission.
+      nomLegal?: string;
+      prenomLegal?: string;
+      dateNaissance?: string;
+      numeroDocument?: string;
     };
 
     const LEVEL_DOCS: Record<number, string[]> = {
@@ -127,10 +143,33 @@ export async function POST(request: Request) {
     if (!selfieUrl || typeof selfieUrl !== "string" || !selfieUrl.trim()) {
       manquant.push("votre photo de visage");
     }
+    // Identité déclarée : nom, prénom, date de naissance et numéro de pièce
+    // sont ce que l'agent compare à ce qu'il lit sur le document. Sans ces
+    // champs, la vérification autonome n'a aucun ancrage textuel.
+    const nom = String(nomLegal ?? "").trim();
+    const prenom = String(prenomLegal ?? "").trim();
+    const numero = String(numeroDocument ?? "").trim();
+    if (nom.length < 2) manquant.push("votre nom (tel qu'il figure sur la pièce)");
+    if (prenom.length < 2) manquant.push("votre prénom (tel qu'il figure sur la pièce)");
+    if (!dateNaissance) manquant.push("votre date de naissance");
+    if (numero.length < 3) manquant.push("le numéro de votre pièce");
+
+    let dateN: Date | null = null;
+    if (dateNaissance) {
+      dateN = new Date(dateNaissance);
+      if (Number.isNaN(dateN.getTime())) {
+        return NextResponse.json({ error: "Date de naissance invalide.", code: "KYC_INVALID_DATE" }, { status: 400 });
+      }
+      const age = (Date.now() - dateN.getTime()) / (365.25 * 86400_000);
+      if (age < 15 || age > 120) {
+        return NextResponse.json({ error: "Date de naissance invalide (âge hors bornes).", code: "KYC_INVALID_DATE" }, { status: 400 });
+      }
+    }
+
     if (manquant.length > 0) {
       return NextResponse.json(
         {
-          error: `Dossier incomplet — il manque ${manquant.join(", ")}. Les trois sont obligatoires.`,
+          error: `Dossier incomplet — il manque ${manquant.join(", ")}. Ces informations sont obligatoires.`,
           code: "KYC_INCOMPLET",
           manquant,
         },
@@ -173,6 +212,10 @@ export async function POST(request: Request) {
         documentUrl: normalizeKycDocumentReference(documentUrl!),
         documentVersoUrl: normalizeKycDocumentReference(documentVersoUrl!),
         selfieUrl: normalizeKycDocumentReference(selfieUrl!),
+        nomLegal: nom,
+        prenomLegal: prenom,
+        dateNaissance: dateN,
+        numeroDocument: numero,
       },
     });
 

@@ -4,16 +4,16 @@ import { authOptions } from "@/lib/auth/config";
 import { ensureAgentsSeeded } from "@/lib/agents/runtime";
 import { runKycVerification } from "@/lib/agents/impl/kyc-verification";
 import { runProductVerification } from "@/lib/agents/impl/product-verification";
+import { runBuyerSupport } from "@/lib/agents/impl/buyer-support";
+import { runFraudDetection } from "@/lib/agents/impl/fraud-detection";
+import { runReviewsModeration } from "@/lib/agents/impl/reviews-moderation";
+import { runDisputeResolution } from "@/lib/agents/impl/dispute-resolution";
+import { runVendorCoach } from "@/lib/agents/impl/vendor-coach";
+import { runAccountDeletion } from "@/lib/agents/impl/account-deletion";
 
-/**
- * POST /api/formations/admin/agents/run
- *
- * Déclenche les deux agents immédiatement, sans attendre le prochain quart
- * d'heure du cron. Réservé à l'admin — protégé par la session, pas par
- * CRON_SECRET (le cron régulier reste le chemin normal).
- */
+/** POST /api/formations/admin/agents/run — déclenche les huit agents immédiatement. */
 export const dynamic = "force-dynamic";
-export const maxDuration = 280;
+export const maxDuration = 300;
 
 function isAdmin(session: { user?: { email?: string | null; role?: unknown } | null } | null): boolean {
   if (!session?.user) return false;
@@ -30,11 +30,19 @@ export async function POST() {
 
   await ensureAgentsSeeded();
 
-  const results: Record<string, unknown> = {};
-  for (const [k, fn] of [
+  const runners: Array<[string, () => Promise<unknown>]> = [
     ["kyc_verification", runKycVerification],
     ["product_verification", runProductVerification],
-  ] as const) {
+    ["buyer_support", runBuyerSupport],
+    ["fraud_detection", runFraudDetection],
+    ["reviews_moderation", runReviewsModeration],
+    ["dispute_resolution", runDisputeResolution],
+    ["vendor_coach", runVendorCoach],
+    ["account_deletion", runAccountDeletion],
+  ];
+
+  const results: Record<string, unknown> = {};
+  for (const [k, fn] of runners) {
     try {
       results[k] = await fn();
     } catch (e) {
