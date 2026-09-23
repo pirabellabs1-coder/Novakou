@@ -21,6 +21,14 @@ CREATE TABLE IF NOT EXISTS "VendorShop" (
     FOREIGN KEY ("instructeurId") REFERENCES "InstructeurProfile"("id") ON DELETE CASCADE
 );
 
+-- Idempotence : si la table existait déjà via db push sans DEFAULT sur updatedAt,
+-- on force la contrainte + on rebouche les NULL avant tout INSERT.
+ALTER TABLE "VendorShop" ALTER COLUMN "updatedAt" SET DEFAULT CURRENT_TIMESTAMP;
+UPDATE "VendorShop" SET "updatedAt" = COALESCE("updatedAt", "createdAt", CURRENT_TIMESTAMP) WHERE "updatedAt" IS NULL;
+UPDATE "VendorShop" SET "createdAt" = COALESCE("createdAt", CURRENT_TIMESTAMP) WHERE "createdAt" IS NULL;
+ALTER TABLE "VendorShop" ALTER COLUMN "updatedAt" SET NOT NULL;
+ALTER TABLE "VendorShop" ALTER COLUMN "createdAt" SET NOT NULL;
+
 CREATE UNIQUE INDEX IF NOT EXISTS "VendorShop_slug_key"         ON "VendorShop"("slug");
 CREATE UNIQUE INDEX IF NOT EXISTS "VendorShop_customDomain_key" ON "VendorShop"("customDomain");
 CREATE INDEX        IF NOT EXISTS "VendorShop_instructeurId_idx"  ON "VendorShop"("instructeurId");
@@ -31,7 +39,8 @@ CREATE INDEX        IF NOT EXISTS "VendorShop_customDomain_idx"   ON "VendorShop
 -- Slug = shopSlug existant OU "boutique-<id 8 premiers chars>"
 INSERT INTO "VendorShop" (
   "id", "instructeurId", "name", "slug", "isPrimary",
-  "customDomain", "customDomainVerified", "customDomainAddedAt"
+  "customDomain", "customDomainVerified", "customDomainAddedAt",
+  "createdAt", "updatedAt"
 )
 SELECT
   'shop_' || substr(md5(random()::text || ip."id"), 1, 16),
@@ -41,7 +50,9 @@ SELECT
   true,
   ip."customDomain",
   ip."customDomainVerified",
-  ip."customDomainAddedAt"
+  ip."customDomainAddedAt",
+  CURRENT_TIMESTAMP,
+  CURRENT_TIMESTAMP
 FROM "InstructeurProfile" ip
 LEFT JOIN "User" u ON u."id" = ip."userId"
 WHERE NOT EXISTS (
