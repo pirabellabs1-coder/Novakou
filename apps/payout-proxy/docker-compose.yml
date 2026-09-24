@@ -1,0 +1,50 @@
+# ═══════════════════════════════════════════════════════════════════════
+# Novakou — Proxy à IP fixe (remplace Fixie)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Déploiement sur un VPS (Oracle Cloud Free Tier ou Hetzner CX22) :
+#
+#   1. SSH sur le VPS.
+#   2. `git clone https://github.com/pirabellabs1-coder/Novakou.git`
+#   3. `cd Novakou/apps/payout-proxy`
+#   4. Créer le fichier passwd :
+#        docker compose run --rm --no-deps proxy \
+#          htpasswd -c /etc/squid/passwd novakou
+#      (Squid demande un mot de passe. Notez-le, il sert de bloc `pass`
+#       dans PAYOUT_PROXY_URL côté Vercel.)
+#   5. Ouvrir le port 3128 côté cloud provider (Security List / Firewall).
+#   6. Lancer :  docker compose up -d
+#   7. Récupérer l'IP publique du VPS et la donner à FeexPay pour
+#      whitelisting. Attention : c'est CETTE IP-là et pas une autre.
+#   8. Une fois whitelistée, mettre à jour la variable Vercel :
+#        PAYOUT_PROXY_URL="http://novakou:MOTDEPASSE@IP_DU_VPS:3128"
+#   9. Redéployer Vercel et vérifier un versement de test avant de
+#      couper Fixie.
+
+services:
+  proxy:
+    image: ubuntu/squid:6.6-24.04_edge
+    container_name: novakou-payout-proxy
+    restart: always
+    ports:
+      - "3128:3128"
+    volumes:
+      - ./squid.conf:/etc/squid/squid.conf:ro
+      - ./passwd:/etc/squid/passwd:ro
+      - squid-logs:/var/log/squid
+    # Redémarre proprement si Squid crashe (rare, mais visible).
+    healthcheck:
+      test: ["CMD", "sh", "-c", "squidclient -h localhost mgr:info > /dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    # Journaux limités pour ne pas remplir le disque du VPS.
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  squid-logs:

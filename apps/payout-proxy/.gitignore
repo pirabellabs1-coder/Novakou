@@ -1,0 +1,3 @@
+# Le fichier passwd contient un hash de mot de passe :
+# à créer sur chaque VPS, JAMAIS commité.
+passwd
