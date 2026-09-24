@@ -172,30 +172,31 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // ───────────────────────── Bénin (XOF) ─────────────────────────
   mtn_bj: {
     label: "MTN Mobile Money (Bénin)", country: "bj", currency: "XOF", family: "mobile_money",
+    // Routes fedapay retirées le 2026-09-24 (décision fondateur — consolidation
+    // sur FeexPay, qui couvre déjà cet opérateur en collect ET payout).
     collect: {
       pawapay: { code: "MTN_MOMO_BEN" },
-      feexpay: { code: "MTN" },
-      fedapay: { code: "mtn_open" } },
+      feexpay: { code: "MTN" } },
     // payout : route pawapay RETIRÉE le 2026-09-08 — PAYOUT non ouvert sur notre compte : /v2/active-conf (sonde du 2026-09-08) ne liste que DEPOSIT et REFUND pour cet opérateur. Rouvrir quand PawaPay active le versement.
     payout: {
-      feexpay: { code: "transfer/global", params: { network: "MTN" } },
-      fedapay: { code: "mtn_open" } } },
+      feexpay: { code: "transfer/global", params: { network: "MTN" } } } },
   moov_bj: {
     label: "Moov Money (Bénin)", country: "bj", currency: "XOF", family: "mobile_money",
+    // Routes fedapay retirées le 2026-09-24 (consolidation — FeexPay couvre).
     collect: {
       pawapay: { code: "MOOV_BEN" },
-      feexpay: { code: "MOOV" },
-      fedapay: { code: "moov" } },
+      feexpay: { code: "MOOV" } },
     // payout : route pawapay RETIRÉE le 2026-09-08 — PAYOUT non ouvert sur notre compte : /v2/active-conf (sonde du 2026-09-08) ne liste que DEPOSIT et REFUND pour cet opérateur. Rouvrir quand PawaPay active le versement.
     payout: {
-      feexpay: { code: "transfer/global", params: { network: "MOOV" } },
-      fedapay: { code: "moov" } } },
+      feexpay: { code: "transfer/global", params: { network: "MOOV" } } } },
   celtiis_bj: {
     label: "Celtiis Cash (Bénin)", country: "bj", currency: "XOF", family: "mobile_money",
-    collect: {
-      feexpay: { code: "CELTIIS BJ" },
-      fedapay: { code: "sbin" } },
-    payout: { fedapay: { code: "sbin" } } },
+    // Route fedapay retirée le 2026-09-24. ATTENTION : Celtiis Bénin n'est
+    // couvert QUE par FeexPay en collect maintenant. Versement Celtiis :
+    // AUCUNE passerelle branchée ne le sait — Celtiis n'est plus proposé au
+    // retrait tant qu'une passerelle payante ne l'ouvre pas explicitement.
+    collect: { feexpay: { code: "CELTIIS BJ" } },
+    payout: {} },
   coris_bj: {
     label: "Coris Money (Bénin)", country: "bj", currency: "XOF", family: "mobile_money",
     collect: { feexpay: { code: "CORIS" } },
@@ -232,12 +233,12 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     payout: {} },
   mtn_ci: {
     label: "MTN Mobile Money (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
+    // Routes fedapay retirées le 2026-09-24 (consolidation — FeexPay couvre).
     collect: {
       pawapay: { code: "MTN_MOMO_CIV" },
-      feexpay: { code: "MTN CI" },
-      fedapay: { code: "mtn_ci" } },
+      feexpay: { code: "MTN CI" } },
     // payout : route pawapay RETIRÉE le 2026-09-08 — PAYOUT non ouvert sur notre compte : /v2/active-conf (sonde du 2026-09-08) ne liste que DEPOSIT et REFUND pour cet opérateur. Rouvrir quand PawaPay active le versement.
-    payout: { feexpay: { code: "mtn_ci" }, fedapay: { code: "mtn_ci" } } },
+    payout: { feexpay: { code: "mtn_ci" } } },
   moov_ci: {
     label: "Moov Money (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
     collect: { feexpay: { code: "MOOV CI" } },
@@ -275,14 +276,10 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     payout: { feexpay: { code: "wave_sn" } } },
   freemoney_sn: {
     label: "YAS (ex-Free Money, Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
+    // Route fedapay retirée le 2026-09-24 (consolidation — FeexPay couvre).
     collect: {
       pawapay: { code: "FREE_SEN" },
-      feexpay: { code: "FREE SN" },
-      fedapay: { code: "free_sn" } },
-    // Versement FedaPay RETIRÉ le 2026-09-08 : leur documentation confirme
-    // « free_sn » à l'ENCAISSEMENT seulement — aucun mode de versement Sénégal
-    // n'y figure. Le moteur ne l'avait d'ailleurs jamais su appeler (absent de
-    // payout/methods-map). PawaPay et FeexPay restent.
+      feexpay: { code: "FREE SN" } },
     // payout : route pawapay RETIRÉE le 2026-09-08 — PAYOUT non ouvert sur notre compte : /v2/active-conf (sonde du 2026-09-08) ne liste que DEPOSIT et REFUND pour cet opérateur. Rouvrir quand PawaPay active le versement.
     payout: { feexpay: { code: "free_sn" } } },
   e_money_sn: {
@@ -301,26 +298,17 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // ────────────────────────── Togo (XOF) ──────────────────────────
   moov_tg: {
     label: "Moov Money (Togo)", country: "tg", currency: "XOF", family: "mobile_money",
-    collect: {
-      feexpay: { code: "MOOV TG" },
-      fedapay: { code: "moov_tg" } },
-    // Versement FedaPay RETIRÉ le 2026-09-08 : « moov_tg » est confirmé à
-    // l'encaissement, pas au versement (leur doc ne cite Moov Togo qu'en
-    // métadonnée). Jamais appelable par le moteur de toute façon. FeexPay reste.
+    // Route fedapay retirée le 2026-09-24 (consolidation — FeexPay couvre).
+    collect: { feexpay: { code: "MOOV TG" } },
     payout: {
       feexpay: { code: "togo", params: { network: "MOOV TG" } } } },
   togocel: {
-    // Clé interne `togocel` CONSERVÉE (= mode FedaPay confirmé + réseau FeexPay
-    // « TOGOCOM TG »). Seul le libellé suit le rebranding : Togocel → T-Money
-    // (Togocom, aujourd'hui « Mixx by Yas »). Les clients ne reconnaissaient
-    // pas « Togocel Money ».
+    // Clé interne `togocel` conservée pour compatibilité historique.
+    // Libellé : Togocel → T-Money (Togocom, « Mixx by Yas »).
+    // Routes fedapay retirées le 2026-09-24 (consolidation — FeexPay couvre).
     label: "T-Money (Togo)", country: "tg", currency: "XOF", family: "mobile_money",
-    collect: {
-      feexpay: { code: "TOGOCOM TG" },
-      fedapay: { code: "togocel" } },
-    payout: {
-      feexpay: { code: "togo", params: { network: "TOGOCOM TG" } },
-      fedapay: { code: "togocel" } } },
+    collect: { feexpay: { code: "TOGOCOM TG" } },
+    payout: { feexpay: { code: "togo", params: { network: "TOGOCOM TG" } } } },
 
   // ────────────────────────── Mali (XOF) ──────────────────────────
   orange_ml: {
@@ -350,15 +338,11 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // ────────────────────────── Niger (XOF) ─────────────────────────
   airtel_ne: {
     label: "Airtel Money (Niger)", country: "ne", currency: "XOF", family: "mobile_money",
-    collect: {
-      fedapay: { code: "airtel_ne" },
-      ipaymoney: { code: "mobile", params: { country: "NE" } } },
-    // VERSEMENT FERMÉ le 2026-09-08. FedaPay était la SEULE route, et leur
-    // documentation confirme « airtel_ne » à l'ENCAISSEMENT seulement. Le
-    // moteur n'a jamais su l'appeler (absent de payout/methods-map) : Airtel
-    // Niger était proposé au retrait puis restait bloqué « en attente » sans
-    // issue. Règle 3 : un moyen qu'aucune passerelle ne sait verser n'est pas
-    // proposé. Rouvrir quand FedaPay ou iPay confirme un mode de versement.
+    // Route fedapay retirée le 2026-09-24 (consolidation). iPay Money reste
+    // l'unique passerelle d'encaissement pour Airtel Niger.
+    collect: { ipaymoney: { code: "mobile", params: { country: "NE" } } },
+    // VERSEMENT toujours fermé — aucune passerelle branchée ne verse au Niger.
+    // Rouvrir quand iPay confirme un endpoint payout.
     payout: {} },
   zamani_ne: {
     label: "Zamani Money (Niger)", country: "ne", currency: "XOF", family: "mobile_money",
