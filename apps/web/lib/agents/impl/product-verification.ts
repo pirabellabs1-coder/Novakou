@@ -4,6 +4,7 @@ import { agentSystemUserId } from "../system-user";
 import { appliquerDecisionProduit, type KindProduit } from "@/lib/formations/produit-decision";
 import { chatVisionIA, estOpenRouterConfigure, type PartieMessageIA } from "@/lib/ai/openrouter";
 import { playbookPour } from "../playbooks";
+import { classerEchecIA, estEchec, REPONSE_ILLISIBLE, type EchecIA } from "../echec-ia";
 
 /**
  * AGENT DE VALIDATION DES FICHES — autonome.
@@ -89,7 +90,7 @@ async function analyserFiche(f: {
   images: string[];
   lienDePaiement: boolean;
   contexte: ContexteVendeur;
-}, consignes: string): Promise<Verdict | null> {
+}, consignes: string): Promise<Verdict | EchecIA> {
   const systeme = [
     playbookPour("product_verification"),
     "",
@@ -137,10 +138,10 @@ async function analyserFiche(f: {
       temperature: 0.2,
       timeoutMs: 45_000,
     });
-    return extraireJson(rep.texte);
+    return extraireJson(rep.texte) ?? REPONSE_ILLISIBLE;
   } catch (e) {
     console.warn("[product-verification] appel vision échoué :", e instanceof Error ? e.message : e);
-    return null;
+    return classerEchecIA(e);
   }
 }
 
@@ -172,6 +173,7 @@ export async function runProductVerification() {
     const agentId = await agentSystemUserId();
     let decides = 0;
     let indetermines = 0;
+    const raisons = new Set<string>();
     let coupees = 0;
 
     const DEBUT = Date.now();
@@ -199,7 +201,16 @@ export async function runProductVerification() {
       }).catch(() => null);
 
       const ctx = await contexteVendeur(item.instructeurId);
-      let verdict = await analyserFiche({ kind, ...item, contexte: ctx }, consignes);
+      const resultat = await analyserFiche({ kind, ...item, contexte: ctx }, consignes);
+      // IA hors service (crédit, clé, réseau) : on NE décide RIEN et on ne
+      // compte pas d'échec — sinon le repli ci-dessous publierait toutes les
+      // fiches sans contrôle pendant la panne.
+      if (estEchec(resultat) && resultat.indisponible) {
+        indetermines++;
+        raisons.add(resultat.raison);
+        return;
+      }
+      let verdict: Verdict | null = estEchec(resultat) ? null : resultat;
 
       // Fallback déterministe si l'IA échoue : on ne peut PAS laisser une fiche
       // bloquer indéfiniment en EN_ATTENTE. Après N échecs IA consécutifs sur
@@ -301,7 +312,7 @@ export async function runProductVerification() {
       actionsCreated: decides,
       summary:
         `${total} fiche(s) examinée(s) (${formations.length} formation(s), ${produits.length} produit(s)) · ${decides} décidée(s)` +
-        (indetermines ? ` · ${indetermines} laissée(s) en attente (panne technique)` : "") +
+        (indetermines ? ` · ${indetermines} laissée(s) en attente (${[...raisons].join(", ") || "réponse IA illisible"})` : "") +
         (coupees ? ` · ${coupees} reportée(s) au passage suivant (budget de temps)` : ""),
     };
   });

@@ -104,6 +104,15 @@ export async function runReviewsModeration() {
     ) => {
       if (Date.now() - DEBUT > BUDGET_MS) return;
 
+      // Déjà jugé lors d'un passage précédent : on ne repaie pas l'IA. Sans ce
+      // garde, un avis conservé était ré-analysé à chaque passage pendant 24 h
+      // (96 appels facturés pour le même avis).
+      const dejaJuge = await prisma.agentAction.findFirst({
+        where: { agentKey: "reviews_moderation", targetId: r.id, status: { not: "failed" } },
+        select: { id: true },
+      });
+      if (dejaJuge) return;
+
       // Auto-avis : détection sans IA (règle déterministe, aucun coût, aucun doute).
       const autoAvis = r.userId === r.vendeurUserId;
       let verdict: Verdict | null = null;
@@ -115,7 +124,22 @@ export async function runReviewsModeration() {
       }
 
       if (!verdict) { indetermines++; return; }
-      if (verdict.decision === "GARDER") { decides++; return; } // journalisé comme décidé mais sans effet destructif
+      if (verdict.decision === "GARDER") {
+        // Trace de la décision (sans effet) : c'est elle qui évite de ré-analyser.
+        await prisma.agentAction.create({
+          data: {
+            agentKey: "reviews_moderation", type: "review_kept", risk: "low", status: "executed",
+            title: `Avis conservé — ${r.rating}★ sur « ${r.produitTitre.slice(0, 40)} »`,
+            reasoning: verdict.motif,
+            targetType: kind === "product" ? "digitalProductReview" : "formationReview",
+            targetId: r.id,
+            payload: { auto: true } as object,
+            executedAt: new Date(),
+          },
+        }).catch(() => null);
+        decides++;
+        return;
+      }
 
       const a = await proposeAction({
         agentKey: "reviews_moderation",

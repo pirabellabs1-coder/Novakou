@@ -16,6 +16,20 @@ import { playbookPour } from "../playbooks";
 
 export async function runVendorCoach() {
   return recordRun("vendor_coach", async () => {
+    // Cadence réelle : UNE fois par jour. Le cron tourne toutes les 15 min pour
+    // les autres agents ; sans ce garde, le coach repassait 96 fois par jour.
+    const passageRecent = await prisma.agentRun.findFirst({
+      where: {
+        agentKey: "vendor_coach",
+        startedAt: { gte: new Date(Date.now() - 20 * 3600_000) },
+        summary: { contains: "vendeur(s) analysé(s)" },
+      },
+      select: { id: true },
+    });
+    if (passageRecent) {
+      return { itemsProcessed: 0, actionsCreated: 0, summary: "Déjà passé dans les dernières 24 h — prochain passage demain." };
+    }
+
     const cfg = await getAgentConfig("vendor_coach");
     const brouillonJours = Math.max(1, Number(cfg.brouillonJours) || 5);
     const sansVenteJours = Math.max(7, Number(cfg.sansVenteJours) || 30);
@@ -49,7 +63,32 @@ export async function runVendorCoach() {
     const BUDGET_MS = 220_000;
     const iaOk = estOpenRouterConfigure();
 
-    for (const p of brouillons) {
+    // Déjà relancés : on les écarte AVANT de rédiger quoi que ce soit.
+    // L'ancienne version rédigeait d'abord le message avec l'IA, puis la
+    // déduplication le jetait — 12 600 appels IA payés en trois jours pour
+    // zéro message envoyé, jusqu'à épuiser le crédit OpenRouter (2026-09-24).
+    const dejaRelances = new Set(
+      (
+        await prisma.agentAction.findMany({
+          where: {
+            agentKey: "vendor_coach",
+            targetType: "digitalProduct",
+            targetId: { in: [...brouillons, ...publiesSansVente].map((p) => p.id) },
+            status: { in: ["proposed", "approved", "executed", "auto_executed"] },
+          },
+          select: { targetId: true },
+        })
+      ).map((a) => a.targetId),
+    );
+    const brouillonsARelancer = brouillons.filter((p) => !dejaRelances.has(p.id));
+    const sansVenteARelancer = publiesSansVente.filter((p) => !dejaRelances.has(p.id));
+
+    // Plafond de rédactions IA par passage ; au-delà, le message type (déjà
+    // soigné) part tel quel.
+    const MAX_REDACTIONS_IA = 20;
+    let redactionsIa = 0;
+
+    for (const p of brouillonsARelancer) {
       if (Date.now() - DEBUT > BUDGET_MS) break;
       const userId = p.instructeur?.user?.id;
       const name = p.instructeur?.user?.name ?? "vendeur";
@@ -58,7 +97,8 @@ export async function runVendorCoach() {
       const messagePardefaut = `Bonjour ${name}, votre brouillon « ${p.title || "sans titre"} » attend depuis quelques jours. Un titre plus explicite, une image nette et une description qui répond à « à qui ça s'adresse et ce que ça résout » suffisent souvent à débloquer la publication. Bon courage ! — L'équipe Novakou`;
       let corps = messagePardefaut;
 
-      if (iaOk) {
+      if (iaOk && redactionsIa < MAX_REDACTIONS_IA) {
+        redactionsIa++;
         const draft = await chatIAOuNull({
           messages: [
             { role: "system", content: `${playbookPour("vendor_coach")}\n\n── CIBLE DU MESSAGE ──\nBrouillon jamais publié (dormant depuis plusieurs jours). Rédige un message chaleureux, 3-4 phrases, vouvoiement, signé « L'équipe Novakou ». Ne promets aucune promotion, aucune remise, aucune mise en avant. ${consignes}` },
@@ -90,7 +130,7 @@ export async function runVendorCoach() {
       if (a) messagesEnvoyes++;
     }
 
-    for (const p of publiesSansVente) {
+    for (const p of sansVenteARelancer) {
       if (Date.now() - DEBUT > BUDGET_MS) break;
       const userId = p.instructeur?.user?.id;
       const name = p.instructeur?.user?.name ?? "vendeur";
@@ -99,7 +139,8 @@ export async function runVendorCoach() {
       const messagePardefaut = `Bonjour ${name}, votre produit « ${p.title || "sans titre"} » est en ligne depuis plusieurs semaines sans encore trouver preneur. Trois pistes qui marchent souvent : partager le lien de la fiche sur WhatsApp/TikTok, préciser dans la description le résultat concret que l'acheteur obtient, et vérifier que la vignette lit bien sur mobile. — L'équipe Novakou`;
       let corps = messagePardefaut;
 
-      if (iaOk) {
+      if (iaOk && redactionsIa < MAX_REDACTIONS_IA) {
+        redactionsIa++;
         const draft = await chatIAOuNull({
           messages: [
             { role: "system", content: `${playbookPour("vendor_coach")}\n\n── CIBLE DU MESSAGE ──\nProduit publié depuis longtemps, aucune vente. Rédige un message chaleureux, 3-5 phrases, avec 2 à 3 PISTES CONCRÈTES actionnables tout de suite. Vouvoiement, signé « L'équipe Novakou ». Aucune promotion, aucune remise, aucune mise en avant promise. ${consignes}` },
@@ -135,7 +176,7 @@ export async function runVendorCoach() {
     return {
       itemsProcessed: total,
       actionsCreated: messagesEnvoyes,
-      summary: `${total} vendeur(s) analysé(s) · ${messagesEnvoyes} message(s) envoyé(s)`,
+      summary: `${total} vendeur(s) analysé(s) · ${messagesEnvoyes} message(s) envoyé(s) · ${redactionsIa} rédaction(s) IA`,
     };
   });
 }

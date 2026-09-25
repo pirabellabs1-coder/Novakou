@@ -5,6 +5,14 @@ import { resolveKycDocumentUrl } from "@/lib/kyc-documents";
 import { appliquerDecisionKyc } from "@/lib/formations/kyc-decision";
 import { chatVisionIA, estOpenRouterConfigure, type PartieMessageIA } from "@/lib/ai/openrouter";
 import { playbookPour } from "../playbooks";
+import { notifyAdmins } from "../notify";
+import { classerEchecIA, estEchec, REPONSE_ILLISIBLE, type EchecIA } from "../echec-ia";
+
+// Au bout de ce nombre d'échecs PROPRES AU DOSSIER (réponse illisible, image
+// que le modèle ne peut ouvrir…), l'agent cesse de réessayer — chaque essai
+// est facturé — et confie le dossier à l'admin. Une identité ne se valide
+// jamais « par défaut ». Les pannes de l'IA elle-même ne comptent pas.
+const ECHECS_AVANT_ADMIN = 3;
 
 /**
  * AGENT DE VÉRIFICATION KYC AUTONOME.
@@ -97,7 +105,7 @@ async function analyserDossier(k: {
   dateNaissance: Date | null;
   numeroDocument: string | null;
   contexte: ContexteCompte;
-}, consignes: string): Promise<Verdict | null> {
+}, consignes: string): Promise<Verdict | EchecIA> {
   const libelle = LIBELLES_DOCUMENT[k.documentType] ?? k.documentType;
   const dateFr = k.dateNaissance
     ? k.dateNaissance.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" })
@@ -158,10 +166,10 @@ async function analyserDossier(k: {
       temperature: 0.2,
       timeoutMs: 45_000,
     });
-    return extraireJson(rep.texte);
+    return extraireJson(rep.texte) ?? REPONSE_ILLISIBLE;
   } catch (e) {
     console.warn("[kyc-verification] appel vision échoué :", e instanceof Error ? e.message : e);
-    return null;
+    return classerEchecIA(e);
   }
 }
 
@@ -190,13 +198,43 @@ export async function runKycVerification() {
     let decides = 0;
     let incomplets = 0;
     let indetermines = 0;
+    let confiesAdmin = 0;
+    const raisons = new Set<string>();
     const agentId = await agentSystemUserId();
 
     const DEBUT = Date.now();
     const BUDGET_MS = 220_000;
 
+    // Échec propre au dossier : on le note ; au 3e, on alerte l'admin une fois.
+    const noterEchec = async (k: { id: string; nomLegal: string | null; prenomLegal: string | null }, raison: string) => {
+      await prisma.agentAction.create({
+        data: {
+          agentKey: "kyc_verification", type: "kyc_decision", risk: "low", status: "failed",
+          title: `KYC — dossier non analysable (${raison})`,
+          reasoning: raison, targetType: "kycRequest", targetId: k.id,
+          payload: { auto: true } as object,
+        },
+      }).catch(() => null);
+      const n = await prisma.agentAction.count({
+        where: { agentKey: "kyc_verification", targetType: "kycRequest", targetId: k.id, status: "failed" },
+      });
+      if (n === ECHECS_AVANT_ADMIN) {
+        await notifyAdmins({
+          subject: "Dossier KYC à vérifier à la main",
+          body: `L'agent n'a pas pu analyser le dossier de ${[k.prenomLegal, k.nomLegal].filter(Boolean).join(" ") || "cet utilisateur"} après ${n} essais (${raison}). Il ne réessaiera plus : merci de le traiter dans l'espace admin.`,
+          url: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://novakou.com"}/admin/kyc`,
+        }).catch(() => null);
+      }
+    };
+
     for (const k of dossiers) {
       if (Date.now() - DEBUT > BUDGET_MS) break;
+
+      // Déjà confié à l'admin : on ne repaie pas un essai voué à échouer.
+      const echecsDossier = await prisma.agentAction.count({
+        where: { agentKey: "kyc_verification", targetType: "kycRequest", targetId: k.id, status: "failed" },
+      });
+      if (echecsDossier >= ECHECS_AVANT_ADMIN) { confiesAdmin++; continue; }
 
       // Dossier incomplet : refus immédiat, sans appel IA.
       const manquant: string[] = [];
@@ -240,7 +278,12 @@ export async function runKycVerification() {
         resolveKycDocumentUrl(k.documentVersoUrl),
         resolveKycDocumentUrl(k.selfieUrl),
       ]);
-      if (!recto || !verso || !selfie) { indetermines++; continue; }
+      if (!recto || !verso || !selfie) {
+        indetermines++;
+        raisons.add("pièce introuvable dans le stockage");
+        await noterEchec(k, "pièce introuvable dans le stockage");
+        continue;
+      }
 
       const ctx = await contexteCompte(k.userId);
       const verdict = await analyserDossier({
@@ -255,7 +298,12 @@ export async function runKycVerification() {
         numeroDocument: k.numeroDocument,
         contexte: ctx,
       }, consignes);
-      if (!verdict) { indetermines++; continue; }
+      if (estEchec(verdict)) {
+        indetermines++;
+        raisons.add(verdict.raison);
+        if (!verdict.indisponible) await noterEchec(k, verdict.raison);
+        continue;
+      }
 
       const approuve = verdict.decision === "APPROUVE";
       const a = await proposeAction({
@@ -288,7 +336,8 @@ export async function runKycVerification() {
       summary:
         `${dossiers.length} dossier(s) examiné(s) · ${decides} décidé(s)` +
         (incomplets ? ` (dont ${incomplets} refus pour incomplétude)` : "") +
-        (indetermines ? ` · ${indetermines} laissé(s) en attente (panne technique)` : ""),
+        (indetermines ? ` · ${indetermines} laissé(s) en attente (${[...raisons].join(", ")})` : "") +
+        (confiesAdmin ? ` · ${confiesAdmin} confié(s) à l'admin` : ""),
     };
   });
 }

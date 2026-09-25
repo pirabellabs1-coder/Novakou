@@ -75,6 +75,38 @@ type AppelBrut = {
  * (texte + image) : même endpoint, même format de réponse OpenAI — seule la
  * FORME du contenu des messages diffère (chaîne vs tableau de parties).
  */
+/**
+ * Crédit OpenRouter épuisé (HTTP 402) : TOUTE l'IA de Novakou s'arrête —
+ * agents KYC et validation compris, qui restaient silencieusement « en panne
+ * technique » (constaté le 2026-09-25 : 6 dossiers KYC bloqués depuis la
+ * veille sans que personne ne le sache). On prévient les admins, au plus une
+ * fois toutes les six heures.
+ */
+let derniereAlerteCredits = 0;
+async function signalerCreditsEpuises(): Promise<void> {
+  try {
+    const { redisIncr } = await import("@/lib/rate-limit/store");
+    const compte = await redisIncr("ia:alerte-credits-epuises", 6 * 3600);
+    if (compte === null) {
+      if (Date.now() - derniereAlerteCredits < 6 * 3600_000) return;
+      derniereAlerteCredits = Date.now();
+    } else if (compte > 1) {
+      return;
+    }
+    const { notifyAdmins } = await import("@/lib/agents/notify");
+    await notifyAdmins({
+      subject: "Crédit IA épuisé — agents et IA à l'arrêt",
+      body:
+        "OpenRouter refuse les appels (HTTP 402 : crédit insuffisant). Les agents KYC, validation des " +
+        "fiches, support et toutes les fonctions IA sont à l'arrêt tant que le crédit n'est pas rechargé " +
+        "sur https://openrouter.ai/settings/credits.",
+      url: "https://openrouter.ai/settings/credits",
+    });
+  } catch {
+    // L'alerte ne doit jamais masquer l'erreur d'origine.
+  }
+}
+
 async function appellerOpenRouter(params: AppelBrut): Promise<ReponseIA> {
   const cle = process.env.OPENROUTER_API_KEY?.trim();
   if (!cle) {
@@ -112,6 +144,7 @@ async function appellerOpenRouter(params: AppelBrut): Promise<ReponseIA> {
       // On garde le corps : « 402 crédit épuisé » et « 400 modèle inconnu »
       // appellent des gestes très différents, et un message générique nous
       // ferait chercher au mauvais endroit.
+      if (res.status === 402) void signalerCreditsEpuises();
       throw new Error(`OpenRouter HTTP ${res.status} : ${brut.slice(0, 300)}`);
     }
 
