@@ -101,14 +101,18 @@ export async function verifierOperateurDuNumero(p: {
   });
   if (dejaAverti) return null;
 
-  const nomPredit = opPredit?.label ?? libelleDepuisCode(prediction.provider);
+  // Libellés sans le pays entre parenthèses : l'acheteur sait où il est, et
+  // « … (Cameroun) (numéro porté) » se lisait mal.
+  const court = (l: string) => l.replace(/\s*\([^)]*\)\s*$/, "");
+  const nomPredit = court(opPredit?.label ?? libelleDepuisCode(prediction.provider));
+  const nomChoisi = court(choisi.label);
   const proposable = !!clePredite && isSupported(clePredite, "collect");
-  const confirmer = `Si votre numéro est bien chez ${choisi.label} (numéro porté), appuyez à nouveau sur Payer.`;
+  const confirmer = `Si votre numéro est bien chez ${nomChoisi} (numéro porté), appuyez à nouveau sur Payer.`;
 
   return {
     message: proposable
-      ? `Ce numéro semble être un numéro ${nomPredit}, pas ${choisi.label}. Choisissez « ${nomPredit} » comme moyen de paiement. ${confirmer}`
-      : `Ce numéro semble être un numéro ${nomPredit}, qui n'est pas encore disponible au paiement. Utilisez un numéro ${choisi.label}. ${confirmer}`,
+      ? `Ce numéro semble être un numéro ${nomPredit}, pas ${nomChoisi}. Choisissez « ${nomPredit} » comme moyen de paiement. ${confirmer}`
+      : `Ce numéro semble être un numéro ${nomPredit}, qui n'est pas encore disponible au paiement. Utilisez un numéro ${nomChoisi}. ${confirmer}`,
     raison,
     suggestion: proposable ? clePredite : null,
   };
