@@ -5,7 +5,10 @@ import { useEffect, useRef, useState, useCallback } from "react";
 type UploadedFile = {
   name: string;
   size: number;
+  /** Lien ouvrable (signé ou public) ; vide si on n'a que le chemin de stockage. */
   url: string;
+  /** Chemin de stockage enregistré en base. */
+  path?: string;
 };
 
 type Props = {
@@ -45,11 +48,13 @@ export function FileUploader({ value, onChange, productType = "PDF", accept }: P
   // after mount in an edit page). Without this the UI shows the empty drop zone
   // even when a file is already attached in DB.
   useEffect(() => {
-    if (value && (!uploaded || uploaded.url !== value)) {
+    // Juste après un envoi, `value` est le CHEMIN de stockage et `uploaded.url`
+    // le lien signé : ne pas écraser ce lien par le chemin brut (lien 404).
+    if (value && (!uploaded || (uploaded.url !== value && uploaded.path !== value))) {
       const fileName =
         decodeURIComponent(value.split("?")[0].split("/").pop() ?? "fichier") ||
         "fichier";
-      setUploaded({ name: fileName, size: 0, url: value });
+      setUploaded({ name: fileName, size: 0, url: /^https?:\/\//i.test(value) ? value : "", path: value });
     } else if (!value && uploaded) {
       setUploaded(null);
     }
@@ -66,7 +71,7 @@ export function FileUploader({ value, onChange, productType = "PDF", accept }: P
       const data = await res.json();
       if (data.success && data.file?.url) {
         onChange(data.file.path ?? data.file.url);
-        setUploaded({ name: file.name, size: file.size, url: data.file.previewUrl ?? data.file.url });
+        setUploaded({ name: file.name, size: file.size, url: data.file.previewUrl ?? data.file.url, path: data.file.path ?? data.file.url });
       } else {
         setError(data.error ?? "Upload échoué");
       }
@@ -122,7 +127,7 @@ export function FileUploader({ value, onChange, productType = "PDF", accept }: P
             </div>
             <div className="flex gap-2 flex-shrink-0">
               <a
-                href={uploaded.url}
+                href={uploaded.url || undefined}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}

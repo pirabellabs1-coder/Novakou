@@ -36,6 +36,19 @@ async function urlDuLogo(code: string): Promise<string | null> {
         const logo = r?.code ? parProvider.get(r.code) : undefined;
         if (logo) suivant[cle] = logo;
       }
+      // Même marque, autre pays : le logo Moov est le même au Bénin et en
+      // Côte d'Ivoire. Les opérateurs que PawaPay ne sert pas (Moov CI, Moov
+      // Togo, Orange Burkina…) n'avaient qu'une pastille dessinée à l'écran
+      // de paiement ; ils reprennent le logo officiel de leur marque.
+      const parMarque = new Map<string, string>();
+      for (const [cle, logo] of Object.entries(suivant)) {
+        const marque = cle.split("_")[0];
+        if (!parMarque.has(marque)) parMarque.set(marque, logo);
+      }
+      for (const cle of Object.keys(OPERATORS)) {
+        const marque = parMarque.get(cle.split("_")[0]);
+        if (!suivant[cle] && marque) suivant[cle] = marque;
+      }
       cache = suivant;
       charge = Date.now();
     } catch {
@@ -56,7 +69,16 @@ async function urlDuLogo(code: string): Promise<string | null> {
  */
 const EXTENSIONS = ["svg", "png", "webp"];
 
+/**
+ * Codes sans fichier local, mémorisés une heure : chaque affichage d'un logo
+ * déclenchait sinon trois requêtes vouées au 404 (.svg, .png, .webp) avant
+ * d'aller chercher le vrai logo — autant de latence sur l'écran de paiement.
+ */
+const sansFichierLocal = new Map<string, number>();
+
 async function fichierLocal(code: string, origine: string): Promise<Response | null> {
+  const vu = sansFichierLocal.get(code);
+  if (vu && Date.now() - vu < CACHE_MS) return null;
   for (const ext of EXTENSIONS) {
     try {
       const r = await fetch(`${origine}/operateurs/${code}.${ext}`, { cache: "no-store" });
@@ -65,6 +87,7 @@ async function fichierLocal(code: string, origine: string): Promise<Response | n
       // Fichier absent : on essaie l'extension suivante, puis le CDN.
     }
   }
+  sansFichierLocal.set(code, Date.now());
   return null;
 }
 
@@ -86,11 +109,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ code: st
 
   // 2) Sinon celui du fournisseur.
   const url = await urlDuLogo(code);
-  if (!url) return new NextResponse(null, { status: 404 });
+  if (!url) return introuvable();
 
   try {
     const amont = await fetch(url, { cache: "no-store" });
-    if (!amont.ok) return new NextResponse(null, { status: 404 });
+    if (!amont.ok) return introuvable();
     const corps = await amont.arrayBuffer();
     return new NextResponse(corps, {
       headers: {
@@ -101,6 +124,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ code: st
       },
     });
   } catch {
-    return new NextResponse(null, { status: 404 });
+    return introuvable();
   }
+}
+
+/** 404 mis en cache une heure : la pastille de repli s'affiche sans rappeler le serveur à chaque rendu. */
+function introuvable() {
+  return new NextResponse(null, { status: 404, headers: { "Cache-Control": "public, max-age=3600" } });
 }

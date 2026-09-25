@@ -9,6 +9,12 @@ export type ProductFile = {
   url: string;
   size?: number | null;
   mimeType?: string | null;
+  /**
+   * Lien signé pour « Ouvrir », juste après l'envoi. `url` garde le chemin de
+   * stockage (c'est lui qu'on enregistre) ; utilisé tel quel comme lien, il
+   * menait à une page 404. Jamais envoyé en base (le serveur l'ignore).
+   */
+  previewUrl?: string;
 };
 
 type Props = {
@@ -123,7 +129,7 @@ export function MultiFileUploader({
       return null;
     }
 
-    let data: { success?: boolean; file?: { url?: string; path?: string }; error?: string } | null = null;
+    let data: { success?: boolean; file?: { url?: string; path?: string; previewUrl?: string }; error?: string } | null = null;
     try { data = await res.json(); } catch {
       setError(`Réponse invalide du serveur (${res.status}). Réessayez dans quelques instants.`);
       return null;
@@ -133,6 +139,7 @@ export function MultiFileUploader({
       return {
         name: file.name,
         url: data.file.path ?? data.file.url,
+        previewUrl: data.file.previewUrl ?? data.file.url,
         size: file.size,
         mimeType: file.type || null,
       };
@@ -266,7 +273,7 @@ export function MultiFileUploader({
                   <span className="material-symbols-outlined text-[16px]">arrow_downward</span>
                 </button>
                 <a
-                  href={f.url}
+                  href={f.previewUrl ?? (/^https?:\/\//i.test(f.url) ? f.url : undefined)}
                   target="_blank"
                   rel="noopener noreferrer"
                   title="Ouvrir"
