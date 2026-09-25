@@ -98,6 +98,17 @@ export const PROVIDERS: ProviderMeta[] = [
     //
     // Comme iPay, le fournisseur route lui-meme vers le bon operateur a partir
     // du NUMERO : un seul code « mobile », sans table par reseau.
+    //
+    // ⛔ TOUTES LES ROUTES RETIRÉES le 2026-09-25 : sur tout l'historique,
+    // 0 encaissement abouti et 23 refus « OPERATOR_NOT_FOUND — operator not
+    // found » (Guinée MTN/Orange). Proposer Monetbil, c'était un échec garanti
+    // (un acheteur guinéen a essayé 12 fois). Les pays servis par Monetbil
+    // SEUL (Guinée, Liberia, Gabon Moov, RDC Africell, Express Union Cameroun)
+    // ne sont donc plus proposés. Codes pour la réouverture, une fois qu'un
+    // paiement réel de test aura abouti : GN_MTNMOBILEMONEY, GN_ORANGEMONEY,
+    // LR_MTNMOBILEMONEY, GA_MOOVMONEY, GA_AIRTELMONEY, CD_AFRICELL,
+    // CD_ORANGEMONEY, CD_AIRTELMONEY, CM_EUMM, CG_MTNMOBILEMONEY,
+    // CG_AIRTELMONEY, UG_AIRTELMONEY, UG_MTNMOBILEMONEY.
     directions: ["collect"],
     collectIntegration: "server",
     envVars: ["MONETBIL_SERVICE_KEY"] },
@@ -328,7 +339,10 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // (demande envoyée le 2026-08-08).
   orange_bf: {
     label: "Orange Money (Burkina Faso)", country: "bf", currency: "XOF", family: "mobile_money",
-    collect: { feexpay: { code: "ORANGE BF" } },
+    // FERMÉ le 2026-09-25 : FeexPay répond « ORANGE BF is not available yet »
+    // (HTTP 400) — 0 encaissement sur tout l'historique, 5 refus explicites.
+    // Rouvrir avec feexpay { code: "ORANGE BF" } quand FeexPay l'active.
+    collect: {},
     payout: {} },
   moov_bf: {
     label: "Moov Money (Burkina Faso)", country: "bf", currency: "XOF", family: "mobile_money",
@@ -359,7 +373,7 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   mtn_cg: {
     label: "MTN Mobile Money (Congo)", country: "cg", currency: "XAF", family: "mobile_money",
     collect: {
-      pawapay: { code: "MTN_MOMO_COG" }, feexpay: { code: "MTN CG" }, monetbil: { code: "CG_MTNMOBILEMONEY" } },
+      pawapay: { code: "MTN_MOMO_COG" }, feexpay: { code: "MTN CG" } },
     // payout : route pawapay RETIRÉE le 2026-09-08 — PAYOUT non ouvert sur notre compte : /v2/active-conf (sonde du 2026-09-08) ne liste que DEPOSIT et REFUND pour cet opérateur. Rouvrir quand PawaPay active le versement.
     payout: {} },
 
@@ -389,8 +403,8 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     payout: {} },
   eu_cm: {
     label: "Express Union (Cameroun)", country: "cm", currency: "XAF", family: "mobile_money",
-    collect: { monetbil: { code: "CM_EUMM" } },
-    payout: { monetbil: { code: "CM_EUMM" } } },
+    collect: {},
+    payout: {} },
 
   // ─────────────────── Congo-Brazzaville & Gabon (XAF) ───────────────────
   // Monetbil est la SEULE de nos passerelles a les servir. Le Congo etait
@@ -398,19 +412,19 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   airtel_cg: {
     label: "Airtel Money (Congo)", country: "cg", currency: "XAF", family: "mobile_money",
     collect: {
-      pawapay: { code: "AIRTEL_COG" }, monetbil: { code: "CG_AIRTELMONEY" } },
+      pawapay: { code: "AIRTEL_COG" } },
     // payout : route pawapay RETIRÉE le 2026-09-08 — PAYOUT non ouvert sur notre compte : /v2/active-conf (sonde du 2026-09-08) ne liste que DEPOSIT et REFUND pour cet opérateur. Rouvrir quand PawaPay active le versement.
     payout: {} },
   moov_ga: {
     label: "Moov Africa (Gabon)", country: "ga", currency: "XAF", family: "mobile_money",
-    collect: { monetbil: { code: "GA_MOOVMONEY" } },
-    payout: { monetbil: { code: "GA_MOOVMONEY" } } },
+    collect: {},
+    payout: {} },
   // Absent de la documentation v2.1 fournie — elle est plus ancienne que le
   // compte. Code relevé par le fondateur sur sa fiche opérateur Monetbil.
   airtel_ga: {
     label: "Airtel Money (Gabon)", country: "ga", currency: "XAF", family: "mobile_money",
     collect: {
-      pawapay: { code: "AIRTEL_GAB" }, monetbil: { code: "GA_AIRTELMONEY" } },
+      pawapay: { code: "AIRTEL_GAB" } },
     // payout : route pawapay RETIRÉE le 2026-09-08 — PAYOUT non ouvert sur notre compte : /v2/active-conf (sonde du 2026-09-08) ne liste que DEPOSIT et REFUND pour cet opérateur. Rouvrir quand PawaPay active le versement.
     payout: {} },
 
@@ -425,44 +439,44 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   // environ 340 FCFA — quatorze fois moins, sans la moindre erreur visible.
   mtn_gn: {
     label: "MTN Mobile Money (Guinée)", country: "gn", currency: "GNF", family: "mobile_money",
-    collect: { monetbil: { code: "GN_MTNMOBILEMONEY" } },
-    payout: { monetbil: { code: "GN_MTNMOBILEMONEY" } } },
+    collect: {},
+    payout: {} },
   orange_gn: {
     label: "Orange Money (Guinée)", country: "gn", currency: "GNF", family: "mobile_money",
-    collect: { monetbil: { code: "GN_ORANGEMONEY" } },
-    payout: { monetbil: { code: "GN_ORANGEMONEY" } } },
+    collect: {},
+    payout: {} },
   orange_cd: {
     label: "Orange Money (RD Congo)", country: "cd", currency: "CDF", family: "mobile_money",
     collect: {
-      pawapay: { code: "ORANGE_COD" }, monetbil: { code: "CD_ORANGEMONEY" } },
+      pawapay: { code: "ORANGE_COD" } },
     // payout : route pawapay RETIRÉE le 2026-09-08 — PAYOUT non ouvert sur notre compte : /v2/active-conf (sonde du 2026-09-08) ne liste que DEPOSIT et REFUND pour cet opérateur. Rouvrir quand PawaPay active le versement.
     payout: {} },
   airtel_cd: {
     label: "Airtel Money (RD Congo)", country: "cd", currency: "CDF", family: "mobile_money",
     collect: {
-      pawapay: { code: "AIRTEL_COD" }, monetbil: { code: "CD_AIRTELMONEY" } },
+      pawapay: { code: "AIRTEL_COD" } },
     // payout : route pawapay RETIRÉE le 2026-09-08 — PAYOUT non ouvert sur notre compte : /v2/active-conf (sonde du 2026-09-08) ne liste que DEPOSIT et REFUND pour cet opérateur. Rouvrir quand PawaPay active le versement.
     payout: {} },
   africell_cd: {
     label: "Africell Money (RD Congo)", country: "cd", currency: "CDF", family: "mobile_money",
-    collect: { monetbil: { code: "CD_AFRICELL" } },
-    payout: { monetbil: { code: "CD_AFRICELL" } } },
+    collect: {},
+    payout: {} },
   airtel_ug: {
     label: "Airtel Money (Ouganda)", country: "ug", currency: "UGX", family: "mobile_money",
     collect: {
-      pawapay: { code: "AIRTEL_OAPI_UGA" }, monetbil: { code: "UG_AIRTELMONEY" } },
+      pawapay: { code: "AIRTEL_OAPI_UGA" } },
     // payout : route pawapay RETIRÉE le 2026-09-08 — PAYOUT non ouvert sur notre compte : /v2/active-conf (sonde du 2026-09-08) ne liste que DEPOSIT et REFUND pour cet opérateur. Rouvrir quand PawaPay active le versement.
     payout: {} },
   mtn_ug: {
     label: "MTN Mobile Money (Ouganda)", country: "ug", currency: "UGX", family: "mobile_money",
     collect: {
-      pawapay: { code: "MTN_MOMO_UGA" }, monetbil: { code: "UG_MTNMOBILEMONEY" } },
+      pawapay: { code: "MTN_MOMO_UGA" } },
     // payout : route pawapay RETIRÉE le 2026-09-08 — PAYOUT non ouvert sur notre compte : /v2/active-conf (sonde du 2026-09-08) ne liste que DEPOSIT et REFUND pour cet opérateur. Rouvrir quand PawaPay active le versement.
     payout: {} },
   mtn_lr: {
     label: "Lonestar Cell MTN (Liberia)", country: "lr", currency: "LRD", family: "mobile_money",
-    collect: { monetbil: { code: "LR_MTNMOBILEMONEY" } },
-    payout: { monetbil: { code: "LR_MTNMOBILEMONEY" } } },
+    collect: {},
+    payout: {} },
 
   // ─────────────────────── Cartes bancaires ───────────────────────
   card_xof: {

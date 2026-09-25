@@ -101,6 +101,39 @@ export function libellePawapay(texte: string, defaut = "Novakou"): string {
   return propre.length >= 4 ? propre : defaut;
 }
 
+// ─── Opérateur réel d'un numéro ────────────────────────────────────────────
+
+/**
+ * Demande à PawaPay à quel opérateur appartient un numéro
+ * (POST /v2/predict-provider — lecture seule, aucun débit).
+ *
+ * Sert à prévenir l'acheteur AVANT de pousser une demande de paiement vers le
+ * mauvais réseau : sur août-septembre 2026, 13 paiements ont échoué en
+ * « PAYER_NOT_FOUND » parce qu'un numéro Orange avait été envoyé comme MTN.
+ *
+ * Ne lève JAMAIS : sans jeton, en cas de panne ou de réponse inattendue, on
+ * renvoie null et le paiement suit son cours normal.
+ */
+export async function predireOperateur(
+  numero: string,
+): Promise<{ provider: string; pays: string } | null> {
+  const chiffres = numero.replace(/\D/g, "");
+  if (chiffres.length < 8) return null;
+  try {
+    const rep = await appel<{ provider?: unknown; country?: unknown }>("/v2/predict-provider", {
+      method: "POST",
+      body: JSON.stringify({ phoneNumber: chiffres }),
+      signal: AbortSignal.timeout(5000),
+    });
+    if (rep && typeof rep.provider === "string" && /^[A-Z0-9_]+$/.test(rep.provider)) {
+      return { provider: rep.provider, pays: typeof rep.country === "string" ? rep.country : "" };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 // ─── Couverture réelle du compte ───────────────────────────────────────────
 
 export type PawapayOperateur = {

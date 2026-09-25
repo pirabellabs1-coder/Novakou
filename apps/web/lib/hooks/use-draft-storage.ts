@@ -74,6 +74,11 @@ export function useDraftField<T>(
   // since this is a "use client" module.
   const [value, setValue] = useState<T>(() => readStored(key, initial));
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Écriture en attente (valeur la plus récente), null quand rien n'est dû.
+  // L'ancienne version relisait `value` depuis une fermeture figée au premier
+  // rendu : au démontage, elle réécrivait la valeur INITIALE et ressuscitait un
+  // brouillon que clearDrafts() venait d'effacer.
+  const pending = useRef<{ value: T } | null>(null);
 
   const setAndPersist = useCallback<React.Dispatch<React.SetStateAction<T>>>(
     (next) => {
@@ -81,25 +86,26 @@ export function useDraftField<T>(
         const resolved =
           typeof next === "function" ? (next as (p: T) => T)(prev) : next;
         if (timer.current) clearTimeout(timer.current);
-        timer.current = setTimeout(() => writeStored(key, resolved), DEBOUNCE_MS);
+        pending.current = { value: resolved };
+        timer.current = setTimeout(() => {
+          timer.current = null;
+          if (pending.current) writeStored(key, pending.current.value);
+          pending.current = null;
+        }, DEBOUNCE_MS);
         return resolved;
       });
     },
     [key],
   );
 
-  // Flush pending write on unmount so a fast unmount + reload doesn't drop
-  // the last keystroke.
+  // Au démontage, on ne vide que l'écriture réellement en attente.
   useEffect(() => {
     return () => {
-      if (timer.current) {
-        clearTimeout(timer.current);
-        writeStored(key, value);
-      }
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = null;
+      if (pending.current) writeStored(key, pending.current.value);
+      pending.current = null;
     };
-    // We intentionally don't depend on `value` here — the cleanup runs only
-    // when the component unmounts and reads the latest closure value.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
   return [value, setAndPersist];

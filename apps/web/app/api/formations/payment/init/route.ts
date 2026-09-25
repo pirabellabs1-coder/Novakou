@@ -638,6 +638,18 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: verif.error, code: "INVALID_PHONE" }, { status: 400 });
       }
       phoneRaw = verif.intl;
+
+      // Numéro d'un autre réseau que l'opérateur choisi → avertir AVANT de
+      // pousser la demande (cf. lib/payments/operator-check).
+      const { verifierOperateurDuNumero } = await import("@/lib/payments/operator-check");
+      const alerte = await verifierOperateurDuNumero({ operatorCode: chosenOperator, phone: phoneRaw });
+      if (alerte) {
+        await failAttempt(alerte.raison, "operator_mismatch");
+        return NextResponse.json(
+          { error: alerte.message, code: "OPERATOR_MISMATCH", suggestion: alerte.suggestion },
+          { status: 400 },
+        );
+      }
     }
 
     // ── Passerelle à fenêtre (KkiaPay) ───────────────────────────────────

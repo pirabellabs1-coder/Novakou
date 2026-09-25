@@ -116,10 +116,15 @@ export default function ProduitsPage() {
   const [downloaded, setDownloaded] = useState<Set<string>>(new Set());
   const [reviewTarget, setReviewTarget] = useState<{ id: string; title: string; existing?: { rating: number; comment: string } } | null>(null);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["apprenant-products"],
-    queryFn: () => fetch("/api/formations/apprenant/products").then((r) => r.json()),
-    staleTime: 30_000,
+    queryFn: async () => {
+      const r = await fetch("/api/formations/apprenant/products", { cache: "no-store" });
+      if (!r.ok) throw new Error("Chargement impossible");
+      return r.json();
+    },
+    staleTime: 10_000,
+    retry: 2,
   });
 
   const purchases: Purchase[] = data?.data ?? [];
@@ -214,6 +219,14 @@ export default function ProduitsPage() {
         {/* List */}
         {isLoading ? (
           <div className="space-y-3.5">{[0, 1, 2].map((i) => <SkeletonRow key={i} />)}</div>
+        ) : isError ? (
+          <StCard className="!p-10 text-center">
+            <h3 className="text-[15px] font-extrabold mb-1.5" style={{ color: ST.text }}>Vos produits n&apos;ont pas pu être chargés</h3>
+            <p className="text-[13px] font-semibold mb-5 max-w-md mx-auto" style={{ color: ST.textSecondary }}>
+              Vos achats sont bien enregistrés. Le chargement a échoué, réessayez dans un instant.
+            </p>
+            <StButton onClick={() => void refetch()}>Réessayer</StButton>
+          </StCard>
         ) : filtered.length === 0 ? (
           <StCard className="!p-10 text-center">
             <div className="w-16 h-16 rounded-[16px] flex items-center justify-center mx-auto mb-4" style={{ background: ST.greenSoft }}>

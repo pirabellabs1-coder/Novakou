@@ -95,10 +95,18 @@ export default function CheckoutInner() {
   const [phone, setPhone] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:phone`, "");
   const [countryCode, setCountryCode] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:countryCode`, "+221");
   // Achat-cadeau : offrir la commande à quelqu'un d'autre (le destinataire).
-  const [giftEnabled, setGiftEnabled] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:giftEnabled`, false);
-  const [giftEmail, setGiftEmail] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:giftEmail`, "");
-  const [giftName, setGiftName] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:giftName`, "");
-  const [giftMessage, setGiftMessage] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:giftMessage`, "");
+  // JAMAIS mémorisé dans le navigateur : une case « cadeau » restée cochée
+  // d'un achat précédent envoyait la commande suivante chez l'ancien
+  // destinataire — l'acheteur payait et ne trouvait rien dans son espace.
+  // Le cadeau est un choix délibéré, à refaire à chaque commande.
+  const [giftEnabled, setGiftEnabled] = useState(false);
+  const [giftEmail, setGiftEmail] = useState("");
+  const [giftName, setGiftName] = useState("");
+  const [giftMessage, setGiftMessage] = useState("");
+  // Purge des anciens brouillons « cadeau » laissés par la version précédente.
+  useEffect(() => {
+    clearDrafts(`${CHECKOUT_DRAFT_PREFIX}:gift`);
+  }, []);
   // Avertissement « le destinataire possède déjà » (régime avertir mais autoriser).
   const [giftOwned, setGiftOwned] = useState<string[]>([]);
   // Sélection courante de l'écran de paiement, intégré plus bas dans CETTE

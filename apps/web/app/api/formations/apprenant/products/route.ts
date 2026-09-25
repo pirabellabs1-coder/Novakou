@@ -63,15 +63,17 @@ export async function GET() {
       }),
     );
 
-    // Cache HTTP : la liste des achats change rarement (nouvel achat ou
-    // download counter). 30s de cache privé est un bon compromis : la
-    // page reste responsive sur navigation arrière/onglet, sans servir
-    // une donnée datée à un user qui vient juste d'acheter.
+    // Aucun cache : c'est ici qu'un acheteur vient vérifier son achat juste
+    // après avoir payé. Un cache navigateur de 30 s lui resservait la liste
+    // d'AVANT le paiement — « payé mais rien dans mon espace ».
+    return NextResponse.json({ data }, { headers: { "Cache-Control": "no-store" } });
+  } catch (err) {
+    // Jamais de liste vide en cas de panne : l'acheteur croirait avoir perdu
+    // son achat. On signale l'erreur, la page propose de réessayer.
+    console.error("[apprenant/products] lecture des achats impossible :", err);
     return NextResponse.json(
-      { data },
-      { headers: { "Cache-Control": "private, max-age=30, must-revalidate" } },
+      { error: "Impossible de charger vos produits pour le moment." },
+      { status: 500, headers: { "Cache-Control": "no-store" } },
     );
-  } catch {
-    return NextResponse.json({ data: [] });
   }
 }
