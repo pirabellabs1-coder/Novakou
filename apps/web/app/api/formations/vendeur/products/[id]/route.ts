@@ -10,6 +10,7 @@ import { resolveStorageFileUrl, getStorageObjectPath } from "@/lib/supabase-stor
 import { revalidatePublicCatalog } from "@/lib/formations/revalidate-public";
 import { getOrCreateCategory } from "@/lib/formations/categories";
 import { resolveShopRelationUpdate } from "@/lib/formations/shop-assign";
+import { ajusterImagesFiche } from "@/lib/formations/product-quality";
 
 // Reconvertit une URL Supabase Storage (signée ou non) en chemin brut pour la DB.
 // Pour les URLs externes (Cloudinary, http public), conserve la valeur telle quelle.
@@ -89,6 +90,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (!existing) return NextResponse.json({ error: "Produit introuvable" }, { status: 404 });
 
     const body = await request.json();
+    // Vignette / bannière hors format (Cloudinary) : complétées au bon format
+    // au lieu d'être refusées — cf. ajusterImagesFiche.
+    await ajusterImagesFiche(body, existing, { banniere: true });
 
     // V2.1 — server-side price validation on update
     let priceVal: number | undefined;
@@ -127,19 +131,18 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     // peut PAS s'attribuer EN_ATTENTE ni sortir lui-même de la file de
     // validation : avant cette garde, un PATCH { status: "ACTIF" } suffisait à
     // court-circuiter toute modération.
-    const statutDemande = typeof body.status === "string" ? body.status : undefined;
+    let statutDemande = typeof body.status === "string" ? body.status : undefined;
     if (statutDemande && !["BROUILLON", "ACTIF", "ARCHIVE"].includes(statutDemande)) {
       return NextResponse.json({ error: "Statut non autorisé." }, { status: 400 });
     }
+    // Produit déjà en validation et « Publier » recliqué : le bouton envoie les
+    // corrections ET la demande de mise en ligne. Refuser le tout jetait les
+    // corrections (un vendeur a réessayé 16 fois en 50 min le 2026-09-25).
+    // On enregistre les corrections et le statut NE BOUGE PAS : le produit
+    // reste dans la file, le vendeur ne peut toujours pas se publier seul, et
+    // c'est la version corrigée que la validation examinera.
     if (existing.status === "EN_ATTENTE" && statutDemande === "ACTIF") {
-      return NextResponse.json(
-        {
-          error:
-            "Ce produit est en cours de validation par l'équipe. Il sera mis en ligne dès son approbation — vous pouvez le repasser en brouillon pour le modifier.",
-          code: "EN_VALIDATION",
-        },
-        { status: 400 },
-      );
+      statutDemande = undefined;
     }
 
     // Files: replace-all if `files` array is provided. Each item: { name, url, size?, mimeType? }.

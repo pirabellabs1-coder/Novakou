@@ -134,6 +134,60 @@ export function respecteFormat(d: Dimensions, attendu: { largeur: number; hauteu
   return Math.abs(ratio - attendu.ratio) / attendu.ratio <= TOLERANCE_RATIO;
 }
 
+/**
+ * Met une image Cloudinary au bon format au lieu de la refuser.
+ *
+ * Constat du 2026-09-25 : un vendeur a vu sa publication refusée 7 fois de
+ * suite (7 notifications) pour une vignette de 1141×1536 px — il ne savait pas
+ * la recadrer. Cloudinary sait compléter le canevas jusqu'au bon format
+ * (`c_pad`) : l'image reste ENTIÈRE, rien n'est coupé ni déformé, le fond est
+ * prolongé (`b_auto`). La règle de qualité reste la même ; on la satisfait
+ * pour le vendeur au lieu de le renvoyer.
+ *
+ * Ne touche qu'aux URL Cloudinary d'upload. Une image trop PETITE reste
+ * refusée : compléter le canevas n'ajoute pas de netteté.
+ */
+export async function ajusterImageCloudinary(
+  url: string | null | undefined,
+  attendu: { largeur: number; hauteur: number; ratio: number },
+): Promise<string | null | undefined> {
+  if (!url || typeof url !== "string") return url;
+  const m = url.match(/^(https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/)(.+)$/);
+  if (!m || /^c_pad,ar_/.test(m[2])) return url;
+  const d = await lireDimensions(url);
+  if (!d || respecteFormat(d, attendu)) return url;
+  // Taille du résultat : le canevas grandit, l'image non.
+  const r = d.largeur / d.hauteur;
+  const final =
+    r > attendu.ratio
+      ? { largeur: d.largeur, hauteur: d.largeur / attendu.ratio }
+      : { largeur: d.hauteur * attendu.ratio, hauteur: d.hauteur };
+  if (final.largeur < attendu.largeur || final.hauteur < attendu.hauteur) return url;
+  const ar = attendu.ratio === 1 ? "1:1" : "16:9";
+  return `${m[1]}c_pad,ar_${ar},b_auto/${m[2]}`;
+}
+
+/**
+ * Ajuste vignette (et bannière si demandé) d'un corps de requête, en tenant
+ * compte des images DÉJÀ enregistrées : une vignette hors format posée avant
+ * cette règle bloquait sinon toute publication, et même l'édition d'un
+ * produit en ligne.
+ */
+export async function ajusterImagesFiche(
+  body: Record<string, unknown>,
+  existant: { thumbnail?: string | null; banner?: string | null } | null,
+  opts: { banniere: boolean },
+): Promise<void> {
+  const vignette = (body.thumbnail !== undefined ? body.thumbnail : existant?.thumbnail) as string | null | undefined;
+  const v = await ajusterImageCloudinary(vignette, VIGNETTE);
+  if (v !== vignette) body.thumbnail = v;
+  if (opts.banniere) {
+    const banniere = (body.banner !== undefined ? body.banner : existant?.banner) as string | null | undefined;
+    const b = await ajusterImageCloudinary(banniere, BANNIERE);
+    if (b !== banniere) body.banner = b;
+  }
+}
+
 /** Message expliquant CE QU'IL FAUT FAIRE, pas seulement ce qui ne va pas. */
 export function messageFormat(
   quoi: "vignette" | "bannière",

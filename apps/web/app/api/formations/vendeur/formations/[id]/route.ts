@@ -7,6 +7,7 @@ import { resolveVendorContext } from "@/lib/formations/active-user";
 import { revalidatePublicCatalog } from "@/lib/formations/revalidate-public";
 import { decisionPublication, notifierMiseEnAttente } from "@/lib/formations/publication-gate";
 import { resolveShopRelationUpdate } from "@/lib/formations/shop-assign";
+import { ajusterImagesFiche } from "@/lib/formations/product-quality";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -62,6 +63,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (!existing) return NextResponse.json({ error: "Formation introuvable" }, { status: 404 });
 
     const body = await request.json();
+    // Vignette / bannière hors format (Cloudinary) : complétées au bon format
+    // au lieu d'être refusées — cf. ajusterImagesFiche.
+    await ajusterImagesFiche(body, existing, { banniere: false });
     // Si isFree=true → forcer price=0 (cohérence)
     const incomingIsFree = typeof body.isFree === "boolean" ? body.isFree : undefined;
 
@@ -110,19 +114,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     // Même règle que les produits : le vendeur choisit brouillon, publication
     // ou archive — jamais EN_ATTENTE, et il ne sort pas seul de la file de
     // validation.
-    const statutDemande = typeof body.status === "string" ? body.status : undefined;
+    let statutDemande = typeof body.status === "string" ? body.status : undefined;
     if (statutDemande && !["BROUILLON", "ACTIF", "ARCHIVE"].includes(statutDemande)) {
       return NextResponse.json({ error: "Statut non autorisé." }, { status: 400 });
     }
+    // Formation déjà en validation et « Publier » recliqué : on enregistre les
+    // corrections, le statut ne bouge pas (même règle que les produits — le
+    // refus en bloc jetait les modifications du vendeur).
     if (existing.status === "EN_ATTENTE" && statutDemande === "ACTIF") {
-      return NextResponse.json(
-        {
-          error:
-            "Cette formation est en cours de validation par l'équipe. Elle sera mise en ligne dès son approbation — vous pouvez la repasser en brouillon pour la modifier.",
-          code: "EN_VALIDATION",
-        },
-        { status: 400 },
-      );
+      statutDemande = undefined;
     }
 
     // ── RÈGLES DE PUBLICATION (les formations n'en avaient AUCUNE) ───────

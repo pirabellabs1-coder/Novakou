@@ -9,6 +9,7 @@ import { resolveVendorContext } from "@/lib/formations/active-user";
 import { getActiveShopId } from "@/lib/formations/active-shop";
 import { slugify } from "@/lib/formations/slugs";
 import { getOrCreateCategory } from "@/lib/formations/categories";
+import { ajusterImagesFiche } from "@/lib/formations/product-quality";
 
 /**
  * POST /api/vendeur/products/create
@@ -49,6 +50,9 @@ export async function POST(request: Request) {
     });
 
     const body = await request.json();
+    // Vignette / bannière hors format (Cloudinary) : complétées au bon format
+    // au lieu d'être refusées — cf. ajusterImagesFiche.
+    await ajusterImagesFiche(body, null, { banniere: true });
     const {
       kind,
       productType,

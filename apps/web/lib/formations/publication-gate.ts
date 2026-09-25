@@ -126,13 +126,24 @@ export async function notifierRefusPublication(p: {
   raison: string;
 }): Promise<void> {
   const { createNotification } = await import("@/lib/notifications/service");
+  const message =
+    `« ${p.titre} » n'a pas pu être mis en ligne. ${p.raison} ` +
+    "Corrigez votre fiche puis relancez la publication.";
+  // Le motif s'affiche déjà à l'écran : on ne rajoute pas une notification
+  // identique à chaque nouvel essai (6 en 4 minutes le 2026-09-25).
+  const { prisma } = await import("@/lib/prisma");
+  const doublon = await prisma.notification
+    .findFirst({
+      where: { userId: p.userId, title: "Publication refusée", message, createdAt: { gte: new Date(Date.now() - 30 * 60_000) } },
+      select: { id: true },
+    })
+    .catch(() => null);
+  if (doublon) return;
   await createNotification({
     userId: p.userId,
     type: "system",
     title: "Publication refusée",
-    message:
-      `« ${p.titre} » n'a pas pu être mis en ligne. ${p.raison} ` +
-      "Corrigez votre fiche puis relancez la publication.",
+    message,
     link: "/vendeur/produits",
   }).catch(() => null);
 }
