@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Legacy file with type drift - runtime behavior preserved, type checking skipped.
 
 /**
  * Cron : alerte churn — étudiants qui n'ont pas progressé depuis >= 14 jours
@@ -13,6 +11,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendEmail, emailLayout, button, getAppUrl } from "@/lib/email";
 import { requireCronAuth } from "@/lib/cron/auth";
+import { agentSystemUserId } from "@/lib/agents/system-user";
 
 async function sendChurnEmail(params: {
   email: string;
@@ -112,9 +111,13 @@ export async function GET(req: NextRequest) {
         formationSlug: e.formation.slug,
         daysInactive,
       });
+      // Cette trace EST l'anti-doublon (lue plus haut). Sans `actorId` —
+      // obligatoire — l'écriture échouait en silence et l'apprenant recevait
+      // la relance chaque jour.
       await prisma.auditLog
         .create({
           data: {
+            actorId: await agentSystemUserId(),
             action: "churn_reminder_sent",
             targetType: "enrollment",
             targetId: e.id,

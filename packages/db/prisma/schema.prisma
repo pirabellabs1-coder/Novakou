@@ -822,6 +822,8 @@ model Message {
   fileSizeBytes  Int?
   audioUrl       String?
   audioDuration  Int?
+  /// Texte d'un message vocal, obtenu une fois (Whisper) puis réutilisé.
+  transcription  String?     @db.Text
   callDuration   Int?
   read           Boolean     @default(false)
 

@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Legacy file with type drift - runtime behavior preserved, type checking skipped.
 
 /**
  * Learner streaks & badges engine.
@@ -148,9 +146,12 @@ async function evaluateAndUnlockBadges(
   try {
     // Build the context for badge checks (reusing existing enrollment data)
     const [lessonsCompleted, formationsCompleted, already] = await Promise.all([
-      prisma.lessonProgress
-        .count({ where: { userId, completedAt: { not: null } } })
-        .catch(() => 0),
+      // LessonProgress n'a pas de userId : on passe par l'inscription. L'ancien
+      // filtre échouait, l'erreur était avalée, et le compteur valait toujours
+      // 0 — aucun badge « leçons terminées » ne se débloquait jamais.
+      prisma.lessonProgress.count({
+        where: { enrollment: { userId }, completedAt: { not: null } },
+      }),
       prisma.enrollment.count({ where: { userId, completedAt: { not: null } } }),
       prisma.learnerBadge.findMany({
         where: { userId },

@@ -135,6 +135,9 @@ export async function POST(req: Request) {
   await prisma.auditLog
     .create({
       data: {
+        // Sans actorId (obligatoire), cette trace financière n'était JAMAIS
+        // écrite — l'erreur était avalée par le .catch ci-dessous.
+        actorId: adminUserId,
         action: "platform_payout_requested",
         targetType: "platform_payout",
         targetId: payout.id,

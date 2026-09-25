@@ -158,6 +158,9 @@ export async function DELETE(request: Request) {
     if (!provider) {
       return NextResponse.json({ error: "Paramètre provider requis" }, { status: 400 });
     }
+    // Jamais déclarée dans cette route jusqu'ici : ReferenceError, et toute
+    // déconnexion d'intégration échouait en 500.
+    const activeShopId = await getActiveShopId(session, { devFallback: IS_DEV ? "dev-instructeur-001" : undefined });
 
     await prisma.vendorIntegration.updateMany({
       where: { instructeurId: ctx.instructeurId, ...(activeShopId ? { shopId: activeShopId } : {}), provider },

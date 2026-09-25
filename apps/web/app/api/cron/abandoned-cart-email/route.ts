@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Legacy file with type drift - runtime behavior preserved, type checking skipped.
 
 // GET /api/cron/abandoned-cart-email — Envoie les emails de relance panier abandonné
 // Appelé par Vercel Cron ou cron externe toutes les 15 minutes
@@ -41,7 +39,13 @@ export async function GET(req: NextRequest) {
 
     for (const cart of carts) {
       const timeSinceDetection = now - new Date(cart.detectedAt).getTime();
-      const email = cart.user.email;
+      // Panier invité (userId nul depuis le support des invités) : `cart.user`
+      // est absent. L'y lire faisait planter TOUT le cron au premier panier
+      // invité. Sans compte, pas de lien de désinscription signé possible :
+      // on ne relance pas (tout e-mail marketing doit pouvoir être refusé).
+      if (!cart.userId || !cart.user) continue;
+      const userId = cart.userId;
+      const email = cart.user.email ?? cart.email;
       const name = cart.user.name || "Apprenant";
       if (!email) continue;
 
@@ -54,9 +58,9 @@ export async function GET(req: NextRequest) {
       const unsubscribeSecret = process.env.NEXTAUTH_SECRET || "dev-only-secret";
       const sig = crypto
         .createHmac("sha256", unsubscribeSecret)
-        .update(`unsubscribe:${cart.userId}`)
+        .update(`unsubscribe:${userId}`)
         .digest("base64url");
-      const unsubscribeToken = `${Buffer.from(cart.userId).toString("base64url")}.${sig}`;
+      const unsubscribeToken = `${Buffer.from(userId).toString("base64url")}.${sig}`;
       const unsubscribeUrl = `${APP_URL}/api/formations/unsubscribe/${unsubscribeToken}`;
 
       // Fetch cart items for email content

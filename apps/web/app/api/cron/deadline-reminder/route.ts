@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Legacy file with type drift - runtime behavior preserved, type checking skipped.
 
 import { NextRequest, NextResponse } from "next/server";
 import { IS_DEV, USE_PRISMA_FOR_DATA } from "@/lib/env";
@@ -87,7 +85,6 @@ export async function GET(request: NextRequest) {
     const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
     const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 
-    const twoHoursFromNow = new Date(now.getTime() + TWO_HOURS_MS);
     const twentyFourHoursFromNow = new Date(now.getTime() + TWENTY_FOUR_HOURS_MS);
     const twoHoursAgo = new Date(now.getTime() - TWO_HOURS_MS);
     // Window for 24h reminder: deadline is between (24h - 2h) and 24h from now
@@ -104,7 +101,9 @@ export async function GET(request: NextRequest) {
       },
       select: {
         id: true,
-        title: true,
+        // Le titre vit sur le SERVICE, pas sur la commande : `title` ici faisait
+        // échouer ce cron chaque jour (PrismaClientValidationError).
+        service: { select: { title: true } },
         amount: true,
         freelanceId: true,
         clientId: true,
@@ -125,7 +124,9 @@ export async function GET(request: NextRequest) {
       },
       select: {
         id: true,
-        title: true,
+        // Le titre vit sur le SERVICE, pas sur la commande : `title` ici faisait
+        // échouer ce cron chaque jour (PrismaClientValidationError).
+        service: { select: { title: true } },
         amount: true,
         freelanceId: true,
         clientId: true,
@@ -141,7 +142,7 @@ export async function GET(request: NextRequest) {
     for (const order of orders24h) {
       emitEvent("order.deadline_24h", {
         orderId: order.id,
-        serviceTitle: order.title ?? "",
+        serviceTitle: order.service?.title ?? "",
         amount: order.amount,
         freelanceId: order.freelanceId,
         freelanceName: order.freelance?.name ?? "",
@@ -157,7 +158,7 @@ export async function GET(request: NextRequest) {
     for (const order of ordersOverdue) {
       emitEvent("order.deadline_overdue", {
         orderId: order.id,
-        serviceTitle: order.title ?? "",
+        serviceTitle: order.service?.title ?? "",
         amount: order.amount,
         freelanceId: order.freelanceId,
         freelanceName: order.freelance?.name ?? "",
