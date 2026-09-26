@@ -89,7 +89,7 @@ export function FormationsNavbar() {
                   <rect width="36" height="36" rx="10" fill="#006e2f" />
                   <path d="M11 26V10h3l7 10.5V10h3v16h-3L14 15.5V26h-3z" fill="white" />
                 </svg>
-                <span className="hidden text-[17px] font-extrabold tracking-tight text-[#0e1512] min-[380px]:inline">Novakou</span>
+                <span className="text-[17px] font-extrabold tracking-tight text-[#0e1512]">Novakou</span>
               </Link>
 
               {/* Liens desktop */}

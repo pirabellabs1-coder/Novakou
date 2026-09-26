@@ -545,7 +545,14 @@
 @media(max-width:560px){
   .nkhome .wrap{padding:0 16px}
   .nkhome .section{padding:72px 0}
-  .nkhome .hero{padding-top:48px}
+  .nkhome .hero{padding-top:44px}
+  /* Sur téléphone, le titre à 41 px prenait cinq lignes et l'accroche trois :
+     on resserre (36 px, ~4 lignes) et on coupe la fin de l'accroche
+     (« — et dans le monde entier »), lisible dès 640 px. */
+  .nkhome h1{font-size:2.25rem;line-height:1.1;letter-spacing:-.035em;margin:18px 0 14px}
+  .nkhome .hero .tag{font-size:.74rem;line-height:1.35;padding:8px 14px}
+  .nkhome .hero .tag .tag-suite{display:none}
+  .nkhome .hero-sub{font-size:1.02rem;line-height:1.55}
   .nkhome .hero-actions{flex-direction:column;align-items:stretch}
   .nkhome .hero-actions .btn,.nkhome .cta .actions .btn{width:100%}
   .nkhome .kpis{grid-template-columns:1fr 1fr}

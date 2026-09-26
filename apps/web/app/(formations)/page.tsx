@@ -86,7 +86,7 @@ const HTML_TOP = `
 <section class="hero">
   <div class="wrap">
     <div class="inner">
-      <span class="tag" data-hero>★ La plateforme n°1 de vente de produits numériques en Afrique — et dans le monde entier</span>
+      <span class="tag" data-hero>★ La plateforme n°1 de vente de produits numériques en Afrique<span class="tag-suite"> — et dans le monde entier</span></span>
       <h1 aria-label="${H1_TEXTE}">${mots("Vendez vos formations et")} <em>${mots("produits digitaux")}</em> ${mots("en ligne")}</h1>
       <p class="hero-sub" data-hero>Formations, e-books, coaching et templates. Boutique en ligne, paiements Mobile&nbsp;Money (Wave, Orange, MTN), tunnels de vente et assistant IA inclus. Lancez-vous en 3&nbsp;minutes.</p>
       <div class="hero-actions">
