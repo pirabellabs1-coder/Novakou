@@ -24,17 +24,40 @@
   --shadow-sm:0 1px 2px rgba(14,21,18,.05),0 1px 3px rgba(14,21,18,.06);
   --shadow-md:0 4px 6px -2px rgba(14,21,18,.05),0 12px 24px -6px rgba(14,21,18,.10);
   --shadow-lg:0 24px 60px -18px rgba(3,35,20,.22);
+  /* Motion : une courbe de sortie douce pour tout (entrées, survols), des
+     durées courtes. Ce sont les mêmes valeurs que la timeline anime.js. */
+  --ease-out-soft:cubic-bezier(.22,1,.36,1);
+  --dur-fast:.18s;
+  --dur-base:.3s;
+  --dur-reveal:.7s;
+  /* Double-bezel : coque externe (shell + liseré) autour d'un cœur.
+     Le rayon interne vaut rayon externe − épaisseur, courbes concentriques. */
+  --bz-r:22px;
+  --bz-p:6px;
+  --bz-shell:rgba(14,21,18,.035);
+  --bz-ring:rgba(14,21,18,.06);
+  --bz-shadow:0 0 0 0 transparent;
   font-family:var(--font-inter),"Inter",system-ui,sans-serif;
   color:var(--ink);
   line-height:1.6;
   font-size:16px;
   -webkit-font-smoothing:antialiased;
   background:var(--white);
+  position:relative;
+  /* Contexte d'empilement propre : le grain et les z-index internes restent
+     sous la barre de navigation (fixed, z-50, hors .nkhome). */
+  isolation:isolate;
 }
+/* Grain : texture fixe, ≤ 4 % d'opacité, jamais cliquable. Calque composité
+   unique, donc aucun repaint au défilement. */
+.nkhome::before{content:"";position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size:180px 180px}
 .nkhome *{box-sizing:border-box}
 .nkhome img{max-width:100%;display:block}
 .nkhome a{color:inherit;text-decoration:none}
 .nkhome h1,.nkhome h2,.nkhome h3{font-family:var(--font-sora),"Sora",sans-serif;line-height:1.12;letter-spacing:-.025em;color:var(--ink);font-weight:600;margin:0}
+.nkhome h1,.nkhome h2{text-wrap:balance}
 .nkhome p{margin:0}
 .nkhome .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
 /* Conteneur élargi pour la grille de cartes best-sellers (cartes plus larges). */
@@ -66,6 +89,66 @@
 .nkhome .btn-white:hover{box-shadow:var(--shadow-md)}
 .nkhome .btn-lg{padding:15px 28px;font-size:1rem;border-radius:11px}
 
+/* ── Boutons « verre » ─────────────────────────────────────────────
+   Fond translucide flouté, liseré interne 1 px + ombre interne (bord
+   réfracté), reflet diagonal (::before) et balayage lumineux au survol
+   (::after, transform uniquement). Le disque .btn-ico porte la flèche
+   (« bouton dans le bouton »). */
+.nkhome .btn-glass{position:relative;isolation:isolate;overflow:hidden;border-radius:100px;min-height:48px;padding:7px 22px;gap:14px;
+  color:var(--ink);background:rgba(255,255,255,.62);
+  -webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.85),inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 1px rgba(14,21,18,.06),
+    0 1px 2px rgba(14,21,18,.05),0 12px 32px -14px rgba(3,35,20,.28);
+  transition:transform var(--dur-base) var(--ease-out-soft),box-shadow var(--dur-base) var(--ease-out-soft),background-color var(--dur-base) var(--ease-out-soft)}
+.nkhome .btn-glass:has(.btn-ico){padding-right:7px}
+.nkhome .btn-glass.btn-lg{min-height:54px;padding:8px 26px;font-size:1rem}
+.nkhome .btn-glass.btn-lg:has(.btn-ico){padding-right:8px}
+.nkhome .btn-glass::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(115deg,rgba(255,255,255,.7) 0%,rgba(255,255,255,.12) 42%,rgba(255,255,255,0) 60%);
+  opacity:.9;transition:opacity var(--dur-base) var(--ease-out-soft)}
+.nkhome .btn-glass::after{content:"";position:absolute;top:-40%;bottom:-40%;left:0;width:45%;z-index:-1;pointer-events:none;
+  background:linear-gradient(100deg,rgba(255,255,255,0),rgba(255,255,255,.45),rgba(255,255,255,0));
+  transform:translateX(-160%) skewX(-18deg);transition:transform .7s var(--ease-out-soft)}
+.nkhome .btn-glass:hover{transform:translateY(-2px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.95),inset 0 1px 0 #fff,inset 0 -1px 1px rgba(14,21,18,.06),
+    0 2px 4px rgba(14,21,18,.05),0 18px 40px -16px rgba(3,35,20,.32)}
+.nkhome .btn-glass:hover::before{opacity:1}
+.nkhome .btn-glass:hover::after{transform:translateX(320%) skewX(-18deg)}
+.nkhome .btn-glass:active{transform:scale(.98);transition-duration:var(--dur-fast)}
+.nkhome .btn-glass:focus-visible{outline:2px solid var(--green);outline-offset:3px}
+.nkhome .btn-glass .btn-ico{width:34px;height:34px;border-radius:50%;flex-shrink:0;margin-left:auto;display:grid;place-items:center;
+  background:rgba(14,21,18,.06);box-shadow:inset 0 0 0 1px rgba(14,21,18,.05);
+  transition:transform var(--dur-base) var(--ease-out-soft),background-color var(--dur-base) var(--ease-out-soft)}
+.nkhome .btn-glass.btn-lg .btn-ico{width:38px;height:38px}
+.nkhome .btn-glass .btn-ico svg{width:15px;height:15px;transition:transform var(--dur-base) var(--ease-out-soft)}
+.nkhome .btn-glass:hover .btn-ico{transform:translate(1px,-1px) scale(1.06);background:rgba(14,21,18,.09)}
+.nkhome .btn-glass:hover .btn-ico svg{transform:translateX(1px)}
+.nkhome .btn-glass.btn-block{width:100%}
+/* Variante primaire : verre teinté du vert de marque (texte blanc ≥ 5:1). */
+.nkhome .btn-glass--primary{color:#fff;background:rgba(0,110,47,.9);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.28),inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 1px rgba(0,40,17,.35),
+    0 1px 2px rgba(3,35,20,.2),0 14px 34px -14px rgba(0,110,47,.6)}
+.nkhome .btn-glass--primary::before{background:linear-gradient(115deg,rgba(255,255,255,.34) 0%,rgba(255,255,255,.06) 42%,rgba(255,255,255,0) 60%)}
+.nkhome .btn-glass--primary:hover{background:rgba(0,92,39,.94);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.34),inset 0 1px 0 rgba(255,255,255,.4),inset 0 -1px 1px rgba(0,40,17,.35),
+    0 2px 4px rgba(3,35,20,.2),0 20px 44px -16px rgba(0,110,47,.65)}
+.nkhome .btn-glass--primary .btn-ico{background:rgba(255,255,255,.16);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);color:#fff}
+.nkhome .btn-glass--primary:hover .btn-ico{background:rgba(255,255,255,.24)}
+/* Variante blanche : verre clair sur les surfaces vert nuit (texte vert ≥ 5:1). */
+.nkhome .btn-glass--white{color:var(--green);background:rgba(255,255,255,.9)}
+.nkhome .btn-glass--white:hover{background:rgba(255,255,255,.97)}
+.nkhome .btn-glass--white .btn-ico{background:rgba(0,110,47,.1);box-shadow:inset 0 0 0 1px rgba(0,110,47,.12);color:var(--green)}
+.nkhome .btn-glass--white:hover .btn-ico{background:rgba(0,110,47,.16)}
+/* Posé sur vert nuit : un anneau vert serait invisible, on passe au blanc. */
+.nkhome .btn-glass--white:focus-visible{outline-color:#fff}
+/* Repli sans backdrop-filter : fonds opaques, mêmes contrastes. */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .nkhome .btn-glass{background:#fff}
+  .nkhome .btn-glass--primary{background:var(--green)}
+  .nkhome .btn-glass--primary:hover{background:var(--green-hover)}
+  .nkhome .btn-glass--white{background:#fff}
+}
+
 /* Hero */
 .nkhome .hero{padding:72px 0 0;text-align:center;position:relative}
 .nkhome .hero::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:min(900px,100%);height:520px;
@@ -75,10 +158,49 @@
   background-size:56px 56px;
   -webkit-mask-image:radial-gradient(60% 90% at 50% 0%,#000 30%,transparent 75%);
   mask-image:radial-gradient(60% 90% at 50% 0%,#000 30%,transparent 75%)}
-.nkhome .hero .inner{max-width:780px;margin:0 auto;position:relative}
-.nkhome h1{font-size:clamp(2.5rem,5.6vw,4rem);font-weight:700;letter-spacing:-.035em;margin:26px 0 22px}
+.nkhome .hero .inner{max-width:800px;margin:0 auto;position:relative}
+.nkhome h1{font-size:clamp(2.6rem,5.8vw,4.25rem);font-weight:700;letter-spacing:-.04em;line-height:1.08;margin:26px 0 22px}
 .nkhome h1 em{font-style:normal;color:var(--green)}
-.nkhome .hero-sub{font-size:1.15rem;color:var(--grey);max-width:620px;margin:0 auto 36px;line-height:1.65}
+/* Masque mot à mot du titre : chaque mot glisse hors d'une fenêtre
+   overflow:hidden. Les paddings/marges négatives laissent passer les
+   ascendantes et descendantes sans changer la hauteur de ligne. */
+.nkhome .hw{display:inline-block;overflow:hidden;vertical-align:top;padding:.08em 0 .18em;margin:-.08em 0 -.18em}
+.nkhome .hw-in{display:block;animation:nk-mot .8s var(--ease-out-soft) backwards;animation-delay:calc(.12s + var(--i,0)*45ms)}
+/* États initiaux de la chorégraphie (anime.js, HomeClient). Le <noscript>
+   de page.tsx et prefers-reduced-motion rétablissent l'état final. */
+/* Entrée du hero en CSS pur, dès le premier paint : le texte n'attend pas
+   le JavaScript (LCP préservé). `backwards` rend la main aux styles normaux
+   à la fin (survols, parallax en inline) ; `both` les écraserait. */
+@keyframes nk-mot{from{transform:translateY(120%)}to{transform:none}}
+@keyframes nk-monte{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes nk-monte-lg{from{opacity:0;transform:translateY(36px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes nk-pousse{from{transform:scaleY(.15)}to{transform:none}}
+.nkhome .hero [data-hero]{animation:nk-monte .6s var(--ease-out-soft) backwards}
+.nkhome .hero .tag[data-hero]{animation-delay:.05s}
+.nkhome .hero-sub[data-hero]{animation-delay:.45s}
+.nkhome .hero-actions>[data-hero]{animation-delay:.55s}
+.nkhome .hero-actions>[data-hero]:nth-child(2){animation-delay:.63s}
+.nkhome .hero-meta>[data-hero]{animation-delay:.7s}
+.nkhome .hero-meta>[data-hero]:nth-child(2){animation-delay:.75s}
+.nkhome .hero-meta>[data-hero]:nth-child(3){animation-delay:.8s}
+.nkhome .dash-shell[data-hero]{animation:nk-monte-lg .9s var(--ease-out-soft) .55s backwards}
+/* Intérieur de la maquette : arrive après la coque, en cascade. */
+.nkhome .dash .kpi{animation:nk-monte .5s var(--ease-out-soft) 1s backwards}
+.nkhome .dash .kpi:nth-child(2){animation-delay:1.07s}
+.nkhome .dash .kpi:nth-child(3){animation-delay:1.14s}
+.nkhome .dash .kpi:nth-child(4){animation-delay:1.21s}
+.nkhome .chart i{transform-origin:bottom;animation:nk-pousse .7s var(--ease-out-soft) 1.15s backwards}
+.nkhome .chart i:nth-child(2){animation-delay:1.21s}
+.nkhome .chart i:nth-child(3){animation-delay:1.27s}
+.nkhome .chart i:nth-child(4){animation-delay:1.33s}
+.nkhome .chart i:nth-child(5){animation-delay:1.39s}
+.nkhome .chart i:nth-child(6){animation-delay:1.45s}
+.nkhome .chart i:nth-child(7){animation-delay:1.51s}
+.nkhome .chart i:nth-child(8){animation-delay:1.57s}
+.nkhome .sale{animation:nk-monte .5s var(--ease-out-soft) 1.25s backwards}
+.nkhome .sale:nth-child(3){animation-delay:1.32s}
+.nkhome .sale:nth-child(4){animation-delay:1.39s}
+.nkhome .hero-sub{font-size:clamp(1.05rem,1rem + .45vw,1.2rem);color:var(--grey);max-width:620px;margin:0 auto 36px;line-height:1.65;text-wrap:pretty}
 .nkhome .hero-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:28px}
 .nkhome .hero-meta{display:flex;justify-content:center;flex-wrap:wrap;gap:10px 28px;font-size:.86rem;color:var(--grey);font-weight:500}
 .nkhome .hero-meta span{display:inline-flex;align-items:center;gap:7px}
@@ -87,7 +209,10 @@
 /* Dashboard mockup */
 .nkhome .dash-wrap{margin-top:72px;position:relative;padding-bottom:96px}
 .nkhome .dash-wrap::after{content:"";position:absolute;left:0;right:0;bottom:0;height:52%;background:var(--green-tint);z-index:0}
-.nkhome .dash{position:relative;z-index:1;max-width:980px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-lg);overflow:hidden}
+/* La coque (.dash-shell) porte l'entrée animée et le parallax souris ;
+   le cœur (.dash) garde son contenu et ses identifiants (nk-dashRev…). */
+.nkhome .dash-shell{position:relative;z-index:1;max-width:980px;margin:0 auto}
+.nkhome .dash{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
 .nkhome .dash-bar{display:flex;align-items:center;gap:6px;padding:12px 16px;border-bottom:1px solid var(--line);background:#FBFCFB}
 .nkhome .dash-bar i{width:10px;height:10px;border-radius:50%;background:#E4E9E6}
 .nkhome .dash-bar .url{margin:0 auto;font-size:.74rem;color:var(--grey-l);background:var(--green-tint);border:1px solid var(--line);padding:5px 40px;border-radius:7px;display:flex;align-items:center;gap:7px}
@@ -140,14 +265,13 @@
 .nkhome .head{max-width:620px;margin-bottom:60px}
 .nkhome .head.center{margin-left:auto;margin-right:auto;text-align:center}
 .nkhome .head h2{font-size:clamp(1.9rem,3.5vw,2.65rem);font-weight:700;letter-spacing:-.03em;margin:20px 0 14px}
-.nkhome .head p{color:var(--grey);font-size:1.08rem}
+.nkhome .head p{color:var(--grey);font-size:1.08rem;text-wrap:pretty}
 .nkhome .section.deep .head h2{color:#fff}
 .nkhome .section.deep .head p{color:rgba(255,255,255,.7)}
 
 /* Étapes */
-.nkhome .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.nkhome .step{background:#fff;border:1px solid var(--line);border-radius:16px;padding:32px;box-shadow:var(--shadow-sm);transition:box-shadow .25s,transform .25s}
-.nkhome .step:hover{box-shadow:var(--shadow-md);transform:translateY(-3px)}
+.nkhome .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+.nkhome .step{background:#fff;border:1px solid var(--line);border-radius:16px;padding:32px}
 .nkhome .step .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:52px}
 .nkhome .step .ic{width:44px;height:44px;border-radius:11px;background:var(--green-tint);border:1px solid var(--green-tint-2);display:grid;place-items:center;color:var(--green)}
 .nkhome .step .ic svg{width:21px;height:21px}
@@ -170,8 +294,8 @@
 .nkhome .duo-link:hover svg{transform:translateX(3px)}
 
 /* Visuels des blocs */
-.nkhome .visual{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-lg);overflow:hidden}
-.nkhome .section.tint .visual{box-shadow:var(--shadow-md)}
+.nkhome .visual{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.nkhome .section.tint .bezel--float{--bz-shadow:var(--shadow-md)}
 .nkhome .v-head{padding:16px 20px;border-bottom:1px solid var(--line);background:#FBFCFB;display:flex;align-items:center;justify-content:space-between}
 .nkhome .v-head b{font-size:.86rem;font-weight:600}
 .nkhome .v-head small{font-size:.72rem;color:var(--grey-l)}
@@ -221,7 +345,8 @@
 .nkhome .fn-note svg{width:15px;height:15px;flex-shrink:0}
 
 /* Stats */
-.nkhome .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.nkhome .section.deep{--bz-shell:rgba(255,255,255,.035);--bz-ring:rgba(255,255,255,.08)}
+.nkhome .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:26px}
 .nkhome .stat{border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:30px 26px;background:rgba(255,255,255,.04)}
 .nkhome .stat .n{font-family:var(--font-sora),sans-serif;font-weight:700;font-size:clamp(2rem,3.2vw,2.6rem);color:#fff;letter-spacing:-.03em}
 .nkhome .stat .n em{font-style:normal;color:#7FC59A;font-size:.6em;font-weight:600;margin-left:2px}
@@ -229,7 +354,7 @@
 
 /* Simulateur */
 .nkhome .sim-grid{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center}
-.nkhome .sim-panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:38px;box-shadow:var(--shadow-md)}
+.nkhome .sim-panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:38px}
 .nkhome .sim-row{margin-bottom:30px}
 .nkhome .sim-row .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
 .nkhome .sim-row label{font-weight:600;font-size:.94rem}
@@ -247,8 +372,8 @@
 .nkhome .mkt-bleed{margin-top:8px}
 
 /* Témoignages */
-.nkhome .quotes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.nkhome .quote{background:#fff;border:1px solid var(--line);border-radius:16px;padding:30px;display:flex;flex-direction:column;box-shadow:var(--shadow-sm)}
+.nkhome .quotes{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+.nkhome .quote{background:#fff;border:1px solid var(--line);border-radius:16px;padding:30px;display:flex;flex-direction:column}
 .nkhome .quote .stars{color:var(--green);letter-spacing:2px;font-size:.82rem;margin-bottom:16px}
 .nkhome .quote p{font-size:.96rem;line-height:1.65;flex:1;color:var(--ink)}
 .nkhome .quote .who{display:flex;align-items:center;gap:12px;border-top:1px solid var(--line);padding-top:18px;margin-top:22px}
@@ -257,12 +382,12 @@
 .nkhome .quote .who small{color:var(--grey-l);font-size:.79rem}
 
 /* Affiliation & Mentorat */
-.nkhome .earn{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.nkhome .earn{display:grid;grid-template-columns:1fr 1fr;gap:28px}
 .nkhome .earn-card{border-radius:20px;padding:44px;position:relative;overflow:hidden;display:flex;flex-direction:column;min-height:380px}
 .nkhome .earn-card.a{background:var(--green-deep);color:#fff}
 .nkhome .earn-card.a::before{content:"";position:absolute;right:-70px;top:-70px;width:260px;height:260px;border-radius:50%;
   background:radial-gradient(circle,rgba(0,110,47,.55),transparent 68%)}
-.nkhome .earn-card.b{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow-sm)}
+.nkhome .earn-card.b{background:#fff;border:1px solid var(--line)}
 .nkhome .earn-card h3{font-size:1.55rem;font-weight:700;letter-spacing:-.02em;margin:20px 0 12px;position:relative}
 .nkhome .earn-card.a h3{color:#fff}
 .nkhome .earn-card>p{font-size:.98rem;margin-bottom:26px;position:relative;max-width:400px}
@@ -283,9 +408,8 @@
 .nkhome .earn-card.b .earn-badge{color:var(--green)}
 
 /* Fonctionnalités complémentaires */
-.nkhome .fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.nkhome .fcard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:28px;box-shadow:var(--shadow-sm);transition:box-shadow .25s,transform .25s}
-.nkhome .fcard:hover{box-shadow:var(--shadow-md);transform:translateY(-3px)}
+.nkhome .fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+.nkhome .fcard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:28px}
 .nkhome .fcard .ic{width:42px;height:42px;border-radius:11px;background:var(--green-tint);border:1px solid var(--green-tint-2);display:grid;place-items:center;color:var(--green);margin-bottom:20px}
 .nkhome .fcard .ic svg{width:20px;height:20px}
 .nkhome .fcard h3{font-size:1.05rem;font-weight:600;margin-bottom:7px}
@@ -293,7 +417,7 @@
 
 /* Tarifs */
 .nkhome .pricing{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center;max-width:1020px;margin:0 auto}
-.nkhome .price-box{background:var(--green-deep);color:#fff;border-radius:20px;padding:42px;box-shadow:var(--shadow-lg)}
+.nkhome .price-box{background:var(--green-deep);color:#fff;border-radius:20px;padding:42px}
 .nkhome .price-box .amount{display:flex;align-items:baseline;gap:10px;margin-top:26px}
 .nkhome .price-box .amount .n{font-family:var(--font-sora),sans-serif;font-size:4.4rem;font-weight:700;line-height:1;letter-spacing:-.04em}
 .nkhome .price-box .amount .u{font-size:1rem;color:rgba(255,255,255,.72)}
@@ -309,7 +433,8 @@
 .nkhome .cmp .ic.no{background:#FAF0EB;color:#B4552F}
 .nkhome .cmp .ic.yes{background:var(--green-tint);color:var(--green)}
 .nkhome .cmp .ic svg{width:13px;height:13px}
-.nkhome .compare-card{max-width:880px;margin:64px auto 0;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-md);overflow:hidden}
+.nkhome .compare-shell{max-width:880px;margin:64px auto 0}
+.nkhome .compare-card{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}
 .nkhome .compare-scroll{overflow-x:auto}
 .nkhome .compare-table{width:100%;border-collapse:collapse;font-size:.93rem;min-width:560px}
 .nkhome .compare-table th,.nkhome .compare-table td{padding:16px 22px;text-align:center;border-bottom:1px solid var(--line)}
@@ -336,9 +461,8 @@
 .nkhome .faq-a p{padding:0 22px 22px;color:var(--grey);font-size:.95rem;line-height:1.7}
 
 /* Guides */
-.nkhome .guides{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.nkhome .guide{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);transition:.25s;display:flex;flex-direction:column}
-.nkhome .guide:hover{box-shadow:var(--shadow-md);transform:translateY(-4px)}
+.nkhome .guides{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+.nkhome .guide{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
 .nkhome .guide .gcov{height:120px;position:relative;display:flex;align-items:center;justify-content:center;color:#fff}
 .nkhome .guide .gcov.g1{background:linear-gradient(140deg,var(--green),var(--green-deep))}
 .nkhome .guide .gcov.g2{background:linear-gradient(140deg,#1E6B43,#0D3B24)}
@@ -352,7 +476,7 @@
 .nkhome .guide-body .duo-link{font-size:.9rem}
 
 /* CTA */
-.nkhome .cta{background:var(--green-deep);border-radius:24px;padding:80px 40px;text-align:center;position:relative;overflow:hidden}
+.nkhome .cta{background:var(--green-deep);border-radius:24px;padding:88px 40px 80px;text-align:center;position:relative;overflow:hidden}
 .nkhome .cta::before{content:"";position:absolute;top:-140px;left:50%;transform:translateX(-50%);width:560px;height:400px;
   background:radial-gradient(50% 60% at 50% 40%,rgba(0,110,47,.55),transparent 70%);pointer-events:none}
 .nkhome .cta .tag{position:relative}
@@ -361,10 +485,38 @@
 .nkhome .cta .actions{position:relative;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 .nkhome .cta small.note{display:block;margin-top:20px;color:rgba(255,255,255,.5);font-size:.82rem;position:relative}
 
+/* ── Double-bezel ──────────────────────────────────────────────────
+   1) Coque réelle (.bezel) autour des grandes pièces : maquette, visuels,
+      simulateur, tarif, comparatif, CTA final. Rayon interne concentrique.
+   2) Bagues sans balise pour les cartes répétées : une ombre étalée de N px
+      a pour rayon (rayon + N), les courbes restent donc concentriques ;
+      les grilles gagnent 12 px d'écart pour compenser la coque. */
+.nkhome .bezel{position:relative;padding:var(--bz-p);border-radius:var(--bz-r);background:var(--bz-shell);
+  box-shadow:inset 0 0 0 1px var(--bz-ring),inset 0 1px 0 rgba(255,255,255,.6),var(--bz-shadow)}
+.nkhome .bezel>*{border-radius:calc(var(--bz-r) - var(--bz-p));box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 1px 2px rgba(14,21,18,.05)}
+.nkhome .bezel--float{--bz-shadow:var(--shadow-lg)}
+.nkhome .bezel--dark{--bz-shell:rgba(0,61,26,.09);--bz-ring:rgba(0,61,26,.16)}
+.nkhome .bezel--dark>*{box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 1px 2px rgba(3,35,20,.1)}
+.nkhome .bezel--dark.bezel--float{--bz-shadow:var(--shadow-lg)}
+.nkhome .bezel--xl{--bz-r:30px;--bz-p:8px}
+.nkhome .step,.nkhome .fcard,.nkhome .guide,.nkhome .quote,.nkhome .stat,.nkhome .earn-card{
+  --ring:0 0 0 calc(var(--bz-p) - 1px) var(--bz-shell),0 0 0 var(--bz-p) var(--bz-ring);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),var(--shadow-sm),var(--ring);
+  transition:transform var(--dur-base) var(--ease-out-soft),box-shadow var(--dur-base) var(--ease-out-soft)}
+.nkhome .earn-card.a,.nkhome .stat{box-shadow:inset 0 1px 0 rgba(255,255,255,.1),var(--ring)}
+.nkhome .step:hover,.nkhome .fcard:hover,.nkhome .guide:hover,.nkhome .quote:hover{
+  transform:translateY(-3px);box-shadow:inset 0 1px 0 rgba(255,255,255,.9),var(--shadow-md),var(--ring)}
+
 /* Reveal + divers */
 .nkhome ::selection{background:var(--green);color:#fff}
-.nkhome .reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.2,.7,.2,1),transform .65s cubic-bezier(.2,.7,.2,1)}
+/* État initial des reveals ; le mouvement lui-même est piloté par anime.js
+   (components/home/reveal-compteurs.ts) — pas de transition CSS ici, elle
+   se battrait avec les styles inline posés à chaque image. */
+.nkhome .reveal{opacity:0;transform:translateY(24px)}
 .nkhome .reveal.in{opacity:1;transform:none}
+/* Une fois posé (transitionend), l'élément retrouve des transitions courtes
+   pour ses survols, sinon la lévitation des cartes durerait 700 ms. */
+.nkhome .reveal.settled{transition:transform var(--dur-base) var(--ease-out-soft),box-shadow var(--dur-base) var(--ease-out-soft)}
 .nkhome .center-btn{text-align:center;margin-top:44px}
 
 /* Retour en haut */
@@ -391,15 +543,27 @@
   .nkhome .dm-grid{grid-template-columns:1fr}
 }
 @media(max-width:560px){
+  .nkhome .wrap{padding:0 16px}
   .nkhome .section{padding:72px 0}
   .nkhome .hero{padding-top:48px}
+  .nkhome .hero-actions{flex-direction:column;align-items:stretch}
+  .nkhome .hero-actions .btn,.nkhome .cta .actions .btn{width:100%}
   .nkhome .kpis{grid-template-columns:1fr 1fr}
   .nkhome .fgrid{grid-template-columns:1fr}
   .nkhome-totop{bottom:18px;right:18px}
-  .nkhome .cta{padding:56px 24px}
+  .nkhome .cta{padding:56px 20px}
   .nkhome .sim-panel,.nkhome .price-box{padding:28px}
   .nkhome .dash-wrap{padding-bottom:64px}
+  .nkhome .bezel{--bz-r:18px;--bz-p:5px}
+  .nkhome .bezel--xl{--bz-r:22px;--bz-p:6px}
 }
+/* Reduced motion : aucune translation, tout est visible d'emblée. Les durées
+   sont déjà ramenées à 0 par globals.css ; ici on neutralise les états
+   initiaux cachés et les déplacements de survol. */
 @media(prefers-reduced-motion:reduce){
   .nkhome .reveal{opacity:1;transform:none}
+  .nkhome .hero [data-hero],.nkhome .hw-in,.nkhome .dash .kpi,.nkhome .chart i,.nkhome .sale{animation:none}
+  .nkhome .btn-glass::after{display:none}
+  .nkhome .btn-glass:hover,.nkhome .btn-glass:active,.nkhome .btn-glass:hover .btn-ico,.nkhome .btn-glass:hover .btn-ico svg,
+  .nkhome .step:hover,.nkhome .fcard:hover,.nkhome .guide:hover,.nkhome .quote:hover{transform:none}
 }

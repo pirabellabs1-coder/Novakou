@@ -71,29 +71,40 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
 
 const ARROW = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`;
 const CK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>`;
+/* Icône « bouton dans le bouton » des CTA verre : la flèche vit dans son
+   propre disque (.btn-ico), décoratif pour les lecteurs d'écran. */
+const ICO = `<span class="btn-ico" aria-hidden="true">${ARROW}</span>`;
+
+/* Titre du hero découpé mot à mot pour la révélation par masque (home.css
+   .hw/.hw-in, animée dans HomeClient). Les spans sont aria-hidden : le texte
+   complet est exposé une seule fois via aria-label sur le <h1>. */
+const H1_TEXTE = "Vendez vos formations et produits digitaux en ligne";
+const mots = (texte: string) =>
+  texte.split(" ").map((m, i) => `<span class="hw" aria-hidden="true"><span class="hw-in" style="--i:${i}">${m}</span></span>`).join(" ");
 
 const HTML_TOP = `
 <!-- HERO -->
 <section class="hero">
   <div class="wrap">
-    <div class="inner reveal">
-      <span class="tag">★ La plateforme n°1 de vente de produits numériques en Afrique — et dans le monde entier</span>
-      <h1>Vendez vos formations et <em>produits digitaux</em> en ligne</h1>
-      <p class="hero-sub">Formations, e-books, coaching et templates. Boutique en ligne, paiements Mobile&nbsp;Money (Wave, Orange, MTN), tunnels de vente et assistant IA inclus. Lancez-vous en 3&nbsp;minutes.</p>
+    <div class="inner">
+      <span class="tag" data-hero>★ La plateforme n°1 de vente de produits numériques en Afrique — et dans le monde entier</span>
+      <h1 aria-label="${H1_TEXTE}">${mots("Vendez vos formations et")} <em>${mots("produits digitaux")}</em> ${mots("en ligne")}</h1>
+      <p class="hero-sub" data-hero>Formations, e-books, coaching et templates. Boutique en ligne, paiements Mobile&nbsp;Money (Wave, Orange, MTN), tunnels de vente et assistant IA inclus. Lancez-vous en 3&nbsp;minutes.</p>
       <div class="hero-actions">
-        <a href="/inscription?role=vendeur" class="btn btn-green btn-lg">Lancer ma boutique ${ARROW}</a>
-        <a href="#nk-simulateur" class="btn btn-line btn-lg">Simuler mes revenus</a>
+        <a href="/inscription?role=vendeur" class="btn btn-glass btn-glass--primary btn-lg" data-hero>Lancer ma boutique ${ICO}</a>
+        <a href="#nk-simulateur" class="btn btn-glass btn-lg" data-hero>Simuler mes revenus</a>
       </div>
       <div class="hero-meta">
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>Zéro abonnement — 10 % par vente</span>
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>Paiements Mobile Money &amp; carte</span>
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>Boutique prête en 3 minutes</span>
+        <span data-hero><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>Zéro abonnement — 10 % par vente</span>
+        <span data-hero><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>Paiements Mobile Money &amp; carte</span>
+        <span data-hero><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>Boutique prête en 3 minutes</span>
       </div>
     </div>
   </div>
   <div class="dash-wrap">
     <div class="wrap">
-      <div class="dash reveal">
+      <div class="dash-shell bezel bezel--float" data-hero>
+      <div class="dash">
         <div class="dash-bar">
           <i></i><i></i><i></i>
           <span class="url"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>novakou.com/aminata/dashboard</span>
@@ -113,10 +124,10 @@ const HTML_TOP = `
               <span class="period">30 derniers jours <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></span>
             </div>
             <div class="kpis">
-              <div class="kpi"><div class="l">Revenus</div><div class="v" id="nk-dashRev">412 000 F</div><span class="d">▲ +18 %</span></div>
-              <div class="kpi"><div class="l">Ventes</div><div class="v">37</div><span class="d">▲ +12 %</span></div>
-              <div class="kpi"><div class="l">Visiteurs</div><div class="v">1 248</div><span class="d">▲ +5 %</span></div>
-              <div class="kpi"><div class="l">Conversion</div><div class="v">2,9 %</div><span class="d down">▼ −0,3 pt</span></div>
+              <div class="kpi"><div class="l">Revenus</div><div class="v" id="nk-dashRev" data-count="412000" data-suffix=" F">412 000 F</div><span class="d">▲ +18 %</span></div>
+              <div class="kpi"><div class="l">Ventes</div><div class="v" data-count="37">37</div><span class="d">▲ +12 %</span></div>
+              <div class="kpi"><div class="l">Visiteurs</div><div class="v" data-count="1248">1 248</div><span class="d">▲ +5 %</span></div>
+              <div class="kpi"><div class="l">Conversion</div><div class="v" data-count="2.9" data-decimals="1" data-suffix=" %">2,9 %</div><span class="d down">▼ −0,3 pt</span></div>
             </div>
             <div class="dm-grid">
               <div class="panel">
@@ -132,6 +143,7 @@ const HTML_TOP = `
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   </div>
@@ -200,6 +212,7 @@ const HTML_TOP = `
         </ul>
         <a href="#nk-faq" class="duo-link">Voir les pays pris en charge ${ARROW}</a>
       </div>
+      <div class="bezel bezel--float">
       <div class="visual">
         <div class="v-head"><b>Paiement sécurisé</b><small>Formation · 15 000 F</small></div>
         <div class="v-body">
@@ -209,6 +222,7 @@ const HTML_TOP = `
           <div class="pay-row"><div class="b cb">CB</div><div class="m"><b>Carte bancaire</b><small>Visa, Mastercard</small></div><span class="radio"></span></div>
           <div class="v-cta">Payer 15 000 F</div>
         </div>
+      </div>
       </div>
     </div>
 
@@ -224,6 +238,7 @@ const HTML_TOP = `
         </ul>
         <a href="/inscription?role=vendeur" class="duo-link">Découvrir la boutique ${ARROW}</a>
       </div>
+      <div class="bezel bezel--float">
       <div class="visual">
         <div class="v-head"><b>aminata.novakou.com</b><small>Aperçu boutique</small></div>
         <div class="v-body">
@@ -233,6 +248,7 @@ const HTML_TOP = `
             <div class="shop-item"><div class="th b2"></div><b>E-book : vendre en ligne</b><small>Gratuit</small></div>
           </div>
         </div>
+      </div>
       </div>
     </div>
 
@@ -248,6 +264,7 @@ const HTML_TOP = `
         </ul>
         <a href="/inscription?role=vendeur" class="duo-link">Essayer l'assistant IA ${ARROW}</a>
       </div>
+      <div class="bezel bezel--float">
       <div class="visual">
         <div class="v-head"><b>Novakou IA</b><small>En ligne</small></div>
         <div class="v-body">
@@ -257,6 +274,7 @@ const HTML_TOP = `
           </div>
           <div class="ai-input"><span>Posez votre question…</span><span class="send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></span></div>
         </div>
+      </div>
       </div>
     </div>
 
@@ -272,6 +290,7 @@ const HTML_TOP = `
         </ul>
         <a href="/inscription?role=vendeur" class="duo-link">Explorer les automatisations ${ARROW}</a>
       </div>
+      <div class="bezel bezel--float">
       <div class="visual">
         <div class="v-head"><b>Tunnel de vente</b><small>Formation marketing · 30 jours</small></div>
         <div class="v-body">
@@ -284,6 +303,7 @@ const HTML_TOP = `
             <div class="fn-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Relances automatiques&nbsp;: 9 ventes récupérées ce mois-ci</div>
           </div>
         </div>
+      </div>
       </div>
     </div>
 
@@ -307,7 +327,7 @@ const HTML_TOP = `
   <div class="wrap">
     <div class="head reveal"><span class="tag on-dark">Novakou en chiffres</span><h2>Une économie de créateurs qui grandit chaque jour</h2></div>
     <div class="stats reveal">
-      <div class="stat"><div class="n">1 000<em>+</em></div><p>créateurs actifs sur la plateforme</p></div>
+      <div class="stat"><div class="n"><span data-count="1000">1 000</span><em>+</em></div><p>créateurs actifs sur la plateforme</p></div>
       <div class="stat"><div class="n">10<em>%</em></div><p>de commission, uniquement sur vos ventes</p></div>
       <div class="stat"><div class="n">3<em>min</em></div><p>pour lancer votre boutique, sans code</p></div>
       <div class="stat"><div class="n">24<em>h</em></div><p>délai moyen de retrait de vos fonds</p></div>
@@ -323,12 +343,14 @@ const HTML_TOP = `
         <span class="tag">Simulateur</span>
         <h2 style="font-size:clamp(1.8rem,3.2vw,2.5rem);font-weight:700;letter-spacing:-.03em;margin:20px 0 14px">Mettez un chiffre sur votre potentiel</h2>
         <p style="color:var(--grey);font-size:1.04rem;max-width:430px;margin-bottom:28px">Ajustez la taille de votre audience et le prix de votre produit. Le calcul repose sur un taux de conversion prudent de 1&nbsp;% — beaucoup de créateurs font mieux.</p>
-        <a href="/inscription?role=vendeur" class="btn btn-green btn-lg">Créer ma boutique gratuitement ${ARROW}</a>
+        <a href="/inscription?role=vendeur" class="btn btn-glass btn-glass--primary btn-lg">Créer ma boutique gratuitement ${ICO}</a>
       </div>
-      <div class="sim-panel reveal">
+      <div class="bezel bezel--float reveal">
+      <div class="sim-panel">
         <div class="sim-row"><div class="top"><label for="nk-aud">Taille de votre audience</label><span class="val" id="nk-audVal">5 000 contacts</span></div><input type="range" id="nk-aud" min="500" max="50000" step="500" value="5000"></div>
         <div class="sim-row"><div class="top"><label for="nk-price">Prix de votre produit</label><span class="val" id="nk-priceVal">15 000 FCFA</span></div><input type="range" id="nk-price" min="2000" max="200000" step="1000" value="15000"></div>
         <div class="sim-out"><div class="lbl">Revenu estimé par mois</div><div class="big" id="nk-simOut">750 000 FCFA</div><div class="net">soit <b id="nk-simNet">675 000 FCFA</b> pour vous, après la commission de 10 %.</div></div>
+      </div>
       </div>
     </div>
   </div>
@@ -363,7 +385,7 @@ const HTML_BOTTOM = `
           <li><span class="ck">${CK}</span>Commissions versées sur votre solde Novakou</li>
           <li><span class="ck">${CK}</span>Retraits en Mobile Money, comme vos ventes</li>
         </ul>
-        <div class="actions"><a href="/inscription?role=affilie" class="btn btn-white">Devenir affilié</a></div>
+        <div class="actions"><a href="/inscription?role=affilie" class="btn btn-glass btn-glass--white">Devenir affilié ${ICO}</a></div>
       </div>
       <div class="earn-card b reveal">
         <span class="earn-badge">1:1</span>
@@ -375,7 +397,7 @@ const HTML_BOTTOM = `
           <li><span class="ck">${CK}</span>Mentors vérifiés, notés par la communauté</li>
           <li><span class="ck">${CK}</span>Vous êtes expérimenté&nbsp;? Devenez mentor et facturez vos sessions</li>
         </ul>
-        <div class="actions"><a href="/mentors" class="btn btn-green">Trouver un mentor</a></div>
+        <div class="actions"><a href="/mentors" class="btn btn-glass btn-glass--primary">Trouver un mentor ${ICO}</a></div>
       </div>
     </div>
   </div>
@@ -394,7 +416,8 @@ const HTML_BOTTOM = `
         <div class="cmp"><span class="ic yes">${CK}</span>Vous gardez 90 % de chaque vente</div>
         <div class="cmp"><span class="ic yes">${CK}</span>Toutes les fonctionnalités incluses, dès le départ</div>
       </div>
-      <div class="price-box reveal">
+      <div class="bezel bezel--dark bezel--float reveal">
+      <div class="price-box">
         <span class="tag on-dark">Modèle gagnant-gagnant</span>
         <div class="amount"><span class="n">10 %</span><span class="u">par vente, c'est tout</span></div>
         <div class="sub">Prélevés uniquement sur vos ventes réalisées. Zéro vente, zéro frais.</div>
@@ -404,10 +427,12 @@ const HTML_BOTTOM = `
           <li><span class="ck">${CK}</span>Assistant IA &amp; hébergement vidéo inclus</li>
           <li><span class="ck">${CK}</span>Tunnels, automatisations &amp; certificats</li>
         </ul>
-        <a href="/inscription?role=vendeur" class="btn btn-white" style="width:100%">Commencer gratuitement</a>
+        <a href="/inscription?role=vendeur" class="btn btn-glass btn-glass--white btn-block">Commencer gratuitement ${ICO}</a>
+      </div>
       </div>
     </div>
-    <div class="compare-card reveal">
+    <div class="compare-shell bezel bezel--float reveal">
+    <div class="compare-card">
       <div class="compare-scroll">
       <table class="compare-table">
         <thead><tr><th></th><th class="nova">Novakou</th><th>Plateformes internationales</th><th>Site sur mesure</th></tr></thead>
@@ -421,6 +446,7 @@ const HTML_BOTTOM = `
       </table>
       </div>
     </div>
+    </div>
     <p class="compare-note">Comparaison indicative basée sur les offres standards du marché.</p>
   </div>
 </section>
@@ -430,10 +456,10 @@ const HTML_BOTTOM = `
   <div class="wrap">
     <div class="head center reveal"><span class="tag">Questions fréquentes</span><h2>On vous dit tout</h2></div>
     <div class="faq reveal">
-      ${FAQ_ITEMS.map((f) => `
+      ${FAQ_ITEMS.map((f, i) => `
       <div class="faq-item">
-        <button class="faq-q" type="button">${f.q}<span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></span></button>
-        <div class="faq-a"><p>${f.a}</p></div>
+        <button class="faq-q" type="button" aria-expanded="false" aria-controls="nk-faq-a-${i}">${f.q}<span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></span></button>
+        <div class="faq-a" id="nk-faq-a-${i}"><p>${f.a}</p></div>
       </div>`).join("")}
     </div>
   </div>
@@ -463,12 +489,14 @@ const HTML_BOTTOM = `
 <!-- CTA -->
 <section class="section" style="padding-top:16px">
   <div class="wrap">
-    <div class="cta reveal">
+    <div class="bezel bezel--dark bezel--xl bezel--float reveal">
+    <div class="cta">
       <span class="tag on-dark">Prêt à vous lancer&nbsp;?</span>
       <h2>Prêt à monétiser votre expertise&nbsp;?</h2>
       <p>Rejoignez plus de 1 000 créateurs qui vivent de leur passion grâce à Novakou.</p>
-      <div class="actions"><a href="/inscription?role=vendeur" class="btn btn-white btn-lg">Créer mon compte gratuitement ${ARROW}</a></div>
+      <div class="actions"><a href="/inscription?role=vendeur" class="btn btn-glass btn-glass--white btn-lg">Créer mon compte gratuitement ${ICO}</a></div>
       <small class="note">Gratuit tant que vous ne vendez pas · Sans carte bancaire · Prêt en 3 minutes</small>
+    </div>
     </div>
   </div>
 </section>
@@ -477,10 +505,17 @@ const HTML_BOTTOM = `
 export default function FormationsPage() {
   return (
     <div className={`nkhome ${sora.variable}`}>
-      {/* Sans JS : on désactive l'animation reveal pour ne jamais masquer le contenu. */}
+      {/* Sans JS : on neutralise les états cachés (reveal, hero animé) pour ne jamais masquer le contenu. */}
       <noscript>
         {/* eslint-disable-next-line react/no-danger */}
-        <style dangerouslySetInnerHTML={{ __html: ".nkhome .reveal{opacity:1 !important;transform:none !important}" }} />
+        <style
+          dangerouslySetInnerHTML={{
+            __html:
+              ".nkhome .reveal{opacity:1 !important;transform:none !important}" +
+              ".nkhome .hero [data-hero]{opacity:1 !important}" +
+              ".nkhome .hw-in{transform:none !important}",
+          }}
+        />
       </noscript>
 
       {/* FAQPage JSON-LD — rich results Google + moteurs génératifs (GEO). */}
@@ -514,9 +549,11 @@ export default function FormationsPage() {
             <BestSellers />
           </div>
           <div className="center-btn reveal">
-            <Link href="/explorer" className="btn btn-line">
+            <Link href="/explorer" className="btn btn-glass">
               Explorer la marketplace
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+              <span className="btn-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+              </span>
             </Link>
           </div>
         </div>
