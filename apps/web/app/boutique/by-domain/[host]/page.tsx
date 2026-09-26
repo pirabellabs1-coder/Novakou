@@ -179,6 +179,8 @@ export default async function BoutiqueByDomainPage({ params }: Props) {
     <>
       {fontHref && <link rel="stylesheet" href={fontHref} />}
     <BoutiqueView
+      instructeurId={shop.instructeur?.id}
+      shopId={shop.id}
       font={shop.font}
       afficherVentes={shop.showSalesCount}
       reviews={reviews}

@@ -121,9 +121,23 @@ export async function GET(req: NextRequest) {
 
     if (scope === "public") {
       try {
+        // Un popup appartient a UN vendeur. Sans cette restriction, chaque
+        // vitrine affichait les popups actifs de tous les vendeurs — le code
+        // promo d'un createur s'ouvrait chez un autre (constate le
+        // 2026-09-27 : 10 popups actifs, 7 vendeurs). Sans vendeur precise,
+        // on ne renvoie rien : mieux vaut aucun popup que ceux d'autrui.
+        const instructeurId = req.nextUrl.searchParams.get("instructeurId");
+        const shopId = req.nextUrl.searchParams.get("shopId");
+        if (!instructeurId) return NextResponse.json({ popups: [] });
+
         const prisma = (await import("@freelancehigh/db")).default;
         const popupsRaw = await prisma.smartPopup.findMany({
-          where: { isActive: true },
+          where: {
+            isActive: true,
+            instructeurId,
+            // Un popup sans boutique vaut pour toutes celles du vendeur.
+            ...(shopId ? { OR: [{ shopId: null }, { shopId }] } : {}),
+          },
           select: {
             id: true,
             popupType: true,

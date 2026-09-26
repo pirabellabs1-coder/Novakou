@@ -41,6 +41,7 @@ export default function BoutiqueView({
   bundles = [],
   subscriptionPlans = [],
   instructeurId,
+  shopId,
   shopSlug,
   font,
   afficherVentes = false,
@@ -55,6 +56,7 @@ export default function BoutiqueView({
   bundles?: ShopItem[];
   subscriptionPlans?: ShopItem[];
   instructeurId?: string;
+  shopId?: string;
   shopSlug?: string;
   font?: string | null;
   /**
@@ -158,8 +160,9 @@ export default function BoutiqueView({
         />
       )}
 
-      {/* Popups intelligents (exit-intent / scroll / timer) */}
-      <SmartPopupRenderer />
+      {/* Popups intelligents (exit-intent / scroll / timer) — ceux de CETTE
+          boutique uniquement. Sans vendeur identifie, on n'en affiche aucun. */}
+      {instructeurId && <SmartPopupRenderer instructeurId={instructeurId} shopId={shopId} />}
 
       <ShopHeader shopName={owner.name} logoUrl={owner.image} themeColor={owner.themeColor} staticBase={staticBase} />
 

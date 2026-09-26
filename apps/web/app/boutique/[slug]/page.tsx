@@ -248,6 +248,7 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
           youtube: shop.socialYoutube,
         }}
       instructeurId={shop.instructeur?.id}
+      shopId={shop.id}
       shopSlug={shop.slug}
       font={shop.font}
       owner={{

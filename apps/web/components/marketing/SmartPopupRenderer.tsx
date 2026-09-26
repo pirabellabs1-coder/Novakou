@@ -131,7 +131,21 @@ function useCountdown(endsAt: string | null): { hours: string; minutes: string; 
 
 // ── Main Component ─────────────────────────────────────────────────────────
 
-export default function SmartPopupRenderer() {
+/**
+ * Popups d'une boutique. `instructeurId` est OBLIGATOIRE : sans lui, l'API
+ * publique renvoyait les popups actifs de TOUS les vendeurs, et chaque
+ * vitrine affichait le code promo des autres createurs (10 popups de
+ * 7 vendeurs en base le 2026-09-27). `shopId` restreint encore aux popups
+ * de cette boutique-la, ceux qui n'en visent aucune valant pour toutes les
+ * boutiques du meme vendeur.
+ */
+export default function SmartPopupRenderer({
+  instructeurId,
+  shopId,
+}: {
+  instructeurId: string;
+  shopId?: string;
+}) {
   const pathname = usePathname();
   const [popups, setPopups] = useState<ActivePopup[]>([]);
   const [visiblePopup, setVisiblePopup] = useState<ActivePopup | null>(null);
@@ -147,7 +161,9 @@ export default function SmartPopupRenderer() {
 
     incrementPageViews();
 
-    fetch("/api/marketing/popups?scope=public")
+    const params = new URLSearchParams({ scope: "public", instructeurId });
+    if (shopId) params.set("shopId", shopId);
+    fetch(`/api/marketing/popups?${params.toString()}`)
       .then((r) => r.json())
       .then((data) => {
         if (data.popups) setPopups(data.popups);
@@ -155,7 +171,7 @@ export default function SmartPopupRenderer() {
       .catch(() => {
         // Silently fail
       });
-  }, []);
+  }, [instructeurId, shopId]);
 
   // ── Filter popups applicable to current page ──
 
