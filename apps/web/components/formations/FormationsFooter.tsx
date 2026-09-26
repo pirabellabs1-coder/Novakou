@@ -2,7 +2,37 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import "./nav/nav.css";
+import { NavIcon } from "./nav/icons";
 
+const PLATFORM_LINKS = [
+  { href: "/explorer", label: "Marketplace" },
+  { href: "/fonctionnalites", label: "Fonctionnalités" },
+  { href: "/tarifs", label: "Tarifs" },
+  { href: "/affiliation", label: "Affiliation" },
+  { href: "/mentors", label: "Mentorat" },
+];
+
+const COMPANY_LINKS = [
+  { href: "/a-propos", label: "À propos" },
+  { href: "/partenaires", label: "Partenaires" },
+  { href: "/contact", label: "Contact" },
+  { href: "/aide", label: "Centre d'aide" },
+  { href: "/confiance-securite", label: "Confiance & sécurité" },
+  { href: "/documentation-paiements", label: "Documentation paiements" },
+];
+
+const LEGAL_LINKS = [
+  { href: "/cgu", label: "CGU" },
+  { href: "/confidentialite", label: "Confidentialité" },
+  { href: "/mentions-legales", label: "Mentions légales" },
+  { href: "/cookies", label: "Cookies" },
+];
+
+/**
+ * Pied de page plateforme. Les liens « Freelances » et « Services » ont
+ * disparu : la marketplace de services (héritage FreelanceHigh) n'existe plus.
+ */
 export function FormationsFooter() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -34,85 +64,90 @@ export function FormationsFooter() {
     }
   }
 
-  return (
-    <footer className="bg-slate-50 w-full py-16 border-t border-slate-100" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 px-6 sm:px-8 max-w-7xl mx-auto">
+  const busy = status === "loading" || status === "success";
 
-        {/* Col 1 — Brand */}
-        <div className="space-y-6">
-          <div className="text-xl font-bold text-slate-900">Novakou</div>
-          <p className="text-sm text-slate-500 leading-relaxed">
-            La plateforme qui transforme les talents en actifs numériques rentables. Le futur de l&apos;économie des créateurs.
+  return (
+    <footer className="nk-foot w-full border-t border-[#0e1512]/[.06] bg-slate-50 pb-10 pt-16 lg:pt-20">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 sm:grid-cols-2 sm:px-8 lg:grid-cols-4 lg:gap-10">
+
+        {/* Col 1 — Marque */}
+        <div className="space-y-5">
+          <Link href="/" className="nk-nav__logo inline-flex" aria-label="Novakou — accueil">
+            <svg width="32" height="32" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect width="36" height="36" rx="10" fill="#006e2f" />
+              <path d="M11 26V10h3l7 10.5V10h3v16h-3L14 15.5V26h-3z" fill="white" />
+            </svg>
+            <span className="text-lg font-extrabold tracking-tight text-[#0e1512]">Novakou</span>
+          </Link>
+          <p className="max-w-xs text-sm leading-relaxed text-[#5c6b62]">
+            Vendez vos formations et produits numériques en Afrique francophone — encaissés en Mobile Money.
           </p>
+          <p className="text-xs text-[#8a968e]">Zéro abonnement · 10 % par vente</p>
         </div>
 
-        {/* Col 2 — Marketplace */}
-        <div className="space-y-6">
-          <h4 className="text-sm font-extrabold text-slate-900 uppercase tracking-widest">Marketplace</h4>
-          <ul className="space-y-3 text-sm text-slate-500">
-            <li><Link href="/explorer" className="hover:text-[#006e2f] transition-colors">Explorer</Link></li>
-            <li><Link href="/freelances" className="hover:text-[#006e2f] transition-colors">Freelances</Link></li>
-            <li><Link href="/services" className="hover:text-[#006e2f] transition-colors">Services</Link></li>
-            <li><Link href="/tarifs" className="hover:text-[#006e2f] transition-colors">Tarifs</Link></li>
-            <li><Link href="/affiliation" className="hover:text-[#006e2f] transition-colors">Affiliation</Link></li>
+        {/* Col 2 — Plateforme */}
+        <div className="space-y-5">
+          <h4 className="nk-foot__title">Plateforme</h4>
+          <ul className="space-y-3 text-sm">
+            {PLATFORM_LINKS.map((l) => (
+              <li key={l.href}><Link href={l.href} className="nk-foot__link">{l.label}</Link></li>
+            ))}
           </ul>
         </div>
 
         {/* Col 3 — Entreprise */}
-        <div className="space-y-6">
-          <h4 className="text-sm font-extrabold text-slate-900 uppercase tracking-widest">Entreprise</h4>
-          <ul className="space-y-3 text-sm text-slate-500">
-            <li><Link href="/a-propos" className="hover:text-[#006e2f] transition-colors">À propos</Link></li>
-            <li><Link href="/partenaires" className="hover:text-[#006e2f] transition-colors">Partenaires</Link></li>
-            <li><Link href="/contact" className="hover:text-[#006e2f] transition-colors">Contact</Link></li>
-            <li><Link href="/aide" className="hover:text-[#006e2f] transition-colors">Centre d&apos;aide</Link></li>
-            <li><Link href="/confiance-securite" className="hover:text-[#006e2f] transition-colors">Confiance &amp; sécurité</Link></li>
-            <li><Link href="/documentation-paiements" className="hover:text-[#006e2f] transition-colors">Documentation paiements</Link></li>
+        <div className="space-y-5">
+          <h4 className="nk-foot__title">Entreprise</h4>
+          <ul className="space-y-3 text-sm">
+            {COMPANY_LINKS.map((l) => (
+              <li key={l.href}><Link href={l.href} className="nk-foot__link">{l.label}</Link></li>
+            ))}
           </ul>
         </div>
 
         {/* Col 4 — Newsletter */}
-        <div className="space-y-6">
-          <h4 className="text-sm font-extrabold text-slate-900 uppercase tracking-widest">Newsletter</h4>
-          <p className="text-sm text-slate-500 leading-relaxed">
+        <div className="space-y-5">
+          <h4 className="nk-foot__title">Newsletter</h4>
+          <p className="text-sm leading-relaxed text-[#5c6b62]">
             Recevez les meilleures stratégies de monétisation directement dans votre boîte.
           </p>
-          <form onSubmit={handleSubscribe} className="flex gap-2">
+          <form onSubmit={handleSubscribe} className="nk-foot__field" noValidate>
             <input
               type="email"
               required
+              autoComplete="email"
+              aria-label="Adresse email"
               value={email}
               onChange={(e) => { setEmail(e.target.value); setStatus("idle"); }}
               placeholder="votre@email.com"
-              disabled={status === "loading" || status === "success"}
-              className="flex-1 min-w-0 w-full px-4 py-2 text-sm rounded-full border border-slate-200 bg-white outline-none focus:border-[#006e2f] transition-colors disabled:opacity-50"
+              disabled={busy}
+              className="nk-foot__input"
             />
-            <button
-              type="submit"
-              disabled={status === "loading" || status === "success"}
-              className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg shadow-green-200 flex-shrink-0 disabled:opacity-50 hover:opacity-90 transition-opacity"
-              style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-              aria-label="S'abonner"
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>
-                {status === "loading" ? "progress_activity" : status === "success" ? "check" : "arrow_forward"}
-              </span>
+            <button type="submit" disabled={busy} className="nk-foot__submit" aria-label="S'abonner">
+              {status === "loading" ? (
+                <NavIcon name="progress_activity" className="nk-spin" />
+              ) : status === "success" ? (
+                <NavIcon name="check" />
+              ) : (
+                <NavIcon name="arrow_forward" />
+              )}
             </button>
           </form>
-          {status === "success" && <p className="text-xs text-[#006e2f] font-semibold">✓ Inscription confirmée — merci !</p>}
-          {status === "error" && errMsg && <p className="text-xs text-red-500">{errMsg}</p>}
+          <div aria-live="polite" className="min-h-[1rem]">
+            {status === "success" && <p className="text-xs font-semibold text-[#006e2f]">Inscription confirmée — merci.</p>}
+            {status === "error" && errMsg && <p className="text-xs text-red-600">{errMsg}</p>}
+          </div>
         </div>
       </div>
 
-      {/* Bottom bar */}
-      <div className="mt-12 pt-8 border-t border-slate-100 px-8 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-400">
+      {/* Barre basse */}
+      <div className="mx-auto mt-14 flex max-w-7xl flex-col items-center justify-between gap-4 border-t border-[#0e1512]/[.06] px-6 pt-8 text-xs text-[#6b7772] sm:px-8 md:flex-row">
         <p>© 2026 Novakou · La Curation Digital</p>
-        <div className="flex gap-6">
-          <Link href="/cgu" className="hover:text-slate-600 transition-colors">CGU</Link>
-          <Link href="/confidentialite" className="hover:text-slate-600 transition-colors">Confidentialité</Link>
-          <Link href="/mentions-legales" className="hover:text-slate-600 transition-colors">Mentions légales</Link>
-          <Link href="/cookies" className="hover:text-slate-600 transition-colors">Cookies</Link>
-        </div>
+        <ul className="flex flex-wrap justify-center gap-x-6 gap-y-2">
+          {LEGAL_LINKS.map((l) => (
+            <li key={l.href}><Link href={l.href} className="nk-foot__link nk-foot__legal">{l.label}</Link></li>
+          ))}
+        </ul>
       </div>
     </footer>
   );

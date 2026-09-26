@@ -1,377 +1,244 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useRef, useEffect } from "react";
-import { useSession, signOut } from "next-auth/react";
-import { getDashboardForFormationsRole, getRoleLabel } from "@/lib/formations/role-routing";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useSession } from "next-auth/react";
 import CartBadge from "./CartBadge";
+import "./nav/nav.css";
+import { NavIcon, type StyleVars } from "./nav/icons";
+import {
+  FEATURE_CATEGORIES, FEATURE_HIGHLIGHTS, NAV_LINKS, RESOURCE_LINKS,
+  isActivePath, isFeaturesPath, isResourcesPath,
+} from "./nav/nav-data";
+import { NavDisclosure } from "./nav/NavDisclosure";
+import { MobileMenu } from "./nav/MobileMenu";
+import { UserMenu } from "./nav/UserMenu";
+import { useScrolled } from "./nav/use-scrolled";
 
-function initials(name: string | null | undefined) {
-  if (!name) return "?";
-  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
+/**
+ * Barre de navigation publique : île en verre détachée du bord, compactée au
+ * défilement, méga-menus au survol et au clavier, menu mobile plein écran.
+ *
+ * Les liens desktop n'apparaissent qu'à partir de `lg` : en dessous, ils ne
+ * tenaient pas (à 768 px, « Marketplace » se collait au logo et le panier
+ * sortait de l'écran) — le menu plein écran prend le relais.
+ */
+export function FormationsNavbar() {
+  const { data: session, status } = useSession();
+  const isLoggedIn = status === "authenticated" && !!session?.user;
+  const pathname = usePathname() || "/";
+  const { scrolled, sentinelRef, sentinelStyle } = useScrolled(24);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const headerRef = useRef<HTMLElement | null>(null);
+  const burgerRef = useRef<HTMLButtonElement | null>(null);
+
+  // Fermeture à la navigation (les liens ferment déjà au clic ; ceci couvre
+  // le retour arrière et les redirections).
+  useEffect(() => setMobileOpen(false), [pathname]);
+
+  /**
+   * Menu mobile ouvert : Échap referme et rend le focus au hamburger ; Tab
+   * boucle entre les contrôles visibles du header (hamburger inclus), pour
+   * ne pas envoyer le clavier sous le voile.
+   */
+  function onHeaderKeyDown(e: KeyboardEvent<HTMLElement>) {
+    if (!mobileOpen) return;
+    if (e.key === "Escape") {
+      e.preventDefault();
+      setMobileOpen(false);
+      burgerRef.current?.focus();
+      return;
+    }
+    if (e.key !== "Tab" || !headerRef.current) return;
+    const nodes = Array.from(
+      headerRef.current.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'),
+    ).filter((el) => el.getClientRects().length > 0);
+    if (!nodes.length) return;
+    const first = nodes[0];
+    const last = nodes[nodes.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+
+  return (
+    <>
+      {/* Témoin de défilement : bloc invisible en haut du document, observé par IntersectionObserver. */}
+      <span ref={sentinelRef} aria-hidden="true" className="pointer-events-none absolute left-0 top-0 w-px" style={sentinelStyle} />
+
+      <header
+        ref={headerRef}
+        className="nk-nav fixed inset-x-0 top-0 z-50"
+        data-scrolled={scrolled ? "" : undefined}
+        onKeyDown={onHeaderKeyDown}
+      >
+        <div className="mx-auto max-w-7xl px-2.5 pt-2 lg:px-6 lg:pt-4">
+          <div className="nk-nav__island">
+            <span className="nk-nav__glass" aria-hidden="true" />
+            <span className="nk-nav__glass-dense" aria-hidden="true" />
+
+            <div className="relative flex h-14 items-center justify-between gap-2 px-2 lg:h-[60px] lg:px-3">
+              {/* Logo */}
+              <Link href="/" className="nk-nav__logo flex-shrink-0 pl-1" aria-label="Novakou — accueil">
+                <svg width="34" height="34" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <rect width="36" height="36" rx="10" fill="#006e2f" />
+                  <path d="M11 26V10h3l7 10.5V10h3v16h-3L14 15.5V26h-3z" fill="white" />
+                </svg>
+                <span className="hidden text-[17px] font-extrabold tracking-tight text-[#0e1512] min-[380px]:inline">Novakou</span>
+              </Link>
+
+              {/* Liens desktop */}
+              <nav aria-label="Navigation principale" className="hidden lg:block">
+                <ul className="flex items-center gap-0.5">
+                  {NAV_LINKS.map((l) => {
+                    if (l.mega) {
+                      return (
+                        <NavDisclosure key={l.href} label={l.label} active={isFeaturesPath(pathname)} align="island">
+                          {(close) => <FeaturesPanel close={close} />}
+                        </NavDisclosure>
+                      );
+                    }
+                    if (l.dropdown) {
+                      return (
+                        <NavDisclosure key={l.href} label={l.label} active={isResourcesPath(pathname)} align="trigger">
+                          {(close) => <ResourcesPanel close={close} />}
+                        </NavDisclosure>
+                      );
+                    }
+                    const active = isActivePath(pathname, l.href);
+                    return (
+                      <li key={l.href}>
+                        <Link href={l.href} className="nk-nav__link" aria-current={active ? "page" : undefined}>
+                          {l.label}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </nav>
+
+              {/* Côté droit */}
+              <div className="flex items-center gap-1 sm:gap-2">
+                <CartBadge />
+                {status === "loading" ? (
+                  <div className="h-9 w-9 animate-pulse rounded-full bg-[#0e1512]/[.06]" aria-hidden="true" />
+                ) : isLoggedIn ? (
+                  <UserMenu
+                    name={session.user.name ?? null}
+                    email={session.user.email ?? ""}
+                    image={session.user.image ?? null}
+                    role={(session.user as { role?: string }).role ?? "APPRENANT"}
+                    formationsRole={(session.user as { formationsRole?: string }).formationsRole}
+                  />
+                ) : (
+                  <>
+                    <Link href="/connexion" className="nk-btn nk-btn--glass nk-btn--login">
+                      Connexion
+                    </Link>
+                    <Link href="/inscription" className="nk-btn nk-btn--primary nk-btn--cta">
+                      Créer ma boutique
+                      <span className="nk-btn__ico"><NavIcon name="arrow_forward" /></span>
+                    </Link>
+                  </>
+                )}
+
+                {/* Hamburger → X */}
+                <button
+                  ref={burgerRef}
+                  type="button"
+                  className="nk-burger lg:hidden"
+                  aria-expanded={mobileOpen}
+                  aria-controls="nk-mobile-menu"
+                  aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
+                  onClick={() => setMobileOpen((o) => !o)}
+                >
+                  <span className="nk-burger__bar" aria-hidden="true" />
+                  <span className="nk-burger__bar" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <MobileMenu open={mobileOpen} onClose={() => setMobileOpen(false)} isLoggedIn={isLoggedIn} pathname={pathname} />
+      </header>
+    </>
+  );
 }
 
-const NAV_LINKS = [
-  // L'entrée « Explorer » pointait vers l'accueil, juste à côté du logo qui y
-  // mène déjà : deux chemins vers la même page, dont un qui portait le nom
-  // d'une AUTRE page du menu (« Marketplace », soit /explorer). Retirée pour
-  // que chaque entrée désigne une destination distincte.
-  { href: "/explorer", label: "Marketplace" },
-  { href: "/fonctionnalites", label: "Fonctionnalités", mega: true },
-  { href: "/tarifs", label: "Tarifs" },
-  { href: "/affiliation", label: "Affiliation" },
-  { href: "/mentors", label: "Mentorat" },
-  { href: "/academie", label: "Ressources", dropdown: true },
-];
-
-const RESOURCE_LINKS = [
-  { href: "/academie", icon: "school", label: "Académie", desc: "Guides & ebooks gratuits" },
-  { href: "/guides", icon: "article", label: "Blog & guides", desc: "Conseils pour vendre plus" },
-];
-
-const FEATURE_CATEGORIES = [
-  {
-    title: "Vendre",
-    items: [
-      { icon: "storefront", label: "Boutique en ligne", desc: "Votre vitrine pro en 3 min", href: "/fonctionnalites#boutique" },
-      { icon: "account_tree", label: "Tunnels de vente", desc: "Funnels qui convertissent", href: "/fonctionnalites#funnels" },
-      { icon: "sell", label: "Pricing flexible", desc: "Forfaits, promos, coupons", href: "/fonctionnalites#pricing" },
-    ],
-  },
-  {
-    title: "Encaisser",
-    items: [
-      { icon: "account_balance_wallet", label: "Mobile Money", desc: "Wave, Orange, MTN — 17 pays", href: "/fonctionnalites#paiements" },
-      { icon: "credit_card", label: "Carte & PayPal", desc: "Visa, Mastercard, SEPA", href: "/fonctionnalites#paiements" },
-      { icon: "payments", label: "Retraits rapides", desc: "Sous 24-48h sur votre compte", href: "/fonctionnalites#retraits" },
-    ],
-  },
-  {
-    title: "Créer",
-    items: [
-      { icon: "auto_awesome", label: "Assistant IA", desc: "Rédaction, structure, quiz", href: "/fonctionnalites#ia" },
-      { icon: "play_circle", label: "Hébergement vidéo", desc: "Vidéos sécurisées incluses", href: "/fonctionnalites#video" },
-      { icon: "workspace_premium", label: "Certificats", desc: "Diplômes auto-générés", href: "/fonctionnalites#certificats" },
-    ],
-  },
-  {
-    title: "Automatiser",
-    items: [
-      { icon: "mail", label: "Emails automatiques", desc: "Séquences & notifications", href: "/fonctionnalites#emails" },
-      { icon: "bolt", label: "Automatisations", desc: "Workflows sans code", href: "/fonctionnalites#automatisations" },
-      { icon: "group", label: "Affiliation", desc: "Vos clients deviennent vendeurs", href: "/fonctionnalites#affiliation" },
-    ],
-  },
-];
-
-function FeaturesMegaMenu({ onClose }: { onClose: () => void }) {
+/** Méga-menu « Fonctionnalités » : 4 catégories en 2 × 2 + colonne de mise en avant. */
+function FeaturesPanel({ close }: { close: () => void }) {
   return (
-    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-[720px] bg-white rounded-2xl border border-gray-100 shadow-2xl overflow-hidden z-50">
-      <div className="grid grid-cols-2 gap-0 divide-x divide-gray-100">
-        {FEATURE_CATEGORIES.map((cat) => (
-          <div key={cat.title} className="p-4">
-            <p className="text-[10px] font-bold text-[#5c647a] uppercase tracking-widest mb-2">{cat.title}</p>
-            <div className="space-y-1">
-              {cat.items.map((item) => (
-                <Link key={item.label} href={item.href} onClick={onClose}
-                  className="flex items-start gap-3 px-3 py-2.5 rounded-xl hover:bg-[#006e2f]/5 transition-colors group">
-                  <span className="material-symbols-outlined text-[20px] text-[#006e2f] mt-0.5 group-hover:scale-110 transition-transform" style={{ fontVariationSettings: "'FILL' 1" }}>{item.icon}</span>
-                  <div>
-                    <p className="text-sm font-bold text-[#191c1e]">{item.label}</p>
-                    <p className="text-xs text-[#5c647a]">{item.desc}</p>
-                  </div>
-                </Link>
+    <div className="grid grid-cols-[1fr_1fr_232px]">
+      <div className="col-span-2 grid grid-cols-2 gap-x-2 gap-y-5 p-4">
+        {FEATURE_CATEGORIES.map((cat, c) => (
+          <div key={cat.title}>
+            {/* Vague diagonale : l'indice de cascade = colonne + ligne. */}
+            <p className="nk-panel__title nk-panel__stagger" style={{ "--i": c } as StyleVars}>{cat.title}</p>
+            <ul className="space-y-0.5">
+              {cat.items.map((item, j) => (
+                <li key={item.label} className="nk-panel__stagger" style={{ "--i": c + j + 1 } as StyleVars}>
+                  <Link href={item.href} onClick={close} className="nk-panel__item">
+                    <span className="nk-panel__ico"><NavIcon name={item.icon} /></span>
+                    <span className="min-w-0">
+                      <span className="nk-panel__label">{item.label}</span>
+                      <span className="nk-panel__desc">{item.desc}</span>
+                    </span>
+                  </Link>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         ))}
       </div>
-      <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
-        <p className="text-xs text-[#5c647a]">10 % de commission · Zéro abonnement</p>
-        <Link href="/fonctionnalites" onClick={onClose} className="text-xs font-bold text-[#006e2f] hover:underline flex items-center gap-1">
-          Voir toutes les fonctionnalités <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-        </Link>
-      </div>
-    </div>
-  );
-}
 
-function ResourcesDropdown() {
-  const [open, setOpen] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  return (
-    <div className="relative"
-      onMouseEnter={() => { if (timer.current) clearTimeout(timer.current); setOpen(true); }}
-      onMouseLeave={() => { timer.current = setTimeout(() => setOpen(false), 200); }}>
-      <button className="text-slate-600 hover:text-green-500 transition-colors duration-300 flex items-center gap-0.5">
-        Ressources
-        <span className={`material-symbols-outlined text-[16px] transition-transform ${open ? "rotate-180" : ""}`}>expand_more</span>
-      </button>
-      {open && (
-        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-[300px] bg-white rounded-2xl border border-gray-100 shadow-2xl overflow-hidden z-50 p-2">
-          {RESOURCE_LINKS.map((it) => (
-            <Link key={it.href} href={it.href} onClick={() => setOpen(false)}
-              className="flex items-start gap-3 px-3 py-2.5 rounded-xl hover:bg-[#006e2f]/5 transition-colors">
-              <span className="material-symbols-outlined text-[20px] text-[#006e2f] mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>{it.icon}</span>
-              <div>
-                <p className="text-sm font-bold text-[#191c1e]">{it.label}</p>
-                <p className="text-xs text-[#5c647a]">{it.desc}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function UserMenu({
-  name, email, image, role, formationsRole,
-}: {
-  name: string | null;
-  email: string;
-  image: string | null;
-  role: string;
-  formationsRole?: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function onDown(e: MouseEvent) {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
-  }, [open]);
-
-  const normalizedRole = role.toLowerCase();
-  const isAdmin = normalizedRole === "admin";
-  const isVendor = formationsRole === "instructeur";
-  const isMentor = formationsRole === "mentor";
-  const isAffilie = formationsRole === "affilie";
-  const dashboardHref = getDashboardForFormationsRole(formationsRole as "apprenant" | "instructeur" | "mentor" | "affilie" | undefined, role);
-  const dashboardLabel = isAdmin ? "Espace admin"
-    : isVendor ? "Mon espace vendeur"
-    : isMentor ? "Mon espace mentor"
-    : isAffilie ? "Mon espace affilié"
-    : "Mon espace apprenant";
-  const roleLabel = isAdmin ? "Admin" : getRoleLabel(formationsRole as "apprenant" | "instructeur" | "mentor" | "affilie" | undefined);
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 px-2 py-1.5 rounded-full hover:bg-gray-100 transition-colors"
-      >
-        <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-          {image ? <img src={image} alt="" className="w-full h-full object-cover" /> : initials(name)}
-        </div>
-        <span className="hidden lg:inline text-sm font-semibold text-[#191c1e] max-w-[120px] truncate">
-          {name?.split(" ")[0] ?? "Mon compte"}
-        </span>
-        <span className={`material-symbols-outlined text-[16px] text-[#5c647a] transition-transform ${open ? "rotate-180" : ""}`}>expand_more</span>
-      </button>
-
-      {open && (
-        <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl border border-gray-100 shadow-2xl overflow-hidden z-50">
-          <div className="px-4 py-3 bg-gradient-to-br from-[#006e2f]/5 to-[#22c55e]/5 border-b border-gray-100">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                {image ? <img src={image} alt="" className="w-full h-full object-cover" /> : initials(name)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-[#191c1e] truncate">{name ?? "Utilisateur"}</p>
-                <p className="text-[11px] text-[#5c647a] truncate">{email}</p>
-              </div>
-            </div>
-            {formationsRole && (
-              <span className="inline-block mt-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#006e2f] text-white uppercase tracking-wider">
-                {roleLabel}
-              </span>
-            )}
-          </div>
-          <div className="py-1.5">
-            <Link href={dashboardHref} onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-[#191c1e] hover:bg-gray-50 transition-colors">
-              <span className="material-symbols-outlined text-[18px] text-[#006e2f]">dashboard</span>{dashboardLabel}
-            </Link>
-            {!isAdmin && !isVendor && (
-              <>
-                <Link href="/apprenant/mes-formations" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">school</span>Mes formations</Link>
-                <Link href="/apprenant/commandes" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">receipt_long</span>Mes commandes</Link>
-              </>
-            )}
-            {isVendor && (
-              <>
-                <Link href="/vendeur/produits" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">inventory_2</span>Mes produits</Link>
-                <Link href="/vendeur/transactions" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">payments</span>Mes ventes</Link>
-              </>
-            )}
-
-            {/* Passerelles inter-espaces — un créateur (et l'admin) peut être à
-                la fois vendeur, mentor et apprenant. Permet de basculer entre
-                les espaces (l'espace mentor était introuvable autrement). */}
-            <div className="my-1 border-t border-gray-100" />
-            <p className="px-4 pt-1 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#8a93a6]">Mes espaces</p>
-            {isAdmin && (
-              <Link href="/admin/dashboard" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">admin_panel_settings</span>Espace admin</Link>
-            )}
-            {!isVendor && (
-              <Link href="/vendeur/dashboard" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">storefront</span>Espace vendeur</Link>
-            )}
-            {!isMentor && (
-              <Link href="/mentor/dashboard" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">support_agent</span>Espace mentor</Link>
-            )}
-            <Link href="/apprenant/dashboard" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">school</span>Espace apprenant</Link>
-
-            <div className="my-1 border-t border-gray-100" />
-            <Link href="/academie" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">school</span>Académie</Link>
-            <Link href={isAdmin ? "/admin/configuration" : isVendor ? "/vendeur/parametres" : "/apprenant/parametres"} onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">settings</span>Paramètres</Link>
-            <button onClick={() => { setOpen(false); signOut({ callbackUrl: "/" }); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 text-left">
-              <span className="material-symbols-outlined text-[18px]">logout</span>Se déconnecter
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-export function FormationsNavbar() {
-  const { data: session, status } = useSession();
-  const isLoggedIn = status === "authenticated" && session?.user;
-  const [mobileMenu, setMobileMenu] = useState(false);
-  const [megaOpen, setMegaOpen] = useState(false);
-  const megaRef = useRef<HTMLDivElement | null>(null);
-  const megaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  return (
-    <nav className="fixed top-0 w-full z-50 bg-white md:bg-white/70 backdrop-blur-xl shadow-[0_20px_40px_rgba(15,23,42,0.06)]">
-      <div className="flex justify-between items-center px-4 md:px-8 py-3 md:py-4 max-w-7xl mx-auto">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-          <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="36" height="36" rx="10" fill="#006e2f"/>
-            <path d="M11 26V10h3l7 10.5V10h3v16h-3L14 15.5V26h-3z" fill="white"/>
-          </svg>
-          <span className="text-lg font-extrabold tracking-tight text-slate-900">Novakou</span>
-        </Link>
-
-        {/* Desktop nav */}
-        <div className="hidden md:flex gap-8 items-center text-sm font-medium tracking-tight relative" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
-          {NAV_LINKS.map((l) =>
-            l.mega ? (
-              <div key={l.href} ref={megaRef} className="relative"
-                onMouseEnter={() => { if (megaTimer.current) clearTimeout(megaTimer.current); setMegaOpen(true); }}
-                onMouseLeave={() => { megaTimer.current = setTimeout(() => setMegaOpen(false), 200); }}>
-                <button className="text-slate-600 hover:text-green-500 transition-colors duration-300 flex items-center gap-0.5">
-                  {l.label}
-                  <span className={`material-symbols-outlined text-[16px] transition-transform ${megaOpen ? "rotate-180" : ""}`}>expand_more</span>
-                </button>
-                {megaOpen && <FeaturesMegaMenu onClose={() => setMegaOpen(false)} />}
-              </div>
-            ) : l.dropdown ? (
-              <ResourcesDropdown key={l.label} />
-            ) : (
-              <Link key={l.href} href={l.href} className="text-slate-600 hover:text-green-500 transition-colors duration-300">{l.label}</Link>
-            )
-          )}
-        </div>
-
-        {/* Right side */}
-        <div className="flex items-center gap-2">
-          <CartBadge />
-          {status === "loading" ? (
-            <div className="w-9 h-9 rounded-full bg-gray-100 animate-pulse" />
-          ) : isLoggedIn ? (
-            <UserMenu
-              name={session.user.name ?? null}
-              email={session.user.email ?? ""}
-              image={session.user.image ?? null}
-              role={(session.user as { role?: string }).role ?? "APPRENANT"}
-              formationsRole={(session.user as { formationsRole?: string }).formationsRole}
-            />
-          ) : (
-            <>
-              <Link href="/connexion" className="hidden sm:inline text-slate-600 text-sm font-semibold px-3 py-2 hover:text-green-500">
-                Connexion
-              </Link>
-              <Link
-                href="/inscription"
-                className="text-white px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap active:scale-90 transition-transform shadow-lg shadow-green-200"
-                style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-              >
-                Créer ma boutique
-              </Link>
-            </>
-          )}
-
-          {/* Mobile hamburger */}
-          <button
-            onClick={() => setMobileMenu((o) => !o)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            aria-label="Menu"
+      <aside className="nk-panel__aside" aria-label="À la une">
+        {FEATURE_HIGHLIGHTS.map((h, k) => (
+          <Link
+            key={h.href + h.eyebrow}
+            href={h.href}
+            onClick={close}
+            className={`nk-panel__hl nk-panel__hl--${h.tone} nk-panel__stagger`}
+            style={{ "--i": 1 + k * 2 } as StyleVars}
           >
-            <span className="material-symbols-outlined text-[24px] text-[#191c1e]">
-              {mobileMenu ? "close" : "menu"}
-            </span>
-          </button>
-        </div>
-      </div>
+            <span className="nk-panel__eyebrow">{h.eyebrow}</span>
+            <span className="nk-panel__hl-title">{h.title}</span>
+            <span className="nk-panel__hl-desc">{h.desc}</span>
+            <span className="nk-panel__hl-cta">{h.cta}<NavIcon name="arrow_forward" /></span>
+          </Link>
+        ))}
+      </aside>
 
-      {/* Mobile dropdown menu */}
-      {mobileMenu && (
-        <div className="md:hidden bg-white border-t border-gray-100 shadow-xl max-h-[80vh] overflow-y-auto">
-          <div className="px-4 py-3 space-y-1">
-            {NAV_LINKS.filter((l) => !l.mega && !l.dropdown).map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                onClick={() => setMobileMenu(false)}
-                className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold text-[#191c1e] hover:bg-[#006e2f]/5 hover:text-[#006e2f] transition-colors"
-              >
-                {l.label}
-              </Link>
-            ))}
-            {/* Ressources (Académie + Blog) on mobile */}
-            <div className="my-2 border-t border-gray-100" />
-            <p className="px-3 py-1 text-[10px] font-bold text-[#5c647a] uppercase tracking-widest">Ressources</p>
-            {RESOURCE_LINKS.map((it) => (
-              <Link key={it.href} href={it.href} onClick={() => setMobileMenu(false)}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#191c1e] hover:bg-[#006e2f]/5 transition-colors">
-                <span className="material-symbols-outlined text-[18px] text-[#006e2f]" style={{ fontVariationSettings: "'FILL' 1" }}>{it.icon}</span>
-                {it.label}
-              </Link>
-            ))}
-            {/* Fonctionnalités expanded on mobile */}
-            <div className="my-2 border-t border-gray-100" />
-            <p className="px-3 py-1 text-[10px] font-bold text-[#5c647a] uppercase tracking-widest">Fonctionnalités</p>
-            {FEATURE_CATEGORIES.map((cat) =>
-              cat.items.map((item) => (
-                <Link key={item.label} href={item.href} onClick={() => setMobileMenu(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#191c1e] hover:bg-[#006e2f]/5 transition-colors">
-                  <span className="material-symbols-outlined text-[18px] text-[#006e2f]" style={{ fontVariationSettings: "'FILL' 1" }}>{item.icon}</span>
-                  {item.label}
-                </Link>
-              ))
-            )}
-            {!isLoggedIn && (
-              <>
-                <div className="my-2 border-t border-gray-100" />
-                <Link
-                  href="/connexion"
-                  onClick={() => setMobileMenu(false)}
-                  className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold text-[#191c1e] hover:bg-gray-50"
-                >
-                  <span className="material-symbols-outlined text-[18px] text-[#5c647a]">login</span>
-                  Connexion
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-    </nav>
+      <div className="nk-panel__foot nk-panel__stagger col-span-3" style={{ "--i": 5 } as StyleVars}>
+        <p>10 % de commission · Zéro abonnement</p>
+        <Link href="/fonctionnalites" onClick={close} className="nk-panel__more">
+          Voir toutes les fonctionnalités <NavIcon name="arrow_forward" />
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+/** Menu « Ressources » : Académie + Blog. */
+function ResourcesPanel({ close }: { close: () => void }) {
+  return (
+    <ul className="p-1.5">
+      {RESOURCE_LINKS.map((it, i) => (
+        <li key={it.href} className="nk-panel__stagger" style={{ "--i": i } as StyleVars}>
+          <Link href={it.href} onClick={close} className="nk-panel__item">
+            <span className="nk-panel__ico"><NavIcon name={it.icon} /></span>
+            <span className="min-w-0">
+              <span className="nk-panel__label">{it.label}</span>
+              <span className="nk-panel__desc">{it.desc}</span>
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
