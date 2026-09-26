@@ -1,0 +1,106 @@
+/**
+ * Révélation en cascade des cartes de la marketplace — anime.js à la demande.
+ *
+ * Même mécanique que components/home/reveal-compteurs.ts (accueil), avec les
+ * réglages de la marketplace : 600 ms, 60 ms de cascade. anime.js n'est chargé
+ * (sous-chemins, pas le paquet entier) qu'au premier élément visible. Le HTML
+ * porte déjà le contenu ; en prefers-reduced-motion ou sans
+ * IntersectionObserver, on pose l'état final sans bouger. Transform et opacity
+ * uniquement ; `will-change` posé juste avant, retiré à la fin.
+ */
+
+const PAS_CASCADE_MS = 60;
+const CASCADE_MAX_MS = 360;
+const DUREE_MS = 600;
+
+/** Classe portée par tout élément à révéler (état initial dans explorer.css). */
+export const CLASSE_REVEAL = "nkx-reveal";
+
+type Anime = {
+  animate: typeof import("animejs/animation").animate;
+  ease: (t: number) => number;
+};
+
+let animePromise: Promise<Anime> | null = null;
+
+/** Même courbe que --nkx-ease dans explorer.css. */
+function chargerAnime(): Promise<Anime> {
+  animePromise ??= Promise.all([import("animejs/animation"), import("animejs/easings/cubic-bezier")]).then(
+    ([{ animate }, { cubicBezier }]) => ({ animate, ease: cubicBezier(0.22, 1, 0.36, 1) }),
+  );
+  return animePromise;
+}
+
+/** État final, quelle que soit la voie empruntée : on rend la main au CSS. */
+function poser(el: HTMLElement) {
+  el.style.removeProperty("opacity");
+  el.style.removeProperty("transform");
+  el.style.removeProperty("will-change");
+  el.classList.add("in", "settled");
+}
+
+export function mouvementReduit(): boolean {
+  return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+/**
+ * Observe les `.nkx-reveal` pas encore révélés sous `root`. Ceux qui entrent
+ * dans la même salve (une rangée) arrivent en cascade. Le nettoyage pose
+ * immédiatement les éléments en cours pour ne jamais en laisser un caché.
+ */
+export function observerReveals(root: HTMLElement, reduit: boolean): () => void {
+  const cibles = root.querySelectorAll<HTMLElement>(`.${CLASSE_REVEAL}:not(.in)`);
+  if (!cibles.length) return () => {};
+  if (reduit || !("IntersectionObserver" in window)) {
+    cibles.forEach(poser);
+    return () => {};
+  }
+
+  let arrete = false;
+  const enCours = new Map<{ pause(): unknown }, HTMLElement>();
+
+  const io = new IntersectionObserver(
+    (entrees) => {
+      const visibles = entrees.filter((e) => e.isIntersecting).map((e) => e.target as HTMLElement);
+      if (!visibles.length) return;
+      visibles.forEach((el) => io.unobserve(el));
+
+      chargerAnime()
+        .then(({ animate, ease }) => {
+          if (arrete) {
+            visibles.forEach(poser);
+            return;
+          }
+          visibles.forEach((el, i) => {
+            el.style.willChange = "transform, opacity";
+            const anim = animate(el, {
+              opacity: [0, 1],
+              translateY: [24, 0],
+              duration: DUREE_MS,
+              delay: Math.min(i * PAS_CASCADE_MS, CASCADE_MAX_MS),
+              ease,
+              onComplete: () => {
+                enCours.delete(anim);
+                poser(el);
+              },
+            });
+            enCours.set(anim, el);
+          });
+        })
+        // anime.js indisponible (réseau) : le contenu prime, on affiche.
+        .catch(() => visibles.forEach(poser));
+    },
+    { threshold: 0.1, rootMargin: "0px 0px -5% 0px" },
+  );
+  cibles.forEach((el) => io.observe(el));
+
+  return () => {
+    arrete = true;
+    io.disconnect();
+    enCours.forEach((el, anim) => {
+      anim.pause();
+      poser(el);
+    });
+    enCours.clear();
+  };
+}

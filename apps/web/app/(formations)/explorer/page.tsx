@@ -1,416 +1,114 @@
 "use client";
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { useToastStore } from "@/store/toast";
 import { usePrix } from "@/components/formations/Prix";
-import AdaptiveImage from "@/components/formations/AdaptiveImage";
-
-import Link from "next/link";
-import { useState, useMemo, useEffect, useCallback, useRef, Suspense } from "react";
+import { useState, useMemo, useEffect, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, keepPreviousData } from "@tanstack/react-query";
 import { trackEvents, debounce } from "@/lib/tracking/events";
+import { ArrowRight, Gift, X } from "lucide-react";
+import "@/components/formations/explorer/explorer.css";
+import { EnTeteExplorer } from "@/components/formations/explorer/EnTeteExplorer";
+import { EnTeteSection } from "@/components/formations/explorer/EnTeteSection";
+import { FiltresExplorer } from "@/components/formations/explorer/FiltresExplorer";
+import { BentoSquelette, BentoVedettes } from "@/components/formations/explorer/BentoVedettes";
+import { CarteArticle } from "@/components/formations/explorer/CarteArticle";
+import { EtatErreur, EtatVide, GrilleSquelette } from "@/components/formations/explorer/EtatsExplorer";
+import { Pagination } from "@/components/formations/explorer/Pagination";
+import { useReveal } from "@/components/formations/explorer/use-reveal";
 import {
-  GraduationCap,
-  BookOpen,
-  PlayCircle,
-  Download,
-  ShoppingCart,
-  Check,
-  Star,
-  ShoppingBag,
-  CheckCircle2,
-  Loader2,
-  Flame,
-  ArrowLeft,
-  ChevronRight,
-  ChevronLeft,
-  BadgeCheck,
-  ChevronDown,
-  Search,
-  LayoutGrid,
-  Package,
-  ArrowDownUp,
-  Wallet,
-  RotateCcw,
-  SlidersHorizontal,
-  SearchX,
-  PlusCircle,
-  Gift,
-  X,
-  type LucideIcon,
-} from "lucide-react";
-import { AIBuyerSearch } from "@/components/formations/AIBuyerSearch";
-import { productImageSrc, avatarSrc } from "@/lib/utils/image-url";
+  PRIX_MAX_DEFAUT,
+  type CategoryMeta,
+  type ExplorerData,
+  type Item,
+  type Onglet,
+  type Tri,
+} from "@/components/formations/explorer/types";
 
-type Item = {
-  id: string;
-  kind: "formation" | "product" | "bundle";
-  slug: string;
-  title: string;
-  price: number;
-  originalPrice: number | null;
-  thumbnail: string | null;
-  rating: number;
-  reviewsCount: number;
-  salesCount: number;
-  category: string | null;
-  categorySlug?: string | null;
-  categoryIcon?: string | null;
-  categoryColor?: string | null;
-  type: string;
-  seller: string;
-  sellerAvatar: string | null;
-  verified?: boolean;
-  shortDesc?: string | null;
-  createdAt: string;
-};
+/*
+ * Marketplace publique. Les données, les paramètres d'URL (q, tab, category,
+ * minRating, maxPrice, sort), la requête TanStack (`public-explorer`) et le
+ * tracking sont ceux d'avant ; la présentation vit dans
+ * components/formations/explorer/ (en-tête, filtres, bento, cartes, états).
+ */
 
-type CategoryMeta = { name: string; slug: string; icon: string | null; color: string | null };
-
-type ExplorerData = {
-  formations: Item[];
-  products: Item[];
-  bundles: Item[];
-  categories: CategoryMeta[];
-  stats: { totalFormations: number; totalProducts: number; totalBundles: number; total: number };
-};
-
-// Le formateur vit DANS le composant et derive du pays choisi : il couvre
-// ainsi tous les prix de cet ecran d un coup. En fonction de module, il
-// fallait ecrire « FCFA » en dur — donc rater la conversion partout.
-
-
-const GRADIENTS = [
-  "from-violet-400 to-purple-600",
-  "from-blue-400 to-sky-600",
-  "from-pink-400 to-rose-500",
-  "from-amber-400 to-orange-500",
-  "from-teal-400 to-emerald-600",
-  "from-indigo-400 to-indigo-600",
-  "from-green-400 to-emerald-600",
-  "from-red-400 to-orange-500",
-];
-
-function StarRating({ rating }: { rating: number }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((s) => (
-        <Star
-          key={s}
-          size={14}
-          className={s <= Math.floor(rating) ? "fill-amber-400 text-amber-400" : "text-gray-300"}
-        />
-      ))}
-    </div>
-  );
-}
-
-function ProductCard({ item, idx }: { item: Item; idx: number }) {
-  const formatFCFA = usePrix();
-  const gradient = GRADIENTS[idx % GRADIENTS.length];
-  const href =
-    item.kind === "formation" ? `/formation/${item.slug}` :
-    item.kind === "bundle" ? `/bundle/${item.slug}` :
-    `/produit/${item.slug}`;
-  const discountPct = item.originalPrice && item.originalPrice > item.price
-    ? Math.round((1 - item.price / item.originalPrice) * 100)
-    : null;
-  const [adding, setAdding] = useState(false);
-  const [added, setAdded] = useState(false);
-  const [carting, setCarting] = useState(false);
-  const [carted, setCarted] = useState(false);
-
-  // Le panier gère formations + produits digitaux (pas les bundles/abonnements,
-  // qui ont leur propre flux d'achat).
-  const canAddToCart = item.kind === "formation" || item.kind === "product";
-
-  async function handleAddToCart(e: React.MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    if (carting || carted || !canAddToCart) return;
-    setCarting(true);
-    try {
-      const body = item.kind === "formation" ? { formationId: item.id } : { productId: item.id };
-      const res = await fetch("/api/formations/apprenant/cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (res.ok) {
-        // Reste coloré : l'article est dans le panier, on garde l'état "ajouté"
-        // (plus de réinitialisation après 2,2 s).
-        setCarted(true);
-        trackEvents.addToCart({ id: item.id, kind: item.kind, price: item.price, title: item.title });
-        window.dispatchEvent(new Event("nk:cart-change"));
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setCarting(false);
-    }
-  }
-
-  async function handleBuy(e: React.MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    if (added || adding) return;
-    setAdding(true);
-    try {
-      // Tracking : CTA click + add_to_cart (l'utilisateur saute le panier pour aller direct au checkout)
-      trackEvents.ctaClick(
-        { id: item.id, kind: item.kind, price: item.price, title: item.title },
-        "explorer_card",
-      );
-      trackEvents.addToCart({ id: item.id, kind: item.kind, price: item.price, title: item.title });
-      // Redirige vers notre page /checkout personnalisée (contact + méthode + résumé sur UNE page)
-      // au lieu d'envoyer l'acheteur sur la page hébergée d'un fournisseur.
-      // Pour bundle : on envoie sur la page détail du bundle qui a son propre
-      // flux d'achat (init paiement spécifique). Pour formations/produits :
-      // checkout direct avec fids/pids.
-      if (item.kind === "bundle") {
-        window.location.href = `/bundle/${item.slug}`;
-        return;
-      }
-      const qs = item.kind === "formation" ? `fids=${item.id}` : `pids=${item.id}`;
-      window.location.href = `/checkout?${qs}`;
-      return;
-    } catch (err) {
-      console.error(err);
-      setAdding(false);
-    }
-  }
-
-  return (
-    <Link
-      href={href}
-      className="group block bg-white rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.12)] hover:-translate-y-1 hover:border-[#006e2f]/30 transition-all duration-300 overflow-hidden flex flex-col h-full"
-    >
-      {/* HERO IMAGE — carré 1:1 façon Chariow/Gumroad. La vignette dédiée
-          (`thumbnail`) recommandée 600×600 remplit parfaitement ; un `banner`
-          16:9 fait fallback (centré, légèrement rogné gauche/droite). */}
-      <div className="relative aspect-square bg-slate-100 overflow-hidden">
-        {item.thumbnail ? (
-          <AdaptiveImage
-            src={productImageSrc(item.thumbnail, 600) || item.thumbnail}
-            alt={item.title}
-            imgClassName="group-hover:scale-[1.04] transition-transform duration-500"
-          />
-        ) : (
-          <div className={`absolute inset-0 flex items-center justify-center bg-gradient-to-br ${gradient} text-white opacity-70`}>
-            {item.kind === "formation" ? <GraduationCap size={68} /> : <BookOpen size={68} />}
-          </div>
-        )}
-
-        {/* Top-left: type badge */}
-        <div className="absolute top-3 left-3">
-          <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm backdrop-blur ${
-            item.kind === "formation" ? "bg-white/95 text-[#006e2f]" : "bg-white/95 text-[#006e2f]"
-          }`}>
-            {item.kind === "formation" ? <PlayCircle size={12} /> : <Download size={12} />}
-            {item.type}
-          </span>
-        </div>
-
-        {/* Top-right: discount badge */}
-        {discountPct && (
-          <div className="absolute top-3 right-3">
-            <span className="inline-block bg-red-500 text-white text-[11px] font-extrabold px-2.5 py-1 rounded-full tracking-wide shadow-lg">
-              -{discountPct}%
-            </span>
-          </div>
-        )}
-
-        {/* Bottom-left: bestseller pill */}
-        {item.salesCount >= 50 && (
-          <div className="absolute bottom-3 left-3">
-            <span className="inline-flex items-center gap-1 bg-amber-400 text-amber-950 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shadow-md">
-              <Flame size={12} />
-              Bestseller
-            </span>
-          </div>
-        )}
-
-        {/* Bottom-right: badge « Bien noté » (note ≥ 4,5 sur ≥ 3 avis réels) */}
-        {item.rating >= 4.5 && item.reviewsCount >= 3 && (
-          <div className="absolute bottom-3 right-3">
-            <span className="inline-flex items-center gap-1 bg-white/95 text-[#006e2f] text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shadow-md backdrop-blur">
-              <Star size={11} className="fill-amber-400 text-amber-400" />
-              Bien noté
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* CARD BODY */}
-      <div className="p-4 sm:p-5 flex-1 flex flex-col">
-        {/* Category label */}
-        {item.category && (
-          <p className="text-[10px] font-bold text-[#006e2f] uppercase tracking-wider mb-1.5">
-            {item.category}
-          </p>
-        )}
-
-        {/* Title */}
-        <h3 className="font-extrabold text-[#006e2f] text-sm sm:text-base leading-snug line-clamp-2 mb-2 group-hover:text-[#00481f] transition-colors min-h-[2.5rem] sm:min-h-[2.75rem]">
-          {item.title}
-        </h3>
-
-        {/* Note + ventes — affichées uniquement si elles existent (pas de
-            « Nouveau » ni de « 0 vente » qui font vide sur les nouveaux produits).
-            Le nom du vendeur n'est plus affiché sur les cartes (info superflue). */}
-        {(item.rating > 0 || item.salesCount > 0) && (
-          <div className="flex items-center gap-3 mb-4 text-xs text-[#5c647a]">
-            {item.rating > 0 && (
-              <span className="flex items-center gap-1">
-                <Star size={14} className="text-amber-400 fill-amber-400" />
-                <span className="font-bold text-[#191c1e]">{item.rating.toFixed(1)}</span>
-                {item.reviewsCount > 0 && <span className="text-[#5c647a]">({item.reviewsCount})</span>}
-              </span>
-            )}
-            {item.rating > 0 && item.salesCount > 0 && <span className="text-zinc-300">·</span>}
-            {item.salesCount > 0 && (
-              <span className="flex items-center gap-1">
-                <ShoppingBag size={12} />
-                <span className="font-semibold text-[#191c1e]">{item.salesCount}</span>
-                {item.kind === "formation" ? "élève" : "vente"}{item.salesCount !== 1 ? "s" : ""}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Price block — pushed to bottom */}
-        <div className="mt-auto pt-4 border-t border-gray-100">
-          <div className="flex items-baseline gap-2 flex-wrap mb-3">
-            {item.price === 0 ? (
-              <span className="text-2xl font-extrabold text-[#006e2f]">Gratuit</span>
-            ) : (
-              <>
-                <span className={`text-2xl font-extrabold ${
-                  item.originalPrice && item.originalPrice > item.price ? "text-red-600" : "text-[#191c1e]"
-                }`}>
-                  {formatFCFA(item.price)}
-                </span>
-                {item.originalPrice && item.originalPrice > item.price && (
-                  <span className="text-sm text-zinc-400 line-through font-medium">
-                    {formatFCFA(item.originalPrice)}
-                  </span>
-                )}
-              </>
-            )}
-          </div>
-
-          {/* CTA : bouton panier (formation/produit payant) + bouton acheter */}
-          <div className="flex items-center gap-2">
-            {canAddToCart && item.price > 0 && (
-              <button
-                onClick={handleAddToCart}
-                disabled={carting}
-                aria-label="Ajouter au panier"
-                title="Ajouter au panier"
-                className={`flex items-center justify-center w-10 h-10 flex-shrink-0 rounded-xl border transition-all disabled:opacity-50 ${
-                  carted
-                    ? "bg-[#22c55e] border-[#22c55e] text-white"
-                    : "bg-white border-gray-200 text-[#006e2f] hover:border-[#006e2f] hover:bg-[#006e2f]/5"
-                }`}
-              >
-                {carting ? <Loader2 size={17} className="animate-spin" /> : carted ? <Check size={17} /> : <ShoppingCart size={17} />}
-              </button>
-            )}
-            <button
-              onClick={handleBuy}
-              disabled={adding}
-              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-50 ${
-                added
-                  ? "bg-[#22c55e] text-white"
-                  : "bg-[#006e2f] text-white group-hover:bg-gradient-to-r group-hover:from-[#006e2f] group-hover:to-[#22c55e] group-hover:shadow-md"
-              }`}
-            >
-              {added ? <CheckCircle2 size={16} /> : adding ? <Loader2 size={16} className="animate-spin" /> : item.price === 0 ? <Download size={16} /> : <ShoppingBag size={16} />}
-              {added ? "Achat confirmé" : adding ? "Patientez…" : item.price === 0 ? "Télécharger" : "Acheter"}
-            </button>
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-// ── Section catégorie : grille fixe 3×2 (6 produits max) + « Voir tout » ─────
-function CategoryRow({
-  title, items, onSeeAll,
+// ── Section catégorie : 6 produits max + « Voir tout » ───────────────────
+function RangeeCategorie({
+  id,
+  titre,
+  items,
+  onVoirTout,
 }: {
-  title: string;
+  id: string;
+  titre: string;
   items: Item[];
-  onSeeAll: () => void;
+  onVoirTout: () => void;
 }) {
   return (
-    <section className="mb-12">
-      <div className="flex items-center justify-between gap-3 mb-4">
-        <h2 className="text-lg md:text-xl font-extrabold text-[#191c1e] tracking-tight truncate">
-          {title}
-        </h2>
-        <button
-          onClick={onSeeAll}
-          className="inline-flex items-center gap-1 text-xs md:text-sm font-bold text-[#006e2f] hover:underline whitespace-nowrap flex-shrink-0"
-        >
-          Voir tout
-          <ChevronRight size={16} />
-        </button>
-      </div>
-      {/* 3 par ligne en desktop/tablette (2 rangées = 6 produits) ;
-          1 par ligne sur mobile (carte pleine largeur, plus lisible). */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-        {items.map((item, idx) => (
-          <ProductCard key={`${item.kind}-${item.id}`} item={item} idx={idx} />
+    <section aria-labelledby={id} className="mb-14 md:mb-20">
+      <EnTeteSection
+        id={id}
+        titre={titre}
+        action={
+          <button type="button" onClick={onVoirTout} className="nkx-btn nkx-btn--sm" aria-label={`Voir tout : ${titre}`}>
+            Voir tout
+            <span className="nkx-btn__ico" aria-hidden="true">
+              <ArrowRight strokeWidth={2.2} />
+            </span>
+          </button>
+        }
+      />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-3">
+        {items.map((item) => (
+          <CarteArticle key={`${item.kind}-${item.id}`} item={item} />
         ))}
       </div>
     </section>
   );
 }
 
-// ── Vue par défaut de la marketplace : une rangée par catégorie thématique ──
-function CategorySections({
-  categories, formations, products, bundles, onSeeCategory, onSeeBundles,
+// ── Vue par défaut : une rangée par catégorie thématique, packs à part ─────
+function SectionsCategories({
+  categories,
+  formations,
+  products,
+  bundles,
+  onVoirCategorie,
+  onVoirPacks,
 }: {
   categories: CategoryMeta[];
   formations: Item[];
   products: Item[];
   bundles: Item[];
-  onSeeCategory: (slug: string) => void;
-  onSeeBundles: () => void;
+  onVoirCategorie: (slug: string) => void;
+  onVoirPacks: () => void;
 }) {
-  // Regroupe formations + produits par slug de catégorie.
-  const byCat = new Map<string, Item[]>();
+  const parCategorie = new Map<string, Item[]>();
   for (const it of [...formations, ...products]) {
     const k = it.categorySlug;
     if (!k) continue;
-    if (!byCat.has(k)) byCat.set(k, []);
-    byCat.get(k)!.push(it);
+    if (!parCategorie.has(k)) parCategorie.set(k, []);
+    parCategorie.get(k)!.push(it);
   }
-
   // Rangées dans l'ordre défini par l'admin (`order`), seulement celles avec produits.
-  const rows = categories
-    .map((c) => ({ meta: c, items: byCat.get(c.slug) ?? [] }))
+  const rangees = categories
+    .map((c) => ({ meta: c, items: parCategorie.get(c.slug) ?? [] }))
     .filter((r) => r.items.length > 0);
 
   return (
     <div>
-      {rows.map((r) => (
-        <CategoryRow
+      {rangees.map((r) => (
+        <RangeeCategorie
           key={r.meta.slug}
-          title={r.meta.name}
+          id={`nkx-cat-${r.meta.slug}`}
+          titre={r.meta.name}
           items={r.items.slice(0, 6)}
-          onSeeAll={() => onSeeCategory(r.meta.slug)}
+          onVoirTout={() => onVoirCategorie(r.meta.slug)}
         />
       ))}
       {/* Les packs n'ont pas de catégorie thématique → leur propre rangée. */}
       {bundles.length > 0 && (
-        <CategoryRow
-          key="__packs"
-          title="Packs & offres groupées"
-          items={bundles.slice(0, 6)}
-          onSeeAll={onSeeBundles}
-        />
+        <RangeeCategorie id="nkx-cat-packs" titre="Packs & offres groupées" items={bundles.slice(0, 6)} onVoirTout={onVoirPacks} />
       )}
     </div>
   );
@@ -538,18 +236,14 @@ function ExplorerInner() {
 
   // Hydrate filters from URL on mount
   const [search, setSearch] = useState(() => searchParams.get("q") ?? "");
-  const [activeTab, setActiveTab] = useState<"all" | "formations" | "products" | "bundles">(
-    () => (searchParams.get("tab") as "all" | "formations" | "products" | "bundles") ?? "all",
-  );
+  const [activeTab, setActiveTab] = useState<Onglet>(() => (searchParams.get("tab") as Onglet) ?? "all");
   // Accepte `?category=` ET `?categorie=` (l'alias du sitemap). Valeur = slug.
   const [activeCategory, setActiveCategory] = useState<string | null>(
     () => searchParams.get("category") ?? searchParams.get("categorie"),
   );
   const [minRating, setMinRating] = useState(() => Number(searchParams.get("minRating") ?? "0"));
-  const [maxPrice, setMaxPrice] = useState(() => Number(searchParams.get("maxPrice") ?? "1000000"));
-  const [sort, setSort] = useState<"relevance" | "price-asc" | "price-desc" | "rating" | "recent">(
-    () => (searchParams.get("sort") as "relevance" | "price-asc" | "price-desc" | "rating" | "recent") ?? "relevance",
-  );
+  const [maxPrice, setMaxPrice] = useState(() => Number(searchParams.get("maxPrice") ?? String(PRIX_MAX_DEFAUT)));
+  const [sort, setSort] = useState<Tri>(() => (searchParams.get("sort") as Tri) ?? "relevance");
   const [giftItem, setGiftItem] = useState<Item | null>(null);
 
   // Sync state → URL on every change (replace, not push, to avoid history pollution)
@@ -559,7 +253,7 @@ function ExplorerInner() {
     if (activeTab !== "all") params.set("tab", activeTab);
     if (activeCategory) params.set("category", activeCategory);
     if (minRating > 0) params.set("minRating", String(minRating));
-    if (maxPrice < 1000000) params.set("maxPrice", String(maxPrice));
+    if (maxPrice < PRIX_MAX_DEFAUT) params.set("maxPrice", String(maxPrice));
     if (sort !== "relevance") params.set("sort", sort);
     const qs = params.toString();
     const url = qs ? `/explorer?${qs}` : "/explorer";
@@ -569,27 +263,39 @@ function ExplorerInner() {
     }
   }, [search, activeTab, activeCategory, minRating, maxPrice, sort, router]);
 
-  const { data: response, isLoading } = useQuery<{ data: ExplorerData }>({
-    queryKey: ["public-explorer", search, activeCategory, minRating, maxPrice, sort],
-    queryFn: () => {
+  // La requête part 250 ms après la dernière frappe (le champ et l'URL, eux,
+  // suivent chaque frappe) : plus une requête par lettre tapée.
+  const [rechercheDiffere, setRechercheDiffere] = useState(search);
+  useEffect(() => {
+    const t = window.setTimeout(() => setRechercheDiffere(search), 250);
+    return () => window.clearTimeout(t);
+  }, [search]);
+
+  const { data: response, isLoading, isError, isFetching, isPlaceholderData, refetch } = useQuery<{ data: ExplorerData }>({
+    queryKey: ["public-explorer", rechercheDiffere, activeCategory, minRating, maxPrice, sort],
+    queryFn: async () => {
       const params = new URLSearchParams();
-      if (search) params.set("search", search);
+      if (rechercheDiffere) params.set("search", rechercheDiffere);
       if (activeCategory) params.set("category", activeCategory);
       if (minRating > 0) params.set("minRating", String(minRating));
-      if (maxPrice < 1000000) params.set("maxPrice", String(maxPrice));
+      if (maxPrice < PRIX_MAX_DEFAUT) params.set("maxPrice", String(maxPrice));
       if (sort !== "relevance") params.set("sort", sort);
-      return fetch(`/api/formations/public/explorer?${params.toString()}`).then((r) => r.json());
+      const r = await fetch(`/api/formations/public/explorer?${params.toString()}`);
+      // Sans ce contrôle, un 500 devenait « aucun résultat » : on veut l'état d'erreur.
+      if (!r.ok) throw new Error(`explorer HTTP ${r.status}`);
+      return r.json();
     },
     staleTime: 30_000,
+    // Au changement de filtre, les cartes précédentes restent (atténuées) le
+    // temps de la réponse : pas de squelette qui clignote à chaque clic.
+    placeholderData: keepPreviousData,
   });
 
   const data = response?.data;
   // Memoize les listes pour stabiliser les références entre les renders.
-  // Sans ça, `formations = data?.formations ?? []` crée un nouveau tableau
-  // à chaque render → useMemo dépendant re-déclenche pour rien
-  // (warning react-hooks/exhaustive-deps).
   const formations = useMemo(() => data?.formations ?? [], [data?.formations]);
   const products = useMemo(() => data?.products ?? [], [data?.products]);
+  const bundles = useMemo(() => data?.bundles ?? [], [data?.bundles]);
   const categories = data?.categories ?? [];
   const stats = data?.stats;
   // Nom de la catégorie active (pour l'en-tête « page dédiée »).
@@ -611,13 +317,12 @@ function ExplorerInner() {
         tab: activeTab,
         category: activeCategory ?? undefined,
         minRating: minRating || undefined,
-        maxPrice: maxPrice < 1000000 ? maxPrice : undefined,
+        maxPrice: maxPrice < PRIX_MAX_DEFAUT ? maxPrice : undefined,
         sort: sort !== "relevance" ? sort : undefined,
       },
     });
   }, [search, activeTab, activeCategory, minRating, maxPrice, sort, formations.length, products.length]);
 
-  const bundles = useMemo(() => data?.bundles ?? [], [data?.bundles]);
   const displayedItems = useMemo(() => {
     if (activeTab === "formations") return formations;
     if (activeTab === "products") return products;
@@ -628,10 +333,7 @@ function ExplorerInner() {
     );
   }, [activeTab, formations, products, bundles]);
 
-  // ── Pagination Précédent/Suivant — bureau 2026-05-26, addendum #3 sur
-  // remontée Lissanon : un vrai navigateur de pages, pas un load-more.
-  // 12/page (4 rangées de 3 en desktop) : la pagination apparaît dès qu'une
-  // catégorie dépasse une douzaine de produits (« nombre suivant » attendu).
+  // ── Pagination Précédent/Suivant — 12/page (4 rangées de 3 en desktop) ──
   const PAGE_SIZE = 12;
   const [currentPage, setCurrentPage] = useState(1);
   useEffect(() => {
@@ -659,33 +361,25 @@ function ExplorerInner() {
     }
   }
 
-  // Numéros de pages affichés : on borne à 7 visibles avec ellipses (…) au milieu.
-  function getPageNumbers(): (number | "…")[] {
-    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
-    const pages: (number | "…")[] = [1];
-    const start = Math.max(2, safePage - 1);
-    const end = Math.min(totalPages - 1, safePage + 1);
-    if (start > 2) pages.push("…");
-    for (let i = start; i <= end; i++) pages.push(i);
-    if (end < totalPages - 1) pages.push("…");
-    pages.push(totalPages);
-    return pages;
-  }
-
   const resetFilters = () => {
     setSearch("");
+    setActiveTab("all");
     setActiveCategory(null);
     setMinRating(0);
-    setMaxPrice(1000000);
+    setMaxPrice(PRIX_MAX_DEFAUT);
     setSort("relevance");
   };
 
-  // Vue « accueil marketplace » (rangées par catégorie) : uniquement quand
-  // AUCUN filtre n'est actif. Dès qu'on cherche/filtre/trie, on repasse à la
-  // grille filtrée classique.
+  // Vue « accueil marketplace » (bento + rangées par catégorie) : uniquement
+  // quand AUCUN filtre n'est actif. Dès qu'on cherche/filtre/trie, grille filtrée.
   const isDefaultView =
     !search && !activeCategory && activeTab === "all" &&
-    sort === "relevance" && minRating === 0 && maxPrice >= 1000000;
+    sort === "relevance" && minRating === 0 && maxPrice >= PRIX_MAX_DEFAUT;
+  const nbFiltresPanneau =
+    (activeTab !== "all" ? 1 : 0) + (sort !== "relevance" ? 1 : 0) + (minRating > 0 ? 1 : 0) + (maxPrice < PRIX_MAX_DEFAUT ? 1 : 0);
+  const filtresActifs = nbFiltresPanneau > 0 || !!search || !!activeCategory;
+  // Nouvelles données en route : les cartes en place s'atténuent.
+  const occupe = isFetching && isPlaceholderData;
 
   const handleSeeCategory = (slug: string) => {
     setActiveCategory(slug);
@@ -696,319 +390,100 @@ function ExplorerInner() {
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Révélation en cascade : ré-observe dès que la liste rendue change.
+  const racineRef = useRef<HTMLDivElement>(null);
+  const cleReveal = useMemo(
+    () => `${isLoading}|${isError}|${isDefaultView}|${safePage}|${displayedItems.map((i) => i.id).join(",")}`,
+    [isLoading, isError, isDefaultView, safePage, displayedItems],
+  );
+  useReveal(racineRef, cleReveal);
+
+  const sousTitre = isLoading
+    ? "Chargement du catalogue…"
+    : activeCategoryName
+      ? `${displayedItems.length.toLocaleString("fr-FR")} produit${displayedItems.length > 1 ? "s" : ""} dans cette catégorie.`
+      : stats && stats.total > 0
+        ? `${stats.total.toLocaleString("fr-FR")} produit${stats.total > 1 ? "s" : ""} disponible${stats.total > 1 ? "s" : ""} créé${stats.total > 1 ? "s" : ""} par nos experts.`
+        : "Les premiers produits arrivent bientôt.";
+
   return (
-    <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
-      {/* Hero */}
-      <section className="bg-white border-b border-gray-100 py-12 px-4 md:px-8">
-        <div className="max-w-4xl mx-auto text-center">
-          {activeCategoryName ? (
-            /* Vue « page dédiée » d'une catégorie : titre = nom de la catégorie
-               + lien retour vers toute la marketplace. */
-            <>
-              <button
-                onClick={() => setActiveCategory(null)}
-                className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-[#006e2f] mb-3 hover:underline"
-              >
-                <ArrowLeft size={14} />
-                Toutes les catégories
-              </button>
-              <h1 className="text-3xl md:text-5xl font-extrabold text-[#191c1e] tracking-tight mb-4 leading-tight">
-                {activeCategoryName}
-              </h1>
-              <p className="text-[#5c647a] text-base md:text-lg mb-8">
-                {isLoading
-                  ? "Chargement…"
-                  : `${displayedItems.length} produit${displayedItems.length > 1 ? "s" : ""} dans cette catégorie.`}
-              </p>
-            </>
-          ) : (
-            <>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-[#006e2f] mb-3">
-                Marketplace Novakou
-              </p>
-              <h1 className="text-3xl md:text-5xl font-extrabold text-[#191c1e] tracking-tight mb-4 leading-tight">
-                Explorez nos formations<br className="hidden md:block" /> & produits digitaux
-              </h1>
-              <p className="text-[#5c647a] text-base md:text-lg mb-8">
-                {isLoading ? "Chargement…" : stats && stats.total > 0
-                  ? `${stats.total} produit${stats.total > 1 ? "s" : ""} disponible${stats.total > 1 ? "s" : ""} créé${stats.total > 1 ? "s" : ""} par nos experts.`
-                  : "Les premiers produits arrivent bientôt."
-                }
-              </p>
-            </>
-          )}
+    <div ref={racineRef} className="nkx min-h-screen bg-[#f7f9fb]">
+      <EnTeteExplorer
+        nomCategorie={activeCategoryName}
+        sousTitre={sousTitre}
+        recherche={search}
+        onRecherche={setSearch}
+        onMotsClesIA={(kw) => {
+          setSearch(kw);
+          setActiveTab("all");
+        }}
+        categories={categories}
+        categorieActive={activeCategory}
+        onCategorie={setActiveCategory}
+      />
 
-          <div className="relative max-w-2xl mx-auto mb-8">
-            <Search size={22} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#5c647a]" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher une formation, un e-book, un template..."
-              className="w-full pl-12 pr-6 py-4 rounded-full border border-gray-200 bg-white shadow-lg text-[#191c1e] placeholder:text-[#5c647a] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 text-sm md:text-base"
-            />
-          </div>
+      <FiltresExplorer
+        onglet={activeTab}
+        onOnglet={setActiveTab}
+        stats={stats}
+        tri={sort}
+        onTri={setSort}
+        noteMin={minRating}
+        onNoteMin={setMinRating}
+        prixMax={maxPrice}
+        onPrixMax={setMaxPrice}
+        nbFiltresPanneau={nbFiltresPanneau}
+        filtresActifs={filtresActifs}
+        onReinitialiser={resetFilters}
+        nbResultats={displayedItems.length}
+        page={safePage}
+        totalPages={totalPages}
+        chargement={isLoading}
+      />
 
-          {/* Assistant d'achat IA (v2 Phase 3) — recherche en langage naturel */}
-          <div className="max-w-2xl mx-auto mb-8">
-            <AIBuyerSearch
-              onKeywords={(kw) => {
-                setSearch(kw);
-                setActiveTab("all");
-              }}
-            />
-          </div>
-
-          {/* Pastilles de catégories retirées : la découverte par catégorie se
-              fait via les sections (vue par défaut) + « Voir tout », et l'en-tête
-              de la page dédiée donne déjà le contexte. */}
-        </div>
-      </section>
-
-      {/* Toolbar — clean modern design with grouped controls */}
-      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-4 flex items-center gap-3 overflow-x-auto no-scrollbar md:flex-wrap md:overflow-visible">
-
-          {/* GROUPE 1 : Type tabs (icônes + label + count) */}
-          <div className="inline-flex items-center bg-gray-100 p-1 rounded-xl">
-            {([
-              { value: "all", label: "Tout", count: stats?.total ?? 0, icon: LayoutGrid },
-              { value: "formations", label: "Formations", count: stats?.totalFormations ?? 0, icon: GraduationCap },
-              { value: "products", label: "Produits", count: stats?.totalProducts ?? 0, icon: ShoppingBag },
-              { value: "bundles", label: "Packs", count: stats?.totalBundles ?? 0, icon: Package },
-            ] as { value: "all" | "formations" | "products" | "bundles"; label: string; count: number; icon: LucideIcon }[]).map((tab) => {
-              const TabIcon = tab.icon;
-              return (
-              <button
-                key={tab.value}
-                onClick={() => setActiveTab(tab.value)}
-                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
-                  activeTab === tab.value
-                    ? "bg-white text-[#191c1e] shadow-sm"
-                    : "text-[#5c647a] hover:text-[#191c1e]"
-                }`}
-              >
-                <TabIcon size={15} className={activeTab === tab.value ? "text-[#006e2f]" : ""} />
-                <span>{tab.label}</span>
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[22px] text-center ${
-                  activeTab === tab.value ? "bg-[#006e2f] text-white" : "bg-gray-200 text-[#5c647a]"
-                }`}>
-                  {tab.count}
-                </span>
-              </button>
-              );
-            })}
-          </div>
-
-          {/* GROUPE 2 : Sort + Rating + Price (regroupés visuellement) */}
-          <div className="inline-flex items-center gap-2 flex-wrap">
-            {/* Sort dropdown — pill style */}
-            <div className="relative">
-              <select
-                value={sort}
-                onChange={(e) => setSort(e.target.value as typeof sort)}
-                className="appearance-none pl-9 pr-8 py-2 rounded-xl border border-gray-200 bg-white text-xs font-bold text-[#191c1e] focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/20 cursor-pointer transition-colors hover:border-gray-300"
-              >
-                <option value="relevance">Pertinence</option>
-                <option value="recent">Plus récents</option>
-                <option value="price-asc">Prix croissant</option>
-                <option value="price-desc">Prix décroissant</option>
-                <option value="rating">Mieux notés</option>
-              </select>
-              <ArrowDownUp size={16} className="text-[#5c647a] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <ChevronDown size={16} className="text-[#5c647a] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
-
-            {/* Rating filter — pills with active state */}
-            <div className="inline-flex items-center bg-gray-100 p-1 rounded-xl">
-              {[
-                { value: 0, label: "Toutes notes", icon: null },
-                { value: 4, label: "4.0", icon: true },
-                { value: 4.5, label: "4.5", icon: true },
-              ].map((r) => (
-                <button
-                  key={r.value}
-                  onClick={() => setMinRating(r.value)}
-                  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
-                    minRating === r.value
-                      ? "bg-white text-[#191c1e] shadow-sm"
-                      : "text-[#5c647a] hover:text-[#191c1e]"
-                  }`}
-                >
-                  {r.icon && (
-                    <Star size={13} className="fill-amber-400 text-amber-400" />
-                  )}
-                  {r.label}
-                  {r.icon && <span className="text-[10px]">+</span>}
-                </button>
-              ))}
-            </div>
-
-            {/* Price slider — embedded compact */}
-            <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 bg-white hover:border-gray-300 transition-colors">
-              <Wallet size={16} className="text-[#5c647a]" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5c647a]">Prix max</span>
-              <input
-                type="range"
-                min="5000"
-                max="1000000"
-                step="5000"
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(Number(e.target.value))}
-                className="w-20 accent-[#006e2f] cursor-pointer"
-              />
-              <span className="text-xs font-extrabold text-[#006e2f] whitespace-nowrap min-w-[36px] text-right">
-                {maxPrice >= 1000000 ? "∞" : `${(maxPrice / 1000).toFixed(0)}k`}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex-1" />
-
-          {/* Result count + Reset */}
-          <div className="inline-flex items-center gap-3">
-            {(activeCategory || minRating > 0 || maxPrice < 1000000 || sort !== "relevance" || search) && (
-              <button
-                onClick={resetFilters}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-bold text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
-              >
-                <RotateCcw size={14} />
-                Réinitialiser
-              </button>
-            )}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#006e2f]/5">
-              <SlidersHorizontal size={14} className="text-[#006e2f]" />
-              <span className="text-xs text-[#5c647a]">
-                <span className="font-extrabold text-[#191c1e]">{displayedItems.length}</span>
-                {" "}résultat{displayedItems.length > 1 ? "s" : ""}
-                {totalPages > 1 && (
-                  <> · page <span className="font-extrabold text-[#191c1e]">{safePage}</span> / {totalPages}</>
-                )}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Full-width grid — sidebar removed */}
-      <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-8 pb-16">
-        {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
-              <div key={i} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                <div className="aspect-[4/5] bg-gray-100 animate-pulse" />
-                <div className="p-4 space-y-2">
-                  <div className="h-4 bg-gray-100 rounded w-3/4 animate-pulse" />
-                  <div className="h-3 bg-gray-100 rounded w-1/2 animate-pulse" />
-                  <div className="h-5 bg-gray-100 rounded w-1/3 animate-pulse mt-4" />
-                </div>
-              </div>
-            ))}
-          </div>
+      <div className="mx-auto max-w-[1280px] px-4 pb-24 pt-8 md:px-8 md:pt-12">
+        {isError && !data ? (
+          <EtatErreur onReessayer={() => void refetch()} enCours={isFetching} />
+        ) : isLoading ? (
+          <>
+            {isDefaultView && <BentoSquelette />}
+            <GrilleSquelette nb={9} />
+          </>
         ) : displayedItems.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm py-24 text-center max-w-2xl mx-auto">
-            <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-4">
-              <SearchX size={32} className="text-gray-300" />
-            </div>
-            <p className="font-semibold text-[#191c1e] mb-1">
-              {(stats?.total ?? 0) === 0 ? "Bientôt disponible" : "Aucun résultat"}
-            </p>
-            <p className="text-sm text-[#5c647a] mb-4">
-              {(stats?.total ?? 0) === 0
-                ? "Les premiers produits arrivent bientôt. Soyez le premier créateur à publier !"
-                : "Essayez de modifier vos filtres de recherche."}
-            </p>
-            {(stats?.total ?? 0) === 0 ? (
-              <Link
-                href="/vendeur/produits/creer"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold hover:opacity-90"
-                style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-              >
-                <PlusCircle size={18} />
-                Publier un produit
-              </Link>
-            ) : (
-              <button onClick={resetFilters} className="text-sm font-semibold text-[#006e2f] hover:underline">
-                Réinitialiser les filtres
-              </button>
-            )}
-          </div>
+          <EtatVide catalogueVide={(stats?.total ?? 0) === 0} recherche={search.trim()} onEffacer={resetFilters} />
         ) : isDefaultView ? (
-          /* Vue par défaut : rangées par catégorie thématique (découverte). */
-          <div id="explorer-grid" className="scroll-mt-24">
-            <CategorySections
+          <div id="explorer-grid" className={`nkx-grid scroll-mt-36 ${occupe ? "nkx-busy" : ""}`} aria-busy={occupe}>
+            <BentoVedettes items={displayedItems} />
+            <SectionsCategories
               categories={categories}
               formations={formations}
               products={products}
               bundles={bundles}
-              onSeeCategory={handleSeeCategory}
-              onSeeBundles={handleSeeBundles}
+              onVoirCategorie={handleSeeCategory}
+              onVoirPacks={handleSeeBundles}
             />
           </div>
         ) : (
-          <>
-            <div id="explorer-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 scroll-mt-24">
-              {visibleItems.map((item, idx) => (
-                <ProductCard key={`${item.kind}-${item.id}`} item={item} idx={idx} />
+          <div className={`nkx-grid ${occupe ? "nkx-busy" : ""}`} aria-busy={occupe}>
+            <h2 className="sr-only">Résultats</h2>
+            <div
+              id="explorer-grid"
+              data-testid="explorer-grid"
+              className="grid scroll-mt-36 grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-3"
+            >
+              {visibleItems.map((item) => (
+                <CarteArticle key={`${item.kind}-${item.id}`} item={item} />
               ))}
             </div>
-
-            {/* Pagination : ← Précédent · 1 2 3 … · Suivant → */}
-            {totalPages > 1 && (
-              <nav
-                aria-label="Pagination"
-                className="mt-10 flex flex-col items-center gap-3"
-              >
-                <div className="flex items-center gap-1 flex-wrap justify-center">
-                  <button
-                    type="button"
-                    onClick={() => goToPage(safePage - 1)}
-                    disabled={safePage === 1}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-gray-200 text-[#191c1e] text-sm font-semibold hover:bg-gray-50 hover:border-[#006e2f]/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                    aria-label="Page précédente"
-                  >
-                    <ChevronLeft size={18} />
-                    Précédent
-                  </button>
-
-                  <div className="hidden sm:flex items-center gap-1 mx-2">
-                    {getPageNumbers().map((p, i) =>
-                      p === "…" ? (
-                        <span key={`gap-${i}`} className="px-2 text-[#5c647a] select-none">…</span>
-                      ) : (
-                        <button
-                          key={p}
-                          type="button"
-                          onClick={() => goToPage(p)}
-                          aria-current={p === safePage ? "page" : undefined}
-                          className={`min-w-[40px] h-10 px-3 rounded-lg text-sm font-bold transition-colors ${
-                            p === safePage
-                              ? "bg-[#006e2f] text-white shadow-sm"
-                              : "bg-white border border-gray-200 text-[#191c1e] hover:bg-gray-50 hover:border-[#006e2f]/40"
-                          }`}
-                        >
-                          {p}
-                        </button>
-                      ),
-                    )}
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => goToPage(safePage + 1)}
-                    disabled={safePage === totalPages}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-gray-200 text-[#191c1e] text-sm font-semibold hover:bg-gray-50 hover:border-[#006e2f]/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                    aria-label="Page suivante"
-                  >
-                    Suivant
-                    <ChevronRight size={18} />
-                  </button>
-                </div>
-                <p className="text-[11px] text-[#5c647a] tabular-nums">
-                  Affichage {startIdx + 1}–{Math.min(startIdx + PAGE_SIZE, displayedItems.length)} sur {displayedItems.length}
-                </p>
-              </nav>
-            )}
-          </>
+            <Pagination
+              page={safePage}
+              totalPages={totalPages}
+              onPage={goToPage}
+              debut={startIdx + 1}
+              fin={Math.min(startIdx + PAGE_SIZE, displayedItems.length)}
+              total={displayedItems.length}
+            />
+          </div>
         )}
       </div>
 

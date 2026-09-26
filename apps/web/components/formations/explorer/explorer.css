@@ -1,0 +1,305 @@
+/* ============================================================
+   Marketplace /explorer — styles scopés sous .nkx.
+   Mêmes tokens que home.css (accueil) avec le préfixe nkx- pour ne
+   jamais entrer en conflit : verre, double-bezel, révélations.
+   Tout ce qui bouge n'anime que transform et opacity.
+   ============================================================ */
+
+.nkx {
+  --nkx-green: #006e2f;
+  --nkx-green-hover: #005c27;
+  --nkx-tint: #f0f6f2;
+  --nkx-tint-2: #dfede4;
+  --nkx-ink: #0e1512;
+  --nkx-grey: #5c6b62;
+  --nkx-line: #e6ece8;
+  --nkx-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --nkx-fast: 0.18s;
+  --nkx-base: 0.3s;
+  --nkx-bz-r: 22px;
+  --nkx-bz-p: 6px;
+  --nkx-bz-shell: rgba(14, 21, 18, 0.035);
+  --nkx-bz-ring: rgba(14, 21, 18, 0.06);
+  --nkx-shadow-sm: 0 1px 2px rgba(14, 21, 18, 0.05), 0 1px 3px rgba(14, 21, 18, 0.06);
+  --nkx-shadow-md: 0 4px 6px -2px rgba(14, 21, 18, 0.05), 0 14px 28px -8px rgba(14, 21, 18, 0.12);
+  color: var(--nkx-ink);
+  -webkit-font-smoothing: antialiased;
+}
+.nkx ::selection { background: var(--nkx-green); color: #fff; }
+
+/* ── En-tête : halo radial + trame fine masquée, comme le hero de l'accueil ── */
+.nkx-hero { position: relative; isolation: isolate; overflow: hidden; }
+.nkx-hero::before {
+  content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: min(960px, 100%); height: 520px; pointer-events: none; z-index: -1;
+  background: radial-gradient(50% 60% at 50% 0%, rgba(0, 110, 47, 0.09), transparent 70%);
+}
+.nkx-hero::after {
+  content: ""; position: absolute; inset: 0 0 30%; pointer-events: none; z-index: -1;
+  background-image: linear-gradient(rgba(0, 110, 47, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 110, 47, 0.045) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(60% 90% at 50% 0%, #000 30%, transparent 75%);
+  mask-image: radial-gradient(60% 90% at 50% 0%, #000 30%, transparent 75%);
+}
+.nkx-h1 {
+  margin-top: 18px; font-size: clamp(2.1rem, 4.6vw, 3.6rem); font-weight: 800;
+  letter-spacing: -0.035em; line-height: 1.06; color: var(--nkx-ink); text-wrap: balance;
+}
+/* Entrée en cascade de l'en-tête (CSS seul) : --i = rang dans la cascade. */
+@keyframes nkx-monte { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+.nkx-hero [data-monte] { animation: nkx-monte 0.6s var(--nkx-ease) backwards; animation-delay: calc(var(--i, 0) * 70ms); }
+
+.nkx-eyebrow {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 100px;
+  font-size: 0.625rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--nkx-green); background: var(--nkx-tint); box-shadow: inset 0 0 0 1px rgba(0, 110, 47, 0.12);
+}
+
+/* ── Recherche : pilule verre ── */
+.nkx-recherche {
+  width: 100%; min-height: 58px; padding: 14px 60px 14px 54px; border-radius: 100px;
+  -webkit-appearance: none; appearance: none; font-size: 1rem; color: var(--nkx-ink);
+  background: rgba(255, 255, 255, 0.78);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.9), inset 0 1px 0 #fff, inset 0 -1px 1px rgba(14, 21, 18, 0.06),
+    0 1px 2px rgba(14, 21, 18, 0.05), 0 18px 44px -18px rgba(3, 35, 20, 0.3);
+  transition: box-shadow var(--nkx-base) var(--nkx-ease), background-color var(--nkx-base) var(--nkx-ease);
+}
+.nkx-recherche::placeholder { color: var(--nkx-grey); }
+.nkx-recherche:hover { background: rgba(255, 255, 255, 0.92); }
+.nkx-recherche:focus {
+  outline: none; background: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.9), inset 0 1px 0 #fff, 0 1px 2px rgba(14, 21, 18, 0.05),
+    0 18px 44px -18px rgba(3, 35, 20, 0.3), 0 0 0 4px rgba(0, 110, 47, 0.18);
+}
+.nkx-recherche:focus-visible { outline: 2px solid var(--nkx-green); outline-offset: 3px; }
+.nkx [type="search"]::-webkit-search-cancel-button,
+.nkx [type="search"]::-webkit-search-decoration { -webkit-appearance: none; display: none; }
+
+/* ── Chips de catégories : rangée défilante, fondu aux bords ── */
+.nkx-chips {
+  display: flex; gap: 8px; padding: 6px 16px; margin: 0 -16px;
+  overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity;
+  scrollbar-width: none; -ms-overflow-style: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 40px), transparent);
+  mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 40px), transparent);
+}
+.nkx-chips::-webkit-scrollbar { display: none; }
+.nkx-chips > * { flex-shrink: 0; scroll-snap-align: start; }
+.nkx-chips.is-open {
+  flex-wrap: wrap; justify-content: center; overflow: visible;
+  -webkit-mask-image: none; mask-image: none;
+}
+@media (min-width: 768px) { .nkx-chips { padding: 6px 32px; margin: 0 -32px; } }
+.nkx-chip {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 36px; max-width: 260px;
+  padding: 6px 14px; border-radius: 100px; font-size: 0.8125rem; font-weight: 600; white-space: nowrap;
+  color: var(--nkx-grey); background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.07), inset 0 1px 0 #fff, 0 1px 2px rgba(14, 21, 18, 0.04);
+  transition: transform var(--nkx-base) var(--nkx-ease), box-shadow var(--nkx-base) var(--nkx-ease),
+    background-color var(--nkx-base) var(--nkx-ease), color var(--nkx-base) var(--nkx-ease);
+}
+.nkx-chip > span { overflow: hidden; text-overflow: ellipsis; }
+.nkx-chip:hover { color: var(--nkx-ink); background: #fff; transform: translateY(-1px); }
+.nkx-chip:active { transform: scale(0.97); transition-duration: var(--nkx-fast); }
+.nkx-chip[aria-pressed="true"] {
+  color: #fff; background: var(--nkx-green);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 8px 20px -10px rgba(0, 110, 47, 0.6);
+}
+.nkx-chip:focus-visible { outline: 2px solid var(--nkx-green); outline-offset: 2px; }
+
+/* ── Barre de filtres collante (verre : seul élément sticky flouté) ── */
+.nkx-toolbar {
+  background: rgba(255, 255, 255, 0.8);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4);
+  box-shadow: inset 0 -1px 0 rgba(14, 21, 18, 0.06), 0 10px 28px -18px rgba(3, 35, 20, 0.2);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .nkx-toolbar, .nkx-recherche { background: #fff; }
+}
+.nkx-seg {
+  display: inline-flex; padding: 4px; border-radius: 100px;
+  background: rgba(14, 21, 18, 0.05); box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.05);
+}
+.nkx-seg__btn {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 4px 12px; border-radius: 100px;
+  font-size: 0.75rem; font-weight: 700; white-space: nowrap; color: var(--nkx-grey);
+  transition: color var(--nkx-base) var(--nkx-ease), background-color var(--nkx-base) var(--nkx-ease), box-shadow var(--nkx-base) var(--nkx-ease);
+}
+.nkx-seg__btn:hover { color: var(--nkx-ink); }
+.nkx-seg__btn[aria-pressed="true"] { color: var(--nkx-ink); background: #fff; box-shadow: 0 1px 2px rgba(14, 21, 18, 0.08), inset 0 0 0 1px rgba(14, 21, 18, 0.04); }
+.nkx-seg__btn:focus-visible { outline: 2px solid var(--nkx-green); outline-offset: 2px; }
+.nkx-seg__n {
+  font-variant-numeric: tabular-nums; font-size: 0.6875rem; padding: 1px 7px; border-radius: 100px;
+  background: rgba(14, 21, 18, 0.06); color: var(--nkx-grey);
+  transition: background-color var(--nkx-base) var(--nkx-ease), color var(--nkx-base) var(--nkx-ease);
+}
+.nkx-seg__btn[aria-pressed="true"] .nkx-seg__n { background: var(--nkx-green); color: #fff; }
+.nkx-select {
+  -webkit-appearance: none; appearance: none; min-height: 36px; padding: 4px 32px 4px 34px; border-radius: 100px;
+  font-size: 0.75rem; font-weight: 700; color: var(--nkx-ink); cursor: pointer; background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.07), inset 0 1px 0 #fff;
+  transition: background-color var(--nkx-base) var(--nkx-ease), box-shadow var(--nkx-base) var(--nkx-ease);
+}
+.nkx-select:hover { background: #fff; }
+.nkx-select:focus-visible { outline: 2px solid var(--nkx-green); outline-offset: 2px; }
+.nkx-prix {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 4px 12px; border-radius: 100px;
+  background: rgba(255, 255, 255, 0.72); box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.07), inset 0 1px 0 #fff;
+}
+.nkx-range { accent-color: var(--nkx-green); cursor: pointer; }
+.nkx-range:focus-visible { outline: 2px solid var(--nkx-green); outline-offset: 4px; border-radius: 4px; }
+
+/* ── Bouton verre + « bouton dans le bouton » (disque de la flèche) ── */
+.nkx-btn {
+  position: relative; isolation: isolate; overflow: hidden; display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px; min-height: 42px; padding: 6px 18px; border-radius: 100px; font-size: 0.8125rem; font-weight: 700; line-height: 1;
+  white-space: nowrap; color: var(--nkx-ink); background: rgba(255, 255, 255, 0.74); -webkit-tap-highlight-color: transparent;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.9), inset 0 1px 0 #fff, inset 0 -1px 1px rgba(14, 21, 18, 0.06),
+    0 1px 2px rgba(14, 21, 18, 0.05), 0 10px 26px -14px rgba(3, 35, 20, 0.28), 0 0 0 1px rgba(14, 21, 18, 0.05);
+  transition: transform var(--nkx-base) var(--nkx-ease), box-shadow var(--nkx-base) var(--nkx-ease), background-color var(--nkx-base) var(--nkx-ease);
+}
+.nkx-btn:has(.nkx-btn__ico) { padding-right: 6px; }
+.nkx-btn::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: inherit; opacity: 0.9;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.12) 42%, rgba(255, 255, 255, 0) 60%);
+}
+.nkx-btn:hover, .nkx-stretch:hover > .nkx-btn {
+  transform: translateY(-1px); background: rgba(255, 255, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.95), inset 0 1px 0 #fff, inset 0 -1px 1px rgba(14, 21, 18, 0.06),
+    0 2px 4px rgba(14, 21, 18, 0.05), 0 16px 34px -16px rgba(3, 35, 20, 0.32), 0 0 0 1px rgba(14, 21, 18, 0.07);
+}
+.nkx-btn:active { transform: scale(0.98); transition-duration: var(--nkx-fast); }
+.nkx-btn:focus-visible { outline: 2px solid var(--nkx-green); outline-offset: 3px; }
+.nkx-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+.nkx-btn__ico {
+  display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; margin-left: auto;
+  background: rgba(14, 21, 18, 0.06); box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.05);
+  transition: transform var(--nkx-base) var(--nkx-ease), background-color var(--nkx-base) var(--nkx-ease);
+}
+.nkx-btn__ico svg { width: 14px; height: 14px; transition: transform var(--nkx-base) var(--nkx-ease); }
+.nkx-btn:hover .nkx-btn__ico, .nkx-stretch:hover .nkx-btn__ico { transform: translate(1px, -1px) scale(1.06); background: rgba(14, 21, 18, 0.09); }
+.nkx-btn:hover .nkx-btn__ico svg, .nkx-stretch:hover .nkx-btn__ico svg { transform: translateX(1px); }
+.nkx-btn--sm { min-height: 38px; padding: 4px 14px; font-size: 0.75rem; }
+.nkx-btn--sm:has(.nkx-btn__ico) { padding-right: 4px; }
+.nkx-btn--sm .nkx-btn__ico { width: 28px; height: 28px; }
+/* Variante primaire : verre teinté du vert de marque (blanc sur vert ≥ 6:1). */
+.nkx-btn--primary {
+  color: #fff; background: rgba(0, 110, 47, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 -1px 1px rgba(0, 40, 17, 0.35),
+    0 1px 2px rgba(3, 35, 20, 0.2), 0 12px 30px -14px rgba(0, 110, 47, 0.6);
+}
+.nkx-btn--primary::before { background: linear-gradient(115deg, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0.06) 42%, rgba(255, 255, 255, 0) 60%); }
+.nkx-btn--primary:hover, .nkx-stretch:hover > .nkx-btn--primary {
+  background: rgba(0, 92, 39, 0.95);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -1px 1px rgba(0, 40, 17, 0.35),
+    0 2px 4px rgba(3, 35, 20, 0.2), 0 18px 40px -16px rgba(0, 110, 47, 0.65);
+}
+.nkx-btn--primary .nkx-btn__ico { color: #fff; background: rgba(255, 255, 255, 0.16); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22); }
+.nkx-btn--primary:hover .nkx-btn__ico, .nkx-stretch:hover > .nkx-btn--primary .nkx-btn__ico { background: rgba(255, 255, 255, 0.24); }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .nkx-btn { background: #fff; }
+  .nkx-btn--primary { background: var(--nkx-green); }
+}
+
+/* Disque seul (panier, flèche des petites cartes, fermeture). */
+.nkx-disc {
+  display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+  color: var(--nkx-green); background: rgba(255, 255, 255, 0.82);
+  box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.07), inset 0 1px 0 #fff, 0 1px 2px rgba(14, 21, 18, 0.05);
+  transition: transform var(--nkx-base) var(--nkx-ease), background-color var(--nkx-base) var(--nkx-ease),
+    box-shadow var(--nkx-base) var(--nkx-ease), color var(--nkx-base) var(--nkx-ease);
+}
+.nkx-disc:hover, .nkx-stretch:hover .nkx-disc {
+  background: #fff; transform: translate(1px, -1px) scale(1.06);
+  box-shadow: inset 0 0 0 1px rgba(0, 110, 47, 0.25), 0 6px 16px -8px rgba(3, 35, 20, 0.3);
+}
+.nkx-disc:active { transform: scale(0.96); transition-duration: var(--nkx-fast); }
+.nkx-disc:focus-visible { outline: 2px solid var(--nkx-green); outline-offset: 2px; }
+.nkx-disc:disabled { opacity: 0.55; cursor: wait; }
+.nkx-disc.is-on { color: #fff; background: var(--nkx-green); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2); }
+.nkx-disc--sm { width: 34px; height: 34px; }
+@media (pointer: coarse) { .nkx-disc { width: 44px; height: 44px; } }
+
+/* ── Cartes : double-bezel (coque + cœur aux rayons concentriques) ── */
+.nkx-card {
+  position: relative; padding: var(--nkx-bz-p); border-radius: var(--nkx-bz-r); background: var(--nkx-bz-shell);
+  box-shadow: inset 0 0 0 1px var(--nkx-bz-ring), inset 0 1px 0 rgba(255, 255, 255, 0.6), var(--nkx-shadow-sm);
+  transition: transform var(--nkx-base) var(--nkx-ease), box-shadow var(--nkx-base) var(--nkx-ease);
+}
+.nkx-card__core {
+  border-radius: calc(var(--nkx-bz-r) - var(--nkx-bz-p)); background: #fff; overflow: hidden; height: 100%;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(14, 21, 18, 0.05);
+}
+.nkx-card__img { transition: transform 0.5s var(--nkx-ease); }
+/* Badges posés sur la vignette. */
+.nkx-tag {
+  display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 100px;
+  font-size: 0.625rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; line-height: 1;
+  color: var(--nkx-green); background: rgba(255, 255, 255, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.9), 0 1px 3px rgba(14, 21, 18, 0.12);
+}
+.nkx-tag--ink { color: #fff; background: rgba(14, 21, 18, 0.88); }
+.nkx-tag--green { color: #fff; background: var(--nkx-green); }
+/* Lien « étiré » : le bouton Voir est le seul lien de la carte ; son ::after
+   couvre toute la carte (image et titre cliquables). Les autres boutons passent
+   au-dessus avec `relative z-[1]`. */
+.nkx-stretch { display: inline-flex; outline: none; }
+.nkx-stretch::after { content: ""; position: absolute; inset: 0; z-index: 0; border-radius: var(--nkx-bz-r); }
+.nkx-stretch:focus-visible > .nkx-btn, .nkx-stretch:focus-visible > .nkx-disc { outline: 2px solid var(--nkx-green); outline-offset: 3px; }
+.nkx-card:has(.nkx-stretch:focus-visible) { box-shadow: inset 0 0 0 1px var(--nkx-bz-ring), 0 0 0 3px #fff, 0 0 0 5px var(--nkx-green); }
+
+/* ── Révélation en cascade (état initial ; le mouvement est piloté par anime.js,
+   components/formations/explorer/reveal.ts — pas de transition CSS pendant,
+   elle se battrait avec les styles inline posés à chaque image). ── */
+.nkx-reveal { opacity: 0; transform: translateY(24px); }
+.nkx-reveal.in { opacity: 1; transform: none; }
+.nkx-card.nkx-reveal:not(.settled) { transition: none; }
+/* Survol : déclaré APRÈS .nkx-reveal.in pour l'emporter à spécificité égale. */
+.nkx-card:hover { transform: translateY(-4px); box-shadow: inset 0 0 0 1px var(--nkx-bz-ring), inset 0 1px 0 rgba(255, 255, 255, 0.6), var(--nkx-shadow-md); }
+.nkx-card:hover .nkx-card__img { transform: scale(1.03); }
+
+/* ── Grille : fondu à l'apparition, atténuation pendant une mise à jour ── */
+@keyframes nkx-fade-in { from { opacity: 0; } to { opacity: 1; } }
+.nkx-grid { animation: nkx-fade-in 0.35s var(--nkx-ease) backwards; transition: opacity 0.25s var(--nkx-ease); }
+.nkx-grid.nkx-busy { opacity: 0.55; pointer-events: none; }
+
+/* ── Squelettes (même gabarit que les cartes, aucun saut au remplacement) ── */
+@keyframes nkx-shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+.nkx-skel { position: relative; overflow: hidden; border-radius: 8px; background: #eef2ef; }
+.nkx-skel::after {
+  content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent);
+  animation: nkx-shimmer 1.4s var(--nkx-ease) infinite;
+}
+
+/* ── Pagination ── */
+.nkx-page {
+  min-width: 40px; height: 40px; padding: 0 10px; border-radius: 100px; font-size: 0.8125rem; font-weight: 700;
+  color: var(--nkx-ink); background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.07), inset 0 1px 0 #fff;
+  transition: transform var(--nkx-base) var(--nkx-ease), background-color var(--nkx-base) var(--nkx-ease), box-shadow var(--nkx-base) var(--nkx-ease);
+}
+.nkx-page:hover { background: #fff; transform: translateY(-1px); }
+.nkx-page[aria-current="page"] { color: #fff; background: var(--nkx-green); box-shadow: 0 8px 20px -10px rgba(0, 110, 47, 0.6); }
+.nkx-page:focus-visible { outline: 2px solid var(--nkx-green); outline-offset: 2px; }
+
+/* ── Tiroir de filtres (mobile) : rendu dans <body> via portail ── */
+@keyframes nkx-tiroir { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+.nkx-drawer { animation: nkx-fade-in 0.25s var(--nkx-ease) both; }
+.nkx-drawer__panel { animation: nkx-tiroir 0.42s var(--nkx-ease) both; }
+.nkx-drawer.is-out { animation: nkx-fade-in 0.2s var(--nkx-ease) reverse both; }
+.nkx-drawer.is-out .nkx-drawer__panel { animation: nkx-tiroir 0.2s var(--nkx-ease) reverse both; }
+
+@media (max-width: 560px) { .nkx { --nkx-bz-r: 18px; --nkx-bz-p: 5px; } }
+
+/* Mouvement réduit : tout est visible d'emblée, aucun déplacement (les durées
+   sont déjà ramenées à 0 par globals.css). */
+@media (prefers-reduced-motion: reduce) {
+  .nkx-reveal { opacity: 1; transform: none; }
+  .nkx-hero [data-monte], .nkx-grid, .nkx-skel::after, .nkx-drawer, .nkx-drawer__panel { animation: none; }
+  .nkx-card:hover, .nkx-card:hover .nkx-card__img, .nkx-btn:hover, .nkx-btn:active, .nkx-stretch:hover > .nkx-btn,
+  .nkx-btn:hover .nkx-btn__ico, .nkx-stretch:hover .nkx-btn__ico, .nkx-btn:hover .nkx-btn__ico svg, .nkx-stretch:hover .nkx-btn__ico svg,
+  .nkx-disc:hover, .nkx-stretch:hover .nkx-disc, .nkx-chip:hover, .nkx-chip:active, .nkx-page:hover { transform: none; }
+}
