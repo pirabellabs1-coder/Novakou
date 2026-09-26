@@ -4,7 +4,22 @@ import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { AlertCircle, LogIn, ShieldCheck, Loader2, LogOut } from "lucide-react";
+import { CircleAlert, LogIn, LogOut, ShieldCheck } from "lucide-react";
+import { AuthShell } from "@/components/auth/AuthShell";
+import { AuthCard, AuthHead, AuthSuccess } from "@/components/auth/AuthCard";
+import { AuthButton } from "@/components/auth/AuthButton";
+import { AuthAlert } from "@/components/auth/AuthAlert";
+import { OtpInput } from "@/components/auth/OtpInput";
+
+const PANNEAU = {
+  headline: ["Une étape de plus,", "pour votre sécurité."],
+  subtext: "Votre compte est protégé par une double authentification : saisissez le code de votre application.",
+  benefits: [
+    "Code à 6 chiffres, renouvelé toutes les 30 secondes",
+    "Compatible Google Authenticator, Authy, 1Password",
+    "Récupération par e-mail si vous perdez votre téléphone",
+  ],
+};
 
 function TwoFaInner() {
   const searchParams = useSearchParams();
@@ -29,25 +44,23 @@ function TwoFaInner() {
   // Si pas de session : rediriger vers /connexion (ne devrait pas arriver normalement
   // car le middleware bloque /2fa aux non-connectés).
   if (status === "loading") {
-    return <div className="min-h-[calc(100vh-96px)] bg-[#f7f9fb]" />;
+    return <div className="min-h-[100dvh] bg-[#f7f9fb]" />;
   }
   if (status === "unauthenticated") {
     return (
-      <div className="min-h-[calc(100vh-96px)] flex items-center justify-center px-5 py-10 bg-[#f7f9fb]">
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 max-w-md w-full text-center">
-          <AlertCircle size={48} className="text-red-500 mx-auto" />
-          <h2 className="text-lg font-extrabold text-[#191c1e] mt-3">Session expirée</h2>
-          <p className="text-sm text-[#5c647a] mt-2 mb-5">Veuillez vous reconnecter.</p>
-          <Link
-            href="/connexion"
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-white text-sm font-bold"
-            style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-          >
-            <LogIn size={16} />
-            Se connecter
-          </Link>
-        </div>
-      </div>
+      <AuthShell portail="vendeur" panneau={PANNEAU}>
+        <AuthCard>
+          <AuthSuccess icone={CircleAlert} titre="Session expirée">
+            <p>Veuillez vous reconnecter.</p>
+            <Link href="/connexion" className="btn-glass btn-glass--primary" style={{ marginTop: 12 }}>
+              <span className="lbl">Se connecter</span>
+              <span className="btn-ico" aria-hidden="true">
+                <LogIn />
+              </span>
+            </Link>
+          </AuthSuccess>
+        </AuthCard>
+      </AuthShell>
     );
   }
 
@@ -140,180 +153,170 @@ function TwoFaInner() {
   const name = (session?.user?.name ?? "").split(" ")[0] || "vous";
 
   return (
-    <div className="min-h-[calc(100vh-96px)] flex items-center justify-center px-5 py-10 bg-[#f7f9fb]">
-      <div className="w-full max-w-md">
-        <div className="flex items-center justify-center gap-2.5 mb-8">
-          <div
-            className="w-10 h-10 rounded-[10px] flex items-center justify-center"
-            style={{ background: "#006e2f" }}
-          >
-            <span className="text-white font-extrabold text-sm">NK</span>
-          </div>
-          <span className="font-bold text-[#191c1e] text-lg">Novakou</span>
-        </div>
-
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
-          <div className="text-center mb-6">
-            <div className="w-16 h-16 rounded-full bg-[#006e2f]/10 flex items-center justify-center mx-auto mb-4">
-              <ShieldCheck size={32} className="text-[#006e2f]" />
-            </div>
-            <h2 className="text-xl font-extrabold text-[#191c1e]">Authentification à deux facteurs</h2>
-            <p className="text-sm text-[#5c647a] mt-1.5">
-              Salut <span className="font-semibold">{name}</span>, entrez le code à 6 chiffres de votre
-              application authenticator pour accéder à votre espace.
-            </p>
-            {email && (
-              <p className="text-[11px] text-[#5c647a] mt-2 font-mono">{email}</p>
-            )}
-          </div>
-
-          {error && (
-            <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-2">
-              <AlertCircle size={18} className="text-red-500 flex-shrink-0" />
-              <p className="text-sm text-red-700 font-medium">{error}</p>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit}>
-            <div className="mb-5">
-              <label className="block text-xs font-semibold text-[#191c1e] mb-2 text-center">
-                Code de vérification
-              </label>
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]{6}"
-                maxLength={6}
-                value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                placeholder="••••••"
-                autoFocus
-                autoComplete="one-time-code"
-                className="w-full px-4 py-4 rounded-xl border-2 border-gray-200 text-center text-2xl font-extrabold tracking-[0.5em] text-[#191c1e] placeholder-gray-300 focus:outline-none focus:border-[#006e2f] transition-all bg-white"
-              />
-              <p className="text-[11px] text-[#5c647a] text-center mt-2">
-                Ouvrez Google Authenticator, Authy ou 1Password pour obtenir le code.
-              </p>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading || code.length !== 6}
-              className="w-full py-3.5 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90 flex items-center justify-center gap-2 disabled:opacity-50"
-              style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-            >
-              {loading ? (
+    <AuthShell
+      portail="vendeur"
+      panneau={PANNEAU}
+      cleBascule={modeRecup}
+      sansCroise
+      trust="Votre compte est protégé par une double authentification"
+    >
+      <AuthCard>
+        <AuthHead
+          id="tfa-titre"
+          icone={ShieldCheck}
+          centre
+          titre="Authentification à deux facteurs"
+          sousTitre={
+            <>
+              Bonjour <strong>{name}</strong>, entrez le code à 6 chiffres de votre application
+              d’authentification pour accéder à votre espace.
+              {email && (
                 <>
-                  <Loader2 size={18} className="animate-spin" />
-                  Vérification…
-                </>
-              ) : (
-                <>
-                  <ShieldCheck size={18} />
-                  Accéder à mon espace
+                  <br />
+                  <span className="font-mono text-[12px]">{email}</span>
                 </>
               )}
+            </>
+          }
+        />
+
+        {error && (
+          <AuthAlert type="error" id="tfa-erreur">
+            {error}
+          </AuthAlert>
+        )}
+
+        <form onSubmit={handleSubmit} className="nkauth-form" aria-labelledby="tfa-titre">
+          <OtpInput
+            id="tfa-code"
+            label="Code de vérification"
+            value={code}
+            onChange={(v) => {
+              setCode(v);
+              if (error) setError(null);
+            }}
+            erreur={error}
+            describedBy={error ? "tfa-erreur" : undefined}
+            autoFocus
+            aide="Ouvrez Google Authenticator, Authy ou 1Password pour obtenir le code."
+            delai={260}
+          />
+
+          <AuthButton
+            type="submit"
+            disabled={loading || code.length !== 6}
+            chargement={loading}
+            texteChargement="Vérification…"
+            delai={320}
+          >
+            Accéder à mon espace
+          </AuthButton>
+
+          <p className="nkauth-foot" style={{ marginTop: 4 }} data-reveal="fade">
+            <button type="button" onClick={handleCancel} className="nkauth-link nkauth-link--muted bg-transparent border-0 p-0 cursor-pointer font-[inherit]">
+              <LogOut aria-hidden="true" />
+              Annuler et me déconnecter
             </button>
+          </p>
+        </form>
 
-            <div className="mt-5 text-center">
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="text-xs text-[#5c647a] hover:text-red-600 font-semibold inline-flex items-center gap-1"
-              >
-                <LogOut size={14} />
-                Annuler et me déconnecter
-              </button>
-            </div>
-          </form>
-
-          {/* ── Téléphone perdu : récupération par e-mail ─────────────── */}
-          <div className="mt-6 pt-5 border-t border-gray-100">
-            {modeRecup === "cache" && (
+        {/* ── Téléphone perdu : récupération par e-mail ─────────────── */}
+        <div className="mt-6 border-t border-[#E6ECE8] pt-5" data-reveal="fade" style={{ "--d": 420 } as React.CSSProperties}>
+          {modeRecup === "cache" && (
+            <p className="text-center">
               <button
                 type="button"
                 onClick={() => setModeRecup("envoi")}
-                className="w-full text-center text-xs font-semibold text-[#006e2f] hover:underline"
+                className="nkauth-link bg-transparent border-0 p-0 cursor-pointer font-[inherit] text-[13px]"
               >
-                Vous n&apos;avez plus accès à votre application d&apos;authentification ?
+                Vous n’avez plus accès à votre application d’authentification&nbsp;?
               </button>
-            )}
+            </p>
+          )}
 
-            {modeRecup === "envoi" && (
-              <div className="text-center">
-                <p className="text-xs text-[#5c647a] mb-3">
-                  Nous enverrons un code de récupération à <span className="font-mono">{email}</span>.
-                  Il désactivera votre double authentification : vous vous reconnecterez avec votre
-                  mot de passe, puis pourrez la réactiver depuis vos paramètres.
+          {modeRecup === "envoi" && (
+            <div className="flex flex-col items-center gap-3 text-center" data-swap>
+              <p className="nkauth-hint">
+                Nous enverrons un code de récupération à <span className="font-mono">{email}</span>. Il
+                désactivera votre double authentification : vous vous reconnecterez avec votre mot de
+                passe, puis pourrez la réactiver depuis vos paramètres.
+              </p>
+              {recupMessage && (
+                <p className="nkauth-error" role="alert">
+                  {recupMessage}
                 </p>
-                {recupMessage && <p className="text-xs text-red-600 font-semibold mb-2">{recupMessage}</p>}
+              )}
+              <AuthButton
+                type="button"
+                variante="ghost"
+                onClick={demanderCodeRecup}
+                disabled={recupLoading}
+                chargement={recupLoading}
+                texteChargement="Envoi…"
+                fleche={false}
+              >
+                M’envoyer le code par e-mail
+              </AuthButton>
+            </div>
+          )}
+
+          {modeRecup === "code" && (
+            <div className="flex flex-col gap-4" data-swap>
+              <p className="nkauth-hint text-center">
+                Code envoyé à <span className="font-mono">{email}</span> — valable 10 minutes.
+              </p>
+              <OtpInput
+                id="tfa-code-recup"
+                label="Code reçu par e-mail"
+                value={codeRecup}
+                onChange={(v) => {
+                  setCodeRecup(v);
+                  if (recupMessage) setRecupMessage(null);
+                }}
+                erreur={recupMessage}
+                describedBy={recupMessage ? "tfa-recup-erreur" : undefined}
+              />
+              {recupMessage && (
+                <p id="tfa-recup-erreur" className="nkauth-error" role="alert">
+                  {recupMessage}
+                </p>
+              )}
+              <AuthButton
+                type="button"
+                onClick={confirmerRecup}
+                disabled={recupLoading || codeRecup.length !== 6}
+                chargement={recupLoading}
+                texteChargement="Vérification…"
+              >
+                Désactiver ma double authentification
+              </AuthButton>
+              <p className="text-center">
                 <button
                   type="button"
                   onClick={demanderCodeRecup}
                   disabled={recupLoading}
-                  className="px-4 py-2.5 rounded-xl border-2 border-[#006e2f] text-[#006e2f] text-xs font-bold disabled:opacity-50"
-                >
-                  {recupLoading ? "Envoi…" : "M'envoyer le code par e-mail"}
-                </button>
-              </div>
-            )}
-
-            {modeRecup === "code" && (
-              <div className="text-center">
-                <p className="text-xs text-[#5c647a] mb-3">
-                  Code envoyé à <span className="font-mono">{email}</span> — valable 10 minutes.
-                </p>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={6}
-                  value={codeRecup}
-                  onChange={(e) => setCodeRecup(e.target.value.replace(/\D/g, ""))}
-                  placeholder="Code reçu par e-mail"
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-center text-lg font-extrabold tracking-[0.4em] text-[#191c1e] placeholder-gray-300 placeholder:text-sm placeholder:tracking-normal focus:outline-none focus:border-[#006e2f] bg-white"
-                />
-                {recupMessage && <p className="text-xs text-red-600 font-semibold mt-2">{recupMessage}</p>}
-                <button
-                  type="button"
-                  onClick={confirmerRecup}
-                  disabled={recupLoading || codeRecup.length !== 6}
-                  className="mt-3 w-full py-3 rounded-xl text-white text-xs font-bold disabled:opacity-50"
-                  style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-                >
-                  {recupLoading ? "Vérification…" : "Désactiver ma double authentification"}
-                </button>
-                <button
-                  type="button"
-                  onClick={demanderCodeRecup}
-                  disabled={recupLoading}
-                  className="mt-2 text-[11px] text-[#5c647a] hover:underline"
+                  className="nkauth-link nkauth-link--muted bg-transparent border-0 p-0 cursor-pointer font-[inherit] text-[12px] disabled:opacity-50"
                 >
                   Renvoyer un code
                 </button>
-              </div>
-            )}
+              </p>
+            </div>
+          )}
 
-            {modeRecup === "fait" && (
-              <div className="text-center bg-[#f0faf3] border border-[#c9ecd6] rounded-xl px-4 py-3">
-                <p className="text-xs font-bold text-[#006e2f]">
-                  Double authentification désactivée. Reconnectez-vous avec votre mot de passe…
-                </p>
-              </div>
-            )}
-          </div>
+          {modeRecup === "fait" && (
+            <AuthAlert type="success" titre="Double authentification désactivée">
+              Reconnectez-vous avec votre mot de passe…
+            </AuthAlert>
+          )}
         </div>
-
-        <p className="text-center text-[11px] text-[#5c647a] mt-4">
-          Votre compte est protégé par une double authentification.
-        </p>
-      </div>
-    </div>
+      </AuthCard>
+    </AuthShell>
   );
 }
 
 export default function TwoFaPage() {
   return (
-    <Suspense fallback={<div className="min-h-[calc(100vh-96px)] bg-[#f7f9fb]" />}>
+    <Suspense fallback={<div className="min-h-[100dvh] bg-[#f7f9fb]" />}>
       <TwoFaInner />
     </Suspense>
   );

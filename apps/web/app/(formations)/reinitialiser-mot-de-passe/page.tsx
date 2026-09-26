@@ -3,7 +3,29 @@
 import Link from "next/link";
 import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { AlertCircle, CheckCircle2, Circle, Lock, Eye, EyeOff, Loader2, KeyRound } from "lucide-react";
+import { Check, CircleAlert, CircleCheck, KeyRound, Lock } from "lucide-react";
+import { AuthShell } from "@/components/auth/AuthShell";
+import { AuthCard, AuthHead, AuthSuccess } from "@/components/auth/AuthCard";
+import { PasswordField } from "@/components/auth/AuthField";
+import { AuthButton } from "@/components/auth/AuthButton";
+import { AuthAlert } from "@/components/auth/AuthAlert";
+
+const PANNEAU = {
+  headline: ["Un nouveau", "mot de passe."],
+  subtext: "Choisissez un mot de passe solide : il protège vos ventes, vos retraits et vos clients.",
+  benefits: [
+    "10 caractères minimum, majuscule, minuscule et chiffre",
+    "Vos sessions actives restent ouvertes",
+    "Retour immédiat à votre espace après validation",
+  ],
+};
+
+const CRITERES = [
+  { key: "length", label: "Au moins 10 caractères" },
+  { key: "upper", label: "Une lettre majuscule (A-Z)" },
+  { key: "lower", label: "Une lettre minuscule (a-z)" },
+  { key: "number", label: "Un chiffre (0-9)" },
+] as const;
 
 function ResetInner() {
   const searchParams = useSearchParams();
@@ -12,7 +34,6 @@ function ResetInner() {
 
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -24,6 +45,7 @@ function ResetInner() {
     number: /[0-9]/.test(password),
   };
   const allPassed = Object.values(passwordChecks).every(Boolean);
+  const mismatch = confirm.length > 0 && password !== confirm;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -66,159 +88,112 @@ function ResetInner() {
 
   if (!token) {
     return (
-      <div className="min-h-[calc(100vh-96px)] flex items-center justify-center px-5 py-10 bg-[#f7f9fb]">
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 max-w-md w-full text-center">
-          <AlertCircle size={48} className="text-red-500 mx-auto" />
-          <h2 className="text-lg font-extrabold text-[#191c1e] mt-3">Lien invalide</h2>
-          <p className="text-sm text-[#5c647a] mt-2 mb-5">
-            Ce lien de réinitialisation est invalide ou a expiré. Demandez un nouveau lien.
-          </p>
-          <Link
-            href="/mot-de-passe-oublie"
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-white text-sm font-bold"
-            style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-          >
-            Demander un nouveau lien
-          </Link>
-        </div>
-      </div>
+      <AuthShell portail="vendeur" panneau={PANNEAU}>
+        <AuthCard>
+          <AuthSuccess icone={CircleAlert} titre="Lien invalide">
+            <p>Ce lien de réinitialisation est invalide ou a expiré. Demandez un nouveau lien.</p>
+            <Link href="/mot-de-passe-oublie" className="btn-glass btn-glass--primary" style={{ marginTop: 12 }}>
+              <span className="lbl">Demander un nouveau lien</span>
+              <span className="btn-ico" aria-hidden="true">
+                <KeyRound />
+              </span>
+            </Link>
+          </AuthSuccess>
+        </AuthCard>
+      </AuthShell>
     );
   }
 
   return (
-    <div className="min-h-[calc(100vh-96px)] flex items-center justify-center px-5 py-10 bg-[#f7f9fb]">
-      <div className="w-full max-w-md">
-        <div className="flex items-center justify-center gap-2.5 mb-8">
-          <div className="w-10 h-10 rounded-[10px] flex items-center justify-center" style={{ background: "#006e2f" }}>
-            <span className="text-white font-extrabold text-sm">NK</span>
-          </div>
-          <span className="font-bold text-[#191c1e] text-lg">Novakou</span>
-        </div>
+    <AuthShell portail="vendeur" panneau={PANNEAU} cleBascule={success ? "ok" : "formulaire"}>
+      <AuthCard>
+        {success ? (
+          <AuthSuccess icone={CircleCheck} titre="Mot de passe mis à jour">
+            <p>Vous allez être redirigé vers la page de connexion…</p>
+          </AuthSuccess>
+        ) : (
+          <>
+            <AuthHead
+              id="reset-titre"
+              icone={Lock}
+              titre="Nouveau mot de passe"
+              sousTitre="Choisissez un mot de passe fort et sécurisé."
+            />
 
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
-          {success ? (
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 size={32} className="text-green-600" />
-              </div>
-              <h2 className="text-xl font-extrabold text-[#191c1e] mb-2">Mot de passe mis à jour !</h2>
-              <p className="text-sm text-[#5c647a]">
-                Vous allez être redirigé vers la page de connexion…
-              </p>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit}>
-              <div className="mb-6">
-                <h2 className="text-xl font-extrabold text-[#191c1e] mb-1.5">Nouveau mot de passe</h2>
-                <p className="text-sm text-[#5c647a]">Choisissez un mot de passe fort et sécurisé.</p>
-              </div>
+            {error && (
+              <AuthAlert type="error" id="reset-erreur">
+                {error}
+              </AuthAlert>
+            )}
 
-              {error && (
-                <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-2">
-                  <AlertCircle size={18} className="text-red-500 flex-shrink-0" />
-                  <p className="text-sm text-red-700 font-medium">{error}</p>
-                </div>
-              )}
+            <form onSubmit={handleSubmit} className="nkauth-form" aria-labelledby="reset-titre">
+              <PasswordField
+                id="reset-password"
+                name="password"
+                label="Nouveau mot de passe"
+                icone={Lock}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Au moins 10 caractères"
+                required
+                autoComplete="new-password"
+                aria-invalid={!!error && !allPassed}
+                describedBy={error ? "reset-erreur reset-criteres" : "reset-criteres"}
+                delai={260}
+              />
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">Nouveau mot de passe</label>
-                  <div className="relative">
-                    <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5c647a]" />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Au moins 10 caractères"
-                      required
-                      className="w-full pl-10 pr-12 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#5c647a]"
-                    >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </div>
+              {/* Critères, cochés en direct — alignés sur l'API */}
+              <ul id="reset-criteres" className="nkauth-rules" aria-label="Critères du mot de passe" data-reveal style={{ "--d": 300 } as React.CSSProperties}>
+                {CRITERES.map((c) => {
+                  const ok = passwordChecks[c.key];
+                  return (
+                    <li key={c.key} className={ok ? "ok" : undefined}>
+                      <span className="tick" aria-hidden="true">
+                        <Check strokeWidth={4} />
+                      </span>
+                      <span>
+                        {c.label}
+                        <span className="sr-only">{ok ? " — respecté" : " — à respecter"}</span>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
 
-                <div>
-                  <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">Confirmer</label>
-                  <div className="relative">
-                    <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5c647a]" />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={confirm}
-                      onChange={(e) => setConfirm(e.target.value)}
-                      placeholder="Confirmer le mot de passe"
-                      required
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
-                    />
-                  </div>
-                </div>
-              </div>
+              <PasswordField
+                id="reset-confirm"
+                name="confirm"
+                label="Confirmer le mot de passe"
+                icone={KeyRound}
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                placeholder="Répétez le mot de passe"
+                required
+                autoComplete="new-password"
+                erreur={mismatch ? "Les mots de passe ne correspondent pas." : null}
+                delai={340}
+              />
 
-              {/* Password strength */}
-              {password && (
-                <div className="mt-4 bg-[#f7f9fb] rounded-xl p-3 space-y-1.5">
-                  <p className="text-[11px] font-semibold text-[#191c1e] mb-1.5">Critères du mot de passe :</p>
-                  {[
-                    { key: "length", label: "Au moins 10 caractères" },
-                    { key: "upper", label: "Une lettre majuscule (A-Z)" },
-                    { key: "lower", label: "Une lettre minuscule (a-z)" },
-                    { key: "number", label: "Un chiffre (0-9)" },
-                  ].map((c) => {
-                    const passed = passwordChecks[c.key as keyof typeof passwordChecks];
-                    return (
-                      <div key={c.key} className="flex items-center gap-1.5">
-                        {passed ? (
-                          <CheckCircle2 size={13} className="text-[#006e2f]" />
-                        ) : (
-                          <Circle size={13} className="text-gray-300" />
-                        )}
-                        <span
-                          className={`text-[11px] ${
-                            passed ? "text-[#006e2f] font-semibold" : "text-[#5c647a]"
-                          }`}
-                        >
-                          {c.label}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              <button
+              <AuthButton
                 type="submit"
                 disabled={loading || !allPassed || password !== confirm}
-                className="w-full mt-5 py-3.5 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90 flex items-center justify-center gap-2 disabled:opacity-50"
-                style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+                chargement={loading}
+                texteChargement="Mise à jour…"
+                delai={400}
               >
-                {loading ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Mise à jour…
-                  </>
-                ) : (
-                  <>
-                    <KeyRound size={18} />
-                    Mettre à jour le mot de passe
-                  </>
-                )}
-              </button>
+                Mettre à jour le mot de passe
+              </AuthButton>
             </form>
-          )}
-        </div>
-      </div>
-    </div>
+          </>
+        )}
+      </AuthCard>
+    </AuthShell>
   );
 }
 
 export default function ReinitialiserMotDePassePage() {
   return (
-    <Suspense fallback={<div className="min-h-[calc(100vh-96px)] bg-[#f7f9fb]" />}>
+    <Suspense fallback={<div className="min-h-[100dvh] bg-[#f7f9fb]" />}>
       <ResetInner />
     </Suspense>
   );

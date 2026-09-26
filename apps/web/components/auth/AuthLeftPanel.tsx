@@ -1,116 +1,89 @@
-import Link from "next/link";
-import { Zap, Check } from "lucide-react";
+import { Check, ShieldCheck } from "lucide-react";
+import { BrandMark } from "./BrandMark";
 
-interface AuthLeftPanelProps {
-  headline?: React.ReactNode;
+export interface AuthLeftPanelProps {
+  /** Étiquette du portail (« Espace vendeur », « Espace acheteur »…). */
+  eyebrow?: string;
+  /** Titre éditorial : un tableau = une ligne par entrée (révélées l'une après l'autre). */
+  headline?: React.ReactNode | string[];
   subtext?: string;
+  /** Trois bénéfices maximum : le panneau doit respirer. */
   benefits?: string[];
+  /** Ligne de confiance en pied de panneau. */
+  trust?: string;
+  /** Couleur de la lueur (rgba) — teintée par le rôle sur l'inscription. */
+  glow?: string;
 }
 
+const DEFAULT_HEADLINE = ["Vendez vos formations", "et produits numériques"];
+
 const DEFAULT_BENEFITS = [
-  "Accédez à des milliers de clients dans le monde entier",
-  "Paiements sécurisés via escrow : Mobile Money, Stripe, PayPal",
-  "Profil vérifié avec badges de confiance",
-  "Support dédié francophone 7j/7",
+  "Encaissez en Mobile Money et par carte, en FCFA",
+  "Formations, ebooks, produits digitaux : tout au même endroit",
+  "Vos ventes et vos gains suivis en temps réel",
 ];
 
+const DEFAULT_SUBTEXT =
+  "Rejoignez les créateurs d’Afrique francophone et de la diaspora qui vendent leurs savoirs sur Novakou.";
+
+/**
+ * Panneau gauche des pages d'authentification : vert nuit, typographie forte,
+ * trois bénéfices. Sous lg, seule la ligne du haut (marque + portail) reste,
+ * en en-tête compact ; le reste est masqué par auth.css.
+ */
 export function AuthLeftPanel({
+  eyebrow = "Espace vendeur",
   headline,
-  subtext,
+  subtext = DEFAULT_SUBTEXT,
   benefits = DEFAULT_BENEFITS,
+  trust = "Paiements sécurisés · Données chiffrées · Support francophone",
+  glow,
 }: AuthLeftPanelProps) {
+  const lignes = headline === undefined ? DEFAULT_HEADLINE : Array.isArray(headline) ? headline : null;
+
   return (
-    <div
-      className="hidden lg:flex lg:w-[45%] relative overflow-hidden flex-col justify-between p-12"
-      style={{
-        background:
-          "linear-gradient(145deg, #6C2BD9 0%, #4A1B9E 55%, #2D1060 100%)",
-      }}
-    >
-      {/* Grid pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <svg className="w-full h-full" preserveAspectRatio="none">
-          <defs>
-            <pattern
-              id="auth-grid"
-              width="32"
-              height="32"
-              patternUnits="userSpaceOnUse"
-            >
-              <path
-                d="M 32 0 L 0 0 0 32"
-                fill="none"
-                stroke="white"
-                strokeWidth="0.5"
-              />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#auth-grid)" />
-        </svg>
-      </div>
-      {/* Glow blobs */}
-      <div className="absolute top-1/4 -left-20 w-80 h-80 bg-purple-400/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 right-0 w-64 h-64 bg-sky-400/15 rounded-full blur-3xl" />
+    <aside className="nkauth-panel" aria-label="Présentation de Novakou">
+      <div className="nkauth-panel-bg" aria-hidden="true" />
+      <div
+        className="nkauth-glow"
+        aria-hidden="true"
+        style={glow ? ({ "--panel-glow": glow } as React.CSSProperties) : undefined}
+      />
 
-      {/* Logo */}
-      <div className="relative z-10">
-        <Link href="/" className="inline-flex items-center gap-2.5">
-          <div className="bg-white/15 p-2 rounded-xl">
-            <Zap className="h-6 w-6 text-white fill-white" />
-          </div>
-          <span className="text-white text-xl font-extrabold tracking-tight">
-            Novakou
-          </span>
-        </Link>
+      <div className="nkauth-panel-top" data-reveal="fade">
+        <BrandMark />
+        <span className="nkauth-eyebrow">{eyebrow}</span>
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 flex-1 flex flex-col justify-center py-12">
-        <div className="inline-block px-3 py-1 rounded-full bg-white/10 border border-white/20 text-white/80 text-xs font-bold uppercase tracking-widest mb-6 w-fit">
-          Plateforme francophone n°1
-        </div>
-        <h2 className="text-white text-4xl font-black leading-tight mb-4">
-          {headline ?? (
-            <>
-              Vendez vos formations
-              <br />
-              <span className="text-yellow-300">et produits numériques</span>
-            </>
-          )}
-        </h2>
-        <p className="text-white/70 text-base leading-relaxed mb-10 max-w-sm">
-          {subtext ??
-            "Rejoignez des milliers de créateurs d'Afrique francophone et de la diaspora qui vendent leurs formations et produits numériques sur Novakou."}
+      <div className="nkauth-panel-body">
+        <p className="nkauth-title">
+          {lignes
+            ? lignes.map((ligne, i) => (
+                <span key={ligne} className="nkauth-line" style={{ "--i": i } as React.CSSProperties}>
+                  <span>{ligne}</span>
+                </span>
+              ))
+            : headline}
         </p>
-        <ul className="space-y-4">
-          {benefits.map((b) => (
-            <li key={b} className="flex items-start gap-3">
-              <div className="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
-                <Check className="w-3 h-3 text-white" strokeWidth={3} />
-              </div>
-              <span className="text-white/80 text-sm leading-snug">{b}</span>
+        <p className="nkauth-lead" data-reveal style={{ "--d": 260 } as React.CSSProperties} data-swap-panel>
+          {subtext}
+        </p>
+        <ul className="nkauth-benefits" data-reveal style={{ "--d": 340 } as React.CSSProperties} data-swap-panel>
+          {benefits.slice(0, 3).map((b) => (
+            <li key={b}>
+              <span className="dot" aria-hidden="true">
+                <Check strokeWidth={3} />
+              </span>
+              <span>{b}</span>
             </li>
           ))}
         </ul>
       </div>
 
-      {/* Stats */}
-      <div className="relative z-10 flex items-center gap-8 pt-8 border-t border-white/15">
-        <div>
-          <span className="text-yellow-300 text-2xl font-bold block">12k+</span>
-          <span className="text-white/60 text-xs">Freelances actifs</span>
-        </div>
-        <div className="w-px h-10 bg-white/20" />
-        <div>
-          <span className="text-yellow-300 text-2xl font-bold block">8 500+</span>
-          <span className="text-white/60 text-xs">Projets terminés</span>
-        </div>
-        <div className="w-px h-10 bg-white/20" />
-        <div>
-          <span className="text-yellow-300 text-2xl font-bold block">28</span>
-          <span className="text-white/60 text-xs">Pays couverts</span>
-        </div>
+      <div className="nkauth-panel-foot" data-reveal="fade" style={{ "--d": 600 } as React.CSSProperties}>
+        <ShieldCheck aria-hidden="true" />
+        <span>{trust}</span>
       </div>
-    </div>
+    </aside>
   );
 }

@@ -1,0 +1,424 @@
+/* ============================================================
+   Pages d'authentification Novakou — styles scopés sous .nkauth
+   (connexion, inscription, mot de passe, 2FA, accès acheteur).
+   Mêmes tokens que home.css (vert de marque, --ease-out-soft,
+   double-bezel, boutons verre) : home.css est scopé .nkhome, on
+   reproduit donc ici le strict nécessaire. Aucune règle globale.
+   ============================================================ */
+
+.nkauth{
+  --green:#006E2F;
+  --green-hover:#005C27;
+  --green-deep:#003D1A;
+  --green-night:#032314;
+  --green-tint:#F0F6F2;
+  --green-tint-2:#DFEDE4;
+  --green-glow:#9BD4B0;
+  --ink:#0E1512;
+  --grey:#5C6B62;
+  --grey-l:#8A968E;
+  --line:#E6ECE8;
+  --field:#FBFCFB;
+  --danger:#B42318;
+  --danger-bg:#FEF3F2;
+  --danger-line:#F6CFCB;
+  /* Motion : une seule courbe de sortie douce, des durées courtes.
+     Identiques à home.css et à la timeline anime.js (motion.ts). */
+  --ease-out-soft:cubic-bezier(.22,1,.36,1);
+  --dur-fast:.18s;
+  --dur-base:.3s;
+  --dur-reveal:.6s;
+  /* Ombres teintées vert nuit, jamais de noir pur. */
+  --shadow-card:0 28px 64px -28px rgba(3,35,20,.24),0 2px 6px -2px rgba(3,35,20,.06);
+  /* Double-bezel : coque (rayon externe) autour d'un cœur (rayon − épaisseur). */
+  --bz-r:30px;
+  --bz-p:8px;
+  /* Lueur du panneau (teintée par le rôle sur l'inscription). */
+  --panel-glow:rgba(0,110,47,.55);
+  font-family:var(--font-inter),"Inter",system-ui,sans-serif;
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  position:relative;
+  isolation:isolate;
+  /* Le shell possède tout l'écran : aucune dépendance à un menu ou à un
+     pied de page. Mobile : en-tête compact puis formulaire ; lg : deux
+     colonnes, panneau collant plein écran, la PAGE défile (pas la carte). */
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  grid-template-rows:auto 1fr;
+  min-height:100dvh;
+  background:#F7F9FB;
+  overflow-x:clip;
+}
+/* Grain : texture fixe, 3,5 % d'opacité, jamais cliquable. Un seul calque
+   composité, aucun repaint au défilement. */
+.nkauth::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size:180px 180px}
+.nkauth *{box-sizing:border-box}
+.nkauth a{color:inherit;text-decoration:none}
+.nkauth p,.nkauth h1,.nkauth h2,.nkauth h3{margin:0}
+
+@media (min-width:1024px){
+  .nkauth{grid-template-columns:45% minmax(0,1fr);grid-template-rows:minmax(100dvh,auto)}
+}
+
+/* ── Panneau gauche : vert nuit, typographie forte ─────────────── */
+.nkauth-panel{position:relative;overflow:hidden;color:#fff;background:var(--green-night);
+  display:flex;flex-direction:column;justify-content:space-between;gap:24px;padding:18px 16px}
+/* Fond : dégradé profond + grille fine masquée. La lueur (.nkauth-glow) est
+   un calque séparé pour pouvoir croiser les couleurs en opacité. */
+.nkauth-panel-bg{position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(520px circle at -10% 105%,rgba(0,61,26,.9),transparent 60%),
+    linear-gradient(160deg,#052F1A 0%,#032314 55%,#021A0E 100%)}
+.nkauth-panel-bg::after{content:"";position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);
+  background-size:56px 56px;
+  -webkit-mask-image:radial-gradient(70% 80% at 80% 10%,#000 20%,transparent 75%);
+  mask-image:radial-gradient(70% 80% at 80% 10%,#000 20%,transparent 75%)}
+.nkauth-glow{position:absolute;inset:0;pointer-events:none;opacity:1;
+  background:radial-gradient(720px circle at 88% -8%,var(--panel-glow),transparent 62%);
+  transition:opacity .7s var(--ease-out-soft)}
+.nkauth-glow[data-off]{opacity:0}
+.nkauth-panel>*{position:relative}
+.nkauth-panel-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.nkauth-panel-body,.nkauth-panel-foot{display:none}
+
+@media (min-width:1024px){
+  /* En `fixed`, pas en `sticky` : le <main> du layout (formations) porte
+     overflow-x:hidden, ce qui en fait le référent du sticky — le panneau
+     remontait avec la page au défilement (capture du fondateur, 2026-09-26).
+     La colonne de 45 % de la grille reste réservée ; le panneau la recouvre. */
+  .nkauth-panel{padding:40px 48px 36px;position:fixed;top:0;left:0;width:45%;height:100dvh}
+  /* Le panneau fixé n'occupe plus de cellule : sans ceci, la colonne
+     formulaire se plaçait automatiquement dans la 1re colonne, sur lui. */
+  .nkauth-main{grid-column:2}
+  .nkauth-panel-body{display:flex;flex-direction:column;gap:28px;max-width:34rem;padding:24px 0}
+  .nkauth-panel-foot{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.62);font-size:.8rem;
+    padding-top:22px;border-top:1px solid rgba(255,255,255,.1)}
+  .nkauth-panel-foot svg{width:16px;height:16px;color:var(--green-glow);flex-shrink:0}
+}
+@media (min-width:1280px){
+  .nkauth-panel{padding:52px 64px 44px}
+}
+/* Écrans peu hauts (portable à 125 %, ~650 px utiles) : on resserre pour que
+   titre, bénéfices et pied tiennent dans le panneau sans être coupés. */
+@media (min-width:1024px) and (max-height:760px){
+  .nkauth-panel{padding:26px 40px 22px}
+  .nkauth-panel-body{gap:16px;padding:10px 0}
+  .nkauth-title{font-size:clamp(1.8rem,.9rem + 2vw,2.6rem)}
+  .nkauth-benefits{gap:10px}
+  .nkauth-panel-foot{padding-top:12px}
+}
+
+/* Marque */
+.nkauth-brand{display:inline-flex;align-items:center;gap:10px;border-radius:12px}
+.nkauth-brand-mark{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+  font-weight:800;font-size:.8rem;letter-spacing:-.02em;color:#fff;
+  background:linear-gradient(135deg,#0B7A39,#006E2F);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 18px -8px rgba(0,110,47,.7)}
+.nkauth-brand-name{font-family:var(--font-sora),"Sora",sans-serif;font-weight:600;font-size:1.05rem;letter-spacing:-.02em}
+.nkauth-panel .nkauth-brand-mark{background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22),inset 0 1px 0 rgba(255,255,255,.18)}
+.nkauth-brand:focus-visible{outline:2px solid #fff;outline-offset:3px}
+
+/* Étiquette de portail */
+.nkauth-eyebrow{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;
+  font-size:.66rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--green-glow);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);
+  padding:6px 11px;border-radius:100px}
+.nkauth-eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--green-glow);flex-shrink:0}
+
+/* Titre éditorial : chaque ligne glisse hors d'une fenêtre overflow:hidden.
+   Les paddings/marges négatives laissent passer ascendantes et descendantes. */
+.nkauth-title{font-family:var(--font-sora),"Sora",sans-serif;font-weight:600;letter-spacing:-.035em;line-height:1.06;
+  font-size:clamp(2.1rem,1.2rem + 2.4vw,3.5rem);color:#fff;text-wrap:balance}
+.nkauth-title em{font-style:normal;color:var(--green-glow)}
+.nkauth-line{display:block;overflow:hidden;padding:.06em 0 .16em;margin:-.06em 0 -.16em}
+.nkauth-line>span{display:block;animation:nkauth-mot .8s var(--ease-out-soft) backwards;animation-delay:calc(.12s + var(--i,0)*70ms)}
+.nkauth-lead{color:rgba(255,255,255,.72);font-size:1rem;line-height:1.6;max-width:27rem;text-wrap:pretty}
+.nkauth-benefits{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
+.nkauth-benefits li{display:flex;gap:12px;align-items:flex-start;color:rgba(255,255,255,.86);font-size:.93rem;line-height:1.5}
+.nkauth-benefits .dot{flex-shrink:0;width:24px;height:24px;border-radius:50%;margin-top:1px;display:grid;place-items:center;
+  color:var(--green-glow);background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.nkauth-benefits .dot svg{width:12px;height:12px}
+
+/* ── Colonne formulaire ────────────────────────────────────────── */
+.nkauth-main{display:flex;flex-direction:column;min-width:0;padding:14px 16px 40px}
+/* En-tête discret de la colonne : retour à l'accueil (le shell n'a plus de menu). */
+.nkauth-topbar{display:flex;align-items:center;justify-content:flex-end;min-height:40px;margin-bottom:6px}
+.nkauth-back{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:100px;font-size:.8rem;font-weight:600;color:var(--grey);
+  transition:color var(--dur-fast) var(--ease-out-soft),background-color var(--dur-fast) var(--ease-out-soft)}
+.nkauth-back svg{width:15px;height:15px;transition:transform var(--dur-base) var(--ease-out-soft)}
+.nkauth-back:hover{color:var(--green);background:var(--green-tint)}
+.nkauth-back:hover svg{transform:translateX(-2px)}
+.nkauth-back:focus-visible{outline:2px solid var(--green);outline-offset:2px;border-radius:100px}
+/* Zone centrale : la carte est centrée verticalement, en flux, sans overflow. */
+.nkauth-center{flex:1 1 auto;display:grid;place-items:center;min-width:0}
+.nkauth-inner{width:100%;max-width:var(--nkauth-w,440px);min-width:0}
+@media (min-width:640px){.nkauth-main{padding:20px 24px 48px}}
+@media (min-width:1024px){.nkauth-main{padding:24px 40px 40px}.nkauth-topbar{margin-bottom:0}}
+@media (min-width:1280px){.nkauth-main{padding:28px 64px 48px}}
+
+/* Double-bezel : coque translucide + liseré, cœur blanc à rayon concentrique. */
+.nkauth-bezel{padding:var(--bz-p);border-radius:var(--bz-r);background:rgba(14,21,18,.035);
+  box-shadow:inset 0 0 0 1px rgba(14,21,18,.06),inset 0 1px 0 rgba(255,255,255,.6),var(--shadow-card)}
+.nkauth-card{border-radius:calc(var(--bz-r) - var(--bz-p));background:#fff;padding:26px 20px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 1px 2px rgba(14,21,18,.05)}
+@media (min-width:640px){.nkauth-card{padding:34px 34px}}
+@media (max-width:639px){.nkauth{--bz-r:22px;--bz-p:6px}}
+
+.nkauth-head{display:flex;flex-direction:column;gap:6px;margin-bottom:22px}
+.nkauth-head h1,.nkauth-head h2{font-family:var(--font-sora),"Sora",sans-serif;font-weight:600;letter-spacing:-.03em;line-height:1.15;font-size:1.55rem;color:var(--ink);text-wrap:balance}
+.nkauth-head p{color:var(--grey);font-size:.9rem;line-height:1.5}
+.nkauth-head .icon-disc{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;margin-bottom:10px;
+  color:var(--green);background:var(--green-tint);box-shadow:inset 0 0 0 1px var(--green-tint-2),inset 0 1px 0 #fff}
+.nkauth-head .icon-disc svg{width:24px;height:24px}
+.nkauth-head--center{align-items:center;text-align:center}
+
+/* ── Champs ────────────────────────────────────────────────────── */
+.nkauth-form{display:flex;flex-direction:column;gap:16px}
+.nkauth-field{display:flex;flex-direction:column;gap:7px;min-width:0}
+.nkauth-label{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.8125rem;font-weight:600;color:var(--ink);line-height:1.3}
+.nkauth-label .req{color:var(--green);margin-left:2px}
+.nkauth-label-aside{font-size:.78rem;font-weight:600;white-space:nowrap}
+.nkauth-control{position:relative}
+.nkauth-control>.ico{position:absolute;left:15px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--grey-l);pointer-events:none;
+  transition:color var(--dur-base) var(--ease-out-soft)}
+.nkauth-control:focus-within>.ico{color:var(--green)}
+.nkauth-input{width:100%;height:50px;border-radius:14px;border:1px solid var(--line);background:var(--field);color:var(--ink);
+  font:inherit;font-size:.9375rem;padding:0 14px;box-shadow:inset 0 1px 2px rgba(14,21,18,.03);appearance:none;
+  transition:border-color var(--dur-base) var(--ease-out-soft),box-shadow var(--dur-base) var(--ease-out-soft),background-color var(--dur-base) var(--ease-out-soft)}
+.nkauth-input.has-ico{padding-left:44px}
+.nkauth-input.has-trail{padding-right:50px}
+.nkauth-input::placeholder{color:var(--grey-l)}
+.nkauth-input:hover{border-color:#CBD8D0}
+/* Le focus est porté par la bordure + l'anneau : on neutralise l'outline
+   global (globals.css) qui imposerait aussi un rayon de 4 px. */
+.nkauth-input:focus,.nkauth-input:focus-visible{outline:none;border-radius:14px;border-color:var(--green);background:#fff;
+  box-shadow:0 0 0 4px rgba(0,110,47,.12),inset 0 1px 2px rgba(14,21,18,.02)}
+.nkauth-input[aria-invalid="true"],.nkauth-input.is-invalid{border-color:var(--danger)}
+.nkauth-input[aria-invalid="true"]:focus{box-shadow:0 0 0 4px rgba(180,35,24,.12)}
+.nkauth-trail{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:10px;
+  display:grid;place-items:center;color:var(--grey-l);background:transparent;border:0;cursor:pointer;padding:0;
+  transition:color var(--dur-fast) var(--ease-out-soft),background-color var(--dur-fast) var(--ease-out-soft)}
+.nkauth-trail:hover{color:var(--ink);background:var(--green-tint)}
+.nkauth-trail:focus-visible{outline:2px solid var(--green);outline-offset:2px;border-radius:10px}
+.nkauth-error{display:flex;gap:6px;align-items:flex-start;font-size:.78rem;font-weight:500;color:var(--danger);line-height:1.4}
+.nkauth-error svg{width:14px;height:14px;flex-shrink:0;margin-top:1px}
+.nkauth-hint{font-size:.78rem;color:var(--grey);line-height:1.4}
+.nkauth-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:400px){.nkauth-grid-2{grid-template-columns:1fr}}
+
+/* Case à cocher */
+.nkauth-check{display:flex;align-items:flex-start;gap:10px;font-size:.8rem;color:var(--grey);line-height:1.5;cursor:pointer}
+.nkauth-check input{flex-shrink:0;width:18px;height:18px;margin-top:1px;border-radius:5px;accent-color:var(--green);cursor:pointer}
+.nkauth-check input:focus-visible{outline:2px solid var(--green);outline-offset:2px;border-radius:5px}
+
+/* Critères du mot de passe */
+.nkauth-rules{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-top:2px}
+.nkauth-rules li{display:flex;align-items:center;gap:7px;font-size:.76rem;font-weight:500;color:var(--grey);list-style:none;
+  transition:color var(--dur-base) var(--ease-out-soft)}
+.nkauth-rules .tick{width:15px;height:15px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;color:#fff;background:#DCE3DE;
+  transition:background-color var(--dur-base) var(--ease-out-soft),transform var(--dur-base) var(--ease-out-soft)}
+.nkauth-rules .tick svg{width:9px;height:9px}
+.nkauth-rules li.ok{color:var(--green)}
+.nkauth-rules li.ok .tick{background:var(--green);transform:scale(1.08)}
+
+/* ── Boutons « verre » (repris de home.css) ────────────────────── */
+.nkauth .btn-glass{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:36px 1fr 36px;align-items:center;
+  width:100%;min-height:52px;padding:6px 7px;border:0;border-radius:100px;cursor:pointer;
+  font:inherit;font-weight:600;font-size:.95rem;line-height:1;text-align:center;color:var(--ink);
+  background:rgba(255,255,255,.7);
+  -webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.85),inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 1px rgba(14,21,18,.06),
+    0 1px 2px rgba(14,21,18,.05),0 12px 32px -14px rgba(3,35,20,.28);
+  transition:transform var(--dur-base) var(--ease-out-soft),box-shadow var(--dur-base) var(--ease-out-soft),background-color var(--dur-base) var(--ease-out-soft),opacity var(--dur-base) var(--ease-out-soft)}
+.nkauth .btn-glass>.lbl{grid-column:2;display:inline-flex;align-items:center;justify-content:center;gap:9px;min-width:0}
+.nkauth .btn-glass>.lbl svg{width:17px;height:17px;flex-shrink:0}
+.nkauth .btn-glass::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(115deg,rgba(255,255,255,.7) 0%,rgba(255,255,255,.12) 42%,rgba(255,255,255,0) 60%);
+  opacity:.9;transition:opacity var(--dur-base) var(--ease-out-soft)}
+.nkauth .btn-glass::after{content:"";position:absolute;top:-40%;bottom:-40%;left:0;width:45%;z-index:-1;pointer-events:none;
+  background:linear-gradient(100deg,rgba(255,255,255,0),rgba(255,255,255,.45),rgba(255,255,255,0));
+  transform:translateX(-160%) skewX(-18deg);transition:transform .7s var(--ease-out-soft)}
+.nkauth .btn-glass:hover:not(:disabled){transform:translateY(-2px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.95),inset 0 1px 0 #fff,inset 0 -1px 1px rgba(14,21,18,.06),
+    0 2px 4px rgba(14,21,18,.05),0 18px 40px -16px rgba(3,35,20,.32)}
+.nkauth .btn-glass:hover:not(:disabled)::before{opacity:1}
+.nkauth .btn-glass:hover:not(:disabled)::after{transform:translateX(320%) skewX(-18deg)}
+.nkauth .btn-glass:active:not(:disabled){transform:scale(.98);transition-duration:var(--dur-fast)}
+.nkauth .btn-glass:focus-visible{outline:2px solid var(--green);outline-offset:3px;border-radius:100px}
+.nkauth .btn-glass:disabled{cursor:not-allowed;opacity:.58}
+.nkauth .btn-glass.is-loading{cursor:progress;opacity:.9}
+/* Disque « bouton dans le bouton » : porte la flèche, ou le spinner en chargement. */
+.nkauth .btn-glass .btn-ico{grid-column:3;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(14,21,18,.06);box-shadow:inset 0 0 0 1px rgba(14,21,18,.05);
+  transition:transform var(--dur-base) var(--ease-out-soft),background-color var(--dur-base) var(--ease-out-soft)}
+.nkauth .btn-glass .btn-ico svg{width:15px;height:15px;transition:transform var(--dur-base) var(--ease-out-soft)}
+.nkauth .btn-glass:hover:not(:disabled) .btn-ico{transform:translate(1px,-1px) scale(1.06);background:rgba(14,21,18,.09)}
+.nkauth .btn-glass:hover:not(:disabled) .btn-ico svg{transform:translateX(1px)}
+.nkauth .btn-glass .btn-ico .spin{animation:nkauth-spin .9s linear infinite}
+/* Primaire : verre teinté du vert de marque (texte blanc ≥ 5:1). */
+.nkauth .btn-glass--primary{color:#fff;background:rgba(0,110,47,.92);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.28),inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 1px rgba(0,40,17,.35),
+    0 1px 2px rgba(3,35,20,.2),0 14px 34px -14px rgba(0,110,47,.6)}
+.nkauth .btn-glass--primary::before{background:linear-gradient(115deg,rgba(255,255,255,.34) 0%,rgba(255,255,255,.06) 42%,rgba(255,255,255,0) 60%)}
+.nkauth .btn-glass--primary:hover:not(:disabled){background:rgba(0,92,39,.95);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.34),inset 0 1px 0 rgba(255,255,255,.4),inset 0 -1px 1px rgba(0,40,17,.35),
+    0 2px 4px rgba(3,35,20,.2),0 20px 44px -16px rgba(0,110,47,.65)}
+.nkauth .btn-glass--primary .btn-ico{background:rgba(255,255,255,.16);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);color:#fff}
+.nkauth .btn-glass--primary:hover:not(:disabled) .btn-ico{background:rgba(255,255,255,.24)}
+/* Clair : verre blanc (Google, actions secondaires). */
+.nkauth .btn-glass--light{background:rgba(255,255,255,.8);box-shadow:inset 0 0 0 1px rgba(14,21,18,.08),inset 0 1px 0 #fff,
+    0 1px 2px rgba(14,21,18,.04),0 10px 24px -14px rgba(3,35,20,.2)}
+.nkauth .btn-glass--light:hover:not(:disabled){background:#fff;box-shadow:inset 0 0 0 1px rgba(14,21,18,.1),inset 0 1px 0 #fff,
+    0 2px 4px rgba(14,21,18,.04),0 16px 34px -16px rgba(3,35,20,.26)}
+/* Discret : contour seul (annuler, renvoyer…). */
+.nkauth .btn-glass--ghost{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;color:var(--green);
+  box-shadow:inset 0 0 0 1.5px var(--green-tint-2)}
+.nkauth .btn-glass--ghost::before,.nkauth .btn-glass--ghost::after{display:none}
+.nkauth .btn-glass--ghost:hover:not(:disabled){background:var(--green-tint);box-shadow:inset 0 0 0 1.5px var(--green-tint-2)}
+.nkauth .btn-glass--ghost .btn-ico{background:rgba(0,110,47,.08);box-shadow:inset 0 0 0 1px rgba(0,110,47,.1)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .nkauth .btn-glass{background:#fff}
+  .nkauth .btn-glass--primary{background:var(--green)}
+  .nkauth .btn-glass--primary:hover:not(:disabled){background:var(--green-hover)}
+}
+
+/* Séparateur « ou » */
+.nkauth-sep{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--grey);font-size:.78rem;font-weight:500}
+.nkauth-sep::before,.nkauth-sep::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* Liens et pied de carte */
+.nkauth-link{color:var(--green);font-weight:600;border-radius:4px;transition:color var(--dur-fast) var(--ease-out-soft)}
+.nkauth-link:hover{color:var(--green-hover);text-decoration:underline;text-underline-offset:3px}
+.nkauth-link:focus-visible{outline:2px solid var(--green);outline-offset:3px}
+.nkauth-link--muted{color:var(--grey);font-weight:500;display:inline-flex;align-items:center;gap:5px}
+.nkauth-link--muted:hover{color:var(--ink)}
+.nkauth-link--muted svg{width:15px;height:15px}
+.nkauth-foot{margin-top:22px;text-align:center;font-size:.86rem;color:var(--grey)}
+.nkauth-trust{margin-top:16px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:.74rem;color:var(--grey-l)}
+.nkauth-trust svg{width:13px;height:13px}
+/* Portail croisé (vendeur ↔ acheteur) sous la carte */
+.nkauth-cross{margin-top:14px;display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:18px;
+  background:rgba(255,255,255,.65);box-shadow:inset 0 0 0 1px rgba(14,21,18,.06),inset 0 1px 0 #fff;
+  transition:box-shadow var(--dur-base) var(--ease-out-soft),transform var(--dur-base) var(--ease-out-soft)}
+.nkauth-cross:hover{transform:translateY(-1px);box-shadow:inset 0 0 0 1px rgba(14,21,18,.08),inset 0 1px 0 #fff,0 12px 28px -18px rgba(3,35,20,.3)}
+.nkauth-cross .disc{flex-shrink:0;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:var(--green);background:var(--green-tint);box-shadow:inset 0 0 0 1px var(--green-tint-2)}
+.nkauth-cross .disc svg{width:17px;height:17px}
+.nkauth-cross .txt{flex:1;min-width:0;font-size:.8rem;color:var(--grey);line-height:1.4}
+.nkauth-cross .txt b{display:block;color:var(--ink);font-weight:600;font-size:.84rem}
+.nkauth-cross .go{flex-shrink:0;display:inline-flex;align-items:center;gap:4px;font-size:.8rem;font-weight:600;color:var(--green);white-space:nowrap}
+.nkauth-cross .go svg{width:14px;height:14px;transition:transform var(--dur-base) var(--ease-out-soft)}
+.nkauth-cross:hover .go svg{transform:translateX(2px)}
+.nkauth-cross:focus-visible{outline:2px solid var(--green);outline-offset:3px;border-radius:18px}
+@media (max-width:400px){.nkauth-cross .go span{display:none}}
+
+/* Bandeaux d'état */
+.nkauth-alert{display:flex;gap:10px;align-items:flex-start;border-radius:14px;padding:12px 14px;font-size:.84rem;line-height:1.45;border:1px solid;margin-bottom:18px}
+.nkauth-alert svg{width:17px;height:17px;flex-shrink:0;margin-top:1px}
+.nkauth-alert b{display:block;font-weight:600}
+.nkauth-alert--error{background:var(--danger-bg);border-color:var(--danger-line);color:#7A271A}
+.nkauth-alert--error svg{color:var(--danger)}
+.nkauth-alert--success{background:var(--green-tint);border-color:var(--green-tint-2);color:#0B4A22}
+.nkauth-alert--success svg{color:var(--green)}
+.nkauth-alert--info{background:#FFF8E6;border-color:#F3E2B3;color:#6B4A0A}
+.nkauth-alert--info svg{color:#B7791F}
+.nkauth-alert .lnk{font-weight:600;text-decoration:underline;text-underline-offset:2px;display:inline-flex;align-items:center;gap:4px;margin-top:6px;background:none;border:0;padding:0;font:inherit;cursor:pointer;color:inherit}
+.nkauth-alert .lnk:hover{text-decoration:none}
+
+/* Écran de succès (icône en disque, texte centré) */
+.nkauth-success{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px}
+.nkauth-success .disc{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;color:var(--green);background:var(--green-tint);
+  box-shadow:inset 0 0 0 1px var(--green-tint-2),inset 0 1px 0 #fff,0 14px 30px -16px rgba(0,110,47,.4);margin-bottom:6px}
+.nkauth-success .disc svg{width:30px;height:30px}
+.nkauth-success h2{font-family:var(--font-sora),"Sora",sans-serif;font-weight:600;letter-spacing:-.03em;font-size:1.45rem;line-height:1.15}
+.nkauth-success p{color:var(--grey);font-size:.9rem;line-height:1.55}
+.nkauth-success .note{width:100%;text-align:left;margin-top:8px;margin-bottom:0}
+
+/* Cartes de rôle (inscription) */
+.nkauth-roles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+@media (min-width:640px){.nkauth-roles{grid-template-columns:repeat(4,1fr)}}
+.nkauth-role{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:12px;border-radius:18px;border:0;cursor:pointer;text-align:left;
+  font:inherit;color:var(--ink);background:var(--field);box-shadow:inset 0 0 0 1px var(--line);
+  transition:box-shadow var(--dur-base) var(--ease-out-soft),background-color var(--dur-base) var(--ease-out-soft),transform var(--dur-base) var(--ease-out-soft)}
+.nkauth-role:hover{background:#fff;box-shadow:inset 0 0 0 1px #CBD8D0,0 10px 24px -18px rgba(3,35,20,.3);transform:translateY(-1px)}
+.nkauth-role:focus-visible{outline:2px solid var(--green);outline-offset:3px;border-radius:18px}
+.nkauth-role[aria-pressed="true"]{background:#fff;box-shadow:inset 0 0 0 1.5px var(--role,var(--green)),0 12px 28px -18px rgba(3,35,20,.32)}
+.nkauth-role .pastille{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;color:var(--role,var(--green));background:color-mix(in srgb,var(--role,var(--green)) 10%,#fff);
+  transition:background-color var(--dur-base) var(--ease-out-soft),color var(--dur-base) var(--ease-out-soft),transform var(--dur-base) var(--ease-out-soft)}
+.nkauth-role .pastille svg{width:17px;height:17px}
+.nkauth-role[aria-pressed="true"] .pastille{color:#fff;background:var(--role,var(--green));transform:scale(1.04)}
+.nkauth-role .t{font-size:.82rem;font-weight:600;line-height:1.2}
+.nkauth-role .d{font-size:.7rem;color:var(--grey);line-height:1.3}
+.nkauth-role .coche{position:absolute;top:10px;right:10px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;color:#fff;background:var(--role,var(--green));
+  opacity:0;transform:scale(.5);transition:opacity var(--dur-base) var(--ease-out-soft),transform var(--dur-base) var(--ease-out-soft)}
+.nkauth-role .coche svg{width:10px;height:10px}
+.nkauth-role[aria-pressed="true"] .coche{opacity:1;transform:scale(1)}
+.nkauth-kicker{font-size:.68rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--grey);margin-bottom:10px}
+
+/* Liste déroulante des pays */
+.nkauth-menu{position:absolute;left:0;right:0;top:calc(100% + 8px);z-index:30;overflow:hidden;border-radius:18px;background:#fff;
+  box-shadow:inset 0 0 0 1px rgba(14,21,18,.06),0 24px 56px -20px rgba(3,35,20,.3);animation:nkauth-monte .32s var(--ease-out-soft) both}
+.nkauth-menu .search{padding:8px;border-bottom:1px solid var(--line)}
+.nkauth-menu .search input{height:40px;border-radius:10px;font-size:.875rem}
+.nkauth-menu ul{list-style:none;margin:0;padding:6px;max-height:224px;overflow-y:auto}
+.nkauth-menu li button{display:flex;width:100%;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;border:0;border-radius:10px;
+  background:transparent;font:inherit;font-size:.875rem;color:var(--ink);text-align:left;cursor:pointer;transition:background-color var(--dur-fast) var(--ease-out-soft)}
+.nkauth-menu li button.hl{background:var(--green-tint)}
+.nkauth-menu li button.sel{color:var(--green);font-weight:600}
+.nkauth-menu .empty{padding:18px;text-align:center;font-size:.85rem;color:var(--grey)}
+.nkauth-select{display:flex;align-items:center;gap:10px;text-align:left;cursor:pointer}
+.nkauth-select .val{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nkauth-select .val.ph{color:var(--grey-l)}
+.nkauth-select .chev{flex-shrink:0;width:16px;height:16px;color:var(--grey-l);transition:transform var(--dur-base) var(--ease-out-soft)}
+.nkauth-select[aria-expanded="true"] .chev{transform:rotate(180deg)}
+
+/* ── Code à 6 chiffres : cases visuelles, un seul vrai champ ───── */
+.nkauth-otp{position:relative;--n:6;--gap:8px}
+@media (min-width:400px){.nkauth-otp{--gap:10px}}
+.nkauth-otp-boxes{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:var(--gap)}
+.nkauth-otp-box{position:relative;height:58px;border-radius:14px;display:grid;place-items:center;
+  background:var(--field);box-shadow:inset 0 0 0 1px var(--line),inset 0 1px 2px rgba(14,21,18,.03);
+  font-family:var(--font-sora),"Sora",sans-serif;font-size:1.5rem;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;
+  transition:background-color var(--dur-base) var(--ease-out-soft),box-shadow var(--dur-base) var(--ease-out-soft)}
+.nkauth-otp-box.is-filled{background:#fff;box-shadow:inset 0 0 0 1px #CBD8D0,inset 0 1px 2px rgba(14,21,18,.02)}
+.nkauth-otp-box .digit{display:block;animation:nkauth-pop .28s var(--ease-out-soft)}
+.nkauth-otp-box .caret{position:absolute;width:2px;height:24px;border-radius:2px;background:var(--green);opacity:0}
+.nkauth-otp:focus-within .nkauth-otp-box.is-active .caret{animation:nkauth-caret 1s steps(2,jump-none) infinite}
+/* Anneau de focus qui glisse d'une case à l'autre (transform uniquement). */
+.nkauth-otp-ring{position:absolute;top:0;left:0;height:58px;width:calc((100% - (var(--n) - 1)*var(--gap))/var(--n));border-radius:14px;pointer-events:none;
+  box-shadow:0 0 0 1.5px var(--green),0 0 0 5px rgba(0,110,47,.12);opacity:0;
+  transform:translateX(calc(var(--i,0)*(100% + var(--gap))));
+  transition:transform var(--dur-base) var(--ease-out-soft),opacity var(--dur-fast) var(--ease-out-soft)}
+.nkauth-otp:focus-within .nkauth-otp-ring{opacity:1}
+.nkauth-otp-input{position:absolute;inset:0;z-index:2;width:100%;height:100%;margin:0;padding:0;border:0;background:transparent;
+  opacity:0;color:transparent;caret-color:transparent;font-size:16px;letter-spacing:1em;cursor:text}
+.nkauth-otp-input:focus,.nkauth-otp-input:focus-visible{outline:none}
+.nkauth-otp.is-error .nkauth-otp-box{box-shadow:inset 0 0 0 1px var(--danger)}
+.nkauth-otp.is-error .nkauth-otp-ring{box-shadow:0 0 0 1.5px var(--danger),0 0 0 5px rgba(180,35,24,.12)}
+.nkauth-otp.is-shake .nkauth-otp-boxes{animation:nkauth-shake .42s var(--ease-out-soft)}
+
+/* ── Entrées (CSS pur, dès le premier paint, sans JavaScript) ──── */
+.nkauth [data-reveal]{animation:nkauth-monte var(--dur-reveal) var(--ease-out-soft) backwards;animation-delay:calc(var(--d,0)*1ms)}
+.nkauth [data-reveal="fade"]{animation-name:nkauth-fondu}
+.nkauth .swap-label{animation:nkauth-fondu .35s var(--ease-out-soft) both}
+
+@keyframes nkauth-monte{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes nkauth-fondu{from{opacity:0}to{opacity:1}}
+@keyframes nkauth-mot{from{transform:translateY(115%)}to{transform:none}}
+@keyframes nkauth-pop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+@keyframes nkauth-caret{from{opacity:1}to{opacity:0}}
+@keyframes nkauth-spin{to{transform:rotate(360deg)}}
+@keyframes nkauth-shake{0%,100%{transform:none}20%{transform:translateX(-6px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+
+/* Reduced motion : tout est visible d'emblée, rien ne glisse ni ne tremble.
+   Le spinner reste (il informe), le survol ne se soulève plus. */
+@media (prefers-reduced-motion:reduce){
+  .nkauth [data-reveal],.nkauth .nkauth-line>span,.nkauth .swap-label,.nkauth-menu,.nkauth-otp-box .digit{animation:none}
+  .nkauth-otp.is-shake .nkauth-otp-boxes{animation:none}
+  .nkauth .btn-glass:hover:not(:disabled){transform:none}
+  .nkauth .btn-glass::after{display:none}
+  .nkauth-glow,.nkauth-otp-ring,.nkauth-role,.nkauth-cross{transition:none}
+}
