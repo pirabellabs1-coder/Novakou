@@ -1,15 +1,9 @@
 import "./formations.css";
-import { Inter } from "next/font/google";
+import { inter } from "@/lib/fonts";
 import { ConditionalPlatformNavbar, MainWithChrome } from "@/components/formations/ConditionalPlatformNavbar";
 import { ConditionalPlatformFooter } from "@/components/formations/ConditionalPlatformFooter";
 import { ToastContainer } from "@/components/ui/toast";
 
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  display: "swap",
-  variable: "--font-inter",
-});
 
 export default function FormationsLayout({
   children,

@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages, getTranslations } from "next-intl/server";
-import { Manrope } from "next/font/google";
+import { manrope } from "@/lib/fonts";
 import { Providers } from "./providers";
 import { ImpersonationBanner } from "@/components/admin/ImpersonationBanner";
 import { TrackingProvider } from "@/components/tracking/TrackingProvider";
@@ -17,12 +17,6 @@ import "./globals.css";
 // Manrope : self-hosted via next/font → preload + display=swap automatiques,
 // pas de FOIT bloquant. Avant : chargé via FontLoader client qui injectait
 // les <link> APRÈS hydration React → 22s de LCP sur mobile 4G.
-const manrope = Manrope({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-manrope",
-  weight: ["300", "400", "500", "600", "700", "800"],
-});
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("metadata");

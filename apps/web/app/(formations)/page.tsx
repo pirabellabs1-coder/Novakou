@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Sora } from "next/font/google";
+import { sora } from "@/lib/fonts";
 import { BestSellers } from "@/components/formations/BestSellers";
 import HomeClient from "./HomeClient";
 import "./home.css";
 
-const sora = Sora({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-sora", display: "swap" });
 
 export const metadata: Metadata = {
   // Pas de « Novakou » ici : le layout racine ajoute deja « | Novakou »
