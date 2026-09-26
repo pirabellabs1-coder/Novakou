@@ -256,3 +256,30 @@
 - **Preuve** : après nettoyage, RAM libre 2,8 Go ; les mêmes tests passent
   (55 specs en 7 min) là où ils échouaient par timeout.
 - **Priorité** : Haute.
+
+## Leçon du 2026-09-26 — mesurer une police sans le serveur de dev
+- **Problème** : caler la taille d'un titre pour qu'une ligne ne se coupe
+  jamais demandait de mesurer le texte rendu ; le serveur de dev partagé
+  était saturé (0,07 Go de RAM libre, 3 agents) et ne répondait plus.
+- **Solution** : une page HTML statique qui charge le vrai `.woff2` du dépôt
+  (`assets/fonts/sora-latin-wght.woff2`) en `@font-face` et reproduit les
+  règles de la page, ouverte en `file://` dans Chromium. Une seconde de
+  calcul, aucun serveur, et des largeurs exactes : « Vendez vos formations
+  et » mesure 12,06 px de large par px de police en Sora 700 à -0,04em.
+- **Piège** : mesurer un élément `display:block` renvoie la largeur du
+  CONTENEUR, pas celle du texte. Mesurer avec un `Range` sur le contenu
+  (`range.selectNodeContents(el)`) ou passer l'élément en `inline-block`.
+- **Règle** : pour toute question de métrique typographique, mesurer hors
+  application avant de deviner un `clamp()`.
+- **Priorité** : Normale.
+
+## Leçon du 2026-09-26 — une erreur d'hydratation qui n'existait pas
+- **Problème** : React #418 apparaissait dans mes vérifications Playwright.
+- **Cause racine** : mon script réutilisait le MÊME contexte de navigateur en
+  changeant de `setViewportSize` entre deux chargements, et supprimait des
+  nœuds du DOM avant capture. L'erreur venait du test, pas du site.
+- **Preuve** : 0 erreur sur 3 chargements en contexte neuf, sur /, /explorer
+  et /tarifs.
+- **Règle** : un contexte neuf par mesure ; ne jamais conclure à un bug de
+  production depuis une session de test réutilisée.
+- **Priorité** : Normale.

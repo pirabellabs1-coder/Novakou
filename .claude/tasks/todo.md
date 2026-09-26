@@ -206,6 +206,11 @@ fonctionnel, passerelle par passerelle, partout.
 - ✅ VÉRIFIÉE Fiches produit / formation / pack — `components/formations/fiche/` (règle fondateur : ni ventes ni date)
 - ✅ VÉRIFIÉE Boutiques publiques — `components/formations/boutique/`
 - ✅ VÉRIFIÉE 12 pages publiques (fonctionnalités, tarifs, affiliation, mentors, académie, aide, à propos, contact, partenaires, confiance, doc paiements, guides) — `components/formations/public/` ; validateur SEO prod 13/13
-- 📋 PLANIFIÉE Aligner /kyc, /wallet, /messages sur DashboardShell
-- 📋 PLANIFIÉE Raccourcir /fonctionnalites (≈15 000 px desktop, 26 000 px mobile : trop long)
+- ✅ VÉRIFIÉE Aligner /kyc, /wallet, /messages sur DashboardShell
+- ✅ VÉRIFIÉE Raccourcir /fonctionnalites (14 937→7 329 px desktop, 25 822→11 740 px mobile)
+- ✅ VÉRIFIÉE Titre du hero en triangle inversé (3 lignes décroissantes, 320→1920 px)
+- ✅ VÉRIFIÉE Plus de titre « Description » redondant sur les fiches
+- 🔄 EN_COURS Pages de contenu (gabarit des 33 guides, légales, aide, 404, maintenance, freelances/services/nouveautés)
+- 🔄 EN_COURS Parcours d'achat (checkout, lien de paiement, attente, panier, abonnement, vitrine affilié) — visuel uniquement
+- 📋 PLANIFIÉE Les 17 anciens guides écrits à la main (~1 500 l. chacun) : extraire leurs composants locaux communs (TipBox, WarnBox, ProTip, SectionHeading, MockupFrame, TOC, FAQ) en versions premium partagées, sans toucher au texte
 - ⏸️ BLOQUÉE côté fondateur : recharge OpenRouter (502 /api/ai/chat), URI Google localhost:3001 en console, claim novakou.com dans Vercel, VPS proxy + IP FeexPay, mail PawaPay, fonds FedaPay → étape 3
