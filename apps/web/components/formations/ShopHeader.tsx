@@ -1,19 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ArrowRight, ShoppingBag } from "lucide-react";
 import { SelecteurDevise } from "@/components/formations/SelecteurDevise";
+import { useScrolled } from "@/components/formations/nav/use-scrolled";
+import { accentVars } from "./boutique/accent";
+import { ShopCartButton } from "./boutique/ShopCartButton";
+import { ShopMobileMenu, type ShopNavLink } from "./boutique/ShopMobileMenu";
+import "./boutique/boutique.css";
 
 /**
- * Barre de navigation d'une BOUTIQUE vendeur.
+ * Barre de navigation d'une BOUTIQUE vendeur : île en verre aux couleurs du
+ * vendeur, même famille que le menu public — en plus sobre.
  *
- * Extraite de BoutiqueView pour être réutilisée sur les fiches produit et
- * formation : un acheteur venu d'une boutique doit rester dans l'univers de
- * cette boutique, et ne jamais retomber sur le menu général de la plateforme
- * (Explorer, Marketplace, Tarifs…) qui l'enverrait vers la concurrence.
+ * Réutilisée sur les fiches produit et formation : un acheteur venu d'une
+ * boutique doit rester dans l'univers de cette boutique, et ne jamais
+ * retomber sur le menu général de la plateforme (Explorer, Marketplace,
+ * Tarifs…) qui l'enverrait vers la concurrence.
  *
  * Cohérent avec la règle d'anonymat : on n'affiche que l'identité de la
  * BOUTIQUE (nom + logo), jamais celle de la personne derrière.
+ *
+ * `fixed` et non `sticky` : les adresses courtes sont rendues sous un <main>
+ * en `overflow-x: hidden` qui neutralise sticky (le menu partait avec la
+ * page). Un espace réservé garde la hauteur dans le flux.
  */
 export function ShopHeader({
   shopName,
@@ -27,91 +40,138 @@ export function ShopHeader({
   themeColor?: string | null;
   staticBase?: string;
 }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const color = themeColor || "#006e2f";
+  const pathname = usePathname() || "/";
   const home = staticBase || "/";
+  const { scrolled, sentinelRef, sentinelStyle } = useScrolled(24);
+  const [open, setOpen] = useState(false);
+  const headerRef = useRef<HTMLElement | null>(null);
+  const burgerRef = useRef<HTMLButtonElement | null>(null);
 
-  const links = [
-    { href: home, label: "Produits", icon: "storefront" },
-    { href: `${staticBase}/a-propos`, label: "À propos", icon: "info" },
-    { href: `${staticBase}/contact`, label: "Contact", icon: "mail" },
-    { href: "/apprenant/mes-produits", label: "Mes achats", icon: "shopping_bag" },
+  // Fermeture à la navigation (les liens ferment déjà au clic ; ceci couvre
+  // le retour arrière et les redirections).
+  useEffect(() => setOpen(false), [pathname]);
+
+  // Page courante : l'accueil répond à l'adresse courte, à la racine d'un
+  // domaine perso et à l'ancienne adresse /boutique/<slug>.
+  const chemin = pathname.replace(/\/+$/, "") || "/";
+  const accueil = home.replace(/\/+$/, "") || "/";
+  const links: ShopNavLink[] = [
+    { href: home, label: "Produits", current: chemin === accueil || chemin === `/boutique${staticBase}` },
+    { href: `${staticBase}/a-propos`, label: "À propos", current: chemin.endsWith("/a-propos") },
+    { href: `${staticBase}/contact`, label: "Contact", current: chemin.endsWith("/contact") },
   ];
 
+  /**
+   * Menu mobile ouvert : Échap referme et rend le focus au hamburger ; Tab
+   * boucle entre les contrôles visibles du header (hamburger inclus), pour
+   * ne pas envoyer le clavier sous le voile.
+   */
+  function onHeaderKeyDown(e: KeyboardEvent<HTMLElement>) {
+    if (!open) return;
+    if (e.key === "Escape") {
+      e.preventDefault();
+      setOpen(false);
+      burgerRef.current?.focus();
+      return;
+    }
+    if (e.key !== "Tab" || !headerRef.current) return;
+    const nodes = Array.from(headerRef.current.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')).filter(
+      (el) => el.getClientRects().length > 0,
+    );
+    if (!nodes.length) return;
+    const first = nodes[0];
+    const last = nodes[nodes.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+
   return (
-    <nav className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/70">
-      <div className="max-w-6xl mx-auto px-5 md:px-8 h-14 flex items-center justify-between gap-4">
-        <a href={home} className="flex items-center gap-2.5 min-w-0">
-          {logoUrl ? (
-            <Image
-              src={logoUrl}
-              alt={shopName}
-              width={32}
-              height={32}
-              className="w-8 h-8 rounded-lg object-contain bg-white border border-slate-200 flex-shrink-0"
-              unoptimized
-            />
-          ) : (
-            <span
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-extrabold text-sm flex-shrink-0"
-              style={{ background: color }}
-            >
-              {shopName[0]?.toUpperCase() ?? "N"}
-            </span>
-          )}
-          <span className="font-extrabold text-slate-900 truncate text-sm md:text-base">{shopName}</span>
-        </a>
+    <>
+      {/* Témoin de défilement observé par IntersectionObserver (aucun écouteur scroll). */}
+      <span
+        ref={sentinelRef}
+        aria-hidden="true"
+        style={{ ...sentinelStyle, position: "absolute", top: 0, left: 0, width: 1, pointerEvents: "none" }}
+      />
+      <div className="nkb-nav__spacer" aria-hidden="true" />
 
-        <div className="hidden sm:flex items-center gap-6 text-sm font-semibold text-slate-600">
-          <a href={home} className="hover:text-slate-900 transition-colors">Produits</a>
-          <a href={`${staticBase}/a-propos`} className="hover:text-slate-900 transition-colors">À propos</a>
-          <a href={`${staticBase}/contact`} className="hover:text-slate-900 transition-colors">Contact</a>
-          <a href="https://novakou.com" className="inline-flex items-center gap-1 hover:text-slate-900 transition-colors">
-            <span className="material-symbols-outlined text-[17px]">storefront</span>
-            Novakou
-          </a>
-        </div>
+      <header
+        ref={headerRef}
+        className="nkb nkb-nav"
+        style={accentVars(themeColor)}
+        data-scrolled={scrolled ? "" : undefined}
+        onKeyDown={onHeaderKeyDown}
+      >
+        <div className="nkb-nav__inner">
+          <div className="nkb-nav__island">
+            <span className="nkb-nav__glass" aria-hidden="true" />
+            <span className="nkb-nav__glass-dense" aria-hidden="true" />
 
-        <div className="flex items-center gap-1">
-          {/* Le pays se choisit avant l'achat, pas au moment de payer : un prix
-              lisible dans sa propre devise est ce qui décide un visiteur. */}
-          <SelecteurDevise />
-          <a
-            href="/apprenant/mes-produits"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 hover:text-slate-900 transition-colors flex-shrink-0 px-2 py-1"
-          >
-            <span className="material-symbols-outlined text-[19px]">shopping_bag</span>
-            <span className="hidden md:inline">Mes achats</span>
-          </a>
-          <button
-            type="button"
-            onClick={() => setMenuOpen((o) => !o)}
-            aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
-            aria-expanded={menuOpen}
-            className="sm:hidden inline-flex items-center justify-center w-9 h-9 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors"
-          >
-            <span className="material-symbols-outlined text-[24px]">{menuOpen ? "close" : "menu"}</span>
-          </button>
-        </div>
-      </div>
+            <a href={home} className="nkb-nav__logo" aria-label={`${shopName} — accueil de la boutique`}>
+              {logoUrl ? (
+                <span className="nkb-nav__mark">
+                  <Image src={logoUrl} alt="" width={36} height={36} unoptimized />
+                </span>
+              ) : (
+                <span className="nkb-nav__mark nkb-nav__mark--initial" aria-hidden="true">
+                  {shopName.trim().charAt(0).toUpperCase() || "N"}
+                </span>
+              )}
+              <span className="nkb-nav__name">{shopName}</span>
+            </a>
 
-      {menuOpen && (
-        <div className="sm:hidden border-t border-slate-200/70 bg-white/95 backdrop-blur-md">
-          <div className="max-w-6xl mx-auto px-5 py-2 flex flex-col">
-            {[...links, { href: "https://novakou.com", label: "Retour à Novakou", icon: "home" }].map((l) => (
-              <a
-                key={l.label}
-                href={l.href}
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-3 py-3 px-2 text-sm font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors"
-              >
-                <span className="material-symbols-outlined text-[20px]" style={{ color }}>{l.icon}</span>
-                {l.label}
+            <nav aria-label="Menu de la boutique" className="nkb-nav__links">
+              <ul>
+                {links.map((l) => (
+                  <li key={l.label}>
+                    <a href={l.href} className="nkb-nav__link" aria-current={l.current ? "page" : undefined}>
+                      {l.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+
+            <div className="nkb-nav__actions">
+              {/* Le pays se choisit avant l'achat, pas au moment de payer : un prix
+                  lisible dans sa propre devise est ce qui décide un visiteur. */}
+              <div className="nkb-nav__devise">
+                <SelecteurDevise />
+              </div>
+              <ShopCartButton />
+              <Link href="/apprenant/mes-produits" className="nkb-btn nkb-btn--glass nkb-btn--achats">
+                <ShoppingBag strokeWidth={1.75} aria-hidden="true" />
+                Mes achats
+              </Link>
+              <a href={`${home}#catalogue`} className="nkb-btn nkb-btn--primary nkb-btn--cta">
+                Voir les produits
+                <span className="nkb-btn__ico" aria-hidden="true">
+                  <ArrowRight strokeWidth={2.2} />
+                </span>
               </a>
-            ))}
+              <button
+                ref={burgerRef}
+                type="button"
+                className="nkb-burger"
+                aria-expanded={open}
+                aria-controls="nkb-mobile-menu"
+                aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
+                onClick={() => setOpen((o) => !o)}
+              >
+                <span className="nkb-burger__bar" aria-hidden="true" />
+                <span className="nkb-burger__bar" aria-hidden="true" />
+              </button>
+            </div>
           </div>
         </div>
-      )}
-    </nav>
+
+        <ShopMobileMenu open={open} onClose={() => setOpen(false)} links={links} home={home} />
+      </header>
+    </>
   );
 }

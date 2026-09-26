@@ -7,6 +7,7 @@ import BoutiqueView from "@/components/formations/BoutiqueView";
 import TrackPageView from "@/components/tracking/TrackPageView";
 import { shopFontHref } from "@/lib/formations/shop-fonts";
 import { productImageSrc } from "@/lib/utils/image-url";
+import { fusionnerAvis } from "@/components/formations/boutique/avis";
 
 // ATTENTION — ce `revalidate` n'a AUCUN effet aujourd'hui : le layout racine
 // lit le cookie de langue via next-intl (i18n/request.ts appelle `cookies()`),
@@ -90,18 +91,21 @@ const resolve = cache(async (slugParam: string) => {
         socialInstagram: true,
         socialLinkedin: true,
         socialYoutube: true,
+        createdAt: true, // « Membre depuis » dans le hero
         instructeur: {
           select: {
             id: true,
             bioFr: true,
             // Anonymat : on ne charge PAS l'identite perso (nom/email/avatar).
+            // Seul le NIVEAU KYC (un entier) sert au badge « Vendeur vérifié ».
+            user: { select: { kyc: true } },
           },
         },
       },
     });
     if (!shop) return null;
 
-    const [formations, products, bundles, subscriptionPlans] = await Promise.all([
+    const [formations, products, bundles, subscriptionPlans, avisFormations, avisProduits] = await Promise.all([
       prisma.formation.findMany({
         // Multi-shop : seulement les produits liés à CETTE boutique
         where: { shopId: shop.id, status: "ACTIF" },
@@ -144,9 +148,24 @@ const resolve = cache(async (slugParam: string) => {
         orderBy: { createdAt: "desc" },
         take: 24,
       }),
+      // Avis récents avec commentaire (formations + produits de CETTE boutique)
+      // pour la section « Ce qu'en disent les élèves ». Anonymat : seul le
+      // prénom de l'auteur sera affiché (cf. boutique/avis.ts).
+      prisma.formationReview.findMany({
+        where: { formation: { shopId: shop.id, status: "ACTIF" }, rating: { gte: 4 }, comment: { not: "" } },
+        select: { id: true, rating: true, comment: true, createdAt: true, user: { select: { name: true } }, formation: { select: { title: true } } },
+        orderBy: { createdAt: "desc" },
+        take: 6,
+      }),
+      prisma.digitalProductReview.findMany({
+        where: { product: { shopId: shop.id, status: "ACTIF" }, rating: { gte: 4 }, comment: { not: "" } },
+        select: { id: true, rating: true, comment: true, createdAt: true, user: { select: { name: true } }, product: { select: { title: true } } },
+        orderBy: { createdAt: "desc" },
+        take: 6,
+      }),
     ]);
 
-    return { shop, formations, products, bundles, subscriptionPlans };
+    return { shop, formations, products, bundles, subscriptionPlans, avisFormations, avisProduits };
   } catch (err) {
     console.error("[boutique/slug] lookup failed:", err);
     return null;
@@ -165,9 +184,13 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
     notFound();
   }
 
-  const { shop, formations, products, bundles, subscriptionPlans } = data;
+  const { shop, formations, products, bundles, subscriptionPlans, avisFormations, avisProduits } = data;
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
   const fontHref = shopFontHref(shop.font);
+  const reviews = fusionnerAvis([
+    avisFormations.map((a) => ({ ...a, titre: a.formation.title })),
+    avisProduits.map((a) => ({ ...a, titre: a.product.title })),
+  ]);
   return (
     <>
       {fontHref && <link rel="stylesheet" href={fontHref} />}
@@ -212,6 +235,18 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
       />
       <BoutiqueView
         afficherVentes={shop.showSalesCount}
+        reviews={reviews}
+        memberSince={shop.createdAt.toISOString()}
+        verified={(shop.instructeur?.user?.kyc ?? 1) >= 2}
+        socials={{
+          email: shop.contactEmail,
+          whatsapp: shop.whatsapp,
+          website: shop.websiteUrl,
+          facebook: shop.socialFacebook,
+          instagram: shop.socialInstagram,
+          linkedin: shop.socialLinkedin,
+          youtube: shop.socialYoutube,
+        }}
       instructeurId={shop.instructeur?.id}
       shopSlug={shop.slug}
       font={shop.font}

@@ -6,6 +6,7 @@ import { ROOT_DOMAIN } from "@/lib/formations/shop-subdomain";
 import BoutiqueView from "@/components/formations/BoutiqueView";
 import { shopFontHref } from "@/lib/formations/shop-fonts";
 import { productImageSrc } from "@/lib/utils/image-url";
+import { fusionnerAvis } from "@/components/formations/boutique/avis";
 
 interface Props {
   params: Promise<{ host: string }>;
@@ -33,18 +34,30 @@ const resolve = cache(async (hostParam: string) => {
         coverUrl: true,
         themeColor: true,
         font: true,
+        createdAt: true, // « Membre depuis » dans le hero
+        showSalesCount: true,
+        // Identité PUBLIQUE de la boutique (réseaux, contact) — comme /boutique/[slug].
+        contactEmail: true,
+        whatsapp: true,
+        websiteUrl: true,
+        socialFacebook: true,
+        socialInstagram: true,
+        socialLinkedin: true,
+        socialYoutube: true,
         instructeur: {
           select: {
             id: true,
             bioFr: true,
             // Anonymat : on ne charge PAS l'identite perso (nom/email/avatar).
+            // Seul le NIVEAU KYC (un entier) sert au badge « Vendeur vérifié ».
+            user: { select: { kyc: true } },
           },
         },
       },
     });
     if (!shop) return null;
 
-    const [formations, products, bundles, subscriptionPlans] = await Promise.all([
+    const [formations, products, bundles, subscriptionPlans, avisFormations, avisProduits] = await Promise.all([
       prisma.formation.findMany({
         // Multi-shop : seulement les produits de CETTE boutique
         where: { shopId: shop.id, status: "ACTIF" },
@@ -84,9 +97,22 @@ const resolve = cache(async (hostParam: string) => {
         orderBy: { createdAt: "desc" },
         take: 24,
       }),
+      // Avis récents avec commentaire — même section que sur /boutique/[slug].
+      prisma.formationReview.findMany({
+        where: { formation: { shopId: shop.id, status: "ACTIF" }, rating: { gte: 4 }, comment: { not: "" } },
+        select: { id: true, rating: true, comment: true, createdAt: true, user: { select: { name: true } }, formation: { select: { title: true } } },
+        orderBy: { createdAt: "desc" },
+        take: 6,
+      }),
+      prisma.digitalProductReview.findMany({
+        where: { product: { shopId: shop.id, status: "ACTIF" }, rating: { gte: 4 }, comment: { not: "" } },
+        select: { id: true, rating: true, comment: true, createdAt: true, user: { select: { name: true } }, product: { select: { title: true } } },
+        orderBy: { createdAt: "desc" },
+        take: 6,
+      }),
     ]);
 
-    return { shop, formations, products, bundles, subscriptionPlans, normalized };
+    return { shop, formations, products, bundles, subscriptionPlans, avisFormations, avisProduits, normalized };
   } catch (err) {
     console.error("[boutique/by-domain] lookup failed:", err);
     return null;
@@ -143,13 +169,30 @@ export default async function BoutiqueByDomainPage({ params }: Props) {
   const data = await resolve(host);
   if (!data) notFound();
 
-  const { shop, formations, products, bundles, subscriptionPlans, normalized } = data;
+  const { shop, formations, products, bundles, subscriptionPlans, avisFormations, avisProduits, normalized } = data;
   const fontHref = shopFontHref(shop.font);
+  const reviews = fusionnerAvis([
+    avisFormations.map((a) => ({ ...a, titre: a.formation.title })),
+    avisProduits.map((a) => ({ ...a, titre: a.product.title })),
+  ]);
   return (
     <>
       {fontHref && <link rel="stylesheet" href={fontHref} />}
     <BoutiqueView
       font={shop.font}
+      afficherVentes={shop.showSalesCount}
+      reviews={reviews}
+      memberSince={shop.createdAt.toISOString()}
+      verified={(shop.instructeur?.user?.kyc ?? 1) >= 2}
+      socials={{
+        email: shop.contactEmail,
+        whatsapp: shop.whatsapp,
+        website: shop.websiteUrl,
+        facebook: shop.socialFacebook,
+        instagram: shop.socialInstagram,
+        linkedin: shop.socialLinkedin,
+        youtube: shop.socialYoutube,
+      }}
       owner={{
         // Anonymat : identite = boutique uniquement (jamais nom/email/avatar perso).
         name: shop.name || "Boutique",
