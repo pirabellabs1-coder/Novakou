@@ -67,6 +67,9 @@ export async function GET(request: NextRequest) {
   const nonConclues = {
     status: { in: ["STARTED", "ABANDONED"] },
     providerRef: { not: null },
+    // Consultation de statut refusée définitivement par le fournisseur (4xx) :
+    // réinterroger ne donnera jamais rien. Marquée par reconcile-collect.
+    NOT: { failureCode: "verification_impossible" },
   } satisfies Prisma.CheckoutAttemptWhereInput;
 
   const recentesAReprendre = await prisma.checkoutAttempt.findMany({

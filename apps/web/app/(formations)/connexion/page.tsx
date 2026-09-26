@@ -16,6 +16,7 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import { getDashboardForFormationsRole } from "@/lib/formations/role-routing";
+import { redirigerVersOrigineAuth } from "@/lib/auth/oauth-origin";
 
 /* ─────────────────────────── Contenu statique ─────────────────────────── */
 
@@ -294,6 +295,7 @@ function ConnexionInner() {
   }
 
   async function handleGoogle() {
+    if (redirigerVersOrigineAuth()) return;
     setLoading(true);
     setError(null);
     // Set pending formationsRole cookie before OAuth redirect
@@ -309,6 +311,14 @@ function ConnexionInner() {
     // the correct role dashboard once the session is set.
     await signIn("google", { callbackUrl: callbackUrlParam ?? "/" });
   }
+
+  // Arrivée depuis un autre hôte (cf. lib/auth/oauth-origin) : on relance
+  // Google sans redemander un clic.
+  useEffect(() => {
+    if (searchParams.get("oauth") !== "google" || status !== "unauthenticated") return;
+    void handleGoogle();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, status]);
 
   return (
     <div className="flex min-h-[calc(100vh-96px)]">

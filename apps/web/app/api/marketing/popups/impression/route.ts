@@ -63,10 +63,14 @@ export async function POST(req: NextRequest) {
     });
 
     // Update popup stats counters
-    const incrementField: Record<string, string> = {
-      view: "impressions",
-      click: "clicks",
-      convert: "conversions",
+    // Noms RÉELS des compteurs du modèle SmartPopup. Les anciens
+    // (« impressions », « clicks ») n'existaient pas : chaque vue et chaque clic
+    // levait une PrismaClientValidationError — 43 en 24 h — et les statistiques
+    // des pop-ups restaient à zéro.
+    const incrementField: Record<string, "totalImpressions" | "totalClicks" | "totalConversions"> = {
+      view: "totalImpressions",
+      click: "totalClicks",
+      convert: "totalConversions",
     };
 
     const field = incrementField[action];

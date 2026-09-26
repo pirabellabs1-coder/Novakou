@@ -462,7 +462,10 @@ export function normalizeFedapayTransactionStatus(s: string | undefined | null):
   const v = String(s ?? "").toLowerCase();
   if (v === "approved" || v === "transferred") return "success";
   // « refunded » : l'argent est reparti, il ne faut surtout pas livrer.
-  if (v === "declined" || v === "canceled" || v === "cancelled" || v === "refunded") return "failed";
+  // « expired » : FedaPay a fermé la transaction sans paiement. La traiter
+  // comme « inconnue » la faisait re-consulter toutes les 5 min, sans fin
+  // (3 120 lignes de journal en 26 h pour des paiements morts depuis des mois).
+  if (v === "declined" || v === "canceled" || v === "cancelled" || v === "refunded" || v === "expired") return "failed";
 
   // Statut ININTELLIGIBLE. On reste sur « pending » — annoncer un échec
   // priverait de son produit un acheteur qui a peut-être payé — mais on le

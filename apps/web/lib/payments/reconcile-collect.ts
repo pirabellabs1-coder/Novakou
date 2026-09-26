@@ -254,15 +254,23 @@ export async function reconcileCollectAttempt(attempt: AttemptRow): Promise<Coll
     // sache qu'elle ne se débloquerait pas. On la classe « unknown » — la
     // catégorie qui appelle un examen humain — sans jamais la déclarer échouée.
     const permanente = Boolean((err as { permanent?: boolean })?.permanent);
-    return {
-      matched: true,
-      status: permanente ? "unknown" : "pending",
-      delivered: false,
-      attemptId: attempt.id,
-      reason:
-        (permanente ? "Appel de statut REFUSÉ (ne se résoudra pas seul) : " : "Statut indisponible : ") +
-        (err instanceof Error ? err.message : String(err)),
-    };
+    const reason =
+      (permanente ? "Appel de statut REFUSÉ (ne se résoudra pas seul) : " : "Statut indisponible : ") +
+      (err instanceof Error ? err.message : String(err));
+    if (permanente) {
+      // On la marque pour que les crons cessent de la reprendre : deux tentatives
+      // iPay d'août étaient re-consultées toutes les 5 min depuis sept semaines
+      // (624 appels et lignes de journal par jour), et occupaient les places du
+      // rattrapage des anciennes. Le statut ne change pas — c'est le diagnostic
+      // admin qui la liste pour vérification manuelle.
+      await prisma.checkoutAttempt
+        .update({
+          where: { id: attempt.id },
+          data: { failureCode: "verification_impossible", failureReason: reason.slice(0, 500) },
+        })
+        .catch(() => null);
+    }
+    return { matched: true, status: permanente ? "unknown" : "pending", delivered: false, attemptId: attempt.id, reason };
   }
 
   if (status === "pending") {

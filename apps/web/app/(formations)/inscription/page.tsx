@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect, useRef, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { redirigerVersOrigineAuth } from "@/lib/auth/oauth-origin";
 import { signIn } from "next-auth/react";
 import {
   AlertCircle,
@@ -464,6 +465,7 @@ function InscriptionInner() {
           : "/apprenant/dashboard");
 
   async function handleGoogle() {
+    if (redirigerVersOrigineAuth()) return;
     setLoading(true);
     // Store desired role in cookie so OAuth callback can pick it up
     if (formationsRole) {
