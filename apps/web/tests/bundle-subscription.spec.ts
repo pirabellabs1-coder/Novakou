@@ -17,10 +17,13 @@ test.describe("Bundle public page", () => {
   test("loads with payment selector + buy button", async ({ page }) => {
     // On utilise un vrai bundle de la prod pour le test
     // (sera adapté si le slug change, sinon le test détectera la 404)
-    await page.goto("/bundle/pack-marketing-premium");
-    // Si le bundle n'existe pas, on saute le test plutôt qu'échouer
-    const notFound = await page.locator("text=Pack introuvable").count();
-    test.skip(notFound > 0, "Bundle de référence absent — adapter le slug");
+    const reponse = await page.goto("/bundle/pack-marketing-premium");
+    // Si le bundle n'existe pas (base de test vide en CI, slug changé…), on
+    // saute plutôt qu'échouer : « Pack introuvable » n'est que le <title>, la
+    // page rendue est la 404 standard — c'est le statut HTTP qui fait foi.
+    const notFound =
+      reponse?.status() === 404 || (await page.getByText(/introuvable|page non trouvée|not found/i).count()) > 0;
+    test.skip(notFound, "Bundle de référence absent — adapter le slug");
 
     // Doit avoir le titre dans le H1
     await expect(page.locator("h1").first()).toBeVisible();

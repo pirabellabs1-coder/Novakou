@@ -36,7 +36,7 @@ export function FormationsFooter() {
 
   return (
     <footer className="bg-slate-50 w-full py-16 border-t border-slate-100" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-12 px-8 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 px-6 sm:px-8 max-w-7xl mx-auto">
 
         {/* Col 1 — Brand */}
         <div className="space-y-6">
@@ -85,7 +85,7 @@ export function FormationsFooter() {
               onChange={(e) => { setEmail(e.target.value); setStatus("idle"); }}
               placeholder="votre@email.com"
               disabled={status === "loading" || status === "success"}
-              className="flex-1 px-4 py-2 text-sm rounded-full border border-slate-200 bg-white outline-none focus:border-[#006e2f] transition-colors disabled:opacity-50"
+              className="flex-1 min-w-0 w-full px-4 py-2 text-sm rounded-full border border-slate-200 bg-white outline-none focus:border-[#006e2f] transition-colors disabled:opacity-50"
             />
             <button
               type="submit"

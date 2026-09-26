@@ -13,7 +13,7 @@ import localFont from "next/font/local";
 
 /** Corps de texte des espaces (variable --font-inter, cf. globals.css). */
 export const inter = localFont({
-  src: "../app/fonts/inter-latin-wght.woff2",
+  src: "../assets/fonts/inter-latin-wght.woff2",
   weight: "400 800",
   display: "swap",
   variable: "--font-inter",
@@ -21,7 +21,7 @@ export const inter = localFont({
 
 /** Police par défaut du site (layout racine). */
 export const manrope = localFont({
-  src: "../app/fonts/manrope-latin-wght.woff2",
+  src: "../assets/fonts/manrope-latin-wght.woff2",
   weight: "200 800",
   display: "swap",
   variable: "--font-manrope",
@@ -29,7 +29,7 @@ export const manrope = localFont({
 
 /** Titres de la page d'accueil. */
 export const sora = localFont({
-  src: "../app/fonts/sora-latin-wght.woff2",
+  src: "../assets/fonts/sora-latin-wght.woff2",
   weight: "100 800",
   display: "swap",
   variable: "--font-sora",

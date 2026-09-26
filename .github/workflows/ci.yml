@@ -89,7 +89,10 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: pnpm --filter @freelancehigh/web exec playwright install --with-deps chromium
+        # chromium ET webkit : playwright.config.ts fait tourner un profil
+        # « Mobile Safari » (WebKit). Sans WebKit installé, ses 85 tests
+        # échouaient au lancement du navigateur, pas sur le code testé.
+        run: pnpm --filter @freelancehigh/web exec playwright install --with-deps chromium webkit
 
       - name: Apply database schema
         # `db push` et non `migrate deploy` : cette base est JETABLE, recreee a

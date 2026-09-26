@@ -22,7 +22,8 @@ test.describe("Authentication Pages", () => {
     const inscriptionLink = page.locator('a[href*="inscription"]').first();
     if (await inscriptionLink.isVisible()) {
       await inscriptionLink.click();
-      await expect(page).toHaveURL(/inscription/);
+      // next dev compile /inscription à la première visite : plus de 5 s en CI.
+      await expect(page).toHaveURL(/inscription/, { timeout: 20_000 });
     }
   });
 });

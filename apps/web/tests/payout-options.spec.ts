@@ -41,15 +41,11 @@ test("aucun moyen de retrait proposé sans passerelle capable de le payer", () =
  * qu'un AUTRE operateur rejoint ce cas, pour que la liste ne grossisse pas en
  * silence. Retirer une ligne d'ici le jour ou le pays est ouvert.
  */
-const PAYABLES_NON_OFFERTS_CONNUS = [
-  "airtel_cd", "orange_cd",   // RD Congo
-  "airtel_cg", "mtn_cg",      // Congo
-  "airtel_ga",                // Gabon
-  "mtn_rw",                   // Rwanda
-  "mtn_ug",                   // Ouganda
-  "mtn_zm", "zamtel_zm",      // Zambie
-  "orange_sl",                // Sierra Leone
-];
+// Plus aucun depuis le 2026-09-08 : les versements PawaPay (RD Congo, Congo,
+// Gabon, Rwanda, Ouganda, Zambie, Sierra Leone) sont fermés au registre tant
+// que PawaPay n'active pas le PAYOUT sur notre compte. Tout opérateur versable
+// est donc proposé au retrait.
+const PAYABLES_NON_OFFERTS_CONNUS: string[] = [];
 
 test("aucun opérateur versable ne devient invisible sans qu'on le sache", () => {
   const versables = Object.keys(OPERATORS).filter((code) =>
@@ -82,7 +78,9 @@ test("un pays sans route de versement ne propose rien plutôt que du faux", () =
 test("les pays réellement couverts proposent leurs moyens", () => {
   expect(getAvailablePayoutMethods("BJ").map((m) => m.id)).toContain("mtn_bj");
   expect(getAvailablePayoutMethods("TG").map((m) => m.id)).toContain("togocel");
-  expect(getAvailablePayoutMethods("NE").map((m) => m.id)).toContain("airtel_ne");
+  // Niger : fermé au retrait depuis le 2026-09-08 — aucune passerelle branchée
+  // ne sait y verser (FedaPay ne confirmait airtel_ne qu'à l'encaissement).
+  expect(getAvailablePayoutMethods("ML").map((m) => m.id)).toContain("orange_ml");
 });
 
 test("le filtre ne dépend pas du catalogue historique mais du registre", () => {
@@ -134,7 +132,7 @@ test("normaliser deux fois ne change rien", () => {
  * « bientôt disponible » pour un service déjà opérationnel.
  */
 test("un pays servi par une passerelle est ouvert au retrait", () => {
-  for (const pays of ["BJ", "CI", "SN", "TG", "ML", "NE"]) {
+  for (const pays of ["BJ", "CI", "SN", "TG", "ML"]) {
     expect(getAvailablePayoutMethods(pays).length, `${pays} sans moyen`).toBeGreaterThan(0);
     expect(isPayoutCountryDisabled(pays), `${pays} fermé alors qu'on sait y verser`).toBe(false);
   }

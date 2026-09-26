@@ -280,23 +280,15 @@ test("tout opérateur versable par FeexPay au registre a un endpoint", () => {
 // au registre (sa SEULE route), absent de la table → proposé au retrait, jamais
 // exécutable. Et l'inverse : mtn_bj / moov_bj / togocel avaient un mode FedaPay
 // dans la table que le registre ne déclarait pas.
-test("registre et table des méthodes disent la même chose sur FedaPay", () => {
-  const desaccords: string[] = [];
-  for (const [code, m] of Object.entries(PAYOUT_METHOD_MAP)) {
-    const dansTable = Boolean(m.fedapay);
-    const dansRegistre = Boolean(routeFor(code, "fedapay", "payout"));
-    if (dansTable !== dansRegistre) {
-      desaccords.push(
-        `${code} : table=${dansTable ? "mode présent" : "aucun"}, ` +
-          `registre=${dansRegistre ? "servable" : "fermé"}`,
-      );
-    }
-  }
-  expect(
-    desaccords,
-    "Fermer ou ouvrir un versement FedaPay se fait DANS LES DEUX fichiers, " +
-      "registry.ts et payout/methods-map.ts, dans le même commit.",
-  ).toEqual([]);
+test("FedaPay est retiré du registre (consolidation sur FeexPay, 2026-09-24)", () => {
+  // Décision fondateur : FeexPay couvrait déjà tout ce que FedaPay faisait, avec
+  // un versement fonctionnel. Plus AUCUNE route FedaPay, ni à l'encaissement ni
+  // au versement. La table des modes (payout/methods-map) et l'adaptateur
+  // restent jusqu'au retrait complet du code, après rapatriement des fonds.
+  const restantes = Object.keys(OPERATORS).filter(
+    (code) => routeFor(code, "fedapay", "collect") || routeFor(code, "fedapay", "payout"),
+  );
+  expect(restantes, "routes FedaPay encore présentes au registre").toEqual([]);
 });
 
 test("tout opérateur versable par FedaPay au registre a un mode", () => {

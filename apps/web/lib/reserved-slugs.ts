@@ -34,7 +34,7 @@ export const RESERVED_ROOT_SLUGS = new Set<string>([
   "cgu", "cgv", "cgu-affiliation", "confidentialite", "mentions-legales",
   "cookies",
   // Techniques et raccourcis existants
-  "api", "a", "f", "maintenance", "status", "404", "500", "debug-media",
+  "api", "a", "f", "llms.txt", "maintenance", "status", "404", "500", "debug-media",
   "_next", "static", "assets", "public", "favicon.ico", "robots.txt",
   "sitemap.xml", "llms.txt", "manifest.json", "sw.js",
   // Réservés pour l'avenir — mieux vaut les bloquer que devoir les reprendre

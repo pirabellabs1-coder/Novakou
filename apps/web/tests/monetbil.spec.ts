@@ -47,44 +47,26 @@ test("une clé de service absente est reconnue comme telle", () => {
   expect(classifyMonetbilError("MISSING_MSISDN — missing phonenumber").category).toBe("validation");
 });
 
-test("chaque opérateur porte le code EXACT de leur documentation", () => {
-  // Leur table associe un code précis à chaque réseau (CM_MTNMOBILEMONEY…).
-  // J'avais d'abord mis un « mobile » générique en supposant, comme iPay, un
-  // routage par le numéro : c'était faux, et un code inventé enverrait
-  // l'argent sur le mauvais réseau.
-  const attendus: Record<string, string> = {
-    orange_cm: "CM_ORANGEMONEY",
-    mtn_cm: "CM_MTNMOBILEMONEY",
-    eu_cm: "CM_EUMM",
-    mtn_cg: "CG_MTNMOBILEMONEY",
-    airtel_cg: "CG_AIRTELMONEY",
-    moov_ga: "GA_MOOVMONEY",
-  };
-  // On verifie les operateurs que Monetbil dessert REELLEMENT : un retrait de
-  // couverture est une decision legitime, un code INVENTE ne l'est jamais.
-  // Sens de la verification inverse : tout code declare doit figurer dans la
-  // table de leur documentation, et porter la valeur exacte.
-  let verifies = 0;
-  for (const [code, natif] of Object.entries(attendus)) {
-    const route = routeFor(code, "monetbil", "collect");
-    if (!route) continue; // couverture retiree : pas un code faux
-    expect(route.code, code).toBe(natif);
-    verifies++;
+test("Monetbil ne route plus aucun opérateur (retrait du 2026-09-25)", () => {
+  // Sur tout l'historique : 0 encaissement abouti, 23 refus « OPERATOR_NOT_FOUND »
+  // (Guinée MTN/Orange). Un acheteur guinéen a essayé 12 fois. Proposer Monetbil,
+  // c'était un échec garanti : TOUTES ses routes sont retirées du registre.
+  // Les codes documentés restent notés en commentaire dans registry.ts pour la
+  // réouverture, après un paiement de test réel abouti.
+  for (const code of Object.keys(OPERATORS)) {
+    expect(routeFor(code, "monetbil", "collect"), `${code} ne doit plus router vers Monetbil`).toBeNull();
+    expect(routeFor(code, "monetbil", "payout"), `${code} ne doit plus verser via Monetbil`).toBeNull();
   }
-  expect(verifies, "Monetbil ne dessert plus aucun operateur connu").toBeGreaterThan(0);
-
 });
 
-test("Monetbil ouvre le Congo et le Gabon, invendables jusqu'ici", () => {
-  // Le Congo n'etait servi que par FeexPay ; le Gabon par personne.
-  expect(routeFor("moov_ga", "monetbil", "collect")).not.toBeNull();
-  expect(routeFor("airtel_cg", "monetbil", "collect")).not.toBeNull();
-  // MTN Congo a desormais DEUX passerelles : une panne chez l'une ne ferme
-  // plus le pays.
-  const mtnCg = Object.keys(OPERATORS).includes("mtn_cg");
-  expect(mtnCg).toBe(true);
-  expect(routeFor("mtn_cg", "feexpay", "collect")).not.toBeNull();
-  expect(routeFor("mtn_cg", "monetbil", "collect")).not.toBeNull();
+test("l'adaptateur Monetbil reste déclaré, encaissement seul, sans route active", () => {
+  // Le module et la passerelle existent toujours (clé saisissable en admin,
+  // réconciliation capable de relire un ancien statut) — seule la couverture
+  // est fermée. Le jour où un paiement de test aboutit, on rouvre opérateur
+  // par opérateur avec les codes documentés, jamais devinés.
+  const meta = PROVIDERS.find((p) => p.id === "monetbil");
+  expect(meta).toBeDefined();
+  expect(meta?.directions).toEqual(["collect"]);
 });
 
 test("le statut Monetbil est réellement consultable par la réconciliation", () => {
