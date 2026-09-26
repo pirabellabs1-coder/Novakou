@@ -18,6 +18,12 @@ export const IS_DEV =
  * USE_PRISMA_FOR_DATA — On Vercel, les dev stores en mémoire sont éphémères
  * (perdus entre les invocations serverless). Les APIs de données critiques
  * (services, projets, commandes) doivent utiliser Prisma même si DEV_MODE=true.
- * En local, on utilise les dev stores pour éviter de nécessiter une DB.
+ *
+ * En local, les dev stores ne servent QUE sans base de données. Dès qu'une
+ * DATABASE_URL est configurée, on suit le même chemin qu'en production : les
+ * stores en mémoire (héritage FreelanceHigh, `createStore<any>()`) n'ont pas
+ * toutes les méthodes que les routes appellent — /api/notifications répondait
+ * 500 en local (« getByUser is not a function ») et les vérifications locales
+ * ne reflétaient pas la prod.
  */
-export const USE_PRISMA_FOR_DATA = IS_VERCEL || !IS_DEV;
+export const USE_PRISMA_FOR_DATA = IS_VERCEL || !IS_DEV || Boolean(process.env.DATABASE_URL);
