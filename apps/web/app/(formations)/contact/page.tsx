@@ -1,332 +1,92 @@
-"use client";
-
 import Link from "next/link";
-import {
-  AlertTriangle,
-  BookOpen,
-  CreditCard,
-  GraduationCap,
-  Headset,
-  HelpCircle,
-  Mail,
-  MailCheck,
-  ShieldCheck,
-  Store,
-  User,
-  Wrench,
-} from "lucide-react";
-import { useState } from "react";
+import { AlertTriangle, ArrowRight, BookOpen, Clock, Mail, ShieldCheck } from "lucide-react";
+import { CoquePublique } from "@/components/formations/public/CoquePublique";
+import { EnTetePage } from "@/components/formations/public/EnTetePage";
+import { FormulaireContact } from "@/components/formations/public/FormulaireContact";
 
-const CATEGORIES = [
-  { value: "paiement", label: "Problème de paiement", icon: CreditCard },
-  { value: "technique", label: "Bug ou problème technique", icon: Wrench },
-  { value: "compte", label: "Compte et connexion", icon: User },
-  { value: "vendeur", label: "Vendre / boutique", icon: Store },
-  { value: "mentor", label: "Mentorat / séances", icon: Headset },
-  { value: "apprenant", label: "Achat / formation", icon: GraduationCap },
-  { value: "rgpd", label: "Vie privée & données", icon: ShieldCheck },
-  { value: "autre", label: "Autre", icon: HelpCircle },
+/*
+ * Page Contact — Server Component (métadonnées dans layout.tsx). Le
+ * formulaire (POST /api/support/ticket) est le seul îlot client.
+ */
+
+const CANAUX = [
+  { Icon: Mail, email: "support@novakou.com", note: "Réponse sous 24 h ouvrées" },
+  { Icon: AlertTriangle, email: "paiements@novakou.com", note: "Urgences paiement, réponse sous 2 h" },
+  { Icon: ShieldCheck, email: "privacy@novakou.com", note: "RGPD, export/suppression de données" },
 ];
 
 export default function ContactPage() {
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    category: "autre",
-    subject: "",
-    message: "",
-  });
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [error, setError] = useState<string | null>(null);
-  const [reference, setReference] = useState<string | null>(null);
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setStatus("loading");
-    try {
-      const res = await fetch("/api/support/ticket", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          url: typeof window !== "undefined" ? window.location.href : null,
-        }),
-      });
-      const j = await res.json();
-      if (!res.ok) {
-        setError(j.error || "Erreur lors de l'envoi");
-        setStatus("error");
-        return;
-      }
-      setReference(j.reference ?? null);
-      setStatus("success");
-    } catch {
-      setError("Erreur réseau — vérifiez votre connexion");
-      setStatus("error");
-    }
-  }
-
-  if (status === "success") {
-    return (
-      <div
-        className="min-h-screen bg-slate-50 flex items-center justify-center px-5 py-10"
-        style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
-      >
-        <div className="max-w-xl mx-auto text-center bg-white rounded-2xl border border-slate-200 p-8 md:p-12 shadow-sm">
-          <div
-            className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-5 text-white"
-            style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
-          >
-            <MailCheck size={36} />
-          </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Message reçu 👍
-          </h1>
-          <p className="text-sm text-slate-600 mt-3 leading-relaxed">
-            Notre équipe support va examiner votre demande et vous répondre rapidement.
-            Un email de confirmation vient d&apos;être envoyé à{" "}
-            <strong>{form.email}</strong>.
-          </p>
-          {reference && (
-            <div className="inline-block mt-5 px-5 py-3 bg-slate-50 border border-slate-200 rounded-xl">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
-                Référence ticket
-              </p>
-              <p className="text-xl font-extrabold text-emerald-700 font-mono">{reference}</p>
-            </div>
-          )}
-          <div className="flex flex-wrap justify-center gap-3 mt-8">
-            <Link
-              href="/aide"
-              className="px-5 py-3 rounded-xl bg-slate-100 text-slate-700 text-sm font-bold"
-            >
-              Explorer le centre d&apos;aide
-            </Link>
-            <Link
-              href="/"
-              className="px-5 py-3 rounded-xl text-white text-sm font-bold"
-              style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
-            >
-              Retour à l&apos;accueil
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div
-      className="min-h-screen bg-slate-50"
-      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
-    >
-      {/* Hero */}
-      <header className="relative overflow-hidden bg-gradient-to-br from-[#003d1a] via-[#006e2f] to-[#22c55e]">
-        <div
-          aria-hidden
-          className="absolute -top-20 -right-20 w-[480px] h-[480px] rounded-full opacity-20 blur-3xl"
-          style={{ background: "white" }}
-        />
-        <div className="relative max-w-5xl mx-auto px-5 md:px-8 py-12 md:py-16 text-center">
-          <span className="inline-block text-[10px] font-bold uppercase tracking-[0.3em] text-emerald-200 mb-2">
-            Support Novakou
-          </span>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-            Nous contacter
-          </h1>
-          <p className="text-sm text-emerald-50 mt-2 max-w-2xl mx-auto">
-            Notre équipe répond en moyenne en moins de 5 minutes en chat, et sous 24h par email.
-          </p>
+    <CoquePublique>
+      <EnTetePage
+        eyebrow="Support Novakou"
+        titre={
+          <>
+            Nous <em>contacter</em>
+          </>
+        }
+        sousTitre="Notre équipe répond en moyenne en moins de 5 minutes en chat, et sous 24 h par email."
+        meta={["Réponse sous 24 h ouvrées", "Urgences paiement sous 2 h", "Lundi – vendredi, 8h – 19h GMT"]}
+      />
+
+      <section className="nkp-section nkp-section--tint !pt-10" aria-label="Formulaire et coordonnées">
+        <div className="nkp-wrap">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-8 items-start">
+            <div className="nkp-bezel nkp-bezel--float nkp-reveal">
+              <FormulaireContact />
+            </div>
+
+            <aside className="flex flex-col gap-4" aria-label="Autres moyens de nous joindre">
+              <div className="nkp-card nkp-reveal">
+                <div className="nkp-card__core">
+                  <h2 className="!text-[1.05rem]">Autres moyens de nous joindre</h2>
+                  <ul className="nkp-list mt-4 !gap-4">
+                    {CANAUX.map((c) => (
+                      <li key={c.email} className="!items-start">
+                        <span className="nkp-ic nkp-ic--sm" aria-hidden="true">
+                          <c.Icon strokeWidth={1.75} />
+                        </span>
+                        <div className="min-w-0">
+                          <a href={`mailto:${c.email}`} className="block break-all font-semibold hover:text-[#006e2f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#006e2f] rounded">
+                            {c.email}
+                          </a>
+                          <span className="text-[.8rem] text-[#5c6b62]">{c.note}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="nkp-card nkp-reveal">
+                <div className="nkp-card__core">
+                  <h2 className="!text-[1.05rem]">Avant de nous contacter</h2>
+                  <p className="nkp-card__desc text-[.88rem]">La plupart des questions trouvent une réponse immédiate dans le centre d'aide.</p>
+                  <Link href="/aide" className="nkp-link mt-4 text-[.9rem]">
+                    <BookOpen size={15} strokeWidth={2} aria-hidden="true" />
+                    Consulter le centre d'aide
+                    <ArrowRight strokeWidth={2.2} aria-hidden="true" />
+                  </Link>
+                </div>
+              </div>
+
+              <div className="nkp-card nkp-card--dark nkp-reveal">
+                <div className="nkp-card__core">
+                  <span className="nkp-ic nkp-ic--dark nkp-ic--sm mb-3" aria-hidden="true">
+                    <Clock strokeWidth={1.75} />
+                  </span>
+                  <h2 className="!text-[1.05rem]">Horaires</h2>
+                  <p className="text-[.88rem] mt-1">
+                    Lundi – Vendredi
+                    <br />
+                    8h00 – 19h00 (GMT / heure d'Abidjan)
+                  </p>
+                </div>
+              </div>
+            </aside>
+          </div>
         </div>
-      </header>
-
-      <main className="max-w-5xl mx-auto px-5 md:px-8 py-10 md:py-14">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
-          {/* Form */}
-          <form onSubmit={submit} className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 space-y-5">
-            <div>
-              <h2 className="text-xl font-extrabold text-slate-900">Ouvrir un ticket</h2>
-              <p className="text-xs text-slate-500 mt-1">
-                Plus votre message est précis, plus vite nous pourrons vous aider.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Votre nom <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  maxLength={80}
-                  required
-                  placeholder="Nom Prénom"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Email <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  required
-                  placeholder="vous@email.com"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Catégorie <span className="text-rose-500">*</span>
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {CATEGORIES.map((c) => (
-                  <button
-                    key={c.value}
-                    type="button"
-                    onClick={() => setForm({ ...form, category: c.value })}
-                    className={`flex flex-col items-center gap-1 px-3 py-3 rounded-xl border text-center transition-colors ${
-                      form.category === c.value
-                        ? "bg-emerald-50 border-emerald-400 text-emerald-700"
-                        : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-                    }`}
-                  >
-                    {(()=>{const _I=c.icon;return _I?<_I size={20} />:null;})()}
-                    <span className="text-[10px] font-bold leading-tight">{c.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Objet <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={form.subject}
-                onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                maxLength={120}
-                required
-                placeholder="Résumé en une phrase"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Votre message <span className="text-rose-500">*</span>
-                <span className="font-normal text-slate-400 ml-1">({form.message.length}/5000)</span>
-              </label>
-              <textarea
-                rows={6}
-                value={form.message}
-                onChange={(e) => setForm({ ...form, message: e.target.value.slice(0, 5000) })}
-                required
-                minLength={15}
-                placeholder="Expliquez votre problème avec un maximum de détails : URL, captures d'écran (à joindre en répondant à l'email de confirmation), numéro de commande, navigateur, étapes pour reproduire…"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-500 resize-none"
-              />
-            </div>
-
-            {error && (
-              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium">
-                {error}
-              </div>
-            )}
-
-            <div className="flex items-center gap-3 pt-2 border-t border-slate-100">
-              <button
-                type="submit"
-                disabled={status === "loading"}
-                className="px-6 py-3 rounded-xl text-white text-sm font-bold shadow-md shadow-emerald-500/20 disabled:opacity-50"
-                style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
-              >
-                {status === "loading" ? "Envoi…" : "Envoyer le message"}
-              </button>
-              <p className="text-[11px] text-slate-500">
-                En envoyant, vous acceptez nos{" "}
-                <Link href="/cgu" className="underline">CGU</Link> et{" "}
-                <Link href="/confidentialite" className="underline">politique de confidentialité</Link>.
-              </p>
-            </div>
-          </form>
-
-          {/* Sidebar — Contact direct */}
-          <aside className="space-y-4">
-            <div className="bg-white rounded-2xl border border-slate-200 p-5">
-              <h3 className="text-sm font-bold text-slate-900 mb-3">Autres moyens de nous joindre</h3>
-              <ul className="space-y-3 text-sm">
-                <li className="flex items-start gap-3">
-                  <Mail size={20} className="text-emerald-600 flex-shrink-0" />
-                  <div>
-                    <a
-                      href="mailto:support@novakou.com"
-                      className="font-bold text-slate-900 hover:text-emerald-700"
-                    >
-                      support@novakou.com
-                    </a>
-                    <p className="text-[11px] text-slate-500">Réponse sous 24h ouvrées</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <AlertTriangle size={20} className="text-emerald-600 flex-shrink-0" />
-                  <div>
-                    <a
-                      href="mailto:paiements@novakou.com"
-                      className="font-bold text-slate-900 hover:text-emerald-700"
-                    >
-                      paiements@novakou.com
-                    </a>
-                    <p className="text-[11px] text-slate-500">Urgences paiement, réponse sous 2h</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <ShieldCheck size={20} className="text-emerald-600 flex-shrink-0" />
-                  <div>
-                    <a
-                      href="mailto:privacy@novakou.com"
-                      className="font-bold text-slate-900 hover:text-emerald-700"
-                    >
-                      privacy@novakou.com
-                    </a>
-                    <p className="text-[11px] text-slate-500">RGPD, export/suppression de données</p>
-                  </div>
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-slate-200 p-5">
-              <h3 className="text-sm font-bold text-slate-900 mb-2">Avant de nous contacter</h3>
-              <p className="text-xs text-slate-500 mb-3">
-                La plupart des questions trouvent une réponse immédiate dans le centre d&apos;aide.
-              </p>
-              <Link
-                href="/aide"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-900"
-              >
-                <BookOpen size={14} />
-                Consulter le centre d&apos;aide →
-              </Link>
-            </div>
-
-            <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-5 text-white">
-              <h3 className="text-sm font-bold mb-1">Horaires</h3>
-              <p className="text-xs text-slate-300">
-                Lundi – Vendredi<br />
-                8h00 – 19h00 (GMT / heure d&apos;Abidjan)
-              </p>
-            </div>
-          </aside>
-        </div>
-      </main>
-    </div>
+      </section>
+    </CoquePublique>
   );
 }

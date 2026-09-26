@@ -1,32 +1,26 @@
 import type { Metadata } from "next";
-import {
-  BadgeCheck,
-  Globe,
-  GraduationCap,
-  Rocket,
-  ThumbsUp,
-  TrendingUp,
-  Users,
-} from "lucide-react";
-import Link from "next/link";
+import { ArrowRight, BadgeCheck, Globe, GraduationCap, Rocket, ThumbsUp, TrendingUp, Users, type LucideIcon } from "lucide-react";
+import { CoquePublique } from "@/components/formations/public/CoquePublique";
+import { EnTetePage } from "@/components/formations/public/EnTetePage";
+import { BoutonVerre } from "@/components/formations/public/BoutonVerre";
 
 export const metadata: Metadata = {
   title: "À propos · Notre mission et nos valeurs",
   description: "Novakou est la plateforme qui transforme les talents en revenus durables. Découvrez notre mission, notre équipe et nos valeurs.",
 };
 
-const VALUES = [
+const VALUES: { icon: LucideIcon; title: string; desc: string }[] = [
   { icon: Rocket, title: "Concret avant tout", desc: "Pas de théorie déconnectée. Chaque formation, produit, outil est pensé pour produire des résultats mesurables." },
-  { icon: "diversity_3", title: "Communauté d'abord", desc: "Une plateforme bâtie POUR les créateurs et les apprenants. Vos retours façonnent chaque évolution produit." },
+  { icon: Users, title: "Communauté d'abord", desc: "Une plateforme bâtie POUR les créateurs et les apprenants. Vos retours façonnent chaque évolution produit." },
   { icon: BadgeCheck, title: "Qualité sans compromis", desc: "Curation manuelle des formateurs, modération active, support réactif. Pas de spam, pas de scams." },
   { icon: TrendingUp, title: "Croissance partagée", desc: "Quand vous gagnez, on gagne. Notre commission n'augmente que si vos ventes augmentent — alignement total." },
 ];
 
-const STATS = [
-  { value: "12 000", suffix: "+", label: "Apprenants accompagnés", icon: Users },
-  { value: "850", suffix: "+", label: "Créateurs actifs", icon: GraduationCap },
-  { value: "94", suffix: "%", label: "Taux de satisfaction", icon: ThumbsUp },
-  { value: "17", suffix: "", label: "Pays africains couverts", icon: Globe },
+const STATS: { value: number; affiche: string; suffix: string; label: string; icon: LucideIcon }[] = [
+  { value: 12000, affiche: "12 000", suffix: "+", label: "Apprenants accompagnés", icon: Users },
+  { value: 850, affiche: "850", suffix: "+", label: "Créateurs actifs", icon: GraduationCap },
+  { value: 94, affiche: "94", suffix: "%", label: "Taux de satisfaction", icon: ThumbsUp },
+  { value: 17, affiche: "17", suffix: "", label: "Pays africains couverts", icon: Globe },
 ];
 
 const TEAM = [
@@ -44,141 +38,152 @@ const TIMELINE = [
 
 export default function AProposPage() {
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
+    <CoquePublique>
+      <EnTetePage
+        eyebrow="Notre histoire"
+        titre={
+          <>
+            Élever les talents <em>au plus haut niveau</em>
+          </>
+        }
+        sousTitre="Novakou est née d'une conviction : chaque talent africain mérite des outils dignes pour transformer son savoir en revenus durables."
+        actions={
+          <>
+            <BoutonVerre href="/inscription?role=instructeur" variante="primary" taille="lg" fleche>
+              Créer ma boutique
+            </BoutonVerre>
+            <BoutonVerre href="/explorer" taille="lg">
+              Explorer le catalogue
+            </BoutonVerre>
+          </>
+        }
+      />
 
-      {/* HERO */}
-      <section className="relative pt-32 pb-20 px-6 overflow-hidden">
-        <div className="absolute inset-0 -z-10" style={{ background: "radial-gradient(circle at 30% 20%, #006e2f15, transparent 50%), radial-gradient(circle at 70% 80%, #22c55e10, transparent 50%)" }} />
-        <div className="max-w-4xl mx-auto text-center">
-          <span className="inline-block text-[11px] font-bold uppercase tracking-widest text-[#006e2f] bg-[#006e2f]/10 px-3 py-1 rounded-full mb-6">
-            Notre histoire
-          </span>
-          <h1 className="text-4xl md:text-6xl font-extrabold text-[#191c1e] leading-tight tracking-tight">
-            Élever les talents <br /> au plus haut niveau
-          </h1>
-          <p className="text-lg md:text-xl text-[#5c647a] mt-6 max-w-2xl mx-auto leading-relaxed">
-            Novakou est née d&apos;une conviction : chaque talent africain mérite des outils dignes pour transformer son savoir en revenus durables.
-          </p>
-        </div>
-      </section>
-
-      {/* MISSION */}
-      <section className="py-20 px-6 bg-slate-50">
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-widest text-[#006e2f] mb-3">Notre mission</p>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-[#191c1e] mb-5 leading-tight">
-              Donner à chaque créateur les moyens de vivre de son savoir
-            </h2>
-            <p className="text-[#5c647a] leading-relaxed mb-4">
-              Trop de talents africains francophones manquent d&apos;une plateforme moderne pour vendre formations, e-books, templates ou consulting. Les outils existants sont chers, mal localisés, et négligent les méthodes de paiement africaines.
-            </p>
-            <p className="text-[#5c647a] leading-relaxed">
-              Nous bâtissons l&apos;alternative : intégrée Mobile Money, pensée pour le francophone, avec des outils marketing qui se mesurent à Systeme.io ou Gumroad — sans le ticket d&apos;entrée.
-            </p>
-          </div>
-          <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm">
-            <div className="grid grid-cols-2 gap-6">
-              {STATS.map((s) => (
-                <div key={s.label}>
-                  <div className="flex items-center gap-2 mb-2">
-                    {(()=>{const _I=s.icon;return _I?<_I size={20} className="text-[#006e2f]" />:null;})()}
-                  </div>
-                  <p className="text-3xl font-extrabold text-[#191c1e]">{s.value}<span className="text-[#006e2f]">{s.suffix}</span></p>
-                  <p className="text-xs text-[#5c647a] mt-1 font-semibold">{s.label}</p>
-                </div>
-              ))}
+      {/* ── Mission + chiffres ── */}
+      <section className="nkp-section" aria-labelledby="mission-titre">
+        <div className="nkp-wrap">
+          <div className="nkp-duo">
+            <div className="nkp-reveal">
+              <span className="nkp-tag">Notre mission</span>
+              <h2 id="mission-titre">Donner à chaque créateur les moyens de vivre de son savoir</h2>
+              <div className="nkp-prose">
+                <p>Trop de talents africains francophones manquent d'une plateforme moderne pour vendre formations, e-books, templates ou consulting. Les outils existants sont chers, mal localisés, et négligent les méthodes de paiement africaines.</p>
+                <p>Nous bâtissons l'alternative : intégrée Mobile Money, pensée pour le francophone, avec des outils marketing qui se mesurent à Systeme.io ou Gumroad — sans le ticket d'entrée.</p>
+              </div>
+            </div>
+            <div className="nkp-bezel nkp-bezel--float nkp-reveal">
+              <div className="nkp-core nkp-core--pad">
+                <ul className="grid grid-cols-2 gap-6 m-0 p-0 list-none">
+                  {STATS.map((s) => (
+                    <li key={s.label}>
+                      <span className="nkp-ic nkp-ic--sm mb-3" aria-hidden="true">
+                        <s.icon strokeWidth={1.75} />
+                      </span>
+                      <b className="block nkp-sora text-[1.9rem] font-bold tracking-[-.03em] leading-none nkp-num">
+                        <span data-count={s.value}>{s.affiche}</span>
+                        <span className="text-[#006e2f] text-[.65em]">{s.suffix}</span>
+                      </b>
+                      <span className="block mt-2 text-[.82rem] font-medium text-[#5c6b62]">{s.label}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* VALEURS */}
-      <section className="py-20 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-[#006e2f] mb-3">Nos valeurs</p>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-[#191c1e] tracking-tight">Ce qui nous guide chaque jour</h2>
+      {/* ── Valeurs ── */}
+      <section className="nkp-section nkp-section--tint" aria-labelledby="valeurs-titre">
+        <div className="nkp-wrap">
+          <div className="nkp-head nkp-head--center nkp-reveal">
+            <span className="nkp-tag">Nos valeurs</span>
+            <h2 id="valeurs-titre">Ce qui nous guide chaque jour</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="nkp-grid-2">
             {VALUES.map((v) => (
-              <div key={v.title} className="bg-white border border-slate-200 rounded-2xl p-7 hover:border-[#006e2f]/30 hover:shadow-lg transition-all">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ background: "linear-gradient(135deg, #006e2f15, #22c55e15)" }}>
-                  {(()=>{const _I=v.icon;return _I?<_I size={24} className="text-[#006e2f]" />:null;})()}
+              <article key={v.title} className="nkp-card nkp-card--hover nkp-reveal">
+                <div className="nkp-card__core">
+                  <span className="nkp-ic mb-4" aria-hidden="true">
+                    <v.icon strokeWidth={1.75} />
+                  </span>
+                  <h3>{v.title}</h3>
+                  <p className="nkp-card__desc">{v.desc}</p>
                 </div>
-                <h3 className="text-lg font-extrabold text-[#191c1e] mb-2">{v.title}</h3>
-                <p className="text-[#5c647a] text-sm leading-relaxed">{v.desc}</p>
-              </div>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      {/* TIMELINE */}
-      <section className="py-20 px-6 bg-slate-50">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-[#006e2f] mb-3">Notre parcours</p>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-[#191c1e] tracking-tight">L&apos;histoire en quelques dates</h2>
+      {/* ── Parcours ── */}
+      <section className="nkp-section" aria-labelledby="parcours-titre">
+        <div className="nkp-wrap">
+          <div className="nkp-head nkp-head--center nkp-reveal">
+            <span className="nkp-tag">Notre parcours</span>
+            <h2 id="parcours-titre">L'histoire en quelques dates</h2>
           </div>
-          <div className="space-y-6">
-            {TIMELINE.map((t, i) => (
-              <div key={t.year} className="flex gap-5 group">
-                <div className="flex flex-col items-center">
-                  <div className="w-14 h-14 rounded-xl bg-white border-2 border-[#006e2f] flex items-center justify-center text-[#006e2f] font-extrabold text-sm flex-shrink-0">
-                    {t.year}
-                  </div>
-                  {i < TIMELINE.length - 1 && <div className="w-0.5 flex-1 bg-[#006e2f]/20 mt-2" />}
+          <ol className="nkp-steps nkp-steps--4 list-none m-0 p-0">
+            {TIMELINE.map((t) => (
+              <li key={t.year} className="nkp-card nkp-step nkp-reveal">
+                <div className="nkp-card__core">
+                  <span className="nkp-step__n">{t.year}</span>
+                  <span className="nkp-ic nkp-sora !text-[.9rem] font-bold" aria-hidden="true">
+                    {/^\d{4}$/.test(t.year) ? t.year.slice(-2) : <ArrowRight strokeWidth={2} />}
+                  </span>
+                  <h3>{t.title}</h3>
+                  <p>{t.desc}</p>
                 </div>
-                <div className="flex-1 pb-6">
-                  <h3 className="text-lg font-extrabold text-[#191c1e] mb-1">{t.title}</h3>
-                  <p className="text-[#5c647a] text-sm leading-relaxed">{t.desc}</p>
-                </div>
-              </div>
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
       </section>
 
-      {/* TEAM */}
-      <section className="py-20 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-[#006e2f] mb-3">L&apos;équipe</p>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-[#191c1e] tracking-tight">Les humains derrière la plateforme</h2>
+      {/* ── Équipe ── */}
+      <section className="nkp-section nkp-section--tint" aria-labelledby="equipe-titre">
+        <div className="nkp-wrap">
+          <div className="nkp-head nkp-head--center nkp-reveal">
+            <span className="nkp-tag">L'équipe</span>
+            <h2 id="equipe-titre">Les humains derrière la plateforme</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="nkp-grid-3">
             {TEAM.map((p) => (
-              <div key={p.name} className="bg-white border border-slate-200 rounded-2xl p-6 text-center hover:shadow-lg transition-shadow">
-                <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-xl font-extrabold" style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}>
-                  {p.initial}
+              <article key={p.name} className="nkp-card nkp-card--hover nkp-reveal">
+                <div className="nkp-card__core items-center text-center">
+                  <span className="nkp-av !w-16 !h-16 !rounded-2xl !text-[1.05rem] mb-4" aria-hidden="true">
+                    {p.initial}
+                  </span>
+                  <h3>{p.name}</h3>
+                  <span className="nkp-eyebrow mt-2">{p.role}</span>
+                  <p className="nkp-card__desc mt-3 text-[.9rem]">{p.bio}</p>
                 </div>
-                <h3 className="text-lg font-bold text-[#191c1e]">{p.name}</h3>
-                <p className="text-xs font-semibold text-[#006e2f] uppercase tracking-wider mt-0.5">{p.role}</p>
-                <p className="text-sm text-[#5c647a] mt-3 leading-relaxed">{p.bio}</p>
-              </div>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-20 px-6">
-        <div className="max-w-4xl mx-auto text-center bg-gradient-to-br from-[#006e2f] to-[#22c55e] rounded-3xl p-12 md:p-16 text-white">
-          <h2 className="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">Rejoignez l&apos;aventure</h2>
-          <p className="text-lg opacity-90 mb-8 max-w-xl mx-auto">
-            Que vous soyez créateur ou apprenant, Novakou est votre nouveau terrain de jeu.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/inscription?role=instructeur" className="px-7 py-4 rounded-2xl bg-white text-[#006e2f] font-bold text-sm hover:bg-slate-100 transition-colors">
-              Créer ma boutique
-            </Link>
-            <Link href="/explorer" className="px-7 py-4 rounded-2xl bg-white/15 backdrop-blur text-white font-bold text-sm hover:bg-white/25 transition-colors border border-white/30">
-              Explorer le catalogue
-            </Link>
+      {/* ── CTA ── */}
+      <section className="nkp-section" aria-labelledby="cta-titre">
+        <div className="nkp-wrap">
+          <div className="nkp-bezel nkp-bezel--dark nkp-bezel--xl nkp-bezel--float nkp-reveal">
+            <div className="nkp-cta">
+              <span className="nkp-tag nkp-tag--dark">Rejoignez l'aventure</span>
+              <h2 id="cta-titre">Créateur ou apprenant, Novakou est votre nouveau terrain de jeu.</h2>
+              <p>Lancez votre boutique en 3 minutes ou explorez les formations et produits déjà en vente.</p>
+              <div className="nkp-actions">
+                <BoutonVerre href="/inscription?role=instructeur" variante="white" taille="lg" fleche>
+                  Créer ma boutique
+                </BoutonVerre>
+                <BoutonVerre href="/explorer" variante="white" taille="lg">
+                  Explorer le catalogue
+                </BoutonVerre>
+              </div>
+            </div>
           </div>
         </div>
       </section>
-    </div>
+    </CoquePublique>
   );
 }

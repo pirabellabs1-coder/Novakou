@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  ShieldCheck,
-  Lock,
-  BadgeCheck,
-  Wallet,
-  Scale,
-  RefreshCcw,
-  FileLock2,
-  AlertTriangle,
-  Fingerprint,
-  Server,
-} from "lucide-react";
+import { AlertTriangle, BadgeCheck, FileLock2, Fingerprint, Lock, RefreshCcw, Server, Wallet, type LucideIcon } from "lucide-react";
+import { CoquePublique } from "@/components/formations/public/CoquePublique";
+import { EnTetePage } from "@/components/formations/public/EnTetePage";
+import { BoutonVerre } from "@/components/formations/public/BoutonVerre";
+import { Accordeon } from "@/components/formations/public/Accordeon";
 
 export const metadata: Metadata = {
   title: "Confiance et sécurité",
@@ -27,8 +20,7 @@ export const metadata: Metadata = {
   },
 };
 
-
-const PILLARS = [
+const PILLARS: { Icon: LucideIcon; title: string; desc: string }[] = [
   { Icon: Wallet, title: "Paiement séquestré (escrow)", desc: "À chaque commande, les fonds sont sécurisés puis libérés au vendeur seulement une fois la vente confirmée. En cas de litige, ils sont gelés jusqu'au verdict." },
   { Icon: Fingerprint, title: "Vendeurs vérifiés (KYC)", desc: "Les vendeurs et mentors passent une vérification d'identité avant de publier des offres payantes et de retirer des fonds — un rempart contre la fraude." },
   { Icon: Lock, title: "Paiements chiffrés", desc: "Les paiements sont traités par nos prestataires agréés. Vos données bancaires ne transitent jamais en clair et Novakou n'a jamais accès à votre numéro de carte." },
@@ -37,10 +29,17 @@ const PILLARS = [
   { Icon: FileLock2, title: "Contenus protégés", desc: "Vidéos et documents sont hébergés de façon sécurisée et protégés contre le téléchargement et le partage non autorisé." },
 ];
 
-const SECURITY_TECH = [
+const SECURITY_TECH: { Icon: LucideIcon; title: string; desc: string }[] = [
   { Icon: Server, title: "Hébergement UE", desc: "Base de données et fichiers hébergés dans l'Union européenne (Supabase, Francfort), avec contrôle d'accès par rôle (Row Level Security)." },
   { Icon: Lock, title: "Chiffrement", desc: "Données chiffrées en transit (TLS) et mots de passe hachés (bcrypt). Double authentification disponible sur votre compte." },
   { Icon: AlertTriangle, title: "Surveillance & anti-fraude", desc: "Journalisation des accès sensibles, alertes de connexion inhabituelle et détection des comportements frauduleux." },
+];
+
+const ESCROW: [string, string][] = [
+  ["Le client paie", "Les fonds sont immédiatement sécurisés par la Plateforme — ni le vendeur ni l'acheteur ne peut les manipuler."],
+  ["Le contenu est livré", "Le produit numérique est mis à disposition ou la séance de mentorat est réalisée."],
+  ["La vente est confirmée", "Les fonds sont libérés sur le solde du vendeur, qui peut ensuite les retirer après le délai de sécurité."],
+  ["En cas de litige", "Les fonds sont gelés jusqu'au verdict de notre équipe, rendu sur la base des preuves des deux parties."],
 ];
 
 const FAQ = [
@@ -53,7 +52,7 @@ const FAQ = [
 export default function ConfianceSecuritePage() {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
   return (
-    <div className="min-h-screen bg-[#f7f9fb]">
+    <CoquePublique>
       {/* JSON-LD : fil d'Ariane + FAQ (rich results + GEO). */}
       <script
         type="application/ld+json"
@@ -76,117 +75,151 @@ export default function ConfianceSecuritePage() {
           }),
         }}
       />
-      {/* HERO */}
-      <section className="py-14 px-6" style={{ background: "linear-gradient(135deg, #003d1a 0%, #006e2f 55%, #22c55e 100%)" }}>
-        <div className="max-w-4xl mx-auto text-center">
-          <span className="inline-flex items-center gap-1.5 text-white/90 text-xs font-bold uppercase tracking-widest bg-white/10 border border-white/15 px-3 py-1.5 rounded-full">
-            <ShieldCheck size={14} /> Confiance &amp; sécurité
-          </span>
-          <h1 className="text-3xl md:text-5xl font-extrabold text-white mt-4 tracking-tight">
-            Achetez et vendez en toute sérénité
-          </h1>
-          <p className="text-white/85 text-base md:text-lg mt-4 max-w-2xl mx-auto leading-relaxed">
-            Paiement séquestré, vendeurs vérifiés, chiffrement et gestion des litiges : la sécurité est au cœur de
-            chaque transaction sur Novakou.
-          </p>
-        </div>
-      </section>
 
-      {/* PILIERS */}
-      <section className="max-w-5xl mx-auto px-6 py-12 md:py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {PILLARS.map((p) => (
-            <div key={p.title} className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all">
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white mb-4" style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}>
-                <p.Icon size={20} />
-              </div>
-              <h2 className="font-extrabold text-[#191c1e] text-base">{p.title}</h2>
-              <p className="text-sm text-[#5c647a] mt-1.5 leading-relaxed">{p.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      <EnTetePage
+        eyebrow="Confiance & sécurité"
+        titre={
+          <>
+            Achetez et vendez <em>en toute sérénité</em>
+          </>
+        }
+        sousTitre="Paiement séquestré, vendeurs vérifiés, chiffrement et gestion des litiges : la sécurité est au cœur de chaque transaction sur Novakou."
+        actions={
+          <>
+            <BoutonVerre href="/explorer" variante="primary" taille="lg" fleche>
+              Explorer le catalogue
+            </BoutonVerre>
+            <BoutonVerre href="/contact" taille="lg">
+              Signaler un problème
+            </BoutonVerre>
+          </>
+        }
+        meta={["Fonds séquestrés jusqu'à la confirmation", "Vendeurs vérifiés (KYC)", "Aucune donnée bancaire stockée"]}
+      />
 
-      {/* FLUX ESCROW */}
-      <section className="max-w-4xl mx-auto px-6 pb-12 md:pb-16">
-        <div className="bg-white rounded-2xl border border-gray-100 p-8">
-          <div className="flex items-center gap-2 mb-5">
-            <Scale size={20} className="text-[#006e2f]" />
-            <h2 className="text-xl font-extrabold text-[#191c1e]">Comment le séquestre protège votre argent</h2>
-          </div>
-          <ol className="space-y-4">
-            {[
-              ["Le client paie", "Les fonds sont immédiatement sécurisés par la Plateforme — ni le vendeur ni l'acheteur ne peut les manipuler."],
-              ["Le contenu est livré", "Le produit numérique est mis à disposition ou la séance de mentorat est réalisée."],
-              ["La vente est confirmée", "Les fonds sont libérés sur le solde du vendeur, qui peut ensuite les retirer après le délai de sécurité."],
-              ["En cas de litige", "Les fonds sont gelés jusqu'au verdict de notre équipe, rendu sur la base des preuves des deux parties."],
-            ].map(([t, d], i) => (
-              <li key={i} className="flex gap-4">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#006e2f]/10 text-[#006e2f] font-extrabold text-sm flex items-center justify-center">{i + 1}</span>
-                <div>
-                  <p className="font-bold text-[#191c1e] text-sm">{t}</p>
-                  <p className="text-sm text-[#5c647a] mt-0.5">{d}</p>
+      {/* ── Piliers ── */}
+      <section className="nkp-section nkp-section--tint !pt-14" aria-labelledby="piliers-titre">
+        <div className="nkp-wrap">
+          <h2 id="piliers-titre" className="sr-only">
+            Nos six protections
+          </h2>
+          <div className="nkp-grid-3">
+            {PILLARS.map((p) => (
+              <article key={p.title} className="nkp-card nkp-card--hover nkp-reveal">
+                <div className="nkp-card__core">
+                  <span className="nkp-ic mb-4" aria-hidden="true">
+                    <p.Icon strokeWidth={1.75} />
+                  </span>
+                  <h3>{p.title}</h3>
+                  <p className="nkp-card__desc text-[.92rem]">{p.desc}</p>
                 </div>
-              </li>
+              </article>
             ))}
-          </ol>
-        </div>
-      </section>
-
-      {/* SÉCURITÉ TECHNIQUE */}
-      <section className="max-w-5xl mx-auto px-6 pb-12 md:pb-16">
-        <h2 className="text-xl font-extrabold text-[#191c1e] mb-5 text-center">Une sécurité technique de bout en bout</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {SECURITY_TECH.map((s) => (
-            <div key={s.title} className="bg-white rounded-2xl border border-gray-100 p-6 text-center">
-              <div className="w-11 h-11 rounded-xl bg-[#006e2f]/10 text-[#006e2f] flex items-center justify-center mx-auto mb-3">
-                <s.Icon size={20} />
-              </div>
-              <h3 className="font-bold text-[#191c1e] text-sm">{s.title}</h3>
-              <p className="text-[13px] text-[#5c647a] mt-1.5 leading-relaxed">{s.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="max-w-3xl mx-auto px-6 pb-12 md:pb-16">
-        <h2 className="text-xl font-extrabold text-[#191c1e] mb-5 text-center">Questions fréquentes</h2>
-        <div className="space-y-3">
-          {FAQ.map((f, i) => (
-            <details key={i} className="group bg-white rounded-xl border border-gray-100 p-5 [&_summary::-webkit-details-marker]:hidden">
-              <summary className="flex items-center justify-between cursor-pointer font-semibold text-[#191c1e] text-sm gap-3">
-                {f.q}
-                <span className="text-[#006e2f] transition group-open:rotate-45 text-lg leading-none">+</span>
-              </summary>
-              <p className="text-sm text-[#5c647a] mt-3 leading-relaxed">{f.a}</p>
-            </details>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA / CONTACT */}
-      <section className="max-w-3xl mx-auto px-6 pb-16">
-        <div className="rounded-2xl p-8 text-center text-white" style={{ background: "linear-gradient(135deg, #003d1a, #006e2f)" }}>
-          <h2 className="text-xl font-extrabold">Un doute, un problème à signaler ?</h2>
-          <p className="text-white/80 text-sm mt-2 max-w-lg mx-auto">
-            Notre équipe traite chaque signalement rapidement. Écrivez-nous à <strong>support@novakou.com</strong>.
-          </p>
-          <div className="flex flex-wrap justify-center gap-3 mt-5">
-            <Link href="/contact" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-[#006e2f] text-sm font-bold hover:opacity-90 transition-opacity">
-              Nous contacter
-            </Link>
-            <Link href="/confidentialite" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-sm font-bold hover:bg-white/15 transition-colors">
-              Confidentialité (RGPD)
-            </Link>
           </div>
         </div>
-        <p className="text-center text-xs text-[#8a968e] mt-5">
-          Voir aussi : <Link href="/cgu" className="text-[#006e2f] font-semibold underline">CGU</Link>,
-          {" "}<Link href="/mentions-legales" className="text-[#006e2f] font-semibold underline">mentions légales</Link>,
-          {" "}<Link href="/cookies" className="text-[#006e2f] font-semibold underline">cookies</Link>.
-        </p>
       </section>
-    </div>
+
+      {/* ── Séquestre ── */}
+      <section className="nkp-section" aria-labelledby="escrow-titre">
+        <div className="nkp-wrap">
+          <div className="nkp-duo nkp-duo--top">
+            <div className="nkp-reveal">
+              <span className="nkp-tag">Séquestre</span>
+              <h2 id="escrow-titre">Comment le séquestre protège votre argent</h2>
+              <p className="nkp-prose">À chaque commande, l'argent est mis de côté par la plateforme. Il ne rejoint le vendeur qu'une fois la vente confirmée — et reste gelé tant qu'un litige est ouvert.</p>
+            </div>
+            <ol className="list-none m-0 p-0 flex flex-col gap-4">
+              {ESCROW.map(([t, d], i) => (
+                <li key={t} className="nkp-card nkp-reveal">
+                  <div className="nkp-card__core !flex-row items-start gap-4 !py-5">
+                    <span className="nkp-av !rounded-full" aria-hidden="true">
+                      {i + 1}
+                    </span>
+                    <div>
+                      <b className="block font-semibold">{t}</b>
+                      <p className="nkp-card__desc !mt-1 text-[.9rem]">{d}</p>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Sécurité technique ── */}
+      <section className="nkp-section nkp-section--tint" aria-labelledby="tech-titre">
+        <div className="nkp-wrap">
+          <div className="nkp-head nkp-head--center nkp-reveal">
+            <span className="nkp-tag">Infrastructure</span>
+            <h2 id="tech-titre">Une sécurité technique de bout en bout</h2>
+          </div>
+          <div className="nkp-grid-3">
+            {SECURITY_TECH.map((s) => (
+              <article key={s.title} className="nkp-card nkp-reveal">
+                <div className="nkp-card__core items-center text-center">
+                  <span className="nkp-ic mb-3" aria-hidden="true">
+                    <s.Icon strokeWidth={1.75} />
+                  </span>
+                  <h3 className="!text-[1.05rem]">{s.title}</h3>
+                  <p className="nkp-card__desc text-[.9rem]">{s.desc}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ ── */}
+      <section className="nkp-section" aria-labelledby="faq-titre">
+        <div className="nkp-wrap">
+          <div className="nkp-head nkp-head--center nkp-reveal">
+            <span className="nkp-tag">Questions fréquentes</span>
+            <h2 id="faq-titre">Vos questions sur la sécurité</h2>
+          </div>
+          <div className="nkp-reveal">
+            <Accordeon items={FAQ} />
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ── */}
+      <section className="nkp-section nkp-section--top0" aria-labelledby="cta-titre">
+        <div className="nkp-wrap">
+          <div className="nkp-bezel nkp-bezel--dark nkp-bezel--xl nkp-bezel--float nkp-reveal">
+            <div className="nkp-cta">
+              <span className="nkp-tag nkp-tag--dark">Support</span>
+              <h2 id="cta-titre">Un doute, un problème à signaler ?</h2>
+              <p>
+                Notre équipe traite chaque signalement rapidement. Écrivez-nous à <strong className="text-white">support@novakou.com</strong>.
+              </p>
+              <div className="nkp-actions">
+                <BoutonVerre href="/contact" variante="white" taille="lg" fleche>
+                  Nous contacter
+                </BoutonVerre>
+                <BoutonVerre href="/confidentialite" variante="white" taille="lg">
+                  Confidentialité (RGPD)
+                </BoutonVerre>
+              </div>
+              <small>
+                Voir aussi :{" "}
+                <Link href="/cgu" className="underline underline-offset-2 hover:text-white">
+                  CGU
+                </Link>
+                ,{" "}
+                <Link href="/mentions-legales" className="underline underline-offset-2 hover:text-white">
+                  mentions légales
+                </Link>
+                ,{" "}
+                <Link href="/cookies" className="underline underline-offset-2 hover:text-white">
+                  cookies
+                </Link>
+                .
+              </small>
+            </div>
+          </div>
+        </div>
+      </section>
+    </CoquePublique>
   );
 }
