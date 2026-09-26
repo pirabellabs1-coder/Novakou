@@ -117,7 +117,7 @@ function ApprenantFooter() {
               <span className="font-extrabold text-slate-900 text-base tracking-tight">Novakou</span>
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">
-              La plateforme d&apos;apprentissage qui élève votre carrière freelance.
+              Vos formations, e-books et produits numériques, réunis en un seul endroit.
             </p>
           </div>
           <div>

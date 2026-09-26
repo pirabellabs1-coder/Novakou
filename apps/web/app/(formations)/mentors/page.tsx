@@ -149,7 +149,7 @@ export default function MentorsPage() {
             Trouvez votre mentor
           </h1>
           <p className="text-white/75 text-lg mb-8 max-w-xl mx-auto leading-relaxed">
-            Des professionnels qui vous accompagnent en session individuelle pour accélérer votre carrière freelance.
+            Des professionnels qui vous accompagnent en session individuelle pour accélérer votre projet et vos ventes.
           </p>
           <div className="relative max-w-md mx-auto">
             <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />

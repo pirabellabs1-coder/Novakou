@@ -72,15 +72,15 @@ export function AuthLeftPanel({
         <h2 className="text-white text-4xl font-black leading-tight mb-4">
           {headline ?? (
             <>
-              Élevez votre carrière
+              Vendez vos formations
               <br />
-              <span className="text-yellow-300">au plus haut niveau</span>
+              <span className="text-yellow-300">et produits numériques</span>
             </>
           )}
         </h2>
         <p className="text-white/70 text-base leading-relaxed mb-10 max-w-sm">
           {subtext ??
-            "Rejoignez des milliers de professionnels francophones et internationaux sur la plateforme freelance n°1."}
+            "Rejoignez des milliers de créateurs d'Afrique francophone et de la diaspora qui vendent leurs formations et produits numériques sur Novakou."}
         </p>
         <ul className="space-y-4">
           {benefits.map((b) => (
