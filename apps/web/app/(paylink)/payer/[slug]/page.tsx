@@ -17,6 +17,9 @@ async function getLink(slug: string) {
         // Pixels du vendeur (FB/Google/TikTok) → suivi des pubs qui pointent
         // vers ce lien de paiement.
         instructeur: { select: { marketingPixels: { select: { type: true, pixelId: true } } } },
+        // Affichage seul : identité de la BOUTIQUE en tête du lien (anonymat
+        // vendeur — jamais le nom de la personne).
+        shop: { select: { name: true, logoUrl: true } },
       },
     })
     .catch(() => null);
@@ -49,6 +52,7 @@ export default async function PayerPage({ params }: { params: Promise<{ slug: st
         allowCustomAmount: link.allowCustomAmount,
       }}
       pixels={link.instructeur?.marketingPixels ?? []}
+      boutique={link.shop ? { nom: link.shop.name, logoUrl: link.shop.logoUrl } : null}
     />
   );
 }

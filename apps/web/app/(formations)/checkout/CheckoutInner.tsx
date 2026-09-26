@@ -11,13 +11,23 @@ import {
   Loader2,
   XCircle,
   AlertCircle,
+  AlertTriangle,
+  ArrowRight,
   GraduationCap,
   FolderArchive,
+  Gift,
   ShoppingCart,
   Tag,
   ShieldCheck,
   Download,
+  Zap,
 } from "lucide-react";
+import { sora } from "@/lib/fonts";
+import { NovakouLogo } from "@/components/formations/CountryFlag";
+import { EtapesAchat } from "@/components/formations/achat/EtapesAchat";
+import { CarteEtape } from "@/components/formations/achat/CarteEtape";
+import { ConfianceAchat } from "@/components/formations/achat/ConfianceAchat";
+import "@/components/formations/achat/achat.css";
 import { PixelInjector } from "@/components/formations/PixelInjector";
 import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
 import { KkiapayWidget, type KkiapayInit } from "@/components/formations/KkiapayWidget";
@@ -511,8 +521,15 @@ export default function CheckoutInner() {
 
   const selectedCountry = COUNTRIES.find((c) => c.code === countryCode) ?? COUNTRIES[0];
 
+  // Affichage seul : l'étape mise en avant par l'indicateur. Aucune règle
+  // ici — la validation reste entièrement dans goToPayment.
+  const coordonneesSaisies = !!session?.user?.email || isAllowedBuyerEmail(email);
+  const etapesAffichees = cartLoading || totalAmount > 0
+    ? [{ libelle: "Coordonnées" }, { libelle: "Paiement" }, { libelle: "Accès" }]
+    : [{ libelle: "Coordonnées" }, { libelle: "Accès" }];
+
   return (
-    <div className="min-h-screen bg-[#f7f9fb] py-8 px-4 md:px-8" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
+    <div className={`nka ${sora.variable} min-h-screen bg-[#f7f9fb]`}>
       {/* Pixels vendeurs : event InitiateCheckout (tous les pixels des vendeurs du panier) */}
       {checkoutPixels.length > 0 && (
         <PixelInjector
@@ -520,439 +537,509 @@ export default function CheckoutInner() {
           event={{ name: "InitiateCheckout", value: subTotal, currency: "XOF" }}
         />
       )}
-      {/* Header */}
-      <div className="max-w-5xl mx-auto mb-8">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "#006e2f" }}>
-            <Lock size={20} className="text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-extrabold text-[#191c1e] tracking-tight">Finaliser votre commande</h1>
-            <p className="text-xs text-[#5c647a]">Paiement sécurisé SSL · Accès immédiat</p>
-          </div>
+
+      <div className="nka-hero mx-auto max-w-6xl px-4 pb-10 pt-5 sm:px-6 md:pt-7 lg:pb-16">
+        {/* Bandeau : marque + sécurité. Volontairement sans lien : sur la page
+            où l'on paie, on n'ouvre aucune sortie (cf. lib/chrome-scope.ts). */}
+        <div className="flex items-center justify-between gap-3">
+          <span className="nka-brand">
+            <span aria-hidden="true" className="flex">
+              <NovakouLogo size={34} />
+            </span>
+            <span className="nka-brand__txt">Novakou</span>
+          </span>
+          <span className="nka-chip nka-chip--green">
+            <Lock aria-hidden="true" />
+            Paiement sécurisé
+          </span>
         </div>
-      </div>
 
-      <div className="max-w-5xl mx-auto flex flex-col lg:flex-row gap-8">
-        {/* Left — Payment form */}
-        <div className="flex-1 min-w-0 space-y-5">
+        {/* Header */}
+        <div className="mt-8 flex flex-col gap-5 md:mt-10 md:flex-row md:items-end md:justify-between">
+          <div className="min-w-0">
+            <p className="nka-eyebrow">Commande</p>
+            <h1 className="nka-h1 mt-3">Finaliser votre commande</h1>
+            <p className="nka-lead mt-2">Paiement sécurisé SSL · Accès immédiat</p>
+          </div>
+          <EtapesAchat etapes={etapesAffichees} courante={coordonneesSaisies ? 1 : 0} className="md:mb-1.5" />
+        </div>
 
-          {/* Contact info */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <h2 className="font-bold text-[#191c1e] mb-4 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-[#006e2f] text-white text-xs flex items-center justify-center font-bold">1</span>
-              Informations de contact
-            </h2>
-            <div className="grid grid-cols-1 gap-4">
-              {/* Un seul champ de nom : « Prénom » puis « Nom » faisaient deux
-                  saisies pour une information qui n'est même pas obligatoire. */}
-              <div>
-                <label className="block text-xs font-semibold text-[#5c647a] mb-1.5">
-                  Votre nom <span className="font-normal">(optionnel)</span>
-                </label>
-                <input
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="Comment vous appeler ?"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f7f9fb] text-sm text-[#191c1e] placeholder:text-[#5c647a] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
-                />
+        {/* Mobile : rappel compact de ce qu'on achète, en haut. Le détail
+            complet (et accessible) reste dans le récapitulatif plus bas. */}
+        {!cartLoading && cartItems.length > 0 && (
+          <div className="nka-bezel mt-6 lg:hidden" aria-hidden="true">
+            <div className="nka-bezel__core flex items-center gap-3 p-3">
+              <span className="nka-thumb !h-11 !w-11 !rounded-xl">
+                {cartItems[0].thumbnail ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={cartItems[0].thumbnail} alt="" />
+                ) : cartItems[0].kind === "formation" ? (
+                  <GraduationCap />
+                ) : (
+                  <FolderArchive />
+                )}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold text-[#0e1512]">{cartItems[0].title}</p>
+                {cartItems.length > 1 && (
+                  <p className="nka-num text-xs text-[#5c6b62]">
+                    + {cartItems.length - 1} autre{cartItems.length > 2 ? "s" : ""} article{cartItems.length > 2 ? "s" : ""}
+                  </p>
+                )}
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-[#5c647a] mb-1.5">Adresse e-mail</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="votre.nom@email.com"
-                  disabled={!!session?.user?.email}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f7f9fb] text-sm text-[#191c1e] placeholder:text-[#5c647a] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] disabled:opacity-60"
-                />
-                <p className="text-[10px] text-[#5c647a] mt-1">Votre reçu et accès seront envoyés à cette adresse.</p>
-              </div>
+              <span className="nka-line__price">{formatFCFA(totalAmount)}</span>
+            </div>
+          </div>
+        )}
 
-              {/* ── Offrir en cadeau ─────────────────────────────────────── */}
-              <div className="rounded-xl border border-gray-200 bg-[#f7f9fb] p-3.5">
-                <label className="flex items-center gap-2.5 cursor-pointer select-none">
+        <div className="mt-6 grid grid-cols-1 items-start gap-5 lg:mt-9 lg:grid-cols-[minmax(0,1fr)_minmax(0,380px)] lg:gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,400px)]">
+          {/* Left — Payment form */}
+          <div className="min-w-0 space-y-5">
+
+            {/* Contact info */}
+            <CarteEtape numero={1} titre="Informations de contact">
+              <div className="grid grid-cols-1 gap-4">
+                {/* Un seul champ de nom : « Prénom » puis « Nom » faisaient deux
+                    saisies pour une information qui n'est même pas obligatoire. */}
+                <div className="nka-field">
+                  <label htmlFor="nka-nom" className="nka-label">
+                    Votre nom <span className="nka-label__opt">(optionnel)</span>
+                  </label>
                   <input
-                    type="checkbox"
-                    checked={giftEnabled}
-                    onChange={(e) => setGiftEnabled(e.target.checked)}
-                    className="w-4 h-4 rounded accent-[#006e2f]"
+                    id="nka-nom"
+                    type="text"
+                    autoComplete="name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="Comment vous appeler ?"
+                    className="nka-input"
                   />
-                  <span className="text-sm font-bold text-[#191c1e]">🎁 Offrir en cadeau à quelqu&apos;un d&apos;autre</span>
-                </label>
-                {giftEnabled && (
-                  <div className="mt-3 grid grid-cols-1 gap-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-[#5c647a] mb-1.5">E‑mail du destinataire</label>
-                      <input
-                        type="email"
-                        value={giftEmail}
-                        onChange={(e) => setGiftEmail(e.target.value)}
-                        placeholder="destinataire@email.com"
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-[#191c1e] placeholder:text-[#5c647a] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
-                      />
-                      <p className="text-[10px] text-[#5c647a] mt-1">La personne recevra un e‑mail avec un lien d&apos;accès (sans créer de compte). Vous, vous recevez le reçu.</p>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-[#5c647a] mb-1.5">Nom du destinataire <span className="font-normal">(optionnel)</span></label>
-                      <input
-                        type="text"
-                        value={giftName}
-                        onChange={(e) => setGiftName(e.target.value)}
-                        placeholder="Prénom / nom"
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-[#191c1e] placeholder:text-[#5c647a] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-[#5c647a] mb-1.5">Message <span className="font-normal">(optionnel)</span></label>
-                      <textarea
-                        value={giftMessage}
-                        onChange={(e) => setGiftMessage(e.target.value)}
-                        rows={2}
-                        maxLength={500}
-                        placeholder="Un petit mot pour accompagner votre cadeau…"
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-[#191c1e] placeholder:text-[#5c647a] resize-none focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
-                      />
-                    </div>
-                    {giftOwned.length > 0 && (
-                      <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-[12px] text-amber-800">
-                        ⚠️ Cette personne possède peut‑être déjà : <strong>{giftOwned.join(", ")}</strong>. Vous pouvez tout de même offrir.
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-            </div>
-          </div>
-
-          {/* Code promo — replié. Il occupait une section entière alors que la
-              plupart des acheteurs n'en ont pas : autant de hauteur à faire
-              défiler avant d'atteindre le paiement. */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            {!promoOuvert && !discountCode ? (
-              <button
-                type="button"
-                onClick={() => setPromoOuvert(true)}
-                className="text-sm font-semibold text-[#006e2f] hover:underline"
-              >
-                J&apos;ai un code promo
-              </button>
-            ) : (
-            <>
-            <div className="relative">
-              <input
-                type="text"
-                value={discountCode}
-                onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
-                placeholder="PROMO20"
-                className={`w-full px-4 py-3 pr-12 rounded-xl border text-sm tabular-nums font-bold uppercase placeholder:font-normal focus:outline-none focus:ring-2 transition-colors ${
-                  discountStatus === "valid"
-                    ? "border-emerald-300 bg-emerald-50 text-emerald-900 placeholder:text-emerald-400 focus:ring-emerald-200"
-                    : discountStatus === "invalid"
-                      ? "border-red-300 bg-red-50 text-red-900 placeholder:text-red-400 focus:ring-red-200"
-                      : "border-gray-200 bg-[#f7f9fb] text-[#191c1e] placeholder:text-[#5c647a] focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
-                }`}
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                {discountStatus === "validating" && (
-                  <Loader2 size={20} className="text-[#5c647a] animate-spin" />
-                )}
-                {discountStatus === "valid" && (
-                  <CheckCircle2 size={20} className="text-emerald-600" />
-                )}
-                {discountStatus === "invalid" && (
-                  <XCircle size={20} className="text-red-500" />
-                )}
-              </div>
-            </div>
-            {discountMessage && (
-              <p className={`text-xs font-semibold mt-2 ${discountStatus === "valid" ? "text-emerald-700" : "text-red-600"}`}>
-                {discountMessage}
-              </p>
-            )}
-            </>
-            )}
-          </div>
-
-          {/* ── Moyen de paiement, dans la page ──────────────────────────
-              Autrefois un second écran plein page. Le tunnel faisait alors
-              deux pages, et un acheteur a écrit à son vendeur que c'était trop
-              long. Tout tient désormais ici : pays, moyen, numéro, puis le
-              bouton « Payer » du récapitulatif. */}
-          {totalAmount > 0 && (
-          <div id="moyen-de-paiement" className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <h2 className="font-bold text-[#191c1e] mb-4 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-[#006e2f] text-white text-xs flex items-center justify-center font-bold">2</span>
-              Moyen de paiement
-            </h2>
-            {kkiapay && (
-              <KkiapayWidget
-                init={kkiapay}
-                onDelivered={() => router.push(`/payment/return?ref=${encodeURIComponent(kkiapay.internalRef)}`)}
-                onFailed={(m) => { setKkiapay(null); setError(m); setLoading(false); }}
-              />
-            )}
-            <UnifiedPaymentScreen
-              embedded
-              hideSubmit
-              amount={totalAmount}
-              buyerName={firstName || null}
-              defaultCountry={selectedCountry?.iso ?? null}
-              onPay={(args) => { void startPayment(args); }}
-              onSelectionChange={setPaySel}
-              submitting={loading}
-              error={null}
-            />
-          </div>
-          )}
-
-          {/* Conditions — mention, plus de case à cocher.
-              L'acceptation se fait par l'acte de payer : la mention est
-              affichée juste au-dessus du bouton, avec les liens accessibles.
-              La case coûtait un clic et un motif d'abandon supplémentaires
-              sur un tunnel déjà jugé trop long par les acheteurs. */}
-          <p className="text-[13px] text-[#5c647a] leading-relaxed px-1">
-            En payant, vous acceptez les{" "}
-            <a href="/cgu" target="_blank" rel="noopener noreferrer" className="text-[#006e2f] hover:underline font-semibold">Conditions Générales de Vente</a>{" "}
-            et la{" "}
-            <a href="/confidentialite" target="_blank" rel="noopener noreferrer" className="text-[#006e2f] hover:underline font-semibold">Politique de confidentialité</a>{" "}
-            de Novakou.
-          </p>
-
-          {/* Error — avec fallback automatique vers l'autre provider si
-              le provider courant est indisponible. Décidé en post-mortem
-              passerelle "Server Error" du 2026-05-26. */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-              <div className="flex items-start gap-3">
-                <AlertCircle size={20} className="text-red-500 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm text-red-700 font-medium">{error}</p>
                 </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Right — Order summary */}
-        <div className="lg:w-80 xl:w-96 flex-shrink-0">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-xl p-6 sticky top-24">
-            <h2 className="font-bold text-[#191c1e] mb-5">Récapitulatif</h2>
-
-            {/* Items */}
-            <div className="space-y-3 mb-5">
-              {cartLoading ? (
-                <div className="space-y-2">
-                  {[0, 1].map((i) => <div key={i} className="h-14 bg-zinc-100 rounded-xl animate-pulse" />)}
+                <div className="nka-field">
+                  <label htmlFor="nka-email" className="nka-label">Adresse e-mail</label>
+                  <input
+                    id="nka-email"
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="votre.nom@email.com"
+                    disabled={!!session?.user?.email}
+                    aria-describedby="nka-email-aide"
+                    className="nka-input"
+                  />
+                  <p id="nka-email-aide" className="nka-hint">Votre reçu et accès seront envoyés à cette adresse.</p>
                 </div>
-              ) : cartItems.length === 0 ? (
-                <p className="text-sm text-[#5c647a] text-center py-4">Votre panier est vide.</p>
-              ) : (
-                cartItems.map((item) => (
-                  <div key={item.id} className="flex items-center gap-3 pb-3 border-b border-gray-100 last:border-0 last:pb-0">
-                    {item.thumbnail ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={item.thumbnail} alt={item.title} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center flex-shrink-0">
-                        {item.kind === "formation" ? (
-                          <GraduationCap size={18} className="text-white" />
-                        ) : (
-                          <FolderArchive size={18} className="text-white" />
-                        )}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-[#191c1e] truncate">{item.title}</p>
-                      <p className="text-xs text-[#5c647a] mt-0.5">{formatFCFA(item.price)}</p>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
 
-            {/* ─── Order Bumps (offres additionnelles) ─────────────────────── */}
-            {availableBumps.length > 0 && (
-              <div className="mb-5 space-y-2">
-                {availableBumps.map((bump) => {
-                  const isAccepted = acceptedBumpIds.includes(bump.id);
-                  const savings = bump.originalPrice && bump.originalPrice > bump.price
-                    ? bump.originalPrice - bump.price : 0;
-                  return (
-                    <label
-                      key={bump.id}
-                      className={`block border-2 rounded-2xl p-4 cursor-pointer transition-all ${
-                        isAccepted
-                          ? "border-[#006e2f] bg-[#006e2f]/5"
-                          : "border-dashed border-amber-300 bg-amber-50/50 hover:border-amber-400"
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
+                {/* ── Offrir en cadeau ─────────────────────────────────────── */}
+                <div>
+                  <label className="nka-toggle">
+                    <input
+                      type="checkbox"
+                      checked={giftEnabled}
+                      onChange={(e) => setGiftEnabled(e.target.checked)}
+                    />
+                    <span className="nka-toggle__ico" aria-hidden="true">
+                      <Gift />
+                    </span>
+                    <span className="text-sm font-semibold text-[#0e1512]">Offrir en cadeau à quelqu&apos;un d&apos;autre</span>
+                  </label>
+                  {giftEnabled && (
+                    <div className="mt-3 grid grid-cols-1 gap-4 rounded-2xl bg-[#f7faf8] p-4 shadow-[inset_0_0_0_1px_rgba(14,21,18,0.06)]">
+                      <div className="nka-field">
+                        <label htmlFor="nka-cadeau-email" className="nka-label">E‑mail du destinataire</label>
                         <input
-                          type="checkbox"
-                          checked={isAccepted}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setAcceptedBumpIds((prev) => [...prev, bump.id]);
-                            } else {
-                              setAcceptedBumpIds((prev) => prev.filter((id) => id !== bump.id));
-                            }
-                          }}
-                          className="mt-1 w-5 h-5 accent-[#006e2f] cursor-pointer"
+                          id="nka-cadeau-email"
+                          type="email"
+                          value={giftEmail}
+                          onChange={(e) => setGiftEmail(e.target.value)}
+                          placeholder="destinataire@email.com"
+                          aria-describedby="nka-cadeau-aide"
+                          className="nka-input"
                         />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
-                              ⚡ Offre spéciale
-                            </span>
-                            {savings > 0 && (
-                              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                                −{formatFCFA(savings)}
-                              </span>
-                            )}
-                          </div>
-                          <h4 className="text-sm font-extrabold text-[#191c1e]">{bump.title}</h4>
-                          <p className="text-xs text-[#5c647a] mt-1 line-clamp-2">{bump.description}</p>
-                          <div className="flex items-baseline gap-2 mt-2">
-                            <span className="text-base font-extrabold text-[#006e2f]">+ {formatFCFA(bump.price)}</span>
-                            {bump.originalPrice && bump.originalPrice > bump.price && (
-                              <span className="text-xs text-[#5c647a] line-through">{formatFCFA(bump.originalPrice)}</span>
-                            )}
-                          </div>
+                        <p id="nka-cadeau-aide" className="nka-hint">La personne recevra un e‑mail avec un lien d&apos;accès (sans créer de compte). Vous, vous recevez le reçu.</p>
+                      </div>
+                      <div className="nka-field">
+                        <label htmlFor="nka-cadeau-nom" className="nka-label">
+                          Nom du destinataire <span className="nka-label__opt">(optionnel)</span>
+                        </label>
+                        <input
+                          id="nka-cadeau-nom"
+                          type="text"
+                          value={giftName}
+                          onChange={(e) => setGiftName(e.target.value)}
+                          placeholder="Prénom / nom"
+                          className="nka-input"
+                        />
+                      </div>
+                      <div className="nka-field">
+                        <label htmlFor="nka-cadeau-message" className="nka-label">
+                          Message <span className="nka-label__opt">(optionnel)</span>
+                        </label>
+                        <textarea
+                          id="nka-cadeau-message"
+                          value={giftMessage}
+                          onChange={(e) => setGiftMessage(e.target.value)}
+                          rows={2}
+                          maxLength={500}
+                          placeholder="Un petit mot pour accompagner votre cadeau…"
+                          className="nka-input"
+                        />
+                      </div>
+                      {giftOwned.length > 0 && (
+                        <div className="nka-alert nka-alert--amber" role="status">
+                          <AlertTriangle aria-hidden="true" />
+                          <p>
+                            Cette personne possède peut‑être déjà : <strong>{giftOwned.join(", ")}</strong>. Vous pouvez tout de même offrir.
+                          </p>
                         </div>
-                        {bump.imageUrl && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={bump.imageUrl} alt={bump.title} className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
+                      )}
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            </CarteEtape>
+
+            {/* Code promo — replié. Il occupait une section entière alors que la
+                plupart des acheteurs n'en ont pas : autant de hauteur à faire
+                défiler avant d'atteindre le paiement. */}
+            <div className="nka-bezel">
+              <div className="nka-bezel__core px-5 py-3.5 sm:px-6">
+                {!promoOuvert && !discountCode ? (
+                  <button
+                    type="button"
+                    onClick={() => setPromoOuvert(true)}
+                    className="nka-linkbtn"
+                  >
+                    <Tag aria-hidden="true" />
+                    J&apos;ai un code promo
+                  </button>
+                ) : (
+                  <div className="nka-field py-1.5">
+                    <label htmlFor="nka-code-promo" className="nka-label">Code promo</label>
+                    <div className="relative">
+                      <input
+                        id="nka-code-promo"
+                        type="text"
+                        value={discountCode}
+                        onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                        placeholder="PROMO20"
+                        aria-invalid={discountStatus === "invalid" || undefined}
+                        aria-describedby={discountMessage ? "nka-code-promo-msg" : undefined}
+                        className={`nka-input nka-input--code ${
+                          discountStatus === "valid"
+                            ? "nka-input--ok"
+                            : discountStatus === "invalid"
+                              ? "nka-input--err"
+                              : ""
+                        }`}
+                      />
+                      <div className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2" aria-hidden="true">
+                        {discountStatus === "validating" && (
+                          <Loader2 size={20} className="text-[#5c6b62] animate-spin" />
+                        )}
+                        {discountStatus === "valid" && (
+                          <CheckCircle2 size={20} className="text-[#006e2f]" />
+                        )}
+                        {discountStatus === "invalid" && (
+                          <XCircle size={20} className="text-[#b42318]" />
                         )}
                       </div>
-                    </label>
-                  );
-                })}
+                    </div>
+                    {/* Région annoncée : le résultat de la vérification arrive
+                        une demi-seconde après la frappe. */}
+                    <div aria-live="polite">
+                      {discountMessage && (
+                        <p id="nka-code-promo-msg" className={`nka-msg ${discountStatus === "valid" ? "nka-msg--ok" : "nka-msg--err"}`}>
+                          {discountStatus === "valid" ? <CheckCircle2 aria-hidden="true" /> : <AlertCircle aria-hidden="true" />}
+                          {discountMessage}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
+            </div>
+
+            {/* ── Moyen de paiement, dans la page ──────────────────────────
+                Autrefois un second écran plein page. Le tunnel faisait alors
+                deux pages, et un acheteur a écrit à son vendeur que c'était trop
+                long. Tout tient désormais ici : pays, moyen, numéro, puis le
+                bouton « Payer » du récapitulatif. */}
+            {totalAmount > 0 && (
+            <CarteEtape
+              id="moyen-de-paiement"
+              numero={2}
+              titre="Moyen de paiement"
+              sousTitre="Choisissez votre pays, puis votre moyen de paiement."
+              serre
+            >
+              {kkiapay && (
+                <KkiapayWidget
+                  init={kkiapay}
+                  onDelivered={() => router.push(`/payment/return?ref=${encodeURIComponent(kkiapay.internalRef)}`)}
+                  onFailed={(m) => { setKkiapay(null); setError(m); setLoading(false); }}
+                />
+              )}
+              <UnifiedPaymentScreen
+                embedded
+                hideSubmit
+                amount={totalAmount}
+                buyerName={firstName || null}
+                defaultCountry={selectedCountry?.iso ?? null}
+                onPay={(args) => { void startPayment(args); }}
+                onSelectionChange={setPaySel}
+                submitting={loading}
+                error={null}
+              />
+            </CarteEtape>
             )}
 
-            {/* Price breakdown */}
-            <div className="space-y-2.5 mb-5">
-              <div className="flex justify-between text-sm">
-                <span className="text-[#5c647a]">Sous-total</span>
-                <span className="font-semibold text-[#191c1e]">{formatFCFA(subTotal)}</span>
+            {/* Conditions — mention, plus de case à cocher.
+                L'acceptation se fait par l'acte de payer : la mention est
+                affichée juste au-dessus du bouton, avec les liens accessibles.
+                La case coûtait un clic et un motif d'abandon supplémentaires
+                sur un tunnel déjà jugé trop long par les acheteurs. */}
+            <p className="nka-legal px-1">
+              En payant, vous acceptez les{" "}
+              <a href="/cgu" target="_blank" rel="noopener noreferrer">Conditions Générales de Vente</a>{" "}
+              et la{" "}
+              <a href="/confidentialite" target="_blank" rel="noopener noreferrer">Politique de confidentialité</a>{" "}
+              de Novakou.
+            </p>
+
+            {/* Error — avec fallback automatique vers l'autre provider si
+                le provider courant est indisponible. Décidé en post-mortem
+                passerelle "Server Error" du 2026-05-26. */}
+            {error && (
+              <div className="nka-alert" role="alert">
+                <AlertCircle aria-hidden="true" />
+                <p className="min-w-0 flex-1">{error}</p>
               </div>
-              {bumpsTotal > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-amber-700 font-semibold inline-flex items-center gap-1">
-                    <ShoppingCart size={14} />
-                    Offre{acceptedBumpIds.length > 1 ? "s" : ""} additionnelle{acceptedBumpIds.length > 1 ? "s" : ""}
-                  </span>
-                  <span className="font-bold text-amber-700">+{formatFCFA(bumpsTotal)}</span>
+            )}
+          </div>
+
+          {/* Right — Order summary (collant dès lg ; aucun transform ici : la
+              barre mobile fixe vit dans ce bloc). */}
+          <aside className="min-w-0 lg:sticky lg:top-6" aria-label="Récapitulatif de la commande">
+            <div className="nka-bezel nka-bezel--float">
+              <div className="nka-bezel__core p-5 sm:p-6">
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="nka-h2">Récapitulatif</h2>
+                  {!cartLoading && cartItems.length > 0 && (
+                    <span className="nka-chip nka-num">
+                      {cartItems.length} article{cartItems.length > 1 ? "s" : ""}
+                    </span>
+                  )}
                 </div>
-              )}
-              {discountStatus === "valid" && discountAmount > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-emerald-700 font-semibold inline-flex items-center gap-1">
-                    <Tag size={14} />
-                    Code {discountCode}
-                  </span>
-                  <span className="font-bold text-emerald-600">−{formatFCFA(discountAmount)}</span>
+
+                {/* Items */}
+                <div className="mt-4">
+                  {cartLoading ? (
+                    <div className="space-y-3" aria-hidden="true">
+                      {[0, 1].map((i) => <div key={i} className="nka-skel h-14" />)}
+                    </div>
+                  ) : cartItems.length === 0 ? (
+                    <p className="py-4 text-center text-sm text-[#5c6b62]">Votre panier est vide.</p>
+                  ) : (
+                    <ul>
+                      {cartItems.map((item) => (
+                        <li key={item.id} className="nka-line">
+                          <span className="nka-thumb">
+                            {item.thumbnail ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={item.thumbnail} alt="" />
+                            ) : item.kind === "formation" ? (
+                              <GraduationCap aria-hidden="true" />
+                            ) : (
+                              <FolderArchive aria-hidden="true" />
+                            )}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="nka-line__title">{item.title}</p>
+                            <p className="nka-line__meta">{item.kind === "formation" ? "Formation" : "Produit numérique"}</p>
+                          </div>
+                          <span className="nka-line__price">{formatFCFA(item.price)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-              )}
-              <div className="flex justify-between text-sm">
-                <span className="text-[#5c647a]">Frais de traitement</span>
-                <span className="font-semibold text-green-600">Gratuit</span>
+
+                {/* ─── Order Bumps (offres additionnelles) ─────────────────────── */}
+                {availableBumps.length > 0 && (
+                  <div className="mt-5 space-y-2.5">
+                    {availableBumps.map((bump) => {
+                      const isAccepted = acceptedBumpIds.includes(bump.id);
+                      const savings = bump.originalPrice && bump.originalPrice > bump.price
+                        ? bump.originalPrice - bump.price : 0;
+                      return (
+                        <label key={bump.id} className="nka-bump">
+                          <div className="flex items-start gap-3">
+                            <input
+                              type="checkbox"
+                              checked={isAccepted}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setAcceptedBumpIds((prev) => [...prev, bump.id]);
+                                } else {
+                                  setAcceptedBumpIds((prev) => prev.filter((id) => id !== bump.id));
+                                }
+                              }}
+                            />
+                            <div className="min-w-0 flex-1">
+                              <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
+                                <span className="nka-chip nka-chip--amber">
+                                  <Zap aria-hidden="true" />
+                                  Offre spéciale
+                                </span>
+                                {savings > 0 && (
+                                  <span className="nka-chip nka-chip--green nka-num">
+                                    −{formatFCFA(savings)}
+                                  </span>
+                                )}
+                              </div>
+                              <h3 className="text-sm font-bold leading-snug text-[#0e1512]">{bump.title}</h3>
+                              <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-[#5c6b62]">{bump.description}</p>
+                              <div className="mt-2 flex flex-wrap items-baseline gap-x-2">
+                                <span className="nka-num text-base font-bold text-[#006e2f]">+ {formatFCFA(bump.price)}</span>
+                                {bump.originalPrice && bump.originalPrice > bump.price && (
+                                  <s className="nka-num text-xs text-[#5c6b62]">{formatFCFA(bump.originalPrice)}</s>
+                                )}
+                              </div>
+                            </div>
+                            {bump.imageUrl && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={bump.imageUrl} alt="" className="h-14 w-14 flex-shrink-0 rounded-xl object-cover" />
+                            )}
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Price breakdown */}
+                <div className="nka-rows mt-5 border-t border-[#e6ece8] pt-5">
+                  <div className="nka-row">
+                    <span>Sous-total</span>
+                    <span>{formatFCFA(subTotal)}</span>
+                  </div>
+                  {bumpsTotal > 0 && (
+                    <div className="nka-row nka-row--amber">
+                      <span>
+                        <ShoppingCart aria-hidden="true" />
+                        Offre{acceptedBumpIds.length > 1 ? "s" : ""} additionnelle{acceptedBumpIds.length > 1 ? "s" : ""}
+                      </span>
+                      <span>+{formatFCFA(bumpsTotal)}</span>
+                    </div>
+                  )}
+                  {discountStatus === "valid" && discountAmount > 0 && (
+                    <div className="nka-row nka-row--green">
+                      <span>
+                        <Tag aria-hidden="true" />
+                        Code {discountCode}
+                      </span>
+                      <span>−{formatFCFA(discountAmount)}</span>
+                    </div>
+                  )}
+                  <div className="nka-row">
+                    <span>Frais de traitement</span>
+                    <span className="nka-free">Gratuit</span>
+                  </div>
+                </div>
+
+                {/* Total */}
+                <div className="nka-total">
+                  <span className="nka-total__label">Total</span>
+                  <span className="nka-total__amount">{formatFCFA(totalAmount)}</span>
+                </div>
+
+                {/* La liste « Paiements acceptés » a été retirée : elle était FIGÉE
+                    (Orange, Wave, MTN, Carte) quel que soit le pays, et s'affichait
+                    juste à côté du bloc de paiement qui montre, lui, les moyens
+                    réellement disponibles pour l'acheteur. Annoncer Wave à un
+                    acheteur béninois pour lui proposer autre chose deux lignes plus
+                    bas décrédibilise la page au lieu de rassurer.
+                    Seules les FAMILLES (Mobile Money, carte) restent affichées plus
+                    bas, sans aucun nom d'opérateur — cf. ConfianceAchat. */}
+
+                {/* Pay button — desktop / large screens */}
+                <div className="mt-5 hidden lg:block">
+                  <button
+                    onClick={goToPayment}
+                    disabled={loading || cartLoading || cartItems.length === 0}
+                    aria-busy={loading || undefined}
+                    className="nka-btn nka-btn--primary nka-btn--block nka-btn--lg"
+                  >
+                    <span className="nka-btn__label">
+                      {loading ? (
+                        <>
+                          <Loader2 className="animate-spin" aria-hidden="true" />
+                          Un instant…
+                        </>
+                      ) : (
+                        <>
+                          <Lock aria-hidden="true" />
+                          Payer {formatFCFA(totalAmount)}
+                        </>
+                      )}
+                    </span>
+                    <span className="nka-btn__ico" aria-hidden="true">
+                      <ArrowRight strokeWidth={2.2} />
+                    </span>
+                  </button>
+                </div>
+
+                {/* Réassurance */}
+                <ConfianceAchat
+                  className="mt-5 border-t border-[#e6ece8] pt-5"
+                  garanties={[
+                    { Icone: ShieldCheck, texte: "Paiement 100 % sécurisé" },
+                    { Icone: Download, texte: "Accès immédiat après votre achat" },
+                    { Icone: Lock, texte: "Connexion chiffrée (SSL)" },
+                  ]}
+                />
               </div>
             </div>
-
-            {/* Total */}
-            <div className="flex justify-between items-center py-4 border-t border-gray-100 mb-5">
-              <span className="font-bold text-[#191c1e]">Total</span>
-              <div className="text-right">
-                <p className="text-xl font-extrabold text-[#006e2f] tracking-tight">{formatFCFA(totalAmount)}</p>
-              </div>
-            </div>
-
-            {/* La liste « Paiements acceptés » a été retirée : elle était FIGÉE
-                (Orange, Wave, MTN, Carte) quel que soit le pays, et s'affichait
-                juste à côté du bloc de paiement qui montre, lui, les moyens
-                réellement disponibles pour l'acheteur. Annoncer Wave à un
-                acheteur béninois pour lui proposer autre chose deux lignes plus
-                bas décrédibilise la page au lieu de rassurer. */}
-
-            {/* Pay button — desktop / large screens */}
-            <button
-              onClick={goToPayment}
-              disabled={loading || cartLoading || cartItems.length === 0}
-              className="hidden lg:flex items-center justify-center gap-2 w-full py-4 rounded-xl text-white font-bold text-base shadow-lg transition-all duration-200 hover:opacity-90 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
-            >
-              {loading ? (
-                <>
-                  <Loader2 size={20} className="animate-spin" />
-                  Un instant…
-                </>
-              ) : (
-                <>
-                  <Lock size={20} />
-                  Payer {formatFCFA(totalAmount)}
-                </>
-              )}
-            </button>
 
             {/* Pay button — mobile sticky bar (Bureau session 4, P0 Léa).
                 Avant : le CTA Payer était dans le sidebar récapitulatif,
                 hors-écran sur mobile portrait → conversion -8 à -12 %.
                 Maintenant : barre fixée en bas du viewport sur mobile,
                 toujours visible quel que soit le scroll. */}
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-2xl p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-              <div className="flex items-center justify-between gap-3 mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Total</span>
-                <span className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatFCFA(totalAmount)}</span>
+            <div className="nka-bar lg:hidden fixed bottom-0 left-0 right-0 z-40">
+              <div className="mx-auto max-w-xl">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#5c6b62]">Total</span>
+                  <span className="nka-bar__amount">{formatFCFA(totalAmount)}</span>
+                </div>
+                <button
+                  onClick={goToPayment}
+                  disabled={loading || cartLoading || cartItems.length === 0}
+                  aria-busy={loading || undefined}
+                  className="nka-btn nka-btn--primary nka-btn--block nka-btn--lg"
+                >
+                  <span className="nka-btn__label">
+                    {loading ? (
+                      <>
+                        <Loader2 className="animate-spin" aria-hidden="true" />
+                        Un instant…
+                      </>
+                    ) : (
+                      <>
+                        <Lock aria-hidden="true" />
+                        Payer maintenant
+                      </>
+                    )}
+                  </span>
+                </button>
               </div>
-              <button
-                onClick={goToPayment}
-                disabled={loading || cartLoading || cartItems.length === 0}
-                className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl text-white font-bold text-base shadow-lg transition-all duration-200 hover:opacity-90 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 size={20} className="animate-spin" />
-                    Un instant…
-                  </>
-                ) : (
-                  <>
-                    <Lock size={20} />
-                    Payer maintenant
-                  </>
-                )}
-              </button>
             </div>
             {/* Pad pour que le contenu ne soit pas caché derrière la sticky bar mobile */}
             <div className="lg:hidden h-32" aria-hidden="true" />
-
-            {/* Security badges */}
-            <div className="mt-4 flex items-center justify-center gap-4">
-              {[
-                { Icon: Lock, label: "SSL" },
-                { Icon: ShieldCheck, label: "Sécurisé" },
-                { Icon: Download, label: "Accès immédiat" },
-              ].map((item) => (
-                <div key={item.label} className="flex flex-col items-center gap-0.5">
-                  <item.Icon size={16} className="text-[#5c647a]" />
-                  <span className="text-[9px] text-[#5c647a] font-medium">{item.label}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Réassurance */}
-            <div className="mt-5 p-3 rounded-xl bg-green-50 flex items-center gap-2">
-              <ShieldCheck size={18} className="text-[#006e2f] flex-shrink-0" />
-              <p className="text-[11px] font-semibold text-[#006e2f] leading-snug">
-                Paiement 100 % sécurisé · Accès immédiat après votre achat.
-              </p>
-            </div>
-          </div>
+          </aside>
         </div>
       </div>
     </div>

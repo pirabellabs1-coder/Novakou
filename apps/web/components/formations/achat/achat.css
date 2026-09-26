@@ -1,0 +1,484 @@
+/* ============================================================
+   Parcours d'achat (checkout, lien de paiement, attente Mobile Money,
+   panier, abonnement, vitrine affilié) — styles scopés sous .nka.
+   Même langue que les fiches (fiche.css), le menu (nav.css) et
+   l'authentification (auth.css) : verre, double-bezel, ombres teintées
+   vert nuit, courbe --nka-ease. Préfixe nka- : aucun conflit possible.
+
+   Règle propre à ces pages : AUCUN transform/filter/backdrop-filter sur un
+   ancêtre de la barre de paiement mobile (position: fixed) — sinon elle se
+   positionnerait par rapport à lui et quitterait le bas de l'écran.
+   Ce qui bouge n'anime que transform et opacity.
+   ============================================================ */
+.nka {
+  --nka-green: #006e2f;
+  --nka-green-hover: #005c27;
+  --nka-green-night: #032314;
+  --nka-accent: var(--nka-green);
+  --nka-tint: #f0f6f2;
+  --nka-tint-2: #dfede4;
+  --nka-ink: #0e1512;
+  --nka-grey: #5c6b62;
+  --nka-grey-l: #6b7870;
+  --nka-line: #e6ece8;
+  --nka-field: #fbfcfb;
+  --nka-danger: #b42318;
+  --nka-danger-bg: #fef3f2;
+  --nka-danger-line: #f6cfcb;
+  --nka-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --nka-fast: 0.18s;
+  --nka-base: 0.3s;
+  --nka-bz-r: 24px;
+  --nka-bz-p: 6px;
+  --nka-shadow-sm: 0 1px 2px rgba(14, 21, 18, 0.05), 0 1px 3px rgba(14, 21, 18, 0.06);
+  --nka-shadow-lg: 0 24px 60px -18px rgba(3, 35, 20, 0.22);
+  --nka-display: var(--font-sora), "Sora", var(--font-inter), "Inter", system-ui, sans-serif;
+  font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+  color: var(--nka-ink);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+.nka ::selection { background: var(--nka-green); color: #fff; }
+
+/* ── Halo d'en-tête (pseudo-élément : ne touche pas au flux) ── */
+.nka-hero { position: relative; isolation: isolate; }
+.nka-hero::before {
+  content: ""; position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
+  width: min(1100px, 100%); height: 420px; pointer-events: none; z-index: -1;
+  background: radial-gradient(50% 60% at 50% 0%, rgba(0, 110, 47, 0.09), transparent 70%);
+}
+
+/* ── Typographie ── */
+.nka-h1 {
+  font-family: var(--nka-display); font-size: clamp(1.625rem, 1.2rem + 1.6vw, 2.375rem);
+  font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; color: var(--nka-ink); text-wrap: balance;
+}
+.nka-h1--sm { font-size: clamp(1.375rem, 1.1rem + 1vw, 1.875rem); }
+.nka-h2 {
+  font-family: var(--nka-display); font-size: 1.0625rem; font-weight: 700;
+  letter-spacing: -0.02em; line-height: 1.25; color: var(--nka-ink);
+}
+.nka-lead { font-size: 0.9375rem; line-height: 1.6; color: var(--nka-grey); text-wrap: pretty; }
+.nka-eyebrow {
+  display: inline-flex; align-items: center; gap: 7px; font-size: 0.6875rem; font-weight: 700;
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--nka-green);
+}
+.nka-eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.nka-num { font-variant-numeric: tabular-nums; }
+
+/* ── Marque en tête des pages sans menu (checkout, attente, lien) ── */
+.nka-brand { display: inline-flex; align-items: center; gap: 10px; min-width: 0; font-family: var(--nka-display); font-weight: 700; font-size: 1rem; letter-spacing: -0.02em; line-height: 1.15; }
+.nka-brand__logo {
+  width: 38px; height: 38px; border-radius: 12px; overflow: hidden; flex-shrink: 0; display: grid; place-items: center;
+  color: #fff; font-size: 0.8125rem; font-weight: 700; background: linear-gradient(135deg, var(--nka-green), #22c55e);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3), 0 4px 12px -6px rgba(3, 35, 20, 0.4);
+}
+.nka-brand__logo img { width: 100%; height: 100%; object-fit: cover; }
+.nka-brand__txt { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nka-brand__sub { display: block; margin-top: 2px; font-family: var(--font-inter), "Inter", sans-serif; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0; color: var(--nka-grey); }
+
+/* ── Pastilles ── */
+.nka-chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 999px; line-height: 1;
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.01em; color: var(--nka-ink); background: rgba(255, 255, 255, 0.8);
+  box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.07), inset 0 1px 0 #fff; white-space: nowrap;
+}
+.nka-chip svg { width: 13px; height: 13px; flex-shrink: 0; }
+.nka-chip--green { color: var(--nka-green); background: var(--nka-tint); box-shadow: inset 0 0 0 1px rgba(0, 110, 47, 0.12); }
+.nka-chip--amber { color: #8a4b00; background: #fff4e0; box-shadow: inset 0 0 0 1px rgba(138, 75, 0, 0.14); }
+.nka-chip--ink { color: #fff; background: rgba(14, 21, 18, 0.88); box-shadow: none; }
+
+/* ── Double-bezel : coque + liseré autour d'un cœur blanc (rayons concentriques) ── */
+/* Pas de `position` sur la coque : elle écraserait lg:sticky / md:sticky posés
+   par la page (même spécificité, feuille chargée après Tailwind) et `top-*`
+   décalerait alors la carte au lieu de la coller. */
+.nka-bezel {
+  padding: var(--nka-bz-p); border-radius: var(--nka-bz-r); background: rgba(14, 21, 18, 0.035);
+  box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.6), var(--nka-shadow-sm);
+}
+.nka-bezel__core {
+  position: relative; border-radius: calc(var(--nka-bz-r) - var(--nka-bz-p)); background: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(14, 21, 18, 0.05);
+}
+.nka-bezel--float { box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.6), var(--nka-shadow-lg); }
+.nka-bezel--xl { --nka-bz-r: 30px; --nka-bz-p: 8px; }
+.nka-media { overflow: hidden; background: #eef3ef; }
+
+/* ── Carte d'étape (coordonnées, paiement…) ── */
+.nka-etape { padding: 20px; }
+@media (min-width: 640px) { .nka-etape { padding: 26px; } }
+.nka-etape__head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 18px; }
+.nka-etape__num {
+  display: grid; place-items: center; width: 32px; height: 32px; border-radius: 11px; flex-shrink: 0;
+  font-family: var(--nka-display); font-size: 0.8125rem; font-weight: 700; font-variant-numeric: tabular-nums;
+  color: var(--nka-green); background: var(--nka-tint); box-shadow: inset 0 0 0 1px rgba(0, 110, 47, 0.12);
+}
+.nka-etape__sub { margin-top: 3px; font-size: 0.8125rem; line-height: 1.45; color: var(--nka-grey); }
+/* Carte dont le contenu porte déjà sa propre marge haute (écran de paiement
+   partagé : « Votre pays » arrive avec 28 px) : l'en-tête n'en rajoute pas. */
+.nka-etape__head--flush { margin-bottom: 0; }
+
+/* ── Champs (repris de auth.css) ── */
+.nka-field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.nka-label { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; font-size: 0.8125rem; font-weight: 600; color: var(--nka-ink); line-height: 1.3; }
+.nka-label__opt { font-size: 0.75rem; font-weight: 500; color: var(--nka-grey-l); }
+.nka-input {
+  width: 100%; min-height: 50px; border-radius: 14px; border: 1px solid var(--nka-line); background: var(--nka-field); color: var(--nka-ink);
+  font: inherit; font-size: 0.9375rem; padding: 12px 14px; box-shadow: inset 0 1px 2px rgba(14, 21, 18, 0.03); appearance: none;
+  transition: border-color var(--nka-base) var(--nka-ease), box-shadow var(--nka-base) var(--nka-ease), background-color var(--nka-base) var(--nka-ease);
+}
+textarea.nka-input { min-height: 0; resize: none; line-height: 1.5; }
+.nka-input::placeholder { color: var(--nka-grey-l); }
+.nka-input:hover:not(:disabled) { border-color: #cbd8d0; }
+.nka-input:focus, .nka-input:focus-visible {
+  outline: none; border-color: var(--nka-green); background: #fff;
+  box-shadow: 0 0 0 4px rgba(0, 110, 47, 0.12), inset 0 1px 2px rgba(14, 21, 18, 0.02);
+}
+.nka-input:disabled { color: var(--nka-grey); background: #f3f6f4; cursor: not-allowed; }
+.nka-input--lg { font-family: var(--nka-display); font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.nka-input--code { font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-variant-numeric: tabular-nums; padding-right: 46px; }
+.nka-input--code::placeholder { font-weight: 500; letter-spacing: 0.04em; }
+.nka-input--ok { border-color: #86cfa2; background: #f3fbf6; }
+.nka-input--ok:focus { box-shadow: 0 0 0 4px rgba(0, 110, 47, 0.12); }
+.nka-input--err { border-color: var(--nka-danger); background: var(--nka-danger-bg); }
+.nka-input--err:focus { border-color: var(--nka-danger); box-shadow: 0 0 0 4px rgba(180, 35, 24, 0.12); }
+.nka-hint { font-size: 0.75rem; line-height: 1.45; color: var(--nka-grey); }
+.nka-msg { display: flex; align-items: flex-start; gap: 6px; font-size: 0.78rem; font-weight: 600; line-height: 1.4; }
+.nka-msg svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; }
+.nka-msg--ok { color: var(--nka-green); }
+.nka-msg--err { color: var(--nka-danger); }
+
+/* Encadré d'erreur global (paiement non démarré, champ manquant) */
+.nka-alert {
+  display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-radius: 16px;
+  font-size: 0.875rem; font-weight: 600; line-height: 1.45; color: #7a1b12; background: var(--nka-danger-bg);
+  box-shadow: inset 0 0 0 1px var(--nka-danger-line);
+}
+.nka-alert svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; color: var(--nka-danger); }
+.nka-alert--amber { color: #6b3a00; background: #fff8eb; box-shadow: inset 0 0 0 1px #f3dcb0; font-weight: 500; }
+.nka-alert--amber svg { color: #b45309; }
+
+/* Case « offrir en cadeau » : toute la ligne est la cible */
+.nka-toggle {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; cursor: pointer; user-select: none;
+  background: rgba(14, 21, 18, 0.025); box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.07);
+  transition: background-color var(--nka-base) var(--nka-ease), box-shadow var(--nka-base) var(--nka-ease);
+}
+.nka-toggle:hover { background: var(--nka-tint); }
+.nka-toggle:has(input:checked) { background: var(--nka-tint); box-shadow: inset 0 0 0 1px rgba(0, 110, 47, 0.2); }
+.nka-toggle:has(input:focus-visible) { outline: 2px solid var(--nka-green); outline-offset: 2px; }
+.nka-toggle input { width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--nka-green); cursor: pointer; }
+.nka-toggle__ico {
+  display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0;
+  color: var(--nka-green); background: #fff; box-shadow: inset 0 0 0 1px rgba(0, 110, 47, 0.12);
+}
+.nka-toggle__ico svg { width: 16px; height: 16px; }
+
+/* Lien-bouton discret (code promo) */
+.nka-linkbtn {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 36px; border-radius: 10px;
+  font-size: 0.875rem; font-weight: 600; color: var(--nka-green);
+  transition: color var(--nka-fast) var(--nka-ease);
+}
+.nka-linkbtn svg { width: 16px; height: 16px; }
+.nka-linkbtn:hover { color: var(--nka-green-hover); text-decoration: underline; text-underline-offset: 3px; }
+.nka-linkbtn:focus-visible { outline: 2px solid var(--nka-green); outline-offset: 2px; }
+
+/* Mention légale */
+.nka-legal { font-size: 0.8125rem; line-height: 1.6; color: var(--nka-grey); }
+.nka-legal a { color: var(--nka-ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(14, 21, 18, 0.25); border-radius: 3px; }
+.nka-legal a:hover { color: var(--nka-green); }
+.nka-legal a:focus-visible { outline: 2px solid var(--nka-green); outline-offset: 2px; }
+
+/* ── Boutons verre + disque de flèche (mêmes cotes que .nkf-btn) ── */
+.nka-btn {
+  position: relative; isolation: isolate; overflow: hidden; display: inline-flex; align-items: center; justify-content: center;
+  gap: 10px; min-height: 46px; padding: 6px 20px; border-radius: 999px; font-size: 0.875rem; font-weight: 700; line-height: 1;
+  white-space: nowrap; color: var(--nka-ink); background: rgba(255, 255, 255, 0.74); -webkit-tap-highlight-color: transparent;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.9), inset 0 1px 0 #fff, inset 0 -1px 1px rgba(14, 21, 18, 0.06),
+    0 1px 2px rgba(14, 21, 18, 0.05), 0 10px 26px -14px rgba(3, 35, 20, 0.28), 0 0 0 1px rgba(14, 21, 18, 0.05);
+  transition: transform var(--nka-base) var(--nka-ease), box-shadow var(--nka-base) var(--nka-ease),
+    background-color var(--nka-base) var(--nka-ease), opacity var(--nka-base) var(--nka-ease);
+}
+.nka-btn:has(.nka-btn__ico) { padding-right: 7px; }
+.nka-btn::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: inherit; opacity: 0.9;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.12) 42%, rgba(255, 255, 255, 0) 60%);
+}
+.nka-btn::after {
+  content: ""; position: absolute; top: -40%; bottom: -40%; left: 0; width: 45%; z-index: -1; pointer-events: none;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0));
+  transform: translateX(-160%) skewX(-18deg); transition: transform 0.7s var(--nka-ease);
+}
+.nka-btn:hover:not(:disabled) { transform: translateY(-1px); }
+.nka-btn:hover:not(:disabled)::after { transform: translateX(320%) skewX(-18deg); }
+.nka-btn:active:not(:disabled) { transform: scale(0.98); transition-duration: var(--nka-fast); }
+.nka-btn:focus-visible { outline: 2px solid var(--nka-green); outline-offset: 3px; }
+.nka-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.nka-btn:disabled::after { display: none; }
+.nka-btn[aria-busy="true"] { cursor: progress; opacity: 0.9; }
+.nka-btn__label { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.nka-btn__label svg { width: 18px; height: 18px; flex-shrink: 0; }
+.nka-btn__ico {
+  display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  background: rgba(14, 21, 18, 0.06); box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.05);
+  transition: transform var(--nka-base) var(--nka-ease), background-color var(--nka-base) var(--nka-ease);
+}
+.nka-btn__ico svg { width: 15px; height: 15px; }
+.nka-btn:hover:not(:disabled) .nka-btn__ico { transform: translate(1px, -1px) scale(1.06); }
+/* Pleine largeur : libellé centré, disque affleurant à droite (grille 3 colonnes). */
+.nka-btn--block { width: 100%; }
+.nka-btn--block:has(.nka-btn__ico) { display: grid; grid-template-columns: 34px minmax(0, 1fr) 34px; padding: 7px; }
+.nka-btn--block:has(.nka-btn__ico) .nka-btn__label { grid-column: 2; }
+.nka-btn--block:has(.nka-btn__ico) .nka-btn__ico { grid-column: 3; }
+.nka-btn--lg { min-height: 54px; font-size: 0.9375rem; }
+.nka-btn--sm { min-height: 40px; padding: 4px 16px; font-size: 0.8125rem; }
+.nka-btn--primary {
+  color: #fff; background: var(--nka-accent);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 -1px 1px rgba(0, 40, 17, 0.35),
+    0 1px 2px rgba(3, 35, 20, 0.2), 0 12px 30px -14px rgba(0, 110, 47, 0.6);
+}
+.nka-btn--primary::before { background: linear-gradient(115deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.06) 42%, rgba(255, 255, 255, 0) 60%); }
+.nka-btn--primary:hover:not(:disabled) {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -1px 1px rgba(0, 40, 17, 0.35),
+    0 2px 4px rgba(3, 35, 20, 0.2), 0 18px 40px -16px rgba(0, 110, 47, 0.65);
+}
+.nka-btn--primary .nka-btn__ico { color: #fff; background: rgba(255, 255, 255, 0.16); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22); }
+.nka-btn--ink { color: #fff; background: rgba(14, 21, 18, 0.92); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 10px 26px -14px rgba(3, 35, 20, 0.5); }
+.nka-btn--ink::before { background: linear-gradient(115deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 55%); }
+.nka-btn--ink:hover:not(:disabled) { background: #1d2a24; }
+.nka-btn--ink .nka-btn__ico { color: #fff; background: rgba(255, 255, 255, 0.12); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16); }
+/* Plan complet : gris neutre, pas de couleur qui promet. */
+.nka-btn.is-off, .nka-btn.is-off:disabled { opacity: 1; color: #fff; background: #8a968e; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2); }
+
+/* ── Récapitulatif : lignes, montants, total ── */
+.nka-line { display: flex; align-items: center; gap: 12px; padding: 12px 0; box-shadow: inset 0 -1px 0 var(--nka-line); }
+.nka-line:first-child { padding-top: 0; }
+.nka-line:last-child { box-shadow: none; padding-bottom: 0; }
+.nka-thumb {
+  position: relative; width: 56px; height: 56px; border-radius: 14px; overflow: hidden; flex-shrink: 0; display: grid; place-items: center;
+  color: #fff; background: linear-gradient(135deg, var(--nka-green), #22c55e); box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.06);
+}
+.nka-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.nka-thumb svg { width: 20px; height: 20px; }
+.nka-thumb--lg { width: 88px; height: 88px; border-radius: 16px; }
+.nka-thumb--soft { color: rgba(0, 110, 47, 0.55); background: #eef3ef; }
+.nka-line__title { font-size: 0.875rem; font-weight: 700; line-height: 1.35; color: var(--nka-ink); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.nka-line__meta { margin-top: 3px; font-size: 0.625rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--nka-grey-l); }
+.nka-line__price { font-size: 0.875rem; font-weight: 700; color: var(--nka-ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.nka-rows { display: grid; gap: 10px; font-size: 0.875rem; }
+.nka-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.nka-row > :first-child { color: var(--nka-grey); min-width: 0; }
+.nka-row > :last-child { font-weight: 600; color: var(--nka-ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.nka-row.nka-row--amber > * { color: #8a4b00; font-weight: 600; }
+.nka-row.nka-row--green > * { color: var(--nka-green); font-weight: 600; }
+.nka-row > span > svg { display: inline-block; width: 14px; height: 14px; margin-right: 6px; vertical-align: -2px; }
+.nka-row .nka-free { color: var(--nka-green); }
+.nka-total { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-top: 16px; margin-top: 16px; box-shadow: inset 0 1px 0 var(--nka-line); }
+.nka-total__label { font-size: 0.875rem; font-weight: 700; color: var(--nka-ink); }
+.nka-total__amount {
+  font-family: var(--nka-display); font-size: clamp(1.5rem, 1.3rem + 0.6vw, 1.875rem); font-weight: 700; letter-spacing: -0.03em;
+  line-height: 1; color: var(--nka-ink); font-variant-numeric: tabular-nums; text-align: right; overflow-wrap: anywhere;
+}
+
+/* Offre additionnelle (order bump) : la carte suit l'état de sa case */
+.nka-bump {
+  display: block; padding: 14px; border-radius: 18px; cursor: pointer;
+  background: #fffaf0; box-shadow: inset 0 0 0 1.5px #f5d9a0;
+  transition: background-color var(--nka-base) var(--nka-ease), box-shadow var(--nka-base) var(--nka-ease);
+}
+.nka-bump:hover { box-shadow: inset 0 0 0 1.5px #e9bf6a; }
+.nka-bump:has(input:checked) { background: var(--nka-tint); box-shadow: inset 0 0 0 1.5px var(--nka-green); }
+.nka-bump:has(input:focus-visible) { outline: 2px solid var(--nka-green); outline-offset: 2px; }
+.nka-bump input { width: 20px; height: 20px; margin-top: 2px; flex-shrink: 0; accent-color: var(--nka-green); cursor: pointer; }
+
+/* ── Moyens de paiement et garanties ── */
+.nka-pay { display: flex; flex-wrap: wrap; gap: 6px; }
+.nka-pay__pill {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; line-height: 1;
+  font-size: 0.6875rem; font-weight: 600; color: var(--nka-ink); background: #fff;
+  box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.08), inset 0 1px 0 #fff;
+}
+.nka-pay__pill svg { width: 13px; height: 13px; color: var(--nka-green); }
+.nka-garanties { display: grid; gap: 10px; list-style: none; }
+.nka-garanties li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.8125rem; line-height: 1.45; color: var(--nka-grey); }
+.nka-garanties svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px; color: var(--nka-accent); }
+
+/* ── Indicateur d'étapes ── */
+.nka-steps { display: flex; align-items: center; gap: 8px; list-style: none; min-width: 0; }
+.nka-steps__item { position: relative; display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 0.8125rem; font-weight: 600; color: var(--nka-grey-l); }
+.nka-steps__item + .nka-steps__item::before { content: ""; width: clamp(14px, 4vw, 40px); height: 1px; flex-shrink: 0; background: #cfd9d3; }
+.nka-steps__dot {
+  display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+  font-size: 0.75rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--nka-grey);
+  background: #fff; box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.1);
+}
+.nka-steps__dot svg { width: 13px; height: 13px; }
+.nka-steps__txt { display: flex; flex-direction: column; min-width: 0; }
+.nka-steps__label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nka-steps__detail { margin-top: 2px; font-size: 0.8125rem; font-weight: 500; line-height: 1.45; color: var(--nka-grey); white-space: normal; }
+.nka-steps__item[data-etat="current"] { color: var(--nka-ink); }
+.nka-steps__item[data-etat="current"] .nka-steps__dot { color: #fff; background: var(--nka-green); box-shadow: 0 0 0 4px rgba(0, 110, 47, 0.14); }
+.nka-steps__item[data-etat="done"] { color: var(--nka-green); }
+.nka-steps__item[data-etat="done"] .nka-steps__dot { color: var(--nka-green); background: var(--nka-tint); box-shadow: inset 0 0 0 1px rgba(0, 110, 47, 0.2); }
+.nka-steps__item[data-etat="done"] + .nka-steps__item::before { background: var(--nka-green); }
+.nka-steps__item[data-etat="fail"] { color: var(--nka-danger); }
+.nka-steps__item[data-etat="fail"] .nka-steps__dot { color: var(--nka-danger); background: var(--nka-danger-bg); box-shadow: inset 0 0 0 1px var(--nka-danger-line); }
+/* Téléphone étroit : seules l'étape en cours et les pastilles gardent leur libellé. */
+@media (max-width: 479.98px) {
+  .nka-steps:not(.nka-steps--v) .nka-steps__item:not([data-etat="current"]) .nka-steps__txt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+/* Variante verticale (écran d'attente) */
+.nka-steps--v { flex-direction: column; align-items: stretch; gap: 0; }
+.nka-steps--v .nka-steps__item { align-items: flex-start; gap: 12px; padding-bottom: 18px; text-align: left; }
+.nka-steps--v .nka-steps__item:last-child { padding-bottom: 0; }
+.nka-steps--v .nka-steps__item + .nka-steps__item::before { display: none; }
+.nka-steps--v .nka-steps__item:not(:last-child)::after { content: ""; position: absolute; left: 12.5px; top: 32px; bottom: 5px; width: 1px; background: #cfd9d3; }
+.nka-steps--v .nka-steps__item[data-etat="done"]:not(:last-child)::after { background: var(--nka-green); }
+.nka-steps--v .nka-steps__label { white-space: normal; padding-top: 4px; }
+
+/* ── Barre de paiement mobile : verre, toujours visible sous lg ── */
+.nka-bar {
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: rgba(255, 255, 255, 0.88);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 -1px 0 rgba(14, 21, 18, 0.07), 0 -14px 34px -20px rgba(3, 35, 20, 0.3);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .nka-bar { background: #fff; } }
+.nka-bar__amount { font-family: var(--nka-display); font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; color: var(--nka-ink); font-variant-numeric: tabular-nums; }
+
+/* ── Cartes produit (vitrine affilié) ── */
+.nka-card { display: flex; flex-direction: column; height: 100%; transition: transform var(--nka-base) var(--nka-ease), box-shadow var(--nka-base) var(--nka-ease); }
+.nka-card:hover { transform: translateY(-3px); box-shadow: inset 0 0 0 1px rgba(0, 110, 47, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 22px 44px -22px rgba(3, 35, 20, 0.3); }
+.nka-card > .nka-bezel__core { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+.nka-card__img { transition: transform 0.7s var(--nka-ease); }
+.nka-card:hover .nka-card__img { transform: scale(1.04); }
+.nka-card__title { border-radius: 4px; }
+.nka-card__title:focus-visible, .nka-card__media:focus-visible { outline: 2px solid var(--nka-green); outline-offset: 2px; }
+.nka-price {
+  font-family: var(--nka-display); font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1;
+  color: var(--nka-ink); font-variant-numeric: tabular-nums;
+}
+.nka-price__old { font-size: 0.8125rem; font-weight: 500; color: var(--nka-grey); font-variant-numeric: tabular-nums; }
+
+/* Ligne d'article (panier, contenu d'un abonnement) */
+.nka-item {
+  display: flex; align-items: center; gap: 14px; padding: 10px; border-radius: 18px; background: rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.06), inset 0 1px 0 #fff;
+  transition: transform var(--nka-base) var(--nka-ease), box-shadow var(--nka-base) var(--nka-ease), background-color var(--nka-base) var(--nka-ease);
+}
+a.nka-item:hover { background: #fff; transform: translateY(-2px); box-shadow: inset 0 0 0 1px rgba(0, 110, 47, 0.16), inset 0 1px 0 #fff, 0 10px 24px -14px rgba(3, 35, 20, 0.25); }
+a.nka-item:focus-visible { outline: 2px solid var(--nka-green); outline-offset: 2px; }
+.nka-titlelink { border-radius: 4px; transition: color var(--nka-fast) var(--nka-ease); }
+.nka-titlelink:hover { color: var(--nka-green); }
+.nka-titlelink:focus-visible { outline: 2px solid var(--nka-green); outline-offset: 2px; }
+
+/* Pastille boutique (lien vers la vitrine du vendeur) */
+.nka-shop {
+  display: inline-flex; align-items: center; gap: 10px; max-width: 100%; padding: 4px 16px 4px 4px; border-radius: 999px;
+  font-size: 0.8125rem; font-weight: 700; color: var(--nka-ink); background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.07), inset 0 1px 0 #fff, 0 1px 2px rgba(14, 21, 18, 0.04);
+  transition: transform var(--nka-base) var(--nka-ease), background-color var(--nka-base) var(--nka-ease);
+}
+.nka-shop:hover { background: #fff; transform: translateY(-1px); }
+.nka-shop:focus-visible { outline: 2px solid var(--nka-green); outline-offset: 3px; }
+.nka-shop__logo {
+  width: 32px; height: 32px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: grid; place-items: center;
+  color: #fff; font-size: 0.6875rem; font-weight: 700; background: linear-gradient(135deg, var(--nka-accent), #22c55e);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+}
+.nka-shop__logo img { width: 100%; height: 100%; object-fit: cover; }
+.nka-shop__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Bouton icône (retirer du panier) */
+.nka-iconbtn {
+  display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0; color: var(--nka-grey);
+  background: rgba(14, 21, 18, 0.03); box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.06);
+  transition: color var(--nka-fast) var(--nka-ease), background-color var(--nka-fast) var(--nka-ease), transform var(--nka-base) var(--nka-ease);
+}
+.nka-iconbtn svg { width: 18px; height: 18px; }
+.nka-iconbtn:hover:not(:disabled) { color: var(--nka-danger); background: var(--nka-danger-bg); }
+.nka-iconbtn:active:not(:disabled) { transform: scale(0.94); }
+.nka-iconbtn:focus-visible { outline: 2px solid var(--nka-green); outline-offset: 2px; }
+.nka-iconbtn:disabled { opacity: 0.5; cursor: progress; }
+
+/* Retour discret (« Continuer mes achats ») */
+.nka-back {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px 0 10px; border-radius: 999px;
+  font-size: 0.75rem; font-weight: 600; color: var(--nka-ink); background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.07), inset 0 1px 0 #fff, 0 1px 2px rgba(14, 21, 18, 0.04);
+  transition: transform var(--nka-base) var(--nka-ease), background-color var(--nka-base) var(--nka-ease);
+}
+.nka-back svg { width: 14px; height: 14px; transition: transform var(--nka-base) var(--nka-ease); }
+.nka-back:hover { background: #fff; transform: translateY(-1px); }
+.nka-back:hover svg { transform: translateX(-2px); }
+.nka-back:focus-visible { outline: 2px solid var(--nka-green); outline-offset: 2px; }
+
+/* ── Écran d'attente Mobile Money : téléphone + ondes (transform/opacity) ── */
+.nka-wait { position: relative; display: grid; place-items: center; width: 104px; height: 104px; margin-inline: auto; }
+.nka-wait__core {
+  position: relative; z-index: 1; display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%;
+  color: var(--nka-green); background: var(--nka-tint); box-shadow: inset 0 0 0 1px rgba(0, 110, 47, 0.14), 0 10px 24px -12px rgba(3, 35, 20, 0.35);
+}
+.nka-wait__core svg { width: 30px; height: 30px; }
+.nka-wait__ring { position: absolute; inset: 16px; border-radius: 50%; box-shadow: inset 0 0 0 2px rgba(0, 110, 47, 0.35); opacity: 0; animation: nka-onde 2.4s var(--nka-ease) infinite; }
+.nka-wait__ring + .nka-wait__ring { animation-delay: 1.2s; }
+@keyframes nka-onde { 0% { transform: scale(0.9); opacity: 0.75; } 100% { transform: scale(1.5); opacity: 0; } }
+.nka-wait__vibe { display: grid; place-items: center; animation: nka-vibre 2.4s ease-in-out infinite; }
+@keyframes nka-vibre { 0%, 70%, 100% { transform: rotate(0); } 74% { transform: rotate(-8deg); } 78% { transform: rotate(7deg); } 82% { transform: rotate(-5deg); } 86% { transform: rotate(3deg); } }
+.nka-wait--ok .nka-wait__core { color: #fff; background: var(--nka-green); animation: nka-pop 0.5s var(--nka-ease) both; }
+.nka-wait--fail .nka-wait__core { color: var(--nka-danger); background: var(--nka-danger-bg); box-shadow: inset 0 0 0 1px var(--nka-danger-line); }
+.nka-wait--amber .nka-wait__core { color: #b45309; background: #fff8eb; box-shadow: inset 0 0 0 1px #f3dcb0; }
+@keyframes nka-pop { from { transform: scale(0.6); opacity: 0; } to { transform: none; opacity: 1; } }
+.nka-dots { display: inline-flex; gap: 4px; }
+.nka-dots span { width: 5px; height: 5px; border-radius: 50%; background: currentColor; animation: nka-point 1.2s ease-in-out infinite; }
+.nka-dots span:nth-child(2) { animation-delay: 0.15s; }
+.nka-dots span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes nka-point { 0%, 80%, 100% { opacity: 0.25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+.nka-ref { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; max-width: 100%; padding: 8px 12px; border-radius: 12px; font-size: 0.75rem; color: var(--nka-grey); background: rgba(14, 21, 18, 0.035); box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.06); }
+.nka-ref code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.75rem; color: var(--nka-ink); overflow-wrap: anywhere; }
+
+/* ── Vitrine affilié : bandeau vert nuit ── */
+.nka-night {
+  position: relative; isolation: isolate; overflow: hidden; color: #fff;
+  background: radial-gradient(80% 90% at 85% 0%, rgba(34, 197, 94, 0.28), transparent 60%),
+    radial-gradient(60% 70% at 0% 100%, rgba(0, 110, 47, 0.55), transparent 70%),
+    linear-gradient(160deg, #032314 0%, #04331c 55%, #006e2f 130%);
+}
+.nka-night::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0.35;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(70% 80% at 50% 30%, #000, transparent); mask-image: radial-gradient(70% 80% at 50% 30%, #000, transparent);
+}
+.nka-glass { border-radius: 18px; background: rgba(255, 255, 255, 0.08); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.18); }
+.nka-night .nka-eyebrow { color: #9bd4b0; }
+.nka-night .nka-h1 { color: #fff; overflow-wrap: anywhere; }
+.nka-night .nka-lead { color: rgba(255, 255, 255, 0.84); }
+.nka-h1--xl { font-size: clamp(2rem, 1.35rem + 2.6vw, 3.25rem); line-height: 1.04; }
+.nka-stat { font-family: var(--nka-display); font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+
+/* ── Squelettes ── */
+@keyframes nka-shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+.nka-skel { position: relative; overflow: hidden; border-radius: 12px; background: #eef2ef; }
+.nka-skel::after {
+  content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent);
+  animation: nka-shimmer 1.4s var(--nka-ease) infinite;
+}
+
+@media (max-width: 560px) { .nka { --nka-bz-r: 20px; --nka-bz-p: 5px; } .nka-bezel--xl { --nka-bz-r: 24px; --nka-bz-p: 6px; } }
+
+/* Mouvement réduit : rien ne se déplace, les indicateurs restent lisibles
+   (ondes figées, points pleins). */
+@media (prefers-reduced-motion: reduce) {
+  .nka-btn::after { display: none; }
+  .nka-btn:hover:not(:disabled), .nka-btn:active:not(:disabled), .nka-btn:hover:not(:disabled) .nka-btn__ico,
+  .nka-card:hover, .nka-card:hover .nka-card__img, a.nka-item:hover, .nka-back:hover, .nka-back:hover svg, .nka-shop:hover,
+  .nka-iconbtn:active:not(:disabled) { transform: none; }
+  .nka-wait__ring, .nka-wait__vibe, .nka-wait--ok .nka-wait__core, .nka-dots span, .nka-skel::after { animation: none; }
+  .nka-wait__ring { opacity: 0.35; transform: scale(1.2); }
+  .nka-wait__ring + .nka-wait__ring { display: none; }
+  .nka-dots span { opacity: 0.7; }
+}

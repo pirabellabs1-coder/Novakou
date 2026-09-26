@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import {
   ArrowLeft,
+  ArrowRight,
   ShoppingCart,
   GraduationCap,
   Trash2,
@@ -12,6 +13,9 @@ import {
   ShieldCheck,
   RefreshCw,
 } from "lucide-react";
+import { sora } from "@/lib/fonts";
+import { ConfianceAchat } from "@/components/formations/achat/ConfianceAchat";
+import "@/components/formations/achat/achat.css";
 import { useToastStore } from "@/store/toast";
 import { trackEvents } from "@/lib/tracking/events";
 
@@ -109,151 +113,153 @@ export default function PanierClient() {
   const items = cart?.data ?? [];
 
   return (
-    <div className="min-h-[calc(100vh-100px)] bg-slate-50" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
-      <main className="max-w-5xl mx-auto px-5 md:px-8 py-10 md:py-14">
+    <div className={`nka ${sora.variable} min-h-[calc(100vh-100px)] bg-[#f7f9fb]`}>
+      <div className="nka-hero mx-auto max-w-5xl px-4 py-8 sm:px-6 md:px-8 md:py-12">
         <div className="mb-8">
-          <Link
-            href="/explorer"
-            className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-slate-900 mb-3"
-          >
-            <ArrowLeft size={14} />
-            Continuer mes achats
-          </Link>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
+          <div className="mb-6">
+            <Link href="/explorer" className="nka-back">
+              <ArrowLeft aria-hidden="true" />
+              Continuer mes achats
+            </Link>
+          </div>
+          <p className="nka-eyebrow">Panier</p>
+          <h1 className="nka-h1 mt-3">
             Mon panier
           </h1>
           {!loading && cart && (
-            <p className="text-sm text-slate-500 mt-1">
-              <strong className="text-slate-700 tabular-nums">{cart.count}</strong> article{cart.count > 1 ? "s" : ""}
-              {cart.guest && <span className="ml-2 inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Panier invité</span>}
+            <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-[#5c6b62]">
+              <span>
+                <strong className="nka-num text-[#0e1512]">{cart.count}</strong> article{cart.count > 1 ? "s" : ""}
+              </span>
+              {cart.guest && <span className="nka-chip nka-chip--amber">Panier invité</span>}
             </p>
           )}
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1fr)_320px]" aria-hidden="true">
             <div className="space-y-3">
-              {[0, 1].map((i) => <div key={i} className="h-28 bg-white border border-slate-200 rounded-2xl animate-pulse" />)}
+              {[0, 1].map((i) => <div key={i} className="nka-skel h-28 !rounded-3xl" />)}
             </div>
-            <div className="h-48 bg-white border border-slate-200 rounded-2xl animate-pulse" />
+            <div className="nka-skel h-56 !rounded-3xl" />
           </div>
         ) : isEmpty ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-10 md:p-14 text-center">
-            <div
-              className="w-20 h-20 rounded-2xl mx-auto mb-5 flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, #006e2f15, #22c55e15)" }}
-            >
-              <ShoppingCart size={36} className="text-emerald-700" />
+          <div className="nka-bezel nka-bezel--float mx-auto max-w-2xl">
+            <div className="nka-bezel__core px-6 py-12 text-center md:px-14 md:py-16">
+              <div className="mx-auto mb-5 grid h-20 w-20 place-items-center rounded-3xl bg-[#f0f6f2] text-[#006e2f] shadow-[inset_0_0_0_1px_rgba(0,110,47,0.12)]">
+                <ShoppingCart size={34} aria-hidden="true" />
+              </div>
+              <h2 className="nka-h1 nka-h1--sm">Votre panier est vide</h2>
+              <p className="nka-lead mx-auto mt-2 max-w-md">
+                Parcourez notre catalogue pour ajouter des formations et produits qui vous inspirent.
+              </p>
+              <Link
+                href="/explorer"
+                className="nka-btn nka-btn--primary mt-7"
+              >
+                <span className="nka-btn__label">Explorer le catalogue</span>
+                <span className="nka-btn__ico" aria-hidden="true">
+                  <ArrowRight strokeWidth={2.2} />
+                </span>
+              </Link>
             </div>
-            <h2 className="text-xl font-extrabold text-slate-900">Votre panier est vide</h2>
-            <p className="text-sm text-slate-500 mt-2 max-w-md mx-auto">
-              Parcourez notre catalogue pour ajouter des formations et produits qui vous inspirent.
-            </p>
-            <Link
-              href="/explorer"
-              className="inline-block mt-6 px-6 py-3 rounded-xl text-white text-sm font-bold shadow-md shadow-emerald-500/20"
-              style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
-            >
-              Explorer le catalogue
-            </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-6 items-start">
+          <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-[minmax(0,1fr)_320px] lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-8">
             {/* Items */}
-            <div className="space-y-3">
+            <ul className="min-w-0 space-y-3">
               {items.map((item) => {
                 const v = itemView(item);
                 return (
-                <div key={item.id} className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200">
-                  <div className="w-20 h-20 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0 relative">
-                    {v.thumbnail ? (
-                      <Image
-                        src={v.thumbnail}
-                        alt={v.title}
-                        fill
-                        sizes="80px"
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <GraduationCap size={28} className="text-slate-400" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <Link
-                      href={v.href}
-                      className="text-sm font-bold text-slate-900 hover:text-emerald-700 line-clamp-2"
-                    >
-                      {v.title}
-                    </Link>
-                    {v.level && (
-                      <p className="text-[11px] text-slate-500 uppercase tracking-wider mt-0.5">
-                        {v.level}
+                <li key={item.id} className="nka-bezel">
+                  <div className="nka-bezel__core flex items-center gap-3 p-3 sm:gap-4 sm:p-4">
+                    <div className="nka-thumb nka-thumb--lg nka-thumb--soft">
+                      {v.thumbnail ? (
+                        <Image
+                          src={v.thumbnail}
+                          alt=""
+                          fill
+                          sizes="88px"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <GraduationCap size={28} aria-hidden="true" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="nka-line__meta !mt-0">{v.isProduct ? "Produit numérique" : "Formation"}{v.level ? ` · ${v.level}` : ""}</p>
+                      <Link
+                        href={v.href}
+                        className="nka-titlelink mt-1 line-clamp-2 text-sm font-bold leading-snug text-[#0e1512] [overflow-wrap:anywhere]"
+                      >
+                        {v.title}
+                      </Link>
+                      <p className="nka-price mt-2 !text-base">
+                        {fmtFCFA(v.price)}
                       </p>
-                    )}
-                    <p className="text-base font-extrabold text-emerald-700 tabular-nums mt-1">
-                      {fmtFCFA(v.price)}
-                    </p>
+                    </div>
+                    <button
+                      onClick={() => remove(item)}
+                      disabled={removing === item.id}
+                      className="nka-iconbtn"
+                      title="Retirer"
+                      aria-label="Retirer du panier"
+                    >
+                      <Trash2 aria-hidden="true" />
+                    </button>
                   </div>
-                  <button
-                    onClick={() => remove(item)}
-                    disabled={removing === item.id}
-                    className="p-2 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 disabled:opacity-50"
-                    title="Retirer"
-                    aria-label="Retirer du panier"
-                  >
-                    <Trash2 size={20} />
-                  </button>
-                </div>
+                </li>
                 );
               })}
-            </div>
+            </ul>
 
             {/* Summary */}
-            <aside className="bg-white rounded-2xl border border-slate-200 p-5 sticky top-24 space-y-4">
-              <h2 className="text-base font-bold text-slate-900">Résumé de la commande</h2>
-              <div className="space-y-1.5 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-600">Sous-total</span>
-                  <span className="tabular-nums font-bold text-slate-900">{fmtFCFA(cart?.total ?? 0)}</span>
+            <aside className="nka-bezel nka-bezel--float md:sticky md:top-24">
+              <div className="nka-bezel__core space-y-5 p-5 sm:p-6">
+                <h2 className="nka-h2">Résumé de la commande</h2>
+                <div className="nka-rows">
+                  <div className="nka-row">
+                    <span>Sous-total</span>
+                    <span>{fmtFCFA(cart?.total ?? 0)}</span>
+                  </div>
+                  <div className="nka-row">
+                    <span>Frais de plateforme</span>
+                    <span>Inclus</span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-slate-500">
-                  <span>Frais de plateforme</span>
-                  <span className="tabular-nums">Inclus</span>
+                <div className="nka-total">
+                  <span className="nka-total__label">Total</span>
+                  <span className="nka-total__amount">{fmtFCFA(cart?.total ?? 0)}</span>
                 </div>
-              </div>
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-sm font-bold text-slate-900">Total</span>
-                <span className="text-xl font-extrabold text-emerald-700 tabular-nums">{fmtFCFA(cart?.total ?? 0)}</span>
-              </div>
-              <Link
-                href="/checkout"
-                className="block w-full text-center px-5 py-3.5 rounded-xl text-white font-bold text-sm shadow-md shadow-emerald-500/20 hover:shadow-lg"
-                style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
-              >
-                <Lock size={16} className="inline-block align-middle mr-1.5" />
-                Passer au paiement
-              </Link>
-              {cart?.guest && (
-                <p className="text-[11px] text-slate-500 text-center">
-                  Vous pouvez acheter en tant qu&apos;invité ou <Link href="/connexion?callbackUrl=/panier" className="underline font-bold text-emerald-700">vous connecter</Link> pour sauvegarder votre panier.
-                </p>
-              )}
-              <div className="pt-3 border-t border-slate-100 space-y-1.5 text-[11px] text-slate-500">
-                <div className="inline-flex items-center gap-1.5">
-                  <ShieldCheck size={14} className="text-emerald-600" />
-                  Paiement sécurisé (SSL)
-                </div>
-                <div className="inline-flex items-center gap-1.5">
-                  <RefreshCw size={14} className="text-emerald-600" />
-                  Accès immédiat après paiement
-                </div>
+                <Link
+                  href="/checkout"
+                  className="nka-btn nka-btn--primary nka-btn--block nka-btn--lg"
+                >
+                  <span className="nka-btn__label">
+                    <Lock aria-hidden="true" />
+                    Passer au paiement
+                  </span>
+                  <span className="nka-btn__ico" aria-hidden="true">
+                    <ArrowRight strokeWidth={2.2} />
+                  </span>
+                </Link>
+                {cart?.guest && (
+                  <p className="text-center text-xs leading-relaxed text-[#5c6b62]">
+                    Vous pouvez acheter en tant qu&apos;invité ou <Link href="/connexion?callbackUrl=/panier" className="nka-titlelink font-bold text-[#006e2f] underline underline-offset-2">vous connecter</Link> pour sauvegarder votre panier.
+                  </p>
+                )}
+                <ConfianceAchat
+                  className="border-t border-[#e6ece8] pt-5"
+                  garanties={[
+                    { Icone: ShieldCheck, texte: "Paiement sécurisé (SSL)" },
+                    { Icone: RefreshCw, texte: "Accès immédiat après paiement" },
+                  ]}
+                />
               </div>
             </aside>
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }

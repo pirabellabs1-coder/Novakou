@@ -5,7 +5,10 @@ import { usePrix } from "@/components/formations/Prix";
 import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
 import Link from "next/link";
 import {
+  AlertCircle,
+  ArrowRight,
   BadgeCheck,
+  ChevronRight,
   CreditCard,
   GraduationCap,
   Package,
@@ -17,6 +20,9 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
+import { sora } from "@/lib/fonts";
+import { ConfianceAchat } from "@/components/formations/achat/ConfianceAchat";
+import "@/components/formations/achat/achat.css";
 
 // Le formateur vit DANS le composant et derive du pays choisi : il couvre
 // ainsi tous les prix de cet ecran d un coup. En fonction de module, il
@@ -120,171 +126,193 @@ export default function MembershipPageClient({ plan }: { plan: Plan }) {
   const total = plan.includedFormations.length + plan.includedProducts.length;
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
-      <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8 grid grid-cols-1 lg:grid-cols-3 gap-5">
+    <div
+      className={`nka ${sora.variable} min-h-screen bg-[#f7f9fb]`}
+      style={{ "--nka-accent": themeColor } as React.CSSProperties}
+    >
+      <div className="nka-hero mx-auto grid max-w-6xl grid-cols-1 gap-5 px-4 py-6 md:px-6 md:py-10 lg:grid-cols-3 lg:gap-8">
         {/* Main — bannière dans la colonne de gauche pour rester côte-à-côte
             avec la sidebar prix sur desktop ; empilée sur mobile uniquement. */}
-        <div className="lg:col-span-2 space-y-5">
-          <div className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-purple-700 to-pink-500">
-            {plan.bannerUrl || plan.imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={plan.bannerUrl ?? plan.imageUrl ?? ""} alt={plan.name} className="w-full h-full object-cover" />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <CreditCard size={100} className="text-white/30" />
-              </div>
-            )}
-            <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase px-2.5 py-1 rounded-full bg-white/95 text-[#191c1e] shadow-sm">
-              <CreditCard size={12} style={{ color: themeColor }} />
-              Abonnement {plan.interval === "yearly" ? "annuel" : "mensuel"}
+        <div className="min-w-0 space-y-5 lg:col-span-2">
+          <div className="nka-bezel nka-bezel--float">
+            <div className="nka-bezel__core nka-media relative aspect-video">
+              {plan.bannerUrl || plan.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={plan.bannerUrl ?? plan.imageUrl ?? ""} alt={plan.name} className="h-full w-full object-cover" />
+              ) : (
+                <div className="absolute inset-0 grid place-items-center bg-gradient-to-br from-[#032314] via-[#04331c] to-[#006e2f]">
+                  <CreditCard size={88} className="text-white/25" aria-hidden="true" />
+                </div>
+              )}
+              <span className="nka-chip absolute left-3 top-3 shadow-sm">
+                <CreditCard style={{ color: themeColor }} aria-hidden="true" />
+                Abonnement {plan.interval === "yearly" ? "annuel" : "mensuel"}
+              </span>
+              {plan.trialDays != null && plan.trialDays > 0 && (
+                <span className="nka-chip nka-chip--ink absolute right-3 top-3">
+                  {plan.trialDays}j d&apos;essai gratuit
+                </span>
+              )}
             </div>
-            {plan.trialDays && plan.trialDays > 0 && (
-              <div className="absolute top-3 right-3 inline-flex items-center gap-1 text-[11px] font-bold uppercase px-3 py-1.5 rounded-full bg-purple-500 text-white shadow-sm">
-                {plan.trialDays}j d&apos;essai gratuit
-              </div>
-            )}
           </div>
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
-            <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e] leading-tight">{plan.name}</h1>
-            {plan.shop && (
-              <Link href={`/${plan.shop.slug}`} className="inline-flex items-center gap-2 mt-3 text-sm text-[#5c647a] hover:text-[#191c1e]">
-                {plan.shop.logoUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={plan.shop.logoUrl} alt="" className="w-7 h-7 rounded-full object-cover" />
-                ) : (
-                  <span className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center text-white text-xs font-bold">
-                    {plan.shop.name.slice(0, 2).toUpperCase()}
-                  </span>
-                )}
-                <span className="font-semibold">{plan.shop.name}</span>
-              </Link>
-            )}
-            {plan.description && (
-              <TiptapRenderer content={plan.description} className="mt-4" />
-            )}
 
-            {plan.activeCount > 0 && (
-              <div className="mt-5 inline-flex items-center gap-2 text-xs text-[#5c647a] bg-slate-50 px-3 py-1.5 rounded-full">
-                <BadgeCheck size={14} className="text-[#006e2f]" />
-                <strong className="text-[#191c1e]">{plan.activeCount}</strong> membre{plan.activeCount > 1 ? "s" : ""} actif{plan.activeCount > 1 ? "s" : ""}
-                {remaining !== null && remaining < 50 && (
-                  <span className="text-amber-700 font-semibold">
-                    · plus que {remaining} place{remaining > 1 ? "s" : ""}
+          <div className="nka-bezel">
+            <div className="nka-bezel__core p-5 sm:p-7 md:p-8">
+              <p className="nka-eyebrow">Abonnement</p>
+              <h1 className="nka-h1 mt-3">{plan.name}</h1>
+              {plan.shop && (
+                <Link href={`/${plan.shop.slug}`} className="nka-shop mt-4">
+                  <span className="nka-shop__logo" aria-hidden="true">
+                    {plan.shop.logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={plan.shop.logoUrl} alt="" />
+                    ) : (
+                      plan.shop.name.slice(0, 2).toUpperCase()
+                    )}
                   </span>
-                )}
-              </div>
-            )}
+                  <span className="nka-shop__name">{plan.shop.name}</span>
+                </Link>
+              )}
+              {plan.description && (
+                <TiptapRenderer content={plan.description} className="mt-5" />
+              )}
+
+              {plan.activeCount > 0 && (
+                <p className="nka-chip mt-6 !whitespace-normal !leading-snug">
+                  <BadgeCheck className="text-[#006e2f]" aria-hidden="true" />
+                  <span>
+                    <strong className="nka-num">{plan.activeCount}</strong> membre{plan.activeCount > 1 ? "s" : ""} actif{plan.activeCount > 1 ? "s" : ""}
+                    {remaining !== null && remaining < 50 && (
+                      <span className="text-[#8a4b00]">
+                        {" "}· plus que {remaining} place{remaining > 1 ? "s" : ""}
+                      </span>
+                    )}
+                  </span>
+                </p>
+              )}
+            </div>
           </div>
 
           {total > 0 && (
-            <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
-              <h2 className="text-lg font-extrabold text-[#191c1e] mb-4">
-                Inclus dans cet abonnement ({total})
-              </h2>
-              <div className="space-y-3">
-                {plan.includedFormations.map((f) => (
-                  <Link key={`f-${f.id}`} href={`/formation/${f.slug}`} className="flex items-start gap-3 p-3 rounded-xl border border-gray-100 hover:border-purple-300 transition-all group">
-                    <div className="w-16 h-16 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
-                      {f.thumbnail ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={f.thumbnail} alt={f.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center"><GraduationCap size={28} className="text-slate-400" /></div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-purple-600">Formation</p>
-                      <p className="font-bold text-[#191c1e] line-clamp-1 group-hover:text-purple-700">{f.title}</p>
-                      <p className="text-xs text-[#5c647a] mt-1">Valeur unitaire : {fmtFCFA(f.price)}</p>
-                    </div>
-                  </Link>
-                ))}
-                {plan.includedProducts.map((p) => (
-                  <Link key={`p-${p.id}`} href={`/produit/${p.slug}`} className="flex items-start gap-3 p-3 rounded-xl border border-gray-100 hover:border-purple-300 transition-all group">
-                    <div className="w-16 h-16 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
-                      {p.banner ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={p.banner} alt={p.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center"><Package size={28} className="text-slate-400" /></div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-purple-600">Produit</p>
-                      <p className="font-bold text-[#191c1e] line-clamp-1 group-hover:text-purple-700">{p.title}</p>
-                      <p className="text-xs text-[#5c647a] mt-1">Valeur unitaire : {fmtFCFA(p.price)}</p>
-                    </div>
-                  </Link>
-                ))}
+            <div className="nka-bezel">
+              <div className="nka-bezel__core p-5 sm:p-7 md:p-8">
+                <h2 className="nka-h2">
+                  Inclus dans cet abonnement (<span className="nka-num">{total}</span>)
+                </h2>
+                <div className="mt-4 space-y-2.5">
+                  {plan.includedFormations.map((f) => (
+                    <Link key={`f-${f.id}`} href={`/formation/${f.slug}`} className="nka-item group">
+                      <span className="nka-thumb nka-thumb--soft !h-16 !w-16">
+                        {f.thumbnail ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={f.thumbnail} alt="" />
+                        ) : (
+                          <GraduationCap aria-hidden="true" />
+                        )}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="nka-line__meta !mt-0 block">Formation</span>
+                        <span className="mt-0.5 block truncate font-bold text-[#0e1512] transition-colors group-hover:text-[#006e2f]">{f.title}</span>
+                        <span className="nka-num mt-1 block text-xs text-[#5c6b62]">Valeur unitaire : {fmtFCFA(f.price)}</span>
+                      </span>
+                      <ChevronRight className="h-4 w-4 flex-shrink-0 text-[#5c6b62]" aria-hidden="true" />
+                    </Link>
+                  ))}
+                  {plan.includedProducts.map((p) => (
+                    <Link key={`p-${p.id}`} href={`/produit/${p.slug}`} className="nka-item group">
+                      <span className="nka-thumb nka-thumb--soft !h-16 !w-16">
+                        {p.banner ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={p.banner} alt="" />
+                        ) : (
+                          <Package aria-hidden="true" />
+                        )}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="nka-line__meta !mt-0 block">Produit</span>
+                        <span className="mt-0.5 block truncate font-bold text-[#0e1512] transition-colors group-hover:text-[#006e2f]">{p.title}</span>
+                        <span className="nka-num mt-1 block text-xs text-[#5c6b62]">Valeur unitaire : {fmtFCFA(p.price)}</span>
+                      </span>
+                      <ChevronRight className="h-4 w-4 flex-shrink-0 text-[#5c6b62]" aria-hidden="true" />
+                    </Link>
+                  ))}
+                </div>
               </div>
             </div>
           )}
         </div>
 
-        <div className="space-y-5">
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 sticky top-4">
-            <div className="flex items-baseline gap-2">
-              <p className="text-3xl font-extrabold" style={{ color: themeColor }}>{fmtFCFA(plan.price)}</p>
-              <span className="text-sm font-semibold text-[#5c647a]">
-                / {plan.interval === "yearly" ? "an" : "mois"}
-              </span>
-            </div>
+        <div className="min-w-0">
+          <div className="nka-bezel nka-bezel--float lg:sticky lg:top-24">
+            <div className="nka-bezel__core p-5 sm:p-6">
+              <p className="nka-eyebrow">Tarif</p>
+              <div className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                <p className="nka-total__amount !text-left">{fmtFCFA(plan.price)}</p>
+                <span className="text-sm font-semibold text-[#5c6b62]">
+                  / {plan.interval === "yearly" ? "an" : "mois"}
+                </span>
+              </div>
 
-            {besoinPaiement && (
-              // L'écran de paiement de la plateforme, identique à celui d'un
-              // achat de formation. Pas de page hébergée d'un fournisseur.
-              <div className="mt-5">
-                {payError && (
-                  <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-2 mb-3">{payError}</p>
+              {besoinPaiement && (
+                // L'écran de paiement de la plateforme, identique à celui d'un
+                // achat de formation. Pas de page hébergée d'un fournisseur.
+                <div className="mt-5 border-t border-[#e6ece8]">
+                  {payError && (
+                    <div className="nka-alert mt-5" role="alert">
+                      <AlertCircle aria-hidden="true" />
+                      <p className="min-w-0 flex-1">{payError}</p>
+                    </div>
+                  )}
+                  <UnifiedPaymentScreen
+                    embedded
+                    amount={Math.round(plan.price)}
+                    merchantName={plan.shop?.name ?? undefined}
+                    submitting={loading}
+                    onPay={(args) => { void payerAbonnement(args); }}
+                  />
+                </div>
+              )}
+
+              {!besoinPaiement && (
+              <button
+                onClick={handleSubscribe}
+                disabled={loading || soldOut}
+                aria-busy={loading || undefined}
+                className={`nka-btn nka-btn--primary nka-btn--block nka-btn--lg mt-5 ${soldOut ? "is-off" : ""}`}
+              >
+                <span className="nka-btn__label">
+                  {soldOut ? <Ban aria-hidden="true" /> : loading ? <Loader2 className="animate-spin" aria-hidden="true" /> : <CreditCard aria-hidden="true" />}
+                  {soldOut
+                    ? "Plan complet"
+                    : loading
+                      ? "Initialisation…"
+                      : plan.trialDays && plan.trialDays > 0
+                        ? `Essayer ${plan.trialDays} jours gratuits`
+                        : "S'abonner maintenant"}
+                </span>
+                {!soldOut && (
+                  <span className="nka-btn__ico" aria-hidden="true">
+                    <ArrowRight strokeWidth={2.2} />
+                  </span>
                 )}
-                <UnifiedPaymentScreen
-                  embedded
-                  amount={Math.round(plan.price)}
-                  merchantName={plan.shop?.name ?? undefined}
-                  submitting={loading}
-                  onPay={(args) => { void payerAbonnement(args); }}
-                />
-              </div>
-            )}
+              </button>
+              )}
+              {error && (
+                <div className="nka-alert mt-3" role="alert">
+                  <AlertCircle aria-hidden="true" />
+                  <p className="min-w-0 flex-1">{error}</p>
+                </div>
+              )}
 
-            {!besoinPaiement && (
-            <button
-              onClick={handleSubscribe}
-              disabled={loading || soldOut}
-              className="w-full mt-4 py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{
-                background: soldOut
-                  ? "linear-gradient(to right, #94a3b8, #64748b)"
-                  : `linear-gradient(to right, ${themeColor}, #22c55e)`,
-              }}
-            >
-              {soldOut ? <Ban size={18} /> : loading ? <Loader2 size={18} className="animate-spin" /> : <CreditCard size={18} />}
-              {soldOut
-                ? "Plan complet"
-                : loading
-                  ? "Initialisation…"
-                  : plan.trialDays && plan.trialDays > 0
-                    ? `Essayer ${plan.trialDays} jours gratuits`
-                    : "S'abonner maintenant"}
-            </button>
-            )}
-            {error && (
-              <p className="text-xs text-red-600 mt-3 bg-red-50 border border-red-200 rounded-lg p-2">{error}</p>
-            )}
-
-            <div className="mt-5 pt-5 border-t border-gray-100 space-y-2 text-xs text-[#5c647a]">
-              <div className="flex items-center gap-2">
-                <RefreshCw size={16} style={{ color: themeColor }} />
-                Renouvellement automatique
-              </div>
-              <div className="flex items-center gap-2">
-                <XCircle size={16} style={{ color: themeColor }} />
-                Annulez à tout moment
-              </div>
-              <div className="flex items-center gap-2">
-                <ShieldCheck size={16} style={{ color: themeColor }} />
-                Paiement 100% sécurisé
-              </div>
+              <ConfianceAchat
+                moyens={false}
+                className="mt-5 border-t border-[#e6ece8] pt-5"
+                garanties={[
+                  { Icone: RefreshCw, texte: "Renouvellement automatique" },
+                  { Icone: XCircle, texte: "Annulez à tout moment" },
+                  { Icone: ShieldCheck, texte: "Paiement 100% sécurisé" },
+                ]}
+              />
             </div>
           </div>
         </div>

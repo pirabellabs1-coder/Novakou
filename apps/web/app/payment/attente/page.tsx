@@ -2,7 +2,11 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Loader2, CheckCircle2, XCircle, Smartphone } from "lucide-react";
+import { ArrowRight, CheckCircle2, Clock, RotateCcw, ShieldCheck, Smartphone, XCircle } from "lucide-react";
+import { inter, sora } from "@/lib/fonts";
+import { NovakouLogo } from "@/components/formations/CountryFlag";
+import { EtapesAchat } from "@/components/formations/achat/EtapesAchat";
+import "@/components/formations/achat/achat.css";
 import { PixelInjector, type Pixel } from "@/components/formations/PixelInjector";
 import { trackEvents } from "@/lib/tracking/events";
 
@@ -157,8 +161,43 @@ function AttenteInner() {
     return () => { stopped = true; };
   }, [ref, provider, pid, router]);
 
+  // Affichage seul : phrase courte annoncée aux lecteurs d'écran à chaque
+  // changement d'état (la carte visible, elle, change entièrement).
+  const annonce =
+    state === "pending"
+      ? "En attente de confirmation sur votre téléphone."
+      : state === "success"
+        ? "Paiement confirmé."
+        : state === "failed"
+          ? echec.titre
+          : "Toujours en attente de confirmation.";
+
+  const etapesAttente = [
+    { libelle: "Demande envoyée" },
+    {
+      libelle: "Validez sur votre téléphone",
+      detail: "Gardez votre téléphone à portée de main : la demande expire au bout de quelques minutes.",
+    },
+    { libelle: "Confirmation" },
+  ];
+
+  // Lien d'aide : nouvel onglet, pour ne pas quitter l'écran de suivi.
+  const aide = (
+    <p className="mt-6 text-[13px] text-[#5c6b62]">
+      Une question ?{" "}
+      <a
+        href="/aide"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="rounded font-semibold text-[#0e1512] underline decoration-[rgba(14,21,18,0.25)] underline-offset-[3px] hover:text-[#006e2f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#006e2f]"
+      >
+        Centre d&apos;aide
+      </a>
+    </p>
+  );
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f7f9fb] px-4">
+    <div className={`nka ${inter.variable} ${sora.variable} flex min-h-screen items-center justify-center bg-[#f7f9fb] px-4 py-10`}>
       {/* `eventId` = notre référence interne : Meta et TikTok dédupliquent
           ainsi si l'acheteur repasse par la page de retour. */}
       {state === "success" && achatPixels.length > 0 && (
@@ -167,92 +206,151 @@ function AttenteInner() {
           event={{ name: "Purchase", value: achatMontant, currency: "XOF", eventId: ref || undefined }}
         />
       )}
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm max-w-md w-full p-9 text-center">
-        {state === "pending" && (
-          <>
-            <div className="w-16 h-16 rounded-full bg-[#f0faf3] flex items-center justify-center mx-auto">
-              <Smartphone size={28} className="text-[#006e2f]" />
-            </div>
-            <h1 className="text-[21px] font-extrabold text-[#191c1e] mt-5">
-              Confirmez sur votre téléphone
-            </h1>
-            <p className="text-[15px] text-[#5c647a] mt-2 leading-relaxed">
-              Une demande de paiement vient d&apos;être envoyée sur votre numéro.
-              Saisissez votre code pour valider — cette page se met à jour toute seule.
-            </p>
-            <div className="flex items-center justify-center gap-2 mt-6 text-[13px] font-semibold text-[#98a1b3]">
-              <Loader2 size={15} className="animate-spin" />
-              En attente de confirmation…
-            </div>
-            <p className="text-[11px] text-[#98a1b3] mt-6">
-              Ne fermez pas cette page.
-            </p>
-          </>
-        )}
+      <div className="nka-hero w-full max-w-md">
+        <div className="mb-6 flex justify-center">
+          <span className="nka-brand">
+            <span aria-hidden="true" className="flex">
+              <NovakouLogo size={32} />
+            </span>
+            <span className="nka-brand__txt">Novakou</span>
+          </span>
+        </div>
 
-        {state === "success" && (
-          <>
-            <div className="w-16 h-16 rounded-full bg-[#f0faf3] flex items-center justify-center mx-auto">
-              <CheckCircle2 size={30} className="text-[#006e2f]" />
-            </div>
-            <h1 className="text-[21px] font-extrabold text-[#191c1e] mt-5">Paiement confirmé</h1>
-            <p className="text-[15px] text-[#5c647a] mt-2">
-              {delivered
-                ? "Merci ! Votre achat est disponible dans votre espace."
-                : "Merci ! Votre paiement est bien reçu. La mise à disposition de votre achat est en cours — vous recevrez un e-mail dès qu'il sera prêt."}
-            </p>
-            {redirectVendeur && (
+        <p role="status" className="sr-only">{annonce}</p>
+
+        <div className="nka-bezel nka-bezel--float nka-bezel--xl">
+          <div className="nka-bezel__core px-6 py-9 text-center sm:px-9">
+            {state === "pending" && (
               <>
-                <p className="text-[13px] text-[#5c647a] mt-4">
-                  Vous allez être redirigé vers le site du vendeur.
+                <div className="nka-wait" aria-hidden="true">
+                  <span className="nka-wait__ring" />
+                  <span className="nka-wait__ring" />
+                  <span className="nka-wait__core">
+                    <span className="nka-wait__vibe">
+                      <Smartphone />
+                    </span>
+                  </span>
+                </div>
+                <h1 className="nka-h1 nka-h1--sm mt-4">
+                  Confirmez sur votre téléphone
+                </h1>
+                <p className="nka-lead mt-2">
+                  Une demande de paiement vient d&apos;être envoyée sur votre numéro.
+                  Saisissez votre code pour valider — cette page se met à jour toute seule.
                 </p>
-                {/* La référence est le numéro commun acheteur/vendeur : elle doit
-                    rester lisible avant de quitter Novakou. */}
-                {ref && (
-                  <p className="text-[12px] text-[#98a1b3] mt-1">
-                    Référence : <span className="font-mono text-[#5c647a]">{ref}</span>
-                  </p>
-                )}
-                <a
-                  href={urlVendeur(redirectVendeur, ref)}
-                  className="inline-flex items-center justify-center w-full mt-5 h-11 rounded-xl bg-[#006e2f] text-white text-[14px] font-semibold hover:bg-[#005c27] transition-colors"
-                >
-                  Continuer maintenant
-                </a>
+                <EtapesAchat
+                  vertical
+                  courante={1}
+                  etapes={etapesAttente}
+                  libelle="Étapes du paiement"
+                  className="mt-7 rounded-2xl bg-[#f7faf8] p-4 shadow-[inset_0_0_0_1px_rgba(14,21,18,0.06)]"
+                />
+                <div className="mt-6 flex items-center justify-center gap-2.5 text-[13px] font-semibold text-[#5c6b62]">
+                  <span className="nka-dots text-[#006e2f]" aria-hidden="true">
+                    <span />
+                    <span />
+                    <span />
+                  </span>
+                  En attente de confirmation…
+                </div>
+                <p className="mt-2 text-xs text-[#5c6b62]">
+                  Ne fermez pas cette page.
+                </p>
               </>
             )}
-          </>
-        )}
 
-        {state === "failed" && (
-          <>
-            <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mx-auto">
-              <XCircle size={30} className="text-rose-600" />
-            </div>
-            <h1 className="text-[21px] font-extrabold text-[#191c1e] mt-5">{echec.titre}</h1>
-            <p className="text-[15px] text-[#5c647a] mt-2 leading-relaxed">{echec.explication}</p>
-            <button
-              onClick={() => router.back()}
-              className="mt-6 px-5 py-3 rounded-xl text-white text-[14px] font-extrabold"
-              style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-            >
-              Réessayer
-            </button>
-          </>
-        )}
+            {state === "success" && (
+              <>
+                <div className="nka-wait nka-wait--ok" aria-hidden="true">
+                  <span className="nka-wait__core">
+                    <CheckCircle2 />
+                  </span>
+                </div>
+                <h1 className="nka-h1 nka-h1--sm mt-4">Paiement confirmé</h1>
+                <p className="nka-lead mt-2">
+                  {delivered
+                    ? "Merci ! Votre achat est disponible dans votre espace."
+                    : "Merci ! Votre paiement est bien reçu. La mise à disposition de votre achat est en cours — vous recevrez un e-mail dès qu'il sera prêt."}
+                </p>
+                <EtapesAchat
+                  vertical
+                  courante={etapesAttente.length}
+                  etapes={etapesAttente.map(({ libelle }) => ({ libelle }))}
+                  libelle="Étapes du paiement"
+                  className="mt-7 rounded-2xl bg-[#f7faf8] p-4 shadow-[inset_0_0_0_1px_rgba(14,21,18,0.06)]"
+                />
+                {redirectVendeur && (
+                  <>
+                    <p className="mt-6 text-[13px] text-[#5c6b62]">
+                      Vous allez être redirigé vers le site du vendeur.
+                    </p>
+                    {/* La référence est le numéro commun acheteur/vendeur : elle doit
+                        rester lisible avant de quitter Novakou. */}
+                    {ref && (
+                      <p className="mt-2">
+                        <span className="nka-ref">
+                          Référence : <code>{ref}</code>
+                        </span>
+                      </p>
+                    )}
+                    <a
+                      href={urlVendeur(redirectVendeur, ref)}
+                      className="nka-btn nka-btn--primary nka-btn--block nka-btn--lg mt-5"
+                    >
+                      <span className="nka-btn__label">Continuer maintenant</span>
+                      <span className="nka-btn__ico" aria-hidden="true">
+                        <ArrowRight strokeWidth={2.2} />
+                      </span>
+                    </a>
+                  </>
+                )}
+              </>
+            )}
 
-        {state === "timeout" && (
-          <>
-            <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center mx-auto">
-              <Loader2 size={28} className="text-amber-600" />
-            </div>
-            <h1 className="text-[21px] font-extrabold text-[#191c1e] mt-5">Toujours en attente</h1>
-            <p className="text-[15px] text-[#5c647a] mt-2">
-              Nous n&apos;avons pas reçu de confirmation. Si vous avez validé le paiement,
-              il sera pris en compte automatiquement et vous recevrez un e-mail.
-            </p>
-          </>
-        )}
+            {state === "failed" && (
+              <>
+                <div className="nka-wait nka-wait--fail" aria-hidden="true">
+                  <span className="nka-wait__core">
+                    <XCircle />
+                  </span>
+                </div>
+                <h1 className="nka-h1 nka-h1--sm mt-4">{echec.titre}</h1>
+                <p className="nka-lead mt-2">{echec.explication}</p>
+                <button
+                  onClick={() => router.back()}
+                  className="nka-btn nka-btn--primary nka-btn--block nka-btn--lg mt-7"
+                >
+                  <span className="nka-btn__label">
+                    <RotateCcw aria-hidden="true" />
+                    Réessayer
+                  </span>
+                </button>
+                {aide}
+              </>
+            )}
+
+            {state === "timeout" && (
+              <>
+                <div className="nka-wait nka-wait--amber" aria-hidden="true">
+                  <span className="nka-wait__core">
+                    <Clock />
+                  </span>
+                </div>
+                <h1 className="nka-h1 nka-h1--sm mt-4">Toujours en attente</h1>
+                <p className="nka-lead mt-2">
+                  Nous n&apos;avons pas reçu de confirmation. Si vous avez validé le paiement,
+                  il sera pris en compte automatiquement et vous recevrez un e-mail.
+                </p>
+                {aide}
+              </>
+            )}
+          </div>
+        </div>
+
+        <p className="mt-5 inline-flex w-full items-center justify-center gap-1.5 text-[11px] font-semibold text-[#5c6b62]">
+          <ShieldCheck size={13} className="text-[#006e2f]" aria-hidden="true" />
+          Paiement sécurisé par Novakou
+        </p>
       </div>
     </div>
   );
