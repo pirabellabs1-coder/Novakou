@@ -72,10 +72,10 @@ export async function generateMetadata({
     // Catégorie réelle en mot-clé : renforce la pertinence thématique.
     keywords: [formation.category?.name, "Novakou", "formation en ligne"].filter(Boolean) as string[],
     alternates: {
-      canonical: `/formation/${slug}`,
+      canonical: `/${slug}`,
       languages: {
-        "fr-FR": `/formation/${slug}`,
-        "x-default": `/formation/${slug}`,
+        "fr-FR": `/${slug}`,
+        "x-default": `/${slug}`,
       },
     },
     openGraph: {
@@ -83,7 +83,7 @@ export async function generateMetadata({
       description,
       images: [{ url: image, width: 1200, height: 630, alt: title }],
       type: "website",
-      url: `${baseUrl}/formation/${slug}`,
+      url: `${baseUrl}/${slug}`,
     },
     twitter: { card: "summary_large_image", title, description, images: [image] },
   };
@@ -138,7 +138,7 @@ export default async function FormationPage({
                 "@type": "Course",
                 name: formation.title,
                 description: ldDescription,
-                url: `${process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com"}/formation/${slug}`,
+                url: `${process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com"}/${slug}`,
                 inLanguage: "fr",
                 provider: {
                   "@type": "Organization",

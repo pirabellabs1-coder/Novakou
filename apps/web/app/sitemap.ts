@@ -10,6 +10,11 @@ export const revalidate = 60;
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
 const IS_DEV = process.env.DEV_MODE === "true";
 
+/* Formations, produits et boutiques vivent a la racine : `/<slug>`.
+   Declarer `/produit/<slug>` faisait pointer 1 288 des 1 511 adresses du
+   plan vers une redirection 308 — budget d'exploration gaspille et
+   « Page avec redirection » dans la Search Console (mesure du 2026-09-26).
+*/
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Pages statiques publiques
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -111,7 +116,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
       for (const f of formations) {
         dynamicRoutes.push({
-          url: `${BASE_URL}/formation/${f.slug}`,
+          url: `${BASE_URL}/${f.slug}`,
           lastModified: f.updatedAt,
           changeFrequency: "weekly",
           priority: 0.85,
@@ -131,7 +136,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
       for (const p of products) {
         dynamicRoutes.push({
-          url: `${BASE_URL}/produit/${p.slug}`,
+          url: `${BASE_URL}/${p.slug}`,
           lastModified: p.updatedAt,
           changeFrequency: "weekly",
           priority: 0.8,
@@ -173,7 +178,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
       for (const s of shops) {
         dynamicRoutes.push({
-          url: `${BASE_URL}/boutique/${s.slug}`,
+          url: `${BASE_URL}/${s.slug}`,
           lastModified: s.updatedAt,
           changeFrequency: "weekly",
           priority: 0.7,

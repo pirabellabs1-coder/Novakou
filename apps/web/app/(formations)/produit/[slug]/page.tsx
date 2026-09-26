@@ -71,10 +71,10 @@ export async function generateMetadata({
     // Catégorie réelle en mot-clé : renforce la pertinence thématique de la fiche.
     keywords: [product.category?.name, "Novakou", "produit numérique"].filter(Boolean) as string[],
     alternates: {
-      canonical: `/produit/${slug}`,
+      canonical: `/${slug}`,
       languages: {
-        "fr-FR": `/produit/${slug}`,
-        "x-default": `/produit/${slug}`,
+        "fr-FR": `/${slug}`,
+        "x-default": `/${slug}`,
       },
     },
     openGraph: {
@@ -82,7 +82,7 @@ export async function generateMetadata({
       description,
       images: [{ url: image, width: 1200, height: 630, alt: title }],
       type: "website",
-      url: `${baseUrl}/produit/${slug}`,
+      url: `${baseUrl}/${slug}`,
     },
     twitter: { card: "summary_large_image", title, description, images: [image] },
   };
@@ -136,7 +136,7 @@ export default async function ProduitPage({
                 "@type": "Product",
                 name: product.title,
                 description: productDescription,
-                url: `${baseUrl}/produit/${slug}`,
+                url: `${baseUrl}/${slug}`,
                 brand: {
                   "@type": "Organization",
                   name: "Novakou",
@@ -147,7 +147,7 @@ export default async function ProduitPage({
                   price: product.price,
                   priceCurrency: "XOF",
                   availability: "https://schema.org/InStock",
-                  url: `${baseUrl}/produit/${slug}`,
+                  url: `${baseUrl}/${slug}`,
                 },
                 ...(product.shop?.name
                   ? { brand: { "@type": "Brand", name: product.shop.name } }

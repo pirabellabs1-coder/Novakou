@@ -57,7 +57,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       images: [{ url: image, width: 1200, height: 630, alt: shop.name }],
       type: "website",
-      url: `${baseUrl}/boutique/${slug}`,
+      url: `${baseUrl}/${slug}`,
     },
     twitter: { card: "summary_large_image", title, description, images: [image] },
   };
@@ -210,7 +210,7 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
             "@type": "Store",
             name: shop.name,
             description: shop.description || `Boutique de ${shop.name} sur Novakou`,
-            url: `${baseUrl}/boutique/${shop.slug}`,
+            url: `${baseUrl}/${shop.slug}`,
             ...(shop.logoUrl ? { logo: shop.logoUrl } : {}),
             ...(shop.coverUrl ? { image: shop.coverUrl } : {}),
             parentOrganization: { "@type": "Organization", name: "Novakou", url: baseUrl },
