@@ -326,7 +326,7 @@ export default function ConversationPage({
 
   if (loading) {
     return (
-      <div className="flex flex-col h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      <div className="flex flex-col h-[calc(100dvh-64px)]" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
         <div
           className="rounded-b-3xl px-5 py-4 flex items-center gap-3 animate-pulse"
           style={{ background: ST.gradient }}
@@ -347,7 +347,7 @@ export default function ConversationPage({
   }
 
   return (
-    <div className="flex flex-col h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+    <div className="flex flex-col h-[calc(100dvh-64px)]" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
       {/* ── Header gradient vert Novakou ──────────────────────────────────── */}
       <div
         className="rounded-b-3xl shadow-lg text-white sticky top-0 z-10"

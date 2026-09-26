@@ -4,17 +4,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  ArrowLeft,
-  ArrowLeftRight,
-  Banknote,
-  BarChart3,
-  Link2,
-  LogOut,
-  Settings,
-  Trophy,
-  Wallet,
-} from "lucide-react";
+import { ArrowLeft, LogOut } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { AffiliateSpaceGuard } from "@/components/formations/AffiliateSpaceGuard";
 import { NovakouNotificationBell } from "@/components/notifications/NovakouNotificationBell";
@@ -24,27 +14,10 @@ import {
   ShellUserChip,
   initiales,
 } from "@/components/formations/dashboard/DashboardShell";
-import type { ShellNavSection } from "@/components/formations/dashboard/SidebarNav";
+import { SECTIONS_AFFILIE } from "@/components/formations/dashboard/nav/affilie";
 import { inter } from "@/lib/fonts";
 
 // Ce groupe de routes n'a pas de layout parent : --font-inter est posé ici.
-const NAV_SECTIONS: ShellNavSection[] = [
-  {
-    label: "Affiliation",
-    items: [
-      { icon: BarChart3, label: "Tableau de bord", href: "/affilie/dashboard" },
-      { icon: Link2, label: "Mes liens", href: "/affilie/liens" },
-      { icon: Banknote, label: "Commissions", href: "/affilie/commissions" },
-      { icon: Wallet, label: "Retraits", href: "/affilie/retraits" },
-      { icon: Trophy, label: "Performances", href: "/affilie/performances" },
-      { icon: Settings, label: "Paramètres", href: "/affilie/parametres" },
-    ],
-  },
-  {
-    label: "Autres espaces",
-    items: [{ icon: ArrowLeftRight, label: "Espace apprenant", href: "/apprenant/dashboard" }],
-  },
-];
 
 function AffiliéFooter() {
   return (
@@ -82,7 +55,7 @@ function AffiliéLayoutInner({ children }: { children: React.ReactNode }) {
       space="affilie"
       spaceLabel="Espace affilié"
       homeHref="/affilie/dashboard"
-      sections={NAV_SECTIONS}
+      sections={SECTIONS_AFFILIE}
       className={inter.variable}
       topEnd={
         <>

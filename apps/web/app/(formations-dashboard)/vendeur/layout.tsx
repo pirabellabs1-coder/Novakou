@@ -10,112 +10,21 @@ import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSession, signOut } from "next-auth/react";
-import {
-  LayoutDashboard,
-  BarChart3,
-  Store,
-  Link2,
-  CreditCard,
-  Layers,
-  Receipt,
-  AlertCircle,
-  Wallet,
-  Megaphone,
-  Sparkles,
-  Brain,
-  Bot,
-  Zap,
-  MessageSquare,
-  Star,
-  HelpCircle,
-  Users,
-  Contact,
-  Headphones,
-  FolderOpen,
-  KeyRound,
-  Webhook,
-  BookOpen,
-  ShieldCheck,
-  Settings,
-  LogOut,
-  type LucideIcon,
-} from "lucide-react";
+import { Store, LogOut } from "lucide-react";
 import { RoleGuard } from "@/components/formations/RoleGuard";
 import { ShopProvider, useActiveShop } from "@/components/formations/ShopProvider";
 import ShopSwitcher from "@/components/formations/ShopSwitcher";
 import { NovakouNotificationBell } from "@/components/notifications/NovakouNotificationBell";
 import { DashboardShell, ShellUserChip, initiales } from "@/components/formations/dashboard/DashboardShell";
-import type { ShellNavItem, ShellNavSection } from "@/components/formations/dashboard/SidebarNav";
+import type { ShellNavSection } from "@/components/formations/dashboard/SidebarNav";
+import {
+  COMPTEUR_PAR_HREF,
+  sectionsVendeur,
+  type CompteursVendeur,
+} from "@/components/formations/dashboard/nav/vendeur";
 
-/**
- * Vote 13 — badges "à traiter" sur la sidebar vendeur.
- * Mapping route → clé compteur de l'endpoint /api/formations/vendeur/sidebar-counts :
- *   /vendeur/abandons  → abandons (CheckoutAttempt ABANDONED/FAILED non récupérés)
- *   /vendeur/inquiries → inquiries (ProductInquiry status="pending")
- *   /wallet            → retraits  (InstructorWithdrawal status="EN_ATTENTE")
- */
-const COUNT_KEY_BY_HREF: Record<string, "abandons" | "inquiries" | "retraits"> = {
-  "/vendeur/abandons": "abandons",
-  "/vendeur/inquiries": "inquiries",
-  "/wallet": "retraits",
-};
-
-type SidebarCounts = { abandons: number; inquiries: number; retraits: number };
 // Référence stable tant que l'API n'a pas répondu (évite un recalcul par rendu).
-const COUNTS_VIDES: SidebarCounts = { abandons: 0, inquiries: 0, retraits: 0 };
-
-type NavItem = {
-  icon: LucideIcon;
-  label: string;
-  href: string;
-  badge?: string;
-  section?: string;
-};
-
-// Note : `Storefront` n'existe pas dans lucide-react — on utilise `Store` partout
-// et on distingue produits (Store) vs boutiques (Store) par les labels.
-const navItems: NavItem[] = [
-  // Vue
-  { icon: LayoutDashboard, label: "Tableau de bord", href: "/vendeur/dashboard", section: "Vue" },
-  { icon: BarChart3, label: "Statistiques", href: "/vendeur/statistiques", section: "Vue" },
-  // Catalogue
-  { icon: Store, label: "Mes produits", href: "/vendeur/produits", section: "Catalogue" },
-  { icon: Link2, label: "Liens de paiement", href: "/vendeur/liens-paiement", section: "Catalogue" },
-  { icon: CreditCard, label: "Abonnements", href: "/vendeur/memberships", section: "Catalogue" },
-  { icon: Layers, label: "Bundles", href: "/vendeur/bundles", section: "Catalogue" },
-  { icon: Store, label: "Mes boutiques", href: "/vendeur/boutiques", section: "Catalogue" },
-  { icon: Receipt, label: "Transactions", href: "/vendeur/transactions", section: "Catalogue" },
-  { icon: Contact, label: "Clients", href: "/vendeur/clients", section: "Catalogue" },
-  { icon: AlertCircle, label: "Abandons & Échecs", href: "/vendeur/abandons", section: "Catalogue" },
-  { icon: Wallet, label: "Revenus & retraits", href: "/wallet", section: "Catalogue" },
-  // Croissance
-  { icon: Megaphone, label: "Marketing", href: "/vendeur/marketing", section: "Croissance" },
-  { icon: Sparkles, label: "AI Studio", href: "/vendeur/ai-studio", section: "Croissance", badge: "IA" },
-  { icon: Brain, label: "Coach IA", href: "/vendeur/ai-coach", section: "Croissance", badge: "IA" },
-  { icon: Bot, label: "Bot support boutique", href: "/vendeur/support-ia", section: "Croissance", badge: "IA" },
-  { icon: Zap, label: "Automatisations", href: "/vendeur/automatisations", section: "Croissance" },
-  // Engagement
-  { icon: MessageSquare, label: "Messages", href: "/messages", section: "Engagement" },
-  { icon: Star, label: "Avis clients", href: "/vendeur/avis", section: "Engagement" },
-  { icon: HelpCircle, label: "Questions acheteurs", href: "/vendeur/inquiries", section: "Engagement" },
-  { icon: Users, label: "Communauté", href: "/vendeur/communaute", section: "Engagement" },
-  { icon: Headphones, label: "Coaching", href: "/vendeur/coaching", section: "Engagement", badge: "Pro" },
-  { icon: FolderOpen, label: "Ressources", href: "/vendeur/ressources", section: "Engagement" },
-  // Développeur
-  { icon: KeyRound, label: "Clés API", href: "/vendeur/api-keys", section: "Développeur" },
-  { icon: Webhook, label: "Webhooks sortants", href: "/vendeur/webhooks", section: "Développeur" },
-  { icon: BookOpen, label: "Documentation API", href: "/vendeur/documentation-api", section: "Développeur" },
-  // Compte
-  // « Mon profil » retiré du menu : dans le modèle multi-boutique, c'est
-  // l'identité de la BOUTIQUE qui est publique, pas le profil personnel. Le
-  // profil reste accessible via l'avatar en haut à droite et « Paramètres ».
-  { icon: Users, label: "Équipe", href: "/vendeur/parametres/equipe", section: "Compte" },
-  { icon: ShieldCheck, label: "Vérification KYC", href: "/kyc", section: "Compte" },
-  { icon: Settings, label: "Paramètres", href: "/vendeur/parametres", section: "Compte" },
-];
-
-// Group nav items by section
-const sectionLabels = Array.from(new Set(navItems.map((n) => n.section))).filter(Boolean) as string[];
+const COUNTS_VIDES: CompteursVendeur = { abandons: 0, inquiries: 0, retraits: 0 };
 
 export default function VendeurLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -133,26 +42,26 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
   const { activeShop, scope } = useActiveShop();
 
-  const { data: countsResp } = useQuery<{ data: SidebarCounts }>({
+  const { data: countsResp } = useQuery<{ data: CompteursVendeur }>({
     queryKey: ["vendeur-sidebar-counts", scope],
     queryFn: () => fetch(`/api/formations/vendeur/sidebar-counts?shopId=${encodeURIComponent(scope)}`).then((r) => r.json()),
     staleTime: 60_000,
     refetchInterval: 60_000,
   });
-  const counts: SidebarCounts = countsResp?.data ?? COUNTS_VIDES;
+  const counts: CompteursVendeur = countsResp?.data ?? COUNTS_VIDES;
 
   // Badges « à traiter » : on mémorise le compteur DÉJÀ VU par le vendeur pour
   // que le badge disparaisse après la visite de la page (et réapparaisse
   // seulement si de nouveaux éléments arrivent). Corrige « la notification ne
   // quitte pas » sur Abandons.
-  const [seenCounts, setSeenCounts] = useState<Partial<SidebarCounts>>({});
+  const [seenCounts, setSeenCounts] = useState<Partial<CompteursVendeur>>({});
   useEffect(() => {
     try {
       setSeenCounts(JSON.parse(localStorage.getItem("nk-vendor-seen-counts") || "{}"));
     } catch { /* ignore */ }
   }, []);
   useEffect(() => {
-    for (const [href, key] of Object.entries(COUNT_KEY_BY_HREF)) {
+    for (const [href, key] of Object.entries(COMPTEUR_PAR_HREF)) {
       if ((pathname === href || pathname.startsWith(href + "/")) && counts[key] != null) {
         setSeenCounts((prev) => {
           if (prev[key] === counts[key]) return prev;
@@ -177,28 +86,10 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
     try { localStorage.setItem("vendeur-sidebar-collapsed", String(next)); } catch { /* ignore */ }
   }
 
-  // Menu de la coque : mêmes liens, compteurs « à traiter » (visibles seulement
-  // au-delà de ce que le vendeur a déjà vu) et pastilles IA / Pro.
+  // Menu de la coque (nav/vendeur.ts) : compteurs « à traiter » visibles
+  // seulement au-delà de ce que le vendeur a déjà vu.
   const sections = useMemo<ShellNavSection[]>(
-    () =>
-      sectionLabels.map((label) => ({
-        label,
-        items: navItems
-          .filter((n) => n.section === label)
-          .map((item): ShellNavItem => {
-            const countKey = COUNT_KEY_BY_HREF[item.href];
-            const count = countKey ? counts[countKey] : 0;
-            const showCountBadge = countKey ? count > (seenCounts[countKey] ?? 0) : false;
-            return {
-              icon: item.icon,
-              label: item.label,
-              href: item.href,
-              count: showCountBadge ? count : 0,
-              countLabel: "à traiter",
-              tag: item.badge ? { label: item.badge, tone: item.badge === "Pro" ? "amber" : "green" } : undefined,
-            };
-          }),
-      })),
+    () => sectionsVendeur({ compteurs: counts, dejaVus: seenCounts }),
     [counts, seenCounts],
   );
 

@@ -9,90 +9,9 @@ import { useSession, signOut } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 import { NovakouNotificationBell } from "@/components/notifications/NovakouNotificationBell";
 import { DashboardShell, ShellUserChip, initiales } from "@/components/formations/dashboard/DashboardShell";
-import type { ShellNavItem, ShellNavSection } from "@/components/formations/dashboard/SidebarNav";
-import {
-  LayoutDashboard,
-  TrendingUp,
-  BookOpen,
-  Package,
-  Layers,
-  ShoppingBag,
-  CalendarDays,
-  UserPlus,
-  Settings,
-  Bell,
-  HelpCircle,
-  Search,
-  LogOut,
-  ShoppingCart,
-  Award,
-  CreditCard,
-  Wallet,
-  MessageSquare,
-  Sparkles,
-  Users,
-  Gift,
-  type LucideIcon,
-} from "lucide-react";
-
-type NavItem = {
-  icon: LucideIcon;
-  label: string;
-  href: string;
-  badge?: boolean;
-};
-
-type NavSection = {
-  label: string;
-  items: NavItem[];
-};
-
-const navSections: NavSection[] = [
-  {
-    label: "Vue",
-    items: [
-      { icon: LayoutDashboard, label: "Tableau de bord", href: "/apprenant/dashboard" },
-      { icon: TrendingUp,      label: "Progression",      href: "/apprenant/progression" },
-    ],
-  },
-  {
-    label: "Gagner de l'argent",
-    items: [
-    ],
-  },
-  {
-    label: "Mes achats",
-    items: [
-      { icon: BookOpen,    label: "Mes formations",  href: "/apprenant/mes-formations" },
-      { icon: Package,     label: "Mes produits",    href: "/apprenant/mes-produits" },
-      { icon: Layers,      label: "Mes bundles",     href: "/apprenant/bundles" },
-      { icon: CreditCard,  label: "Mes abonnements", href: "/apprenant/abonnements" },
-      { icon: Award,       label: "Certificats",     href: "/apprenant/certificats" },
-      { icon: ShoppingBag, label: "Mes commandes",   href: "/apprenant/commandes" },
-      { icon: ShoppingCart,label: "Panier",          href: "/apprenant/panier", badge: true },
-      { icon: Wallet,      label: "Dépenses",        href: "/apprenant/depenses" },
-    ],
-  },
-  {
-    label: "Mentorat",
-    items: [
-      { icon: CalendarDays, label: "Mes sessions",    href: "/apprenant/sessions" },
-      { icon: Users,        label: "Mes mentors",     href: "/apprenant/mentors" },
-      { icon: UserPlus,     label: "Réserver mentor", href: "/mentors" },
-      { icon: MessageSquare,label: "Messages",        href: "/messages" },
-      { icon: Sparkles,     label: "Coach IA",        href: "/apprenant/ai-coach" },
-    ],
-  },
-  {
-    label: "Paramètres",
-    items: [
-      { icon: Settings,   label: "Mon compte",    href: "/apprenant/parametres" },
-      { icon: Bell,       label: "Notifications", href: "/apprenant/notifications" },
-      { icon: Gift,       label: "Affiliation",   href: "/apprenant/affiliation" },
-      { icon: HelpCircle, label: "Aide",          href: "/aide" },
-    ],
-  },
-];
+import type { ShellNavSection } from "@/components/formations/dashboard/SidebarNav";
+import { sectionsApprenant } from "@/components/formations/dashboard/nav/apprenant";
+import { Search, LogOut, ShoppingCart } from "lucide-react";
 
 function ApprenantFooter() {
   return (
@@ -183,27 +102,8 @@ function ApprenantLayoutInner({ children }: { children: React.ReactNode }) {
     ((user as Record<string, unknown> | undefined)?.image as string | undefined) ??
     ((user as Record<string, unknown> | undefined)?.avatar as string | undefined);
 
-  // Menu de la coque : les sections vides ne s'affichent pas ; le panier
-  // porte le compteur d'articles.
-  const sections = useMemo<ShellNavSection[]>(
-    () =>
-      navSections
-        .filter((s) => s.items.length > 0)
-        .map((s) => ({
-          label: s.label,
-          items: s.items.map(
-            (it): ShellNavItem => ({
-              icon: it.icon,
-              label: it.label,
-              href: it.href,
-              count: it.badge ? cartCount : 0,
-              countTone: "green",
-              countLabel: "articles dans le panier",
-            }),
-          ),
-        })),
-    [cartCount],
-  );
+  // Menu de la coque (nav/apprenant.ts) : le panier porte le compteur d'articles.
+  const sections = useMemo<ShellNavSection[]>(() => sectionsApprenant({ panier: cartCount }), [cartCount]);
 
   return (
     <DashboardShell
