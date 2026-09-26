@@ -15,8 +15,11 @@ test.describe("Responsive Design", () => {
     { path: "/inscription", label: "Inscription" },
     { path: "/explorer", label: "Marketplace" },
     { path: "/tarifs", label: "Tarifs" },
-    { path: "/dashboard", label: "Dashboard" },
-    { path: "/client", label: "Client" },
+    // Espaces privés : sans session, le middleware renvoie vers la connexion —
+    // on vérifie alors la page de connexion, jamais une 404 de boutique
+    // (« /dashboard » et « /client » n'existent plus depuis FreelanceHigh).
+    { path: "/vendeur/dashboard", label: "Dashboard vendeur" },
+    { path: "/apprenant/dashboard", label: "Dashboard apprenant" },
     { path: "/admin", label: "Admin" },
   ];
 
@@ -52,7 +55,7 @@ test.describe("Responsive Design", () => {
       });
       const page = await context.newPage();
 
-      await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+      await page.goto("/vendeur/dashboard", { waitUntil: "domcontentloaded" });
       await expect(page.locator("body")).toBeAttached();
 
       // Espace privé : sans session (CI, base vide), le middleware renvoie
