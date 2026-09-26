@@ -1,0 +1,295 @@
+/* ============================================================
+   Coque des espaces connectés Novakou — vendeur, apprenant,
+   affilié, admin. Préfixe .nkd-. Même langue que l'île publique
+   (nav.css) et l'auth (auth.css) : verre, liseré interne, ombre
+   teintée vert nuit, une seule courbe d'easing, transform/opacity
+   uniquement (aucune animation de width/height/top/left).
+
+   Le balisage et le comportement sont communs ; la teinte de chaque
+   espace est portée par des variables sur [data-space].
+   ============================================================ */
+.nkd{
+  --nkd-green:#006e2f;--nkd-night:#032314;
+  --nkd-ink:#0e1512;--nkd-grey:#5c6b62;
+  --nkd-ease:cubic-bezier(.22,1,.36,1);--nkd-ease-in:cubic-bezier(.4,0,1,1);
+  --nkd-fast:.18s;--nkd-base:.3s;
+  --nkd-top:64px;--nkd-sb:264px;--nkd-rail:76px;
+  /* Teinte : vendeur = vert de marque. */
+  --nkd-accent:#006e2f;--nkd-accent-soft:rgba(0,110,47,.09);--nkd-accent-line:rgba(0,110,47,.16);
+  --nkd-mark:#006e2f;--nkd-focus:#006e2f;
+  --nkd-content:#f7f9fb;--nkd-top-bg:rgba(247,249,251,.72);
+  --nkd-sb-bg:rgba(255,255,255,.66);--nkd-sb-drawer:rgba(255,255,255,.8);--nkd-sb-solid:#fff;
+  --nkd-sb-text:#41544a;--nkd-sb-icon:#7d9486;--nkd-sb-head:#8a968e;
+  --nkd-hover:rgba(14,21,18,.05);--nkd-hair:rgba(14,21,18,.06);--nkd-gloss:rgba(255,255,255,.85);
+  --nkd-card:rgba(255,255,255,.78);--nkd-shell:rgba(14,21,18,.035);
+  --nkd-tint:rgba(3,35,20,.18);
+  --nkd-font:var(--font-inter),"Inter",system-ui,sans-serif;
+  position:relative;min-height:100dvh;overflow-x:clip;
+  background:var(--nkd-content);color:var(--nkd-ink);
+  font-family:var(--nkd-font);-webkit-font-smoothing:antialiased;
+}
+/* Apprenant : vert plus doux (pilule moins saturée), Manrope comme avant. */
+.nkd[data-space="apprenant"]{--nkd-accent:#0b7a39;--nkd-accent-soft:rgba(11,122,57,.075);--nkd-accent-line:rgba(11,122,57,.14);
+  --nkd-font:var(--font-manrope),var(--font-inter),"Inter",system-ui,sans-serif}
+/* Admin : ardoise / vert profond. */
+.nkd[data-space="admin"]{--nkd-accent:#0b3b20;--nkd-accent-soft:rgba(19,36,27,.065);--nkd-accent-line:rgba(19,36,27,.12);
+  --nkd-mark:#0b3b20;--nkd-sb-icon:#6f8177;
+  --nkd-font:var(--font-manrope),"Manrope",var(--font-inter),system-ui,sans-serif}
+/* Affilié : barre latérale vert nuit, contenu sombre (les pages de cet
+   espace sont conçues en clair-sur-sombre). */
+.nkd[data-space="affilie"]{color-scheme:dark;
+  --nkd-ink:#fff;--nkd-grey:rgba(255,255,255,.64);
+  --nkd-accent:#9fe1bc;--nkd-accent-soft:rgba(255,255,255,.08);--nkd-accent-line:rgba(255,255,255,.12);
+  --nkd-focus:#9fe1bc;
+  --nkd-content:#0a1510;--nkd-top-bg:rgba(10,21,16,.74);
+  --nkd-sb-bg:#032314;--nkd-sb-drawer:rgba(3,35,20,.9);--nkd-sb-solid:#032314;
+  --nkd-sb-text:rgba(255,255,255,.76);--nkd-sb-icon:rgba(255,255,255,.52);--nkd-sb-head:rgba(255,255,255,.42);
+  --nkd-hover:rgba(255,255,255,.06);--nkd-hair:rgba(255,255,255,.08);--nkd-gloss:rgba(255,255,255,.09);
+  --nkd-card:rgba(255,255,255,.05);--nkd-shell:rgba(255,255,255,.04);
+  --nkd-tint:rgba(0,0,0,.55)}
+
+/* ── Grille : barre latérale collante + colonne de contenu ──── */
+.nkd__grid{display:grid;grid-template-columns:minmax(0,1fr);min-height:100dvh}
+.nkd__main{display:flex;flex-direction:column;min-width:0;min-height:100dvh}
+.nkd__page{flex:1;min-width:0}
+@media (min-width:1024px){
+  .nkd__grid{grid-template-columns:var(--nkd-sb) minmax(0,1fr)}
+  /* Repli : la colonne change d'un coup (aucune animation de largeur). */
+  .nkd[data-collapsed="rail"] .nkd__grid{grid-template-columns:var(--nkd-rail) minmax(0,1fr)}
+  .nkd[data-collapsed="hidden"] .nkd__grid{grid-template-columns:minmax(0,1fr)}
+  .nkd[data-collapsed="hidden"] .nkd__side{display:none}
+}
+
+/* ── Barre latérale : tiroir sous lg, collante au-delà ──────── */
+.nkd__side{position:fixed;top:0;bottom:0;left:0;z-index:40;width:min(288px,86vw);display:flex;flex-direction:column;
+  background:var(--nkd-sb-drawer);-webkit-backdrop-filter:blur(24px) saturate(1.5);backdrop-filter:blur(24px) saturate(1.5);
+  box-shadow:inset -1px 0 0 var(--nkd-hair),inset 0 1px 0 var(--nkd-gloss),28px 0 70px -30px var(--nkd-tint);
+  transform:translateX(-100%);visibility:hidden;
+  /* Sortie plus courte que l'entrée ; visibility retirée APRÈS le glissement
+     (hors du tab order et de l'arbre d'accessibilité une fois fermé). */
+  transition:transform .24s var(--nkd-ease-in),visibility 0s linear .24s}
+.nkd[data-drawer="open"] .nkd__side{transform:none;visibility:visible;transition:transform .38s var(--nkd-ease),visibility 0s}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.nkd__side{background:var(--nkd-sb-solid)}}
+@media (min-width:1024px){
+  /* Rien ne défile sous la barre collante : pas de flou inutile. */
+  .nkd__side{position:sticky;top:0;align-self:start;height:100dvh;width:auto;transform:none;visibility:visible;transition:none;
+    -webkit-backdrop-filter:none;backdrop-filter:none;background:var(--nkd-sb-bg);
+    box-shadow:inset -1px 0 0 var(--nkd-hair)}
+}
+.nkd__veil{position:fixed;inset:0;z-index:39;background:rgba(3,35,20,.42);
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);animation:nkd-fade-in .3s var(--nkd-ease) both}
+.nkd__veil[data-phase="closing"]{animation:nkd-fade-out .2s var(--nkd-ease-in) both;pointer-events:none}
+@keyframes nkd-fade-in{from{opacity:0}to{opacity:1}}
+@keyframes nkd-fade-out{from{opacity:1}to{opacity:0}}
+@media (min-width:1024px){.nkd__veil{display:none}}
+
+/* Marque + nom de l'espace */
+.nkd__brand{display:flex;align-items:center;gap:8px;flex-shrink:0;height:var(--nkd-top);padding:0 12px 0 18px;
+  box-shadow:inset 0 -1px 0 var(--nkd-hair)}
+.nkd__brand-link{display:inline-flex;align-items:center;gap:10px;min-width:0;border-radius:12px;
+  transition:transform var(--nkd-base) var(--nkd-ease)}
+.nkd__brand-link:hover{transform:translateY(-1px)}
+.nkd__brand-link:focus-visible{outline:2px solid var(--nkd-focus);outline-offset:3px;border-radius:12px}
+.nkd__mark{width:36px;height:36px;flex-shrink:0;border-radius:11px;color:var(--nkd-mark);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 18px -8px rgba(0,110,47,.7)}
+.nkd__brand-text{display:flex;flex-direction:column;min-width:0;line-height:1.1}
+.nkd__brand-name{font-size:15px;font-weight:800;letter-spacing:-.02em;color:var(--nkd-ink);white-space:nowrap}
+.nkd__brand-space{margin-top:3px;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--nkd-accent);white-space:nowrap}
+.nkd__close{margin-left:auto}
+/* Spécificité doublée : .nkd__ibtn (défini plus bas) pose aussi display. */
+@media (min-width:1024px){.nkd__ibtn.nkd__close{display:none}}
+
+/* Navigation : groupes, en-têtes en petites capitales, pilule glissante */
+.nkd__nav{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:14px 12px;
+  scrollbar-width:thin;scrollbar-color:rgba(14,21,18,.14) transparent}
+.nkd[data-space="affilie"] .nkd__nav{scrollbar-color:rgba(255,255,255,.16) transparent}
+.nkd__list{position:relative}
+/* UN seul élément absolu : il glisse en transform vers le lien courant.
+   La hauteur est posée sans transition (tous les liens font 40 px). */
+.nkd__pill{position:absolute;left:0;right:0;top:0;height:40px;border-radius:12px;pointer-events:none;opacity:0;
+  background:var(--nkd-accent-soft);
+  box-shadow:inset 0 0 0 1px var(--nkd-accent-line),inset 0 1px 0 var(--nkd-gloss),0 8px 18px -12px var(--nkd-tint)}
+.nkd__list[data-ready] .nkd__pill{transition:transform var(--nkd-base) var(--nkd-ease),opacity var(--nkd-fast) var(--nkd-ease)}
+.nkd__pill[data-on]{opacity:1}
+.nkd__group{margin-bottom:18px}
+.nkd__group:last-child{margin-bottom:0}
+.nkd__group ul{display:flex;flex-direction:column;gap:2px;margin:0;padding:0;list-style:none}
+.nkd__head{margin:0 0 6px;padding:0 12px;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--nkd-sb-head)}
+.nkd__link{position:relative;z-index:1;display:flex;align-items:center;gap:11px;height:40px;padding:0 12px;border-radius:12px;
+  font-size:13.5px;font-weight:600;letter-spacing:-.01em;color:var(--nkd-sb-text);white-space:nowrap;
+  transition:color var(--nkd-fast) var(--nkd-ease),background-color var(--nkd-fast) var(--nkd-ease)}
+.nkd__link svg{width:18px;height:18px;flex-shrink:0;color:var(--nkd-sb-icon);
+  transition:color var(--nkd-fast) var(--nkd-ease),transform var(--nkd-base) var(--nkd-ease)}
+.nkd__link:hover{background:var(--nkd-hover);color:var(--nkd-ink)}
+.nkd__link:hover svg{color:var(--nkd-ink);transform:translateX(1px)}
+.nkd__link[aria-current="page"],.nkd__link[aria-current="page"]:hover{color:var(--nkd-accent);font-weight:700;background:transparent}
+.nkd__link[aria-current="page"] svg{color:var(--nkd-accent);transform:none}
+.nkd__link:focus-visible{outline:2px solid var(--nkd-focus);outline-offset:-2px;border-radius:12px}
+.nkd__label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+/* Compteurs (rose = à traiter) et pastilles texte (IA / Pro) — ≥ 4,5:1 sur blanc. */
+.nkd__count{margin-left:auto;min-width:18px;height:18px;padding:0 5px;border-radius:999px;display:inline-grid;place-items:center;
+  font-size:10px;font-weight:800;line-height:1;color:#fff;font-variant-numeric:tabular-nums}
+.nkd__count--rose{background:#e11d48}.nkd__count--amber{background:#b45309}.nkd__count--green{background:#15803d}
+.nkd__tag{margin-left:auto;padding:3px 6px;border-radius:999px;font-size:9px;font-weight:800;letter-spacing:.04em;line-height:1}
+.nkd__tag--green{color:#006e2f;background:#e6f5eb}.nkd__tag--amber{color:#92400e;background:#fef3c7}
+.nkd__dot{display:none;position:absolute;top:8px;right:10px;width:7px;height:7px;border-radius:50%;box-shadow:0 0 0 2px var(--nkd-content)}
+.nkd__dot--rose{background:#e11d48}.nkd__dot--amber{background:#f59e0b}.nkd__dot--green{background:#22c55e}
+
+/* Section basse : carte de statut (double-bezel) + actions */
+.nkd__foot{flex-shrink:0;display:flex;flex-direction:column;gap:8px;padding:12px;box-shadow:inset 0 1px 0 var(--nkd-hair)}
+.nkd__card{padding:4px;border-radius:18px;background:var(--nkd-shell);box-shadow:inset 0 0 0 1px var(--nkd-hair)}
+.nkd__card-core{display:flex;align-items:center;gap:10px;min-width:0;padding:8px 10px;border-radius:14px;background:var(--nkd-card);
+  box-shadow:inset 0 1px 0 var(--nkd-gloss),inset 0 0 0 1px var(--nkd-hair)}
+.nkd__card-text{min-width:0}
+.nkd__card-title{font-size:13px;font-weight:700;color:var(--nkd-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nkd__card-sub{display:flex;align-items:center;gap:5px;margin-top:2px;font-size:11px;font-weight:600;color:var(--nkd-grey);white-space:nowrap}
+.nkd__live{width:6px;height:6px;border-radius:50%;background:#22c55e;flex-shrink:0}
+
+/* Repli « rail » (vendeur) : icônes seules, tooltips par title */
+@media (min-width:1024px){
+  .nkd[data-collapsed="rail"] .nkd__brand{padding:0;justify-content:center}
+  .nkd[data-collapsed="rail"] .nkd__brand-text,.nkd[data-collapsed="rail"] .nkd__head,.nkd[data-collapsed="rail"] .nkd__label,
+  .nkd[data-collapsed="rail"] .nkd__tag,.nkd[data-collapsed="rail"] .nkd__count,.nkd[data-collapsed="rail"] .nkd__card,
+  .nkd[data-collapsed="rail"] .nkd__foot-label{display:none}
+  .nkd[data-collapsed="rail"] .nkd__nav{padding:14px 10px}
+  .nkd[data-collapsed="rail"] .nkd__link{justify-content:center;padding:0;gap:0}
+  .nkd[data-collapsed="rail"] .nkd__dot{display:block}
+  .nkd[data-collapsed="rail"] .nkd__foot{padding:10px}
+  .nkd[data-collapsed="rail"] .nkd__foot .nkd-btn{padding:0}
+}
+
+/* ── Boutons verre (même famille que .nk-btn de l'île publique) ── */
+.nkd-btn{position:relative;isolation:isolate;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:0 14px;
+  border-radius:999px;font-size:12.5px;font-weight:700;letter-spacing:-.01em;line-height:1;white-space:nowrap;color:var(--nkd-ink);
+  background:var(--nkd-card);
+  box-shadow:inset 0 0 0 1px var(--nkd-hair),inset 0 1px 0 var(--nkd-gloss),0 1px 2px rgba(14,21,18,.04);
+  transition:transform var(--nkd-base) var(--nkd-ease),box-shadow var(--nkd-base) var(--nkd-ease),
+    background-color var(--nkd-base) var(--nkd-ease),color var(--nkd-fast) var(--nkd-ease)}
+.nkd-btn svg{width:16px;height:16px;flex-shrink:0}
+.nkd-btn:hover{transform:translateY(-1px);
+  box-shadow:inset 0 0 0 1px var(--nkd-hair),inset 0 1px 0 var(--nkd-gloss),0 10px 24px -14px var(--nkd-tint)}
+.nkd-btn:active{transform:scale(.97);transition-duration:var(--nkd-fast)}
+.nkd-btn:focus-visible{outline:2px solid var(--nkd-focus);outline-offset:3px;border-radius:999px}
+.nkd-btn--primary{color:#fff;background:rgba(0,110,47,.92);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.28),inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 1px rgba(0,40,17,.35),
+    0 1px 2px rgba(3,35,20,.2),0 10px 26px -12px rgba(0,110,47,.6)}
+.nkd-btn--primary:hover{background:rgba(0,92,39,.95);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.34),inset 0 1px 0 rgba(255,255,255,.4),inset 0 -1px 1px rgba(0,40,17,.35),
+    0 2px 4px rgba(3,35,20,.2),0 16px 36px -14px rgba(0,110,47,.65)}
+.nkd-btn--danger{color:#b42318}
+.nkd[data-space="affilie"] .nkd-btn--danger{color:#ff9a90}
+.nkd-btn--danger:hover{background:rgba(180,35,24,.07)}
+.nkd-btn--block{width:100%}
+/* Visibilités responsives ici, pas en utilitaire : .nkd-btn pose display
+   avec la même spécificité que `hidden` et cette feuille arrive après. */
+.nkd-btn--sm{display:none}
+@media (min-width:640px){.nkd-btn--sm{display:inline-flex}}
+.nkd-btn__xl{display:none}
+@media (min-width:1536px){.nkd-btn__xl{display:inline}}
+
+/* ── Barre supérieure collante en verre ─────────────────────── */
+.nkd__top{position:sticky;top:0;z-index:30;isolation:isolate;display:flex;align-items:center;gap:8px;height:var(--nkd-top);padding:0 12px;
+  box-shadow:inset 0 -1px 0 var(--nkd-hair),0 14px 34px -26px var(--nkd-tint)}
+/* Le verre vit sur un pseudo-élément : un backdrop-filter posé sur la barre
+   elle-même ferait d'elle le référent des panneaux `position:fixed`
+   (cloche de notifications sur mobile). */
+.nkd__top::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--nkd-top-bg);
+  -webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6);
+  box-shadow:inset 0 1px 0 var(--nkd-gloss)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.nkd__top::before{background:var(--nkd-content)}}
+@media (min-width:640px){.nkd__top{padding:0 20px;gap:10px}}
+@media (min-width:1024px){.nkd__top{padding:0 28px}}
+
+.nkd__ibtn{position:relative;display:inline-grid;place-items:center;width:40px;height:40px;flex-shrink:0;border-radius:999px;color:var(--nkd-ink);
+  transition:background-color var(--nkd-fast) var(--nkd-ease),transform var(--nkd-fast) var(--nkd-ease)}
+.nkd__ibtn svg{width:20px;height:20px}
+.nkd__ibtn:hover{background:var(--nkd-hover)}
+.nkd__ibtn:active{transform:scale(.94)}
+.nkd__ibtn:focus-visible{outline:2px solid var(--nkd-focus);outline-offset:2px;border-radius:999px}
+.nkd__ibtn-badge{position:absolute;top:5px;right:5px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;display:grid;place-items:center;
+  font-size:9px;font-weight:800;color:#fff;background:#15803d;box-shadow:0 0 0 2px var(--nkd-content)}
+@media (min-width:1024px){.nkd__burger{display:none}}
+.nkd__fold{display:none}
+@media (min-width:1024px){.nkd__fold{display:inline-grid}}
+/* Monogramme dans la barre : sous lg (la barre latérale est repliée en
+   tiroir, la marque n'est visible nulle part) et quand le menu est masqué. */
+.nkd__top-brand{display:inline-flex;align-items:center;border-radius:10px;flex-shrink:0}
+.nkd__top-brand .nkd__mark{width:32px;height:32px;border-radius:10px}
+.nkd__top-brand:focus-visible{outline:2px solid var(--nkd-focus);outline-offset:3px;border-radius:10px}
+@media (min-width:1024px){
+  .nkd__top-brand{display:none}
+  .nkd[data-collapsed="hidden"] .nkd__top-brand{display:inline-flex}
+}
+.nkd__start{display:flex;align-items:center;gap:8px;flex-shrink:0;min-width:0}
+.nkd__start:empty{display:none}
+
+/* Fil d'Ariane : section (md+) › page courante */
+.nkd__crumbs{min-width:0;flex:0 1 auto}
+.nkd__crumbs ol{display:flex;align-items:center;gap:6px;margin:0;padding:0;list-style:none;min-width:0}
+.nkd__crumb{display:none;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--nkd-grey);white-space:nowrap}
+.nkd__crumb svg{width:14px;height:14px;opacity:.7}
+.nkd__crumb--current{display:block;min-width:0;font-size:14px;font-weight:700;letter-spacing:-.01em;color:var(--nkd-ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (min-width:768px){.nkd__crumb{display:inline-flex}}
+/* Sous sm, un contenu réel à gauche (sélecteur de boutique…) prend la place
+   du fil ; s'il rend null, le fil reste. */
+@media (max-width:639.98px){.nkd__top:has(.nkd__start > :not(.nkd__chip)) .nkd__crumbs{display:none}}
+
+.nkd__spacer{flex:1}
+.nkd__search{position:relative;display:none;flex:1 1 0;min-width:160px;max-width:360px;margin:0 auto}
+@media (min-width:1280px){.nkd__search{display:block}}
+.nkd__search svg{position:absolute;left:13px;top:50%;width:16px;height:16px;transform:translateY(-50%);color:var(--nkd-grey);pointer-events:none}
+.nkd__search input{width:100%;height:38px;padding:0 14px 0 38px;border-radius:999px;-webkit-appearance:none;appearance:none;
+  font-size:13px;font-weight:500;color:var(--nkd-ink);background:var(--nkd-card);
+  box-shadow:inset 0 0 0 1px var(--nkd-hair),inset 0 1px 0 var(--nkd-gloss);
+  transition:box-shadow var(--nkd-base) var(--nkd-ease),background-color var(--nkd-base) var(--nkd-ease)}
+.nkd__search input::placeholder{color:#8a968e}
+.nkd__search input:focus{outline:none;background:#fff;box-shadow:inset 0 0 0 1.5px var(--nkd-green),0 0 0 4px rgba(0,110,47,.12)}
+.nkd__search input:focus-visible{outline:none;border-radius:999px}
+.nkd[data-space="affilie"] .nkd__search input:focus{background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1.5px #9fe1bc,0 0 0 4px rgba(159,225,188,.18)}
+
+.nkd__end{display:flex;align-items:center;gap:4px;flex-shrink:0;margin-left:auto}
+
+/* Pastilles de contexte (Admin, « N à traiter ») */
+.nkd__chip{display:none;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;flex-shrink:0;
+  font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.nkd__chip svg{width:12px;height:12px}
+.nkd__chip--dark{color:#fff;background:#0b3b20;box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
+.nkd__chip--rose{color:#b42318;background:rgba(180,35,24,.08);box-shadow:inset 0 0 0 1px rgba(180,35,24,.14);
+  text-transform:none;letter-spacing:0;font-size:11.5px}
+.nkd__chip--rose .nkd__live{background:#e11d48}
+@media (min-width:640px){.nkd__chip--sm{display:inline-flex}}
+@media (min-width:768px){.nkd__chip--md{display:inline-flex}}
+
+/* Cloche existante (NovakouNotificationBell) harmonisée : ronde, 40 px. */
+.nkd__bell>div>button{width:40px;height:40px;padding:0;display:grid;place-items:center;border-radius:999px;color:var(--nkd-ink);
+  transition:background-color var(--nkd-fast) var(--nkd-ease)}
+.nkd__bell>div>button:hover{background:var(--nkd-hover)}
+.nkd__bell>div>button:focus-visible{outline:2px solid var(--nkd-focus);outline-offset:2px;border-radius:999px}
+.nkd[data-space="affilie"] .nkd__bell>div>button{color:rgba(255,255,255,.82)}
+
+/* Utilisateur : avatar (dégradé de marque, comme l'île publique) + 2 lignes */
+.nkd__user{display:inline-flex;align-items:center;gap:9px;max-width:230px;padding:3px 8px 3px 3px;border-radius:999px;
+  transition:background-color var(--nkd-fast) var(--nkd-ease)}
+a.nkd__user:hover{background:var(--nkd-hover)}
+a.nkd__user:focus-visible{outline:2px solid var(--nkd-focus);outline-offset:2px;border-radius:999px}
+.nkd__avatar{width:34px;height:34px;border-radius:50%;overflow:hidden;flex-shrink:0;display:grid;place-items:center;
+  color:#fff;font-size:12px;font-weight:800;background:linear-gradient(135deg,#006e2f,#22c55e);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.3),0 0 0 1px var(--nkd-hair)}
+.nkd__avatar img{width:100%;height:100%;object-fit:cover}
+.nkd__avatar--lg{width:38px;height:38px}
+.nkd__user-text{display:none;flex-direction:column;min-width:0;line-height:1.15;text-align:left}
+@media (min-width:768px){.nkd__user-text{display:flex}}
+.nkd__user-name{font-size:13px;font-weight:700;color:var(--nkd-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+.nkd__user-role{font-size:11px;font-weight:500;color:var(--nkd-grey);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+.nkd__user-chev{display:none;width:15px;height:15px;flex-shrink:0;color:var(--nkd-grey)}
+@media (min-width:768px){.nkd__user-chev{display:block}}
+
+/* ── Reduced motion : aucun glissement, fondus instantanés ──── */
+@media (prefers-reduced-motion:reduce){
+  .nkd__side,.nkd[data-drawer="open"] .nkd__side{transition:visibility 0s}
+  .nkd__veil{animation:none}
+  .nkd__veil[data-phase="closing"]{opacity:0}
+  .nkd__list[data-ready] .nkd__pill{transition:none}
+  .nkd-btn:hover,.nkd-btn:active,.nkd__ibtn:active,.nkd__brand-link:hover,.nkd__link:hover svg{transform:none}
+}
