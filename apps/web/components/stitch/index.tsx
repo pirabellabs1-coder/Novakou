@@ -14,18 +14,25 @@
  * Manrope, chiffres tabulaires, chips pastel, niveau de polish
  * Stripe/Shopify Admin.
  *
+ * Polish « verre » (septembre 2026) : même langue que la page d'accueil
+ * (home.css) — boutons pilule translucides avec liseré interne et disque
+ * « bouton dans le bouton », cartes double-bezel en option, compteurs animés,
+ * courbe d'easing unique cubic-bezier(.22,1,.36,1). Tout est additif : aucune
+ * prop ni export existant n'a changé.
+ *
  * Usage :
  *   import { StCard, StPageHeader, StButton, StChip, StKpi, StKpiCompact,
  *            StStatusPill, StTabs, StProgressBar, StSuggestion, StStepper,
  *            StInput, StTextarea, StGhostCard, StAvatar, StSectionTitle,
- *            ST } from "@/components/stitch";
+ *            StCountUp, StChartTooltip, StChartSkeleton, StChartEmpty,
+ *            useReducedMotion, ST } from "@/components/stitch";
  */
 
 "use client";
 
 import Link from "next/link";
 import { type LucideIcon, ArrowRight, TrendingUp, TrendingDown, Check, CheckCircle2, Clock, XCircle } from "lucide-react";
-import { type ReactNode } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 /* ───────────────────────── Tokens ────────────────────────────────────── */
 
@@ -51,27 +58,76 @@ export const ST = {
   blueText: "#185fa5",
   roseSoft: "#fceef2",
   roseText: "#993556",
+  // Motion : la même courbe de sortie douce que la page d'accueil (home.css).
+  ease: "cubic-bezier(.22,1,.36,1)",
+  // Graphiques : un seul accent (le vert de marque) ; les autres séries sont
+  // désaturées (< 80 % de saturation) pour ne pas concurrencer les revenus.
+  chartRevenue: "#006e2f",
+  chartSales: "#3e8998",
+  chartClients: "#7c64b4",
+  chartGrid: "#e9efeb",
+  // ≥ 4,5:1 sur blanc (les anciens ticks #7d9486 / #9baba1 étaient sous le seuil).
+  chartTick: "#5d7166",
 } as const;
+
+// Classe Tailwind de la courbe — littérale pour que le JIT la détecte.
+const EASE_CLS = "ease-[cubic-bezier(.22,1,.36,1)]";
+
+/* ───────────────────────── useReducedMotion ──────────────────────────── */
+
+/** Vrai si l'utilisateur demande moins d'animations (faux au premier rendu, SSR compris). */
+export function useReducedMotion(): boolean {
+  const [reduce, setReduce] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const maj = () => setReduce(mq.matches);
+    maj();
+    mq.addEventListener("change", maj);
+    return () => mq.removeEventListener("change", maj);
+  }, []);
+  return reduce;
+}
 
 /* ───────────────────────── StCard ────────────────────────────────────── */
 
 export function StCard({
   className = "",
   noPadding = false,
+  bezel = false,
   children,
   style,
 }: {
   className?: string;
   noPadding?: boolean;
+  /**
+   * Double-bezel : coque externe (teinte + liseré) autour d'un cœur blanc,
+   * rayons concentriques. Opt-in pour ne pas changer l'existant d'un coup.
+   * `className` et `style` s'appliquent au cœur (padding, fond), comme avant.
+   */
+  bezel?: boolean;
   children: ReactNode;
   style?: React.CSSProperties;
 }) {
+  const core = `bg-white ${noPadding ? "" : "p-5"}`;
+  if (bezel) {
+    return (
+      <div className="h-full rounded-[1.25rem] bg-black/[.03] p-1.5 ring-1 ring-black/[.05]">
+        <div
+          className={`${core} h-full rounded-[calc(1.25rem-.375rem)] shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_1px_2px_rgba(16,52,32,.05)] ${className}`}
+          style={style}
+        >
+          {children}
+        </div>
+      </div>
+    );
+  }
   return (
     <div
-      className={`bg-white rounded-[18px] ${noPadding ? "" : "p-5"} ${className}`}
+      className={`${core} rounded-[18px] ${className}`}
       style={{
         border: `1px solid ${ST.cardBorder}`,
-        boxShadow: "0 1px 3px rgba(16,52,32,.05)",
+        // Liseré clair en haut : la carte « attrape » la lumière, comme sur l'accueil.
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,.9), 0 1px 2px rgba(16,52,32,.04), 0 1px 3px rgba(16,52,32,.05)",
         ...style,
       }}
     >
@@ -129,6 +185,79 @@ export function StSectionTitle({
 
 /* ───────────────────────── StButton ──────────────────────────────────── */
 
+// Base commune : pilule, transitions sur transform/ombre/couleur uniquement,
+// légère lévitation au survol, pression au clic, anneau de focus net.
+// Le reflet diagonal (::before) est un calque sous le contenu mais au-dessus
+// du fond (z -10 dans le contexte isolé du bouton).
+const BTN_BASE =
+  "group relative isolate inline-flex items-center justify-center rounded-full font-extrabold whitespace-nowrap select-none " +
+  `transition-[transform,box-shadow,background-color,color] duration-300 ${EASE_CLS} ` +
+  "hover:-translate-y-[2px] active:translate-y-0 active:scale-[.98] active:duration-150 " +
+  // focus-visible:rounded-full : globals.css pose `:focus-visible { border-radius: 4px }`,
+  // la pilule redeviendrait un rectangle pendant le focus clavier.
+  "outline-none focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:rounded-full " +
+  "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:active:scale-100 " +
+  "motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:active:scale-100 " +
+  "before:content-[''] before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:rounded-full";
+
+// Le flou d'arrière-plan n'est posé que sur les variantes rares (CTA) : la
+// variante `secondary` apparaît par dizaines dans les listes — un calque
+// composité par bouton ferait ramer le défilement sur téléphone. Sans
+// backdrop-filter (vieux navigateurs), le fond redevient opaque : même contraste.
+const BTN_VARIANTS: Record<"primary" | "secondary" | "dark" | "white" | "ghost-green", string> = {
+  primary:
+    "text-white bg-[#006e2f] hover:bg-[#005c27] " +
+    "supports-[backdrop-filter]:bg-[rgba(0,110,47,.9)] supports-[backdrop-filter]:hover:bg-[rgba(0,92,39,.94)] supports-[backdrop-filter]:backdrop-blur-md " +
+    "shadow-[inset_0_0_0_1px_rgba(255,255,255,.22),inset_0_1px_0_rgba(255,255,255,.3),inset_0_-1px_1px_rgba(0,40,17,.35),0_1px_2px_rgba(3,35,20,.2),0_10px_24px_-10px_rgba(0,110,47,.55)] " +
+    "hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,.3),inset_0_1px_0_rgba(255,255,255,.38),inset_0_-1px_1px_rgba(0,40,17,.35),0_2px_4px_rgba(3,35,20,.18),0_16px_32px_-12px_rgba(0,110,47,.6)] " +
+    "focus-visible:outline-[#006e2f] " +
+    "before:bg-[linear-gradient(115deg,rgba(255,255,255,.34)_0%,rgba(255,255,255,.06)_42%,rgba(255,255,255,0)_60%)]",
+  secondary:
+    "text-[#41544a] bg-white/80 hover:bg-white hover:text-[#13241b] " +
+    "shadow-[inset_0_0_0_1px_rgba(14,21,18,.08),inset_0_1px_0_rgba(255,255,255,.95),0_1px_2px_rgba(14,21,18,.05),0_8px_20px_-12px_rgba(3,35,20,.22)] " +
+    "hover:shadow-[inset_0_0_0_1px_rgba(14,21,18,.1),inset_0_1px_0_#fff,0_2px_4px_rgba(14,21,18,.05),0_14px_28px_-14px_rgba(3,35,20,.28)] " +
+    "focus-visible:outline-[#006e2f] " +
+    "before:bg-[linear-gradient(115deg,rgba(255,255,255,.7)_0%,rgba(255,255,255,.12)_42%,rgba(255,255,255,0)_60%)]",
+  dark:
+    "text-white bg-[#0b3b20] hover:bg-[#0f4a29] " +
+    "supports-[backdrop-filter]:bg-[rgba(11,59,32,.92)] supports-[backdrop-filter]:hover:bg-[rgba(15,74,41,.94)] supports-[backdrop-filter]:backdrop-blur-md " +
+    "shadow-[inset_0_0_0_1px_rgba(255,255,255,.14),inset_0_1px_0_rgba(255,255,255,.18),inset_0_-1px_1px_rgba(0,20,8,.4),0_1px_2px_rgba(3,35,20,.25),0_10px_24px_-10px_rgba(11,59,32,.6)] " +
+    "hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,.2),inset_0_1px_0_rgba(255,255,255,.24),inset_0_-1px_1px_rgba(0,20,8,.4),0_2px_4px_rgba(3,35,20,.2),0_16px_32px_-12px_rgba(11,59,32,.65)] " +
+    "focus-visible:outline-[#0b3b20] " +
+    "before:bg-[linear-gradient(115deg,rgba(255,255,255,.18)_0%,rgba(255,255,255,.04)_42%,rgba(255,255,255,0)_60%)]",
+  // Posé sur les surfaces vertes : un anneau vert serait invisible, il passe au blanc.
+  white:
+    "text-[#006e2f] bg-white " +
+    "supports-[backdrop-filter]:bg-white/90 supports-[backdrop-filter]:hover:bg-white supports-[backdrop-filter]:backdrop-blur-md " +
+    "shadow-[inset_0_0_0_1px_rgba(255,255,255,.85),inset_0_1px_0_#fff,inset_0_-1px_1px_rgba(14,21,18,.06),0_1px_2px_rgba(3,35,20,.15),0_10px_24px_-12px_rgba(3,35,20,.35)] " +
+    "hover:shadow-[inset_0_0_0_1px_#fff,inset_0_1px_0_#fff,inset_0_-1px_1px_rgba(14,21,18,.06),0_2px_4px_rgba(3,35,20,.15),0_16px_32px_-14px_rgba(3,35,20,.4)] " +
+    "focus-visible:outline-white " +
+    "before:bg-[linear-gradient(115deg,rgba(255,255,255,.7)_0%,rgba(255,255,255,.1)_42%,rgba(255,255,255,0)_60%)]",
+  "ghost-green":
+    "text-[#006e2f] bg-[#e6f5eb] hover:bg-[#dcefe2] " +
+    "shadow-[inset_0_0_0_1px_rgba(0,110,47,.12),inset_0_1px_0_rgba(255,255,255,.7),0_1px_2px_rgba(14,21,18,.04)] " +
+    "hover:shadow-[inset_0_0_0_1px_rgba(0,110,47,.18),inset_0_1px_0_rgba(255,255,255,.8),0_8px_20px_-12px_rgba(0,110,47,.35)] " +
+    "focus-visible:outline-[#006e2f] " +
+    "before:bg-[linear-gradient(115deg,rgba(255,255,255,.55)_0%,rgba(255,255,255,.1)_42%,rgba(255,255,255,0)_60%)]",
+};
+
+// Disque « bouton dans le bouton » qui porte l'icône de droite.
+const BTN_DISC: Record<keyof typeof BTN_VARIANTS, string> = {
+  primary: "bg-white/15 shadow-[inset_0_0_0_1px_rgba(255,255,255,.22)] group-hover:bg-white/25",
+  dark: "bg-white/15 shadow-[inset_0_0_0_1px_rgba(255,255,255,.22)] group-hover:bg-white/25",
+  secondary: "bg-[rgba(14,21,18,.06)] shadow-[inset_0_0_0_1px_rgba(14,21,18,.05)] group-hover:bg-[rgba(14,21,18,.09)]",
+  white: "bg-[rgba(0,110,47,.1)] shadow-[inset_0_0_0_1px_rgba(0,110,47,.12)] group-hover:bg-[rgba(0,110,47,.16)]",
+  "ghost-green": "bg-[rgba(0,110,47,.1)] shadow-[inset_0_0_0_1px_rgba(0,110,47,.12)] group-hover:bg-[rgba(0,110,47,.16)]",
+};
+
+// Mêmes hauteurs qu'avant (padding inchangé) ; `discPad` réduit le padding
+// droit pour que le disque vienne affleurer le bord.
+const BTN_SIZES = {
+  sm: { btn: "px-3 py-2 text-[12px] gap-1.5", discPad: "pr-[5px]", disc: "w-6 h-6", icon: 14, discIcon: 12 },
+  md: { btn: "px-4 py-2.5 text-[13px] gap-2", discPad: "pr-1", disc: "w-8 h-8", icon: 16, discIcon: 14 },
+  lg: { btn: "px-6 py-3 text-[13.5px] gap-2", discPad: "pr-1.5", disc: "w-8 h-8", icon: 17, discIcon: 15 },
+} as const;
+
 export function StButton({
   variant = "primary",
   size = "md",
@@ -156,40 +285,26 @@ export function StButton({
   className?: string;
   children: ReactNode;
 }) {
-  const sizes = {
-    sm: "px-3 py-2 text-[12px] gap-1.5 rounded-[10px]",
-    md: "px-4 py-2.5 text-[13px] gap-2 rounded-[12px]",
-    lg: "px-5.5 py-3 text-[13.5px] gap-2 rounded-[12px] px-6",
-  }[size];
-  const iconSize = { sm: 14, md: 16, lg: 17 }[size];
-
-  const base = `inline-flex items-center justify-center font-extrabold transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 active:scale-[0.98] ${sizes} ${className}`;
-
-  let styleProps: React.CSSProperties = {};
-  const variantClass = "";
-  switch (variant) {
-    case "primary":
-      styleProps = { background: ST.gradient, color: "#fff" };
-      break;
-    case "secondary":
-      styleProps = { border: `1px solid ${ST.cardBorder}`, color: ST.textSecondary, background: "#fff" };
-      break;
-    case "dark":
-      styleProps = { background: ST.greenDark, color: "#fff" };
-      break;
-    case "white":
-      styleProps = { background: "#fff", color: ST.green };
-      break;
-    case "ghost-green":
-      styleProps = { background: ST.greenSoft, color: ST.green };
-      break;
-  }
+  const s = BTN_SIZES[size];
+  const cls = `${BTN_BASE} ${BTN_VARIANTS[variant]} ${s.btn} ${IconRight ? s.discPad : ""} ${className}`;
 
   const content = (
     <>
-      {Icon && <Icon size={iconSize} />}
+      {Icon && <Icon size={s.icon} />}
       <span>{children}</span>
-      {IconRight && <IconRight size={iconSize} />}
+      {IconRight && (
+        <span
+          aria-hidden
+          className={
+            `ml-1 inline-flex shrink-0 items-center justify-center rounded-full ${s.disc} ${BTN_DISC[variant]} ` +
+            `transition-[transform,background-color] duration-300 ${EASE_CLS} ` +
+            "group-hover:translate-x-px group-hover:-translate-y-px " +
+            "motion-reduce:group-hover:translate-x-0 motion-reduce:group-hover:translate-y-0"
+          }
+        >
+          <IconRight size={s.discIcon} />
+        </span>
+      )}
     </>
   );
 
@@ -199,15 +314,14 @@ export function StButton({
         href={href}
         target={target}
         rel={target === "_blank" ? "noopener noreferrer" : undefined}
-        className={`${base} ${variantClass}`}
-        style={styleProps}
+        className={cls}
       >
         {content}
       </Link>
     );
   }
   return (
-    <button type={type} onClick={onClick} disabled={disabled} className={`${base} ${variantClass}`} style={styleProps}>
+    <button type={type} onClick={onClick} disabled={disabled} className={cls}>
       {content}
     </button>
   );
@@ -233,7 +347,7 @@ export function StChip({
   }[tone];
   return (
     <span
-      className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2 py-[3px] rounded-full"
+      className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2 py-[3px] rounded-full tabular-nums shadow-[inset_0_0_0_1px_rgba(14,21,18,.04)]"
       style={tones}
     >
       {Icon && <Icon size={12} />}
@@ -255,6 +369,163 @@ export function StDeltaChip({ pct, suffix = "vs période préc." }: { pct: numbe
   );
 }
 
+/* ───────────────────────── StCountUp — compteur additif ──────────────── */
+
+const DUREE_COMPTEUR_MS = 500;
+
+type Anime = {
+  animate: typeof import("animejs/animation").animate;
+  ease: (t: number) => number;
+};
+
+let animePromise: Promise<Anime> | null = null;
+
+// anime.js n'est chargé (sous-chemins uniquement) qu'au premier compteur
+// visible ; la courbe est celle de ST.ease.
+function chargerAnime(): Promise<Anime> {
+  animePromise ??= Promise.all([import("animejs/animation"), import("animejs/easings/cubic-bezier")]).then(
+    ([{ animate }, { cubicBezier }]) => ({ animate, ease: cubicBezier(0.22, 1, 0.36, 1) }),
+  );
+  return animePromise;
+}
+
+type NombreDecompose = {
+  prefix: string;
+  suffix: string;
+  target: number;
+  decimales: number;
+  sepDecimal: string;
+  sepGroupe: string;
+};
+
+// Premier nombre du texte (chiffres, espaces de groupe, décimale « , » ou « . »).
+const RE_NOMBRE = /-?\d(?:[\d\s  ]*\d)?(?:[.,]\d+)?/;
+
+/**
+ * « 12 000,5 FCFA » → { prefix:"", target:12000.5, decimales:1, suffix:" FCFA" }.
+ * Null si rien à compter, ou si le nombre fait partie d'une date/heure
+ * (« 12/05 », « 10:30 ») : animer un jour du mois n'aurait aucun sens.
+ */
+function decomposerNombre(texte: string): NombreDecompose | null {
+  const m = RE_NOMBRE.exec(texte);
+  if (!m) return null;
+  const brut = m[0];
+  const apres = texte.slice(m.index + brut.length);
+  if (/^[/:\-.]\d/.test(apres)) return null;
+  const sansEspaces = brut.replace(/[\s  ]/g, "");
+  const sepDecimal = sansEspaces.includes(",") ? "," : ".";
+  const normalise = sansEspaces.replace(",", ".");
+  const target = Number(normalise);
+  if (!Number.isFinite(target)) return null;
+  const fraction = normalise.split(".")[1];
+  const groupe = /[\s  ]/.exec(brut);
+  return {
+    prefix: texte.slice(0, m.index),
+    suffix: apres,
+    target,
+    decimales: fraction ? fraction.length : 0,
+    sepDecimal,
+    sepGroupe: groupe ? groupe[0] : "",
+  };
+}
+
+// Reproduit la mise en forme d'origine (mêmes séparateurs), pas celle d'Intl :
+// le compteur ne doit pas changer d'aspect entre deux images.
+function formaterNombre(n: number, d: NombreDecompose): string {
+  const [entier, fraction] = Math.abs(n).toFixed(d.decimales).split(".");
+  const groupe = d.sepGroupe ? entier.replace(/\B(?=(\d{3})+(?!\d))/g, d.sepGroupe) : entier;
+  return (n < 0 ? "-" : "") + groupe + (fraction ? d.sepDecimal + fraction : "");
+}
+
+/**
+ * Affiche `value` telle quelle (le HTML porte la valeur finale dès le rendu
+ * serveur) et, si c'est un texte numérique, compte jusqu'à elle quand elle
+ * devient visible. Additif : sans JS, sans anime.js ou en reduced-motion,
+ * rien ne bouge. Un ReactNode non textuel est rendu sans traitement.
+ */
+export function StCountUp({ value, className = "" }: { value: ReactNode; className?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  // Dernière valeur affichée : un changement de période repart d'elle, pas de zéro.
+  const courant = useRef<number | null>(null);
+  const texte = typeof value === "string" || typeof value === "number" ? String(value) : null;
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || texte === null) return;
+    // On écrit dans le nœud texte que React possède (nodeValue), jamais via
+    // textContent : ce dernier remplacerait le nœud et React perdrait la main.
+    const noeud = el.firstChild;
+    if (!noeud || noeud.nodeType !== Node.TEXT_NODE) return;
+
+    const parsed = decomposerNombre(texte);
+    const reduit = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const depart = courant.current ?? 0;
+    if (!parsed || reduit || depart === parsed.target) {
+      // Pas d'animation : on s'assure que la valeur finale est bien affichée
+      // (une animation précédente a pu écrire une image intermédiaire).
+      noeud.nodeValue = texte;
+      if (parsed) courant.current = parsed.target;
+      return;
+    }
+
+    let arrete = false;
+    let anim: { pause(): unknown } | null = null;
+    const lancer = () => {
+      chargerAnime()
+        .then(({ animate, ease }) => {
+          if (arrete) return;
+          const v = { n: depart };
+          anim = animate(v, {
+            n: parsed.target,
+            duration: DUREE_COMPTEUR_MS,
+            ease,
+            onUpdate: () => {
+              courant.current = v.n;
+              noeud.nodeValue = parsed.prefix + formaterNombre(v.n, parsed) + parsed.suffix;
+            },
+            onComplete: () => {
+              courant.current = parsed.target;
+              noeud.nodeValue = texte;
+            },
+          });
+        })
+        // anime.js indisponible (réseau) : le HTML porte déjà la valeur finale.
+        .catch(() => {
+          courant.current = parsed.target;
+        });
+    };
+
+    if (!("IntersectionObserver" in window)) {
+      lancer();
+      return () => {
+        arrete = true;
+        anim?.pause();
+      };
+    }
+    const io = new IntersectionObserver(
+      (entrees) => {
+        if (!entrees.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        lancer();
+      },
+      { threshold: 0.2 },
+    );
+    io.observe(el);
+    return () => {
+      arrete = true;
+      io.disconnect();
+      anim?.pause();
+    };
+  }, [texte]);
+
+  if (texte === null) return <>{value}</>;
+  return (
+    <span ref={ref} className={className}>
+      {texte}
+    </span>
+  );
+}
+
 /* ───────────────────────── StKpi — card dashboard ────────────────────── */
 
 export function StKpi({
@@ -263,6 +534,7 @@ export function StKpi({
   unit,
   icon: Icon,
   chip,
+  bezel = false,
   children,
 }: {
   label: string;
@@ -270,17 +542,19 @@ export function StKpi({
   unit?: string;
   icon?: LucideIcon;
   chip?: ReactNode;
+  /** Coque double-bezel (voir StCard). */
+  bezel?: boolean;
   children?: ReactNode;
 }) {
   return (
-    <StCard className="!p-[16px_18px]">
+    <StCard className="!p-[16px_18px]" bezel={bezel}>
       <div className="flex justify-between items-center">
         <span className="text-[12px] font-bold" style={{ color: ST.textSecondary }}>{label}</span>
         {Icon && <Icon size={18} style={{ color: ST.green }} />}
       </div>
-      <div className="text-[21px] md:text-[23px] font-extrabold my-2 tabular-nums" style={{ color: ST.text }}>
-        {value}
-        {unit && <span className="text-[13px] ml-1" style={{ color: ST.textMuted }}>{unit}</span>}
+      <div className="text-[21px] md:text-[23px] font-extrabold my-2 tabular-nums tracking-[-0.01em]" style={{ color: ST.text }}>
+        <StCountUp value={value} />
+        {unit && <span className="text-[13px] ml-1 tracking-normal" style={{ color: ST.textMuted }}>{unit}</span>}
       </div>
       {chip}
       {children}
@@ -296,12 +570,15 @@ export function StKpiCompact({
   unit,
   icon: Icon,
   tone = "green",
+  bezel = false,
 }: {
   label: string;
   value: ReactNode;
   unit?: string;
   icon: LucideIcon;
   tone?: "green" | "amber" | "blue" | "rose";
+  /** Coque double-bezel (voir StCard). */
+  bezel?: boolean;
 }) {
   const tones = {
     green: { background: ST.greenSoft, color: ST.green },
@@ -310,13 +587,13 @@ export function StKpiCompact({
     rose: { background: ST.roseSoft, color: ST.roseText },
   }[tone];
   return (
-    <StCard className="!p-[14px_18px] flex items-center gap-[13px]">
+    <StCard className="!p-[14px_18px] flex items-center gap-[13px]" bezel={bezel}>
       <div className="w-[38px] h-[38px] rounded-[11px] flex items-center justify-center flex-shrink-0" style={tones}>
         <Icon size={19} />
       </div>
       <div className="min-w-0">
         <div className="text-[17px] md:text-[19px] font-extrabold tabular-nums truncate" style={{ color: ST.text }}>
-          {value}
+          <StCountUp value={value} />
           {unit && <span className="text-[12px] ml-1" style={{ color: ST.textMuted }}>{unit}</span>}
         </div>
         <div className="text-[11.5px] font-bold" style={{ color: ST.textSecondary }}>{label}</div>
@@ -349,8 +626,16 @@ export function StStatusPill({ status, label }: { status: string; label?: string
   }[cfg.tone];
   const Icon = cfg.icon;
   return (
-    <span className="inline-flex items-center gap-1.5 text-[10.5px] font-extrabold px-[9px] py-[3px] rounded-full whitespace-nowrap" style={tones}>
-      {cfg.dot && <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: ST.greenBright }} />}
+    <span
+      className="inline-flex items-center gap-1.5 text-[10.5px] font-extrabold px-[9px] py-[3px] rounded-full whitespace-nowrap tabular-nums shadow-[inset_0_0_0_1px_rgba(14,21,18,.04)]"
+      style={tones}
+    >
+      {cfg.dot && (
+        <span
+          className="inline-block w-1.5 h-1.5 rounded-full"
+          style={{ background: ST.greenBright, boxShadow: "0 0 0 2px rgba(34,197,94,.18)" }}
+        />
+      )}
       {Icon && <Icon size={12} />}
       {label ?? cfg.label}
     </span>
@@ -369,16 +654,30 @@ export function StTabs({
   onChange: (key: string) => void;
 }) {
   return (
-    <div className="inline-flex gap-1 bg-white rounded-[13px] p-1" style={{ border: `1px solid ${ST.cardBorder}` }}>
+    // max-w-full + défilement interne : cinq onglets sur un petit écran ne
+    // doivent jamais faire déborder la page.
+    <div
+      role="group"
+      className="inline-flex max-w-full gap-1 overflow-x-auto bg-white rounded-[13px] p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      style={{ border: `1px solid ${ST.cardBorder}`, boxShadow: "inset 0 1px 0 rgba(255,255,255,.9), 0 1px 2px rgba(16,52,32,.04)" }}
+    >
       {tabs.map((t) => {
         const on = t.key === active;
         return (
           <button
             key={t.key}
             type="button"
+            aria-pressed={on}
             onClick={() => onChange(t.key)}
-            className="text-[12.5px] font-extrabold px-3.5 py-2 rounded-[10px] transition-colors whitespace-nowrap"
-            style={on ? { background: ST.greenDark, color: "#fff" } : { color: ST.textSecondary }}
+            className={
+              "text-[12.5px] font-extrabold px-3.5 py-2 rounded-[10px] whitespace-nowrap tabular-nums " +
+              `transition-[background-color,color,transform,box-shadow] duration-300 ${EASE_CLS} ` +
+              "active:scale-[.97] active:duration-150 outline-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:rounded-[10px] " +
+              "motion-reduce:transition-none motion-reduce:active:scale-100 " +
+              (on
+                ? "bg-[#0b3b20] text-white shadow-[inset_0_1px_0_rgba(255,255,255,.12),0_1px_2px_rgba(11,59,32,.25)] focus-visible:outline-[#006e2f]"
+                : "text-[#5d7166] hover:bg-[#f1f5f2] hover:text-[#13241b] focus-visible:outline-[#006e2f]")
+            }
           >
             {t.label}
             {t.count !== undefined && <span className="ml-1">· {t.count}</span>}
@@ -400,12 +699,139 @@ export function StProgressBar({
   height?: number;
   className?: string;
 }) {
+  const p = Math.max(0, Math.min(100, percent));
   return (
-    <div className={`rounded-full overflow-hidden ${className}`} style={{ height, background: "#e9efeb" }}>
+    <div
+      role="progressbar"
+      aria-valuenow={Math.round(p)}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      className={`rounded-full overflow-hidden ${className}`}
+      style={{ height, background: "#e9efeb", boxShadow: "inset 0 1px 1px rgba(14,21,18,.05)" }}
+    >
+      {/* Barre pleine largeur découpée par clip-path (animable sans layout) :
+          le dégradé et les bouts ronds restent intacts à tous les pourcentages. */}
       <div
-        className="h-full rounded-full transition-all duration-700"
-        style={{ width: `${Math.max(0, Math.min(100, percent))}%`, background: ST.gradientH }}
+        className={`h-full w-full rounded-full transition-[clip-path] duration-700 ${EASE_CLS} motion-reduce:transition-none`}
+        style={{
+          clipPath: `inset(0 ${100 - p}% 0 0 round 9999px)`,
+          background: ST.gradientH,
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,.25)",
+        }}
       />
+    </div>
+  );
+}
+
+/* ───────────────────────── Graphiques — tooltip verre, squelette, vide ── */
+
+type PointTooltip = { value?: unknown; name?: unknown; color?: string; stroke?: string; dataKey?: unknown };
+
+/**
+ * Contenu de <Tooltip content={<StChartTooltip … />} /> (recharts injecte
+ * active/payload/label). Typé structurellement : ce fichier n'importe pas
+ * recharts, pour ne pas l'embarquer dans les pages sans graphique.
+ */
+export function StChartTooltip({
+  active,
+  payload,
+  label,
+  formatValue,
+  formatLabel,
+}: {
+  active?: boolean;
+  payload?: ReadonlyArray<PointTooltip>;
+  label?: unknown;
+  /** Formate une valeur selon sa série (ex. « 12 000 F CFA »). */
+  formatValue?: (value: number, name: string) => string;
+  /** Formate l'en-tête (le libellé de l'axe X par défaut). */
+  formatLabel?: (label: string) => string;
+}) {
+  if (!active || !payload || payload.length === 0) return null;
+  const titre = label === undefined || label === null ? "" : String(label);
+  return (
+    <div
+      className={
+        "min-w-[136px] rounded-[14px] px-3.5 py-2.5 bg-white supports-[backdrop-filter]:bg-white/90 supports-[backdrop-filter]:backdrop-blur-md " +
+        "ring-1 ring-black/[.06] shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_1px_2px_rgba(14,21,18,.05),0_12px_28px_-12px_rgba(3,35,20,.3)]"
+      }
+    >
+      {titre && (
+        <div className="text-[11px] font-bold mb-1.5" style={{ color: ST.textSecondary }}>
+          {formatLabel ? formatLabel(titre) : titre}
+        </div>
+      )}
+      <ul className="m-0 p-0 list-none space-y-1">
+        {payload.map((p, i) => {
+          const nom = typeof p.name === "string" ? p.name : String(p.dataKey ?? "");
+          const brut = typeof p.value === "number" ? p.value : Number(p.value);
+          const valeur = Number.isFinite(brut)
+            ? formatValue
+              ? formatValue(brut, nom)
+              : brut.toLocaleString("fr-FR")
+            : "—";
+          return (
+            <li key={`${nom}-${i}`} className="flex items-center justify-between gap-4">
+              <span className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold" style={{ color: ST.textSecondary }}>
+                <span aria-hidden className="inline-block w-2 h-2 rounded-full" style={{ background: p.color ?? p.stroke ?? ST.green }} />
+                {nom}
+              </span>
+              <span className="text-[13px] font-extrabold tabular-nums" style={{ color: ST.text }}>{valeur}</span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+/** Squelette à la hauteur exacte du graphique : grille + aire fantôme, aucun saut de mise en page. */
+export function StChartSkeleton({ height = 218 }: { height?: number }) {
+  return (
+    <div role="status" aria-label="Chargement du graphique" className="relative overflow-hidden motion-safe:animate-pulse" style={{ height }}>
+      <div aria-hidden className="absolute inset-x-0 top-3 bottom-7 flex flex-col justify-between">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="h-px" style={{ background: ST.chartGrid }} />
+        ))}
+      </div>
+      <svg aria-hidden className="absolute inset-x-0 bottom-7 w-full" style={{ height: "58%" }} viewBox="0 0 100 40" preserveAspectRatio="none">
+        <path d="M0 33 C 10 31, 18 20, 28 23 S 46 12, 56 15 S 76 4, 100 7 V 40 H 0 Z" fill="#e9efeb" />
+      </svg>
+      <div aria-hidden className="absolute inset-x-1 bottom-0 flex justify-between">
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <span key={i} className="h-2 w-6 rounded-full" style={{ background: ST.chartGrid }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** État vide d'un graphique, même hauteur, avec une explication (jamais un axe nu). */
+export function StChartEmpty({
+  icon: Icon,
+  title,
+  hint,
+  height = 218,
+  action,
+}: {
+  icon: LucideIcon;
+  title: string;
+  hint?: string;
+  height?: number;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center text-center px-4" style={{ height }}>
+      <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: "#f1f5f2", color: "#a9bab0" }}>
+        <Icon size={22} />
+      </div>
+      <p className="text-[13px] font-bold mt-3" style={{ color: ST.textSecondary }}>{title}</p>
+      {hint && (
+        <p className="text-[11.5px] font-semibold mt-1 max-w-[260px]" style={{ color: ST.textMuted }}>
+          {hint}
+        </p>
+      )}
+      {action && <div className="mt-3">{action}</div>}
     </div>
   );
 }
@@ -435,7 +861,7 @@ export function StSuggestion({
 
   const inner = (
     <div
-      className="flex gap-[11px] items-center rounded-[13px] px-3 py-[11px] transition-transform hover:-translate-y-0.5 cursor-pointer"
+      className={`flex gap-[11px] items-center rounded-[13px] px-3 py-[11px] transition-transform duration-300 ${EASE_CLS} hover:-translate-y-0.5 motion-reduce:hover:translate-y-0 cursor-pointer`}
       style={{ border: tones.border, background: tones.background }}
     >
       <Icon size={19} style={{ color: tones.icon }} className="flex-shrink-0" />
@@ -447,8 +873,12 @@ export function StSuggestion({
     </div>
   );
 
-  if (href) return <Link href={href} className="block">{inner}</Link>;
-  return <button type="button" onClick={onClick} className="block w-full text-left">{inner}</button>;
+  if (href) return <Link href={href} className="block rounded-[13px] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#006e2f] focus-visible:rounded-[13px]">{inner}</Link>;
+  return (
+    <button type="button" onClick={onClick} className="block w-full text-left rounded-[13px] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#006e2f] focus-visible:rounded-[13px]">
+      {inner}
+    </button>
+  );
 }
 
 /* ───────────────────────── StStepper — wizard 5 étapes ───────────────── */
@@ -731,7 +1161,7 @@ export function StToolCard({
   }[tone];
   return (
     <Link href={href} className="block h-full">
-      <StCard className="!p-[17px] relative flex flex-col gap-2.5 min-h-[148px] h-full transition-transform hover:-translate-y-0.5">
+      <StCard className={`!p-[17px] relative flex flex-col gap-2.5 min-h-[148px] h-full transition-transform duration-300 ${EASE_CLS} hover:-translate-y-0.5 motion-reduce:hover:translate-y-0`}>
         {badge && (
           <span
             className="absolute top-[13px] right-[13px] text-[10px] font-extrabold px-[9px] py-[3px] rounded-full"

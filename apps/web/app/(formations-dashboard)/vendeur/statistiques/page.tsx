@@ -29,6 +29,11 @@ import {
   StSectionTitle,
   StTabs,
   StDeltaChip,
+  StCountUp,
+  StChartTooltip,
+  StChartSkeleton,
+  StChartEmpty,
+  useReducedMotion,
   ST,
 } from "@/components/stitch";
 import { useActiveShop } from "@/components/formations/ShopProvider";
@@ -128,10 +133,10 @@ function KpiCard({
   note?: string;
 }) {
   return (
-    <StCard className="!p-[15px_18px]">
+    <StCard bezel className="!p-[15px_18px]">
       <div className="text-[12px] font-bold" style={{ color: ST.textSecondary }}>{label}</div>
-      <div className="text-[20px] font-extrabold mt-[7px] mb-1.5 tabular-nums" style={{ color: ST.text }}>
-        {value}
+      <div className="text-[20px] font-extrabold mt-[7px] mb-1.5 tabular-nums tracking-[-0.01em]" style={{ color: ST.text }}>
+        <StCountUp value={value} />
       </div>
       {delta !== undefined && <StDeltaChip pct={delta} />}
       {note && (
@@ -154,6 +159,64 @@ function EmptyBlock({ icon: Icon, label, height = 212 }: { icon: LucideIcon; lab
 
 function LoadingBlock({ height = 212 }: { height?: number }) {
   return <div className="animate-pulse rounded-xl" style={{ height, background: ST.divider }} />;
+}
+
+/** Montant lisible dans l'infobulle : « 12 000 F CFA ». */
+const fmtMontant = (v: number) => `${formatFCFA(v)} F CFA`;
+
+/* ── Évolution des revenus : aire verte lissée, tooltip verre, montée 700 ms ── */
+function RevenueChart({ data }: { data: { label: string; amount: number }[] }) {
+  // Pas de montée de l'aire pour qui demande moins de mouvement.
+  const reduceMotion = useReducedMotion();
+  return (
+    // tabular-nums hérite jusqu'aux <text> SVG des axes : chiffres alignés.
+    <div className="tabular-nums">
+      <ResponsiveContainer width="100%" height={212}>
+        <AreaChart data={data} margin={{ top: 12, right: 8, left: -10, bottom: 0 }}>
+          <defs>
+            <linearGradient id="grad-stats-revenue" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={ST.chartRevenue} stopOpacity={0.35} />
+              <stop offset="100%" stopColor={ST.chartRevenue} stopOpacity={0.02} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke={ST.chartGrid} vertical={false} />
+          <XAxis
+            dataKey="label"
+            tick={{ fill: ST.chartTick, fontSize: 11, fontWeight: 600 }}
+            axisLine={false}
+            tickLine={false}
+            tickMargin={8}
+            minTickGap={42}
+          />
+          <YAxis
+            tick={{ fill: ST.chartTick, fontSize: 11, fontWeight: 600 }}
+            axisLine={false}
+            tickLine={false}
+            width={42}
+            allowDecimals={false}
+            tickFormatter={(v: number) => (v >= 1000 ? `${Math.round(v / 1000)} k` : `${v}`)}
+          />
+          <Tooltip
+            cursor={{ stroke: ST.chartRevenue, strokeWidth: 1, strokeDasharray: "4 4", strokeOpacity: 0.55 }}
+            content={<StChartTooltip formatValue={fmtMontant} />}
+          />
+          <Area
+            type="monotone"
+            dataKey="amount"
+            name="Revenus"
+            stroke={ST.chartRevenue}
+            strokeWidth={2.5}
+            fill="url(#grad-stats-revenue)"
+            dot={false}
+            activeDot={{ r: 4.5, strokeWidth: 2, stroke: "#fff", fill: ST.chartRevenue }}
+            isAnimationActive={!reduceMotion}
+            animationDuration={700}
+            animationEasing="ease-out"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
 }
 
 export default function StatistiquesPage() {
@@ -329,47 +392,16 @@ export default function StatistiquesPage() {
               Évolution des revenus
             </StSectionTitle>
             {isLoading ? (
-              <LoadingBlock />
+              <StChartSkeleton height={212} />
             ) : chartEmpty ? (
-              <EmptyBlock icon={LineChartIcon} label="Aucune donnée pour cette période" />
+              <StChartEmpty
+                height={212}
+                icon={LineChartIcon}
+                title="Aucune donnée pour cette période"
+                hint="Élargissez la période ou revenez après vos prochaines ventes."
+              />
             ) : (
-              <ResponsiveContainer width="100%" height={212}>
-                <AreaChart data={chartData} margin={{ top: 8, right: 4, left: -14, bottom: 0 }}>
-                  <CartesianGrid stroke={ST.divider} vertical={false} />
-                  <XAxis
-                    dataKey="label"
-                    tick={{ fill: ST.textFaint, fontSize: 10, fontWeight: 700 }}
-                    axisLine={false}
-                    tickLine={false}
-                    minTickGap={42}
-                  />
-                  <YAxis
-                    tick={{ fill: ST.textFaint, fontSize: 10, fontWeight: 600 }}
-                    axisLine={false}
-                    tickLine={false}
-                    tickFormatter={(v: number) => (v >= 1000 ? `${Math.round(v / 1000)} k` : `${v}`)}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: 12,
-                      border: `1px solid ${ST.cardBorder}`,
-                      fontSize: 12,
-                      fontWeight: 600,
-                      boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)",
-                    }}
-                    formatter={(v: number) => [`${formatFCFA(v)} FCFA`, "Revenus"]}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="amount"
-                    stroke={ST.green}
-                    strokeWidth={2.5}
-                    fill="rgba(34,197,94,.14)"
-                    dot={false}
-                    activeDot={{ r: 4, fill: ST.green }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              <RevenueChart data={chartData} />
             )}
           </StCard>
 

@@ -53,6 +53,11 @@ import {
   StSuggestion,
   StAvatar,
   StSectionTitle,
+  StCountUp,
+  StChartTooltip,
+  StChartSkeleton,
+  StChartEmpty,
+  useReducedMotion,
   ST,
 } from "@/components/stitch";
 
@@ -151,18 +156,23 @@ const RANGE_OPTIONS = [
 /** Sélecteur de période — chips compactes, pilote les 3 graphes. */
 function RangePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
-    <div className="flex flex-wrap gap-1">
+    <div className="flex flex-wrap gap-1" role="group" aria-label="Période affichée">
       {RANGE_OPTIONS.map((o) => {
         const active = o.key === value;
         return (
           <button
             key={o.key}
+            type="button"
+            aria-pressed={active}
             onClick={() => onChange(o.key)}
-            className="text-[11px] font-extrabold rounded-lg px-2.5 py-1 transition-colors"
-            style={
-              active
-                ? { background: ST.green, color: "#fff" }
-                : { background: "#f1f5f2", color: ST.textSecondary }
+            className={
+              "text-[11px] font-extrabold rounded-lg px-2.5 py-1 tabular-nums " +
+              "transition-[background-color,color,transform,box-shadow] duration-300 ease-[cubic-bezier(.22,1,.36,1)] " +
+              "active:scale-[.97] active:duration-150 outline-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#006e2f] focus-visible:rounded-lg " +
+              "motion-reduce:transition-none motion-reduce:active:scale-100 " +
+              (active
+                ? "bg-[#006e2f] text-white shadow-[inset_0_1px_0_rgba(255,255,255,.2),0_1px_2px_rgba(0,110,47,.3)]"
+                : "bg-[#f1f5f2] text-[#5d7166] hover:bg-[#e6f5eb] hover:text-[#006e2f]")
             }
           >
             {o.label}
@@ -172,6 +182,9 @@ function RangePicker({ value, onChange }: { value: string; onChange: (v: string)
     </div>
   );
 }
+
+/** Montant lisible dans les infobulles : « 12 000 F CFA ». */
+const fmtMontant = (v: number) => `${formatFCFA(v)} F CFA`;
 
 /** Courbe lissée (aire dégradée) réutilisée par les 3 graphes du dashboard. */
 function TrendChart({
@@ -189,50 +202,58 @@ function TrendChart({
   isCurrency?: boolean;
   height?: number;
 }) {
+  // La montée de l'aire (700 ms) est coupée pour qui demande moins de mouvement.
+  const reduceMotion = useReducedMotion();
   const gid = `grad-${dataKey}`;
-  const fmt = (v: number) => (isCurrency ? `${formatFCFA(v)} FCFA` : v.toLocaleString("fr-FR"));
+  const fmt = (v: number) => (isCurrency ? fmtMontant(v) : v.toLocaleString("fr-FR"));
   return (
-    <ResponsiveContainer width="100%" height={height}>
-      <AreaChart data={data} margin={{ top: 10, right: 8, left: -14, bottom: 0 }}>
-        <defs>
-          <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity={0.35} />
-            <stop offset="100%" stopColor={color} stopOpacity={0.02} />
-          </linearGradient>
-        </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke={ST.divider} vertical={false} />
-        <XAxis dataKey="month" tick={{ fill: "#7d9486", fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false} />
-        <YAxis
-          tick={{ fill: ST.textFaint, fontSize: 10, fontWeight: 600 }}
-          axisLine={false}
-          tickLine={false}
-          width={38}
-          allowDecimals={false}
-          tickFormatter={(v) => (isCurrency && v >= 1000 ? `${(v / 1000).toLocaleString("fr-FR")} k` : `${v}`)}
-        />
-        <Tooltip
-          cursor={{ stroke: color, strokeWidth: 1, strokeDasharray: "4 4" }}
-          contentStyle={{
-            borderRadius: 12,
-            border: `1px solid ${ST.cardBorder}`,
-            fontSize: 12,
-            fontWeight: 600,
-            boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)",
-          }}
-          formatter={(value: number) => [fmt(value), label]}
-        />
-        <Area
-          type="monotone"
-          dataKey={dataKey}
-          name={label}
-          stroke={color}
-          strokeWidth={2.5}
-          fill={`url(#${gid})`}
-          dot={{ r: 2.5, fill: color }}
-          activeDot={{ r: 4 }}
-        />
-      </AreaChart>
-    </ResponsiveContainer>
+    // tabular-nums hérite jusqu'aux <text> SVG des axes : colonnes de chiffres alignées.
+    <div className="tabular-nums">
+      <ResponsiveContainer width="100%" height={height}>
+        <AreaChart data={data} margin={{ top: 12, right: 8, left: -10, bottom: 0 }}>
+          <defs>
+            <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity={0.35} />
+              <stop offset="100%" stopColor={color} stopOpacity={0.02} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke={ST.chartGrid} vertical={false} />
+          <XAxis
+            dataKey="month"
+            tick={{ fill: ST.chartTick, fontSize: 11, fontWeight: 600 }}
+            axisLine={false}
+            tickLine={false}
+            tickMargin={8}
+            minTickGap={20}
+          />
+          <YAxis
+            tick={{ fill: ST.chartTick, fontSize: 11, fontWeight: 600 }}
+            axisLine={false}
+            tickLine={false}
+            width={42}
+            allowDecimals={false}
+            tickFormatter={(v: number) => (isCurrency && v >= 1000 ? `${(v / 1000).toLocaleString("fr-FR")} k` : `${v}`)}
+          />
+          <Tooltip
+            cursor={{ stroke: color, strokeWidth: 1, strokeDasharray: "4 4", strokeOpacity: 0.55 }}
+            content={<StChartTooltip formatValue={fmt} />}
+          />
+          <Area
+            type="monotone"
+            dataKey={dataKey}
+            name={label}
+            stroke={color}
+            strokeWidth={2.5}
+            fill={`url(#${gid})`}
+            dot={false}
+            activeDot={{ r: 4.5, strokeWidth: 2, stroke: "#fff", fill: color }}
+            isAnimationActive={!reduceMotion}
+            animationDuration={700}
+            animationEasing="ease-out"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
 
@@ -535,36 +556,42 @@ export default function VendeurDashboard() {
               l'inverse. Pas d'écart « vs mois préc. » ici : comparer un total
               cumulé au mois précédent n'a aucun sens — il ne peut que monter. */}
           <StKpi
+            bezel
             label="Revenus"
             value={isLoading ? "…" : formatFCFA(d?.kpis.netRevenue ?? 0)}
             unit="FCFA"
             icon={Wallet}
           />
           <StKpi
+            bezel
             label="Ventes"
             value={isLoading ? "…" : (d?.current?.sales ?? 0).toLocaleString("fr-FR")}
             icon={ShoppingBag}
             chip={<StDeltaChip pct={deltaPct(d?.current?.sales, d?.previous?.sales)} suffix="vs mois préc." />}
           />
           <StKpi
+            bezel
             label="Apprenants actifs"
             value={isLoading ? "…" : (d?.kpis.totalStudents ?? 0).toLocaleString("fr-FR")}
             icon={Users}
             chip={<StDeltaChip pct={deltaPct(d?.current?.students, d?.previous?.students)} suffix="sur 30 j" />}
           />
-          <StCard className="!p-[16px_18px]">
+          <StCard bezel className="!p-[16px_18px]">
             <div className="flex justify-between items-center">
               <span className="text-[12px] font-bold" style={{ color: ST.textSecondary }}>Objectif mensuel</span>
-              <span className="text-[13px] font-extrabold" style={{ color: ST.green }}>{Math.round(goalPct)} %</span>
+              <span className="text-[13px] font-extrabold tabular-nums" style={{ color: ST.green }}>
+                <StCountUp value={`${Math.round(goalPct)} %`} />
+              </span>
             </div>
             <StProgressBar percent={goalPct} className="my-[14px]" />
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[11.5px] font-bold" style={{ color: ST.textSecondary }}>
+              <span className="text-[11.5px] font-bold tabular-nums" style={{ color: ST.textSecondary }}>
                 {formatFCFA(currentRevenue)} / {formatFCFA(monthlyGoal)} FCFA
               </span>
               <button
+                type="button"
                 onClick={editMonthlyGoal}
-                className="text-[11px] font-extrabold hover:underline flex-shrink-0"
+                className="text-[11px] font-extrabold hover:underline flex-shrink-0 rounded outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#006e2f]"
                 style={{ color: ST.green }}
               >
                 {savedGoal ? "Modifier" : "Définir"}
@@ -635,17 +662,16 @@ export default function VendeurDashboard() {
               <RangePicker value={range} onChange={setRange} />
             </div>
             {isLoading ? (
-              <div className="h-[218px] animate-pulse rounded-xl" style={{ background: "#f3f6f4" }} />
+              <StChartSkeleton height={218} />
             ) : monthly.every((m) => m.amount === 0) ? (
-              <div className="h-[218px] flex flex-col items-center justify-center text-center">
-                <LineChart size={44} style={{ color: "#d6e0da" }} />
-                <p className="text-[13px] font-bold mt-3" style={{ color: ST.textSecondary }}>Aucune vente sur la période</p>
-                <p className="text-[11.5px] font-semibold mt-1" style={{ color: ST.textMuted }}>
-                  Vos revenus apparaîtront dès la première transaction.
-                </p>
-              </div>
+              <StChartEmpty
+                height={218}
+                icon={LineChart}
+                title="Aucune vente sur la période"
+                hint="Vos revenus apparaîtront dès la première transaction."
+              />
             ) : (
-              <TrendChart data={monthly} dataKey="amount" color={ST.green} label="Revenus" isCurrency />
+              <TrendChart data={monthly} dataKey="amount" color={ST.chartRevenue} label="Revenus" isCurrency />
             )}
           </StCard>
 
@@ -668,14 +694,16 @@ export default function VendeurDashboard() {
               <span className="text-[11.5px] font-bold" style={{ color: ST.textSecondary }}>nombre de commandes</span>
             </div>
             {isLoading ? (
-              <div className="h-[200px] animate-pulse rounded-xl" style={{ background: "#f3f6f4" }} />
+              <StChartSkeleton height={200} />
             ) : monthly.every((m) => m.sales === 0) ? (
-              <div className="h-[200px] flex flex-col items-center justify-center text-center">
-                <ShoppingBag size={40} style={{ color: "#d6e0da" }} />
-                <p className="text-[12.5px] font-bold mt-2.5" style={{ color: ST.textSecondary }}>Aucune vente sur la période</p>
-              </div>
+              <StChartEmpty
+                height={200}
+                icon={ShoppingBag}
+                title="Aucune vente sur la période"
+                hint="Changez de période ou lancez une promo pour relancer la courbe."
+              />
             ) : (
-              <TrendChart data={monthly} dataKey="sales" color="#0ea5e9" label="Ventes" height={200} />
+              <TrendChart data={monthly} dataKey="sales" color={ST.chartSales} label="Ventes" height={200} />
             )}
           </StCard>
 
@@ -685,14 +713,16 @@ export default function VendeurDashboard() {
               <span className="text-[11.5px] font-bold" style={{ color: ST.textSecondary }}>acheteurs uniques</span>
             </div>
             {isLoading ? (
-              <div className="h-[200px] animate-pulse rounded-xl" style={{ background: "#f3f6f4" }} />
+              <StChartSkeleton height={200} />
             ) : monthly.every((m) => m.clients === 0) ? (
-              <div className="h-[200px] flex flex-col items-center justify-center text-center">
-                <Users size={40} style={{ color: "#d6e0da" }} />
-                <p className="text-[12.5px] font-bold mt-2.5" style={{ color: ST.textSecondary }}>Aucun client sur la période</p>
-              </div>
+              <StChartEmpty
+                height={200}
+                icon={Users}
+                title="Aucun client sur la période"
+                hint="Chaque premier achat d'un acheteur apparaîtra ici."
+              />
             ) : (
-              <TrendChart data={monthly} dataKey="clients" color="#8b5cf6" label="Clients" height={200} />
+              <TrendChart data={monthly} dataKey="clients" color={ST.chartClients} label="Nouveaux clients" height={200} />
             )}
           </StCard>
         </div>
