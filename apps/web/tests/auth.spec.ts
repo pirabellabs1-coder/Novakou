@@ -5,7 +5,9 @@ test.describe("Authentication Pages", () => {
     await page.goto("/inscription");
     await expect(page.locator("body")).toBeVisible();
     // Should have a form or role selection
-    const formOrContent = page.locator("form, [role='tablist'], button").first();
+    // Le premier bouton du DOM peut être masqué sur mobile (menu replié) :
+    // on cible un élément visible.
+    const formOrContent = page.locator("form:visible, [role='tablist']:visible, button:visible").first();
     await expect(formOrContent).toBeVisible();
   });
 

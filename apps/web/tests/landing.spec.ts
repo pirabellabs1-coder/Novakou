@@ -16,7 +16,7 @@ test.describe("Landing Page", () => {
   test("should have CTA buttons", async ({ page }) => {
     await page.goto("/");
     // Look for inscription or explorer links
-    const links = page.locator('a[href*="inscription"], a[href*="explorer"]');
+    const links = page.locator('a[href*="inscription"]:visible, a[href*="explorer"]:visible');
     await expect(links.first()).toBeVisible();
   });
 

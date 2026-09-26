@@ -16,14 +16,14 @@
   },
   "metadata": {
     "home": {
-      "title": "Novakou — La plateforme freelance qui élève votre carrière",
-      "description": "Trouvez les meilleurs freelances pour vos projets. Design, développement, marketing et plus. Paiement sécurisé, satisfaction garantie.",
-      "og_title": "Novakou — La plateforme freelance qui élève votre carrière",
-      "og_description": "Trouvez les meilleurs freelances pour vos projets. Paiement sécurisé, satisfaction garantie.",
-      "twitter_description": "La plateforme freelance qui élève votre carrière au plus haut niveau."
+      "title": "Novakou — Vendez vos formations et produits numériques",
+      "description": "Créez votre boutique, vendez formations, e-books et produits numériques, encaissez en Mobile Money (Wave, Orange, MTN) et par carte. Sans abonnement.",
+      "og_title": "Novakou — Vendez vos formations et produits numériques",
+      "og_description": "Boutique en ligne, paiements Mobile Money et carte, tunnels de vente et assistant IA. Lancez-vous en 3 minutes.",
+      "twitter_description": "Vendez vos formations et produits numériques en Afrique francophone, encaissés en Mobile Money."
     },
-    "default_title": "Novakou — La plateforme freelance qui élève votre carrière",
-    "default_description": "Connectez-vous avec les meilleurs freelances d'Afrique francophone, de la diaspora et du monde entier. Marketplace premium pour vos projets digitaux."
+    "default_title": "Novakou — Vendez vos formations et produits numériques",
+    "default_description": "La plateforme des créateurs d'Afrique francophone : boutique en ligne, formations et produits numériques, paiements Mobile Money et carte, sans abonnement."
   },
   "navbar": {
     "explorer": "Explorer",
