@@ -90,5 +90,15 @@ export async function unsubscribeFromPush(): Promise<boolean> {
  */
 export async function syncPushIfGranted(): Promise<void> {
   if (!pushSupported() || Notification.permission !== "granted") return;
+  // Un appareil qui avait accordé la permission, mais dont la session est
+  // finie, renvoyait l'abonnement à chaque page → 401 côté serveur. On ne
+  // synchronise que pour une personne connectée (appel limité aux seuls
+  // appareils ayant déjà accordé la permission).
+  try {
+    const session = (await fetch("/api/auth/session").then((r) => (r.ok ? r.json() : null))) as { user?: unknown } | null;
+    if (!session?.user) return;
+  } catch {
+    return;
+  }
   await subscribeToPush();
 }

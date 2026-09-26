@@ -119,7 +119,18 @@ async function proxyRepond(origine: string): Promise<boolean> {
 let derniereAlerteProxy = 0;
 async function alerterProxyHorsService(code: string): Promise<void> {
   const maintenant = Date.now();
-  if (maintenant - derniereAlerteProxy < 60 * 60 * 1000) return;
+  // Au plus une alerte toutes les 6 h, partagée entre instances (Redis) : la
+  // garde en mémoire ci-dessous est par instance serverless, et la sonde
+  // horaire des versements réveillait une alerte à chaque passage — e-mail +
+  // Telegram toutes les heures pour la même panne connue.
+  try {
+    const { redisIncr } = await import("@/lib/rate-limit/store");
+    const n = await redisIncr("payout:alerte-proxy-hs", 6 * 3600);
+    if (n !== null && n > 1) return;
+  } catch {
+    // Redis indisponible : on retombe sur la garde en mémoire.
+  }
+  if (maintenant - derniereAlerteProxy < 6 * 60 * 60 * 1000) return;
   derniereAlerteProxy = maintenant;
   try {
     const { notifyAdmins } = await import("@/lib/admin/notify");

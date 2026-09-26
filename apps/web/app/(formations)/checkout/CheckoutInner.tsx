@@ -308,8 +308,10 @@ export default function CheckoutInner() {
   }, [cartItems]);
 
   // ── Préremplissage : téléphone du moyen Mobile Money par défaut ────────
-  // Fetch silencieux — un visiteur non connecté reçoit 401 et on ignore.
+  // Seulement avec une session : un visiteur n'a pas de moyens sauvegardés, et
+  // l'appel ne produisait qu'un 401 par visite (13 par jour dans les journaux).
   useEffect(() => {
+    if (!session?.user) return;
     let cancelled = false;
     fetch("/api/payment-methods")
       .then((r) => (r.ok ? r.json() : null))
@@ -326,7 +328,7 @@ export default function CheckoutInner() {
       .catch(() => {});
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [session?.user]);
 
   const subTotal = cartItems.reduce((s, i) => s + i.price, 0);
   const bumpsTotal = availableBumps
