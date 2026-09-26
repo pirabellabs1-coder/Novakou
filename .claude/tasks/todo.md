@@ -195,3 +195,17 @@ fonctionnel, passerelle par passerelle, partout.
       activité, type, registre de commerce, site, responsable) — voir
       docs.wave.com/aggregated-merchants. Tant que ce n'est pas fait, ni
       l'encaissement ni le versement Wave CI ne peuvent marcher, quoi qu'on code.
+
+## Session du 2026-09-26 — refonte premium (état)
+- ✅ VÉRIFIÉE Garde OAuth serveur (départ Google hors domaine principal → 303 vers www) — `api/auth/[...nextauth]/route.ts`
+- ✅ VÉRIFIÉE Menu public (île verre, méga-menus, mobile) + pied de page Novakou — `components/formations/nav/`
+- ✅ VÉRIFIÉE Pages d'authentification (6 écrans, shell `components/auth/`)
+- ✅ VÉRIFIÉE Marketplace /explorer — `components/formations/explorer/`
+- ✅ VÉRIFIÉE Hero accueil mobile compact
+- ✅ VÉRIFIÉE Coques des 4 espaces — `components/formations/dashboard/` (reste : /kyc, /wallet, /messages sur l'ancien SharedDashboardShell)
+- ✅ VÉRIFIÉE Fiches produit / formation / pack — `components/formations/fiche/` (règle fondateur : ni ventes ni date)
+- ✅ VÉRIFIÉE Boutiques publiques — `components/formations/boutique/`
+- ✅ VÉRIFIÉE 12 pages publiques (fonctionnalités, tarifs, affiliation, mentors, académie, aide, à propos, contact, partenaires, confiance, doc paiements, guides) — `components/formations/public/` ; validateur SEO prod 13/13
+- 📋 PLANIFIÉE Aligner /kyc, /wallet, /messages sur DashboardShell
+- 📋 PLANIFIÉE Raccourcir /fonctionnalites (≈15 000 px desktop, 26 000 px mobile : trop long)
+- ⏸️ BLOQUÉE côté fondateur : recharge OpenRouter (502 /api/ai/chat), URI Google localhost:3001 en console, claim novakou.com dans Vercel, VPS proxy + IP FeexPay, mail PawaPay, fonds FedaPay → étape 3
