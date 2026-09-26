@@ -655,3 +655,184 @@
 @media (max-width:640px){.nkp-core:has(.nkp-scroll)::after{content:"";position:absolute;top:0;right:0;bottom:0;width:40px;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,0),#fff 80%)}}
 /* Bande : la sous-liste respire sous le paragraphe d'accroche. */
 .nkp-feat--band .nkp-feat-list{margin-top:18px}
+
+/* ============================================================
+   Mise en page compacte (Fonctionnalités, réutilisable) — tout ce
+   qui suit est additif : nouvelles classes uniquement, aucune règle
+   existante n'est modifiée. Les surcharges desktop sont bornées par
+   min-width pour ne pas écraser les règles mobiles plus haut.
+   ============================================================ */
+/* Sections resserrées : 56 px, 48 px sur téléphone. */
+.nkp-section--compact{padding:56px 0}
+.nkp-section--compact.nkp-section--top0{padding-top:0}
+@media (max-width:560px){
+  .nkp-section--compact{padding:48px 0}
+  .nkp-section--compact.nkp-section--top0{padding-top:0}
+}
+/* Bande serrée (chiffres) : la règle mobile .nkp-section (64 px) écrase --tight, d’où cette variante. */
+.nkp-section--band{padding:40px 0}
+@media (max-width:560px){.nkp-section--band{padding:28px 0}}
+/* En-tête scindé : étiquette + titre à gauche, accroche à droite. */
+.nkp-head--split{margin-bottom:28px}
+.nkp-head--flush{margin-bottom:0}
+@media (min-width:961px){
+  .nkp-head--split{max-width:none;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:20px 64px;align-items:end}
+  .nkp-head--split h2{margin-bottom:0}
+  .nkp-head--split p{padding-bottom:4px}
+}
+@media (max-width:560px){
+  .nkp-head--split{margin-bottom:22px}
+  .nkp-head--split h2{margin:14px 0 10px}
+  .nkp-head--split p{font-size:.98rem}
+}
+
+/* Visuel « aperçu » : hauteur bornée, fondu en bas seulement s'il déborde
+   (dégradé calé en px sur --peek, donc sans effet sur un visuel plus court). */
+.nkp-vis-peek{--peek:220px;max-height:var(--peek);overflow:hidden;
+  -webkit-mask-image:linear-gradient(180deg,#000 calc(var(--peek) - 56px),transparent var(--peek));
+  mask-image:linear-gradient(180deg,#000 calc(var(--peek) - 56px),transparent var(--peek))}
+.nkp-vis-peek--court{--peek:160px}
+@media (max-width:560px){.nkp-vis-peek{--peek:150px}}
+
+/* Famille : grande carte (bande texte | visuel), puis tuiles compactes
+   et tuile « Voir les N autres » ; le panneau s'ouvre sur toute la largeur. */
+.nkp-fam{display:flex;flex-direction:column;gap:16px}
+.nkp-feat--main .nkp-feat-list{gap:14px 24px}
+.nkp-feat__side{min-width:0}
+/* Pas de row-gap : le panneau fermé (0 px) coûterait sinon une gouttière ;
+   l'espacement vertical des tuiles empilées passe par leur marge. */
+.nkp-fam__tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 16px}
+.nkp-fam__tiles>.nkp-more{display:contents}
+.nkp-fam__tiles .nkp-more__panel{grid-column:1/-1}
+.nkp-tuile .nkp-card__core{padding:18px 20px}
+.nkp-tuile .nkp-feat__top{margin-bottom:10px;gap:12px}
+.nkp-tuile h3{font-size:1.02rem;line-height:1.3}
+.nkp-tuile .nkp-feat__lead{font-size:.88rem;line-height:1.55}
+.nkp-tuile .nkp-card__foot{padding-top:12px}
+.nkp-tuile .nkp-link{font-size:.86rem}
+@media (max-width:960px){
+  .nkp-fam__tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .nkp-fam__tiles>.nkp-tuile{margin-bottom:16px}
+  .nkp-fam__tiles .nkp-more__btn{grid-column:1/-1}
+}
+@media (max-width:560px){
+  .nkp-fam__tiles{grid-template-columns:1fr}
+  .nkp-fam__tiles>.nkp-tuile{margin-bottom:12px}
+  .nkp-fam{gap:12px}
+  .nkp-tuile .nkp-card__core{padding:14px 16px}
+  .nkp-feat--main .nkp-card__core{gap:16px}
+  /* L'accroche de la carte Paiements nomme déjà chaque moyen : les pastilles sont redondantes sur téléphone. */
+  .nkp-feat__side .nkp-ops--sm{display:none}
+}
+/* Pastilles opérateurs, version serrée. */
+.nkp-ops--sm{gap:6px;margin-top:14px}
+.nkp-ops--sm .nkp-op{padding:6px 11px;font-size:.78rem;border-radius:8px;gap:7px}
+
+/* ── Zone repliable (Depliant.tsx) : grid-template-rows 0fr → 1fr ── */
+.nkp-more__btn{display:flex;align-items:center;justify-content:center;gap:12px;margin:14px auto 0;min-height:46px;padding:6px 7px 6px 20px;border:0;border-radius:100px;cursor:pointer;
+  font:inherit;color:var(--nkp-ink);text-align:left;background:#fff;-webkit-tap-highlight-color:transparent;
+  box-shadow:inset 0 0 0 1px var(--nkp-line),var(--nkp-shadow-sm);
+  transition:box-shadow var(--nkp-base) var(--nkp-ease),background-color var(--nkp-base) var(--nkp-ease),border-color var(--nkp-base) var(--nkp-ease)}
+.nkp-more__btn:hover{box-shadow:inset 0 0 0 1px var(--nkp-tint-2),var(--nkp-shadow-md)}
+.nkp-more__btn:focus-visible{outline:2px solid var(--nkp-green);outline-offset:3px}
+.nkp-more__btn.nkp-reveal:not(.settled){transition:none}
+.nkp-more__txt{display:flex;flex-direction:column;gap:3px;min-width:0}
+.nkp-more__lbl{font-weight:600;font-size:.92rem;line-height:1.3}
+.nkp-more__detail{font-size:.78rem;color:var(--nkp-grey);line-height:1.4}
+.nkp-more__ic{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;color:var(--nkp-green);background:var(--nkp-tint);
+  box-shadow:inset 0 0 0 1px var(--nkp-tint-2);transition:background-color var(--nkp-base) var(--nkp-ease),color var(--nkp-base) var(--nkp-ease)}
+.nkp-more__ic svg{width:15px;height:15px;transition:transform var(--nkp-base) var(--nkp-ease)}
+.nkp-more.is-open .nkp-more__ic{background:var(--nkp-green);color:#fff}
+.nkp-more.is-open .nkp-more__ic svg{transform:rotate(180deg)}
+.nkp-more__panel{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s var(--nkp-ease)}
+.nkp-more.is-open .nkp-more__panel{grid-template-rows:1fr}
+/* Marge négative + padding : les ombres des cartes ne sont pas rognées par overflow. */
+.nkp-more__panel>div{min-height:0;overflow:hidden;margin:0 -8px;padding:0 8px}
+.nkp-more__body{padding:16px 0 8px}
+/* Tuile « Voir les N autres » : même gabarit que les tuiles, bord pointillé. */
+.nkp-fam__tiles .nkp-more__btn{margin:0;width:100%;height:100%;min-height:92px;flex-direction:column;gap:10px;padding:16px 18px;text-align:center;
+  border-radius:var(--nkp-bz-r);background:rgba(255,255,255,.55);box-shadow:none;border:1.5px dashed rgba(0,110,47,.3)}
+.nkp-fam__tiles .nkp-more__btn:hover{background:#fff;border-color:rgba(0,110,47,.55);box-shadow:var(--nkp-shadow-sm)}
+.nkp-fam__tiles .nkp-more__txt{align-items:center}
+.nkp-fam__tiles .nkp-more__ic{order:-1}
+@media (max-width:560px){
+  .nkp-fam__tiles .nkp-more__btn{min-height:0;flex-direction:row;justify-content:space-between;text-align:left;padding:14px 14px 14px 18px}
+  .nkp-fam__tiles .nkp-more__txt{align-items:flex-start}
+  .nkp-fam__tiles .nkp-more__ic{order:0}
+}
+/* Contenu déplié : rubriques en colonnes, descriptions complètes. */
+.nkp-zone .nkp-card__core{padding:26px 28px}
+.nkp-groupes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px 32px;align-items:start}
+.nkp-groupe__tete{display:flex;align-items:center;gap:10px;grid-area:tete}
+.nkp-groupe__tete h3{font-size:1rem;letter-spacing:-.015em;line-height:1.3}
+.nkp-groupe__n{margin-left:auto;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:100px;background:var(--nkp-tint);color:var(--nkp-green);font-variant-numeric:tabular-nums}
+.nkp-groupe .nkp-vis-peek{--peek:150px;margin-top:14px;grid-area:vis}
+.nkp-groupe .nkp-feat-list{margin-top:14px;padding-top:14px;grid-area:liste}
+/* Rubrique unique : texte à gauche, visuel à droite. */
+.nkp-groupes--1{display:block}
+.nkp-groupes--1 .nkp-groupe{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,360px);grid-template-areas:"tete vis" "liste vis";column-gap:40px;align-items:start}
+.nkp-groupes--1 .nkp-vis-peek{margin-top:0}
+@media (max-width:960px){.nkp-groupes{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){
+  .nkp-zone .nkp-card__core{padding:18px}
+  .nkp-groupes{grid-template-columns:1fr;gap:24px}
+  .nkp-groupes--1 .nkp-groupe{grid-template-columns:1fr;grid-template-areas:"tete" "vis" "liste"}
+  .nkp-groupes--1 .nkp-vis-peek{margin-top:14px}
+}
+/* FAQ : questions au-delà de `visibles` (Accordeon). */
+.nkp-faq__reste{display:flex;flex-direction:column;gap:10px}
+.nkp-faq__suite .nkp-more__body{padding:10px 0 4px}
+
+/* ── Pourquoi + comparatif : arguments à gauche, tableau à droite ── */
+.nkp-why{list-style:none;margin:24px 0 0;padding:0}
+.nkp-why li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;padding:14px 0;box-shadow:inset 0 1px 0 var(--nkp-line)}
+.nkp-why .nkp-eyebrow{margin-top:1px;align-self:start}
+.nkp-why h3{font-size:1rem;line-height:1.35;letter-spacing:-.015em}
+.nkp-why p{font-size:.9rem;color:var(--nkp-grey);margin-top:4px;line-height:1.55;text-wrap:pretty}
+.nkp-duo--why .nkp-head p{font-size:.98rem}
+.nkp-cmp__tete{margin-bottom:16px}
+.nkp-cmp__tete h3{font-size:1.15rem}
+.nkp-cmp__tete p{color:var(--nkp-grey);font-size:.92rem;margin-top:4px}
+.nkp-table--compact{font-size:.9rem}
+.nkp-table--compact th,.nkp-table--compact td{padding:7px 14px}
+.nkp-table--compact .nkp-table__ok,.nkp-table--compact .nkp-table__ko{width:22px;height:22px;border-radius:7px}
+.nkp-table--compact .nkp-table__ok svg,.nkp-table--compact .nkp-table__ko svg{width:12px;height:12px}
+/* Une colonne : minmax(0,1fr), sinon le tableau (min-width 560 px) élargit la piste au-delà de l'écran. */
+@media (max-width:960px){
+  .nkp-duo--why,.nkp-duo--faq{grid-template-columns:minmax(0,1fr);gap:28px}
+}
+@media (min-width:961px){
+  .nkp-duo--why{grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:56px}
+  .nkp-duo--faq{grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:56px}
+  .nkp-duo--faq .nkp-head{position:sticky;top:112px}
+}
+
+/* ── Rangée de cartes : grille sur desktop, carrousel défilable masqué
+   aux bords sur tablette et téléphone ─────────────────────────── */
+.nkp-rail{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.nkp-rail .nkp-quote .nkp-card__core{padding:24px}
+.nkp-rail:focus-visible{outline:2px solid var(--nkp-green);outline-offset:6px;border-radius:var(--nkp-bz-r)}
+@media (max-width:960px){
+  .nkp-rail{display:flex;gap:14px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scrollbar-width:none;
+    margin:0 -24px;padding:6px 24px 14px;scroll-padding-inline:24px;
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 20px,#000 calc(100% - 20px),transparent);
+    mask-image:linear-gradient(90deg,transparent 0,#000 20px,#000 calc(100% - 20px),transparent)}
+  .nkp-rail::-webkit-scrollbar{display:none}
+  .nkp-rail>*{flex:0 0 min(84%,380px);scroll-snap-align:start}
+  .nkp-rail:focus-visible{outline-offset:-2px}
+}
+@media (max-width:560px){
+  .nkp-rail{margin:0 -16px;padding:6px 16px 14px;scroll-padding-inline:16px}
+  .nkp-rail>*{flex-basis:88%}
+  .nkp-rail .nkp-quote .nkp-card__core{padding:20px}
+  .nkp-table--compact th,.nkp-table--compact td{padding:6px 12px}
+  .nkp-duo--faq .nkp-faq__q{padding:14px 16px}
+  .nkp-cta--compact{padding:44px 20px 40px}
+}
+
+/* Bandeau CTA resserré (desktop ; le mobile garde son padding). */
+@media (min-width:561px){.nkp-cta--compact{padding:60px 40px 56px}}
+
+@media (prefers-reduced-motion:reduce){
+  .nkp-more__panel,.nkp-more__ic svg{transition:none}
+}

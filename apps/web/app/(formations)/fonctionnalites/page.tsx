@@ -54,6 +54,7 @@ import { CoquePublique } from "@/components/formations/public/CoquePublique";
 import { EnTetePage } from "@/components/formations/public/EnTetePage";
 import { BoutonVerre } from "@/components/formations/public/BoutonVerre";
 import { Accordeon } from "@/components/formations/public/Accordeon";
+import { Depliant } from "@/components/formations/public/Depliant";
 import {
   VisuelAffiliation,
   VisuelBoutique,
@@ -70,22 +71,37 @@ import {
 /*
  * Page Fonctionnalités — Server Component. Les métadonnées vivent dans
  * layout.tsx. Quatre familles, les mêmes que le méga-menu (Vendre,
- * Encaisser, Créer, Automatiser), chacune en bento asymétrique ; chaque
- * carte porte l'ancre visée par le menu (#boutique, #funnels, #pricing,
- * #paiements, #retraits, #ia, #video, #certificats, #emails,
- * #automatisations, #affiliation) — ne pas renommer.
+ * Encaisser, Créer, Automatiser). Chaque famille : une grande carte avec
+ * ses fonctionnalités phares en lignes courtes, des tuiles compactes, et
+ * le reste dans une zone « Voir les N autres » repliée — toujours dans le
+ * DOM (indexation), chaque fonctionnalité marquée `data-fonction`.
+ *
+ * Les ancres du menu (#boutique, #funnels, #tunnels, #pricing, #paiements,
+ * #retraits, #ia, #video, #certificats, #emails, #automatisations,
+ * #affiliation) sont portées par la grande carte ou une tuile, jamais par
+ * du contenu replié — ne pas renommer. Arriver sur une tuile ouvre la zone
+ * de sa famille, où vit son détail (Depliant, `ancres`).
  */
 
-type Fonction = { icon: LucideIcon; titre: string; desc: string };
+type Fonction = {
+  icon: LucideIcon;
+  titre: string;
+  desc: string;
+  /** Montrée dans la grande carte de la famille ; les autres vont dans la zone repliée. */
+  phare?: true;
+};
+
+const phares = (liste: Fonction[]) => liste.filter((f) => f.phare);
+const autres = (liste: Fonction[]) => liste.filter((f) => !f.phare);
 
 /* ─── Vendre ─────────────────────────────────────────────────── */
 const BOUTIQUE: Fonction[] = [
-  { icon: Palette, titre: "Design 100 % personnalisable", desc: "Couleurs, logo, polices, bannière, palette de couleurs — tout reflète votre marque, pas la nôtre. Chaque créateur a une boutique unique qui renforce son image professionnelle auprès de ses clients." },
+  { icon: Palette, phare: true, titre: "Design 100 % personnalisable", desc: "Couleurs, logo, polices, bannière, palette de couleurs — tout reflète votre marque, pas la nôtre. Chaque créateur a une boutique unique qui renforce son image professionnelle auprès de ses clients." },
   { icon: MonitorSmartphone, titre: "100 % responsive mobile", desc: "Expérience parfaite sur smartphone Android ou iPhone, tablette et desktop. Votre boutique est conçue pour le mobile dès le départ." },
-  { icon: Search, titre: "SEO automatique intégré", desc: "Balises meta générées automatiquement, URLs propres et lisibles, sitemap dynamique soumis à Google, schema.org pour les produits. Votre boutique se positionne naturellement dans les résultats de recherche sans effort technique de votre part." },
-  { icon: Link2, titre: "Domaine personnalisé gratuit", desc: "Connectez votre propre nom de domaine (monsite.com) en quelques clics pour une image 100 % professionnelle. Fini les URLs génériques — votre marque s'affiche partout." },
+  { icon: Search, phare: true, titre: "SEO automatique intégré", desc: "Balises meta générées automatiquement, URLs propres et lisibles, sitemap dynamique soumis à Google, schema.org pour les produits. Votre boutique se positionne naturellement dans les résultats de recherche sans effort technique de votre part." },
+  { icon: Link2, phare: true, titre: "Domaine personnalisé gratuit", desc: "Connectez votre propre nom de domaine (monsite.com) en quelques clics pour une image 100 % professionnelle. Fini les URLs génériques — votre marque s'affiche partout." },
   { icon: Tag, titre: "Catalogue organisé intelligemment", desc: "Catégories hiérarchisées, filtres avancés par prix, type, niveau, recherche interne en temps réel. Vos clients trouvent le bon produit en moins de 2 clics, ce qui augmente vos conversions." },
-  { icon: Star, titre: "Avis vérifiés authentiques", desc: "Collectez des avis certifiés uniquement de vrais acheteurs, répondez publiquement, signalez les abusifs. La preuve sociale est le levier n°1 de conversion — Novakou l'intègre au cœur de votre boutique." },
+  { icon: Star, phare: true, titre: "Avis vérifiés authentiques", desc: "Collectez des avis certifiés uniquement de vrais acheteurs, répondez publiquement, signalez les abusifs. La preuve sociale est le levier n°1 de conversion — Novakou l'intègre au cœur de votre boutique." },
 ];
 
 const TUNNELS: Fonction[] = [
@@ -106,10 +122,10 @@ const PRICING: Fonction[] = [
 
 /* ─── Encaisser ──────────────────────────────────────────────── */
 const PAIEMENTS: Fonction[] = [
-  { icon: Smartphone, titre: "Mobile Money intégré nativement", desc: "Intégration native Orange Money, Wave, MTN MoMo, Moov, M-Pesa. Novakou est la seule plateforme à les proposer tous sans configuration supplémentaire." },
-  { icon: CreditCard, titre: "Cartes & paiements internationaux", desc: "Visa, Mastercard, SEPA, PayPal, Apple Pay. Parfait pour la diaspora africaine en France, Belgique, Canada et les clients internationaux qui veulent suivre une formation de votre catalogue. Paiement en 3× disponible pour les formations > 30 000 FCFA." },
-  { icon: Lock, titre: "Sécurité bancaire SSL/TLS", desc: "Chaque transaction est chiffrée avec les standards bancaires SSL/TLS. Conformité PCI DSS pour les paiements par carte. Vos clients voient le cadenas de sécurité et achètent en toute confiance — les taux d'abandon au checkout sont réduits de 40 %." },
-  { icon: Globe, titre: "Afrique francophone + international", desc: "Couverture Mobile Money dans plusieurs pays africains : Sénégal, Côte d'Ivoire, Cameroun, Togo, Bénin, Mali, Burkina Faso et plus. L'international via Stripe." },
+  { icon: Smartphone, phare: true, titre: "Mobile Money intégré nativement", desc: "Intégration native Orange Money, Wave, MTN MoMo, Moov, M-Pesa. Novakou est la seule plateforme à les proposer tous sans configuration supplémentaire." },
+  { icon: CreditCard, phare: true, titre: "Cartes & paiements internationaux", desc: "Visa, Mastercard, SEPA, PayPal, Apple Pay. Parfait pour la diaspora africaine en France, Belgique, Canada et les clients internationaux qui veulent suivre une formation de votre catalogue. Paiement en 3× disponible pour les formations > 30 000 FCFA." },
+  { icon: Lock, phare: true, titre: "Sécurité bancaire SSL/TLS", desc: "Chaque transaction est chiffrée avec les standards bancaires SSL/TLS. Conformité PCI DSS pour les paiements par carte. Vos clients voient le cadenas de sécurité et achètent en toute confiance — les taux d'abandon au checkout sont réduits de 40 %." },
+  { icon: Globe, phare: true, titre: "Afrique francophone + international", desc: "Couverture Mobile Money dans plusieurs pays africains : Sénégal, Côte d'Ivoire, Cameroun, Togo, Bénin, Mali, Burkina Faso et plus. L'international via Stripe." },
 ];
 
 const RETRAITS: Fonction[] = [
@@ -130,11 +146,11 @@ const OPERATEURS: { nom: string; couleur: string }[] = [
 
 /* ─── Créer ──────────────────────────────────────────────────── */
 const IA: Fonction[] = [
-  { icon: GraduationCap, titre: "Structure de formation en 10 secondes", desc: "Donnez votre sujet (ex : « Marketing digital pour PME africaines »), l'IA génère un plan complet avec modules, leçons, objectifs pédagogiques et durée estimée. Économisez 3-4 heures de conception pédagogique dès votre premier cours." },
-  { icon: Pencil, titre: "Copywriting de vente qui convertit", desc: "Pages de vente, titres accrocheurs, descriptions de produits, séquences email, posts réseaux sociaux — des textes adaptés aux codes culturels et aux attentes de l'Afrique francophone." },
+  { icon: GraduationCap, phare: true, titre: "Structure de formation en 10 secondes", desc: "Donnez votre sujet (ex : « Marketing digital pour PME africaines »), l'IA génère un plan complet avec modules, leçons, objectifs pédagogiques et durée estimée. Économisez 3-4 heures de conception pédagogique dès votre premier cours." },
+  { icon: Pencil, phare: true, titre: "Copywriting de vente qui convertit", desc: "Pages de vente, titres accrocheurs, descriptions de produits, séquences email, posts réseaux sociaux — des textes adaptés aux codes culturels et aux attentes de l'Afrique francophone." },
   { icon: HelpCircle, titre: "Quiz et évaluations automatiques", desc: "Générez des QCM pertinents, des exercices pratiques et des études de cas pour chaque module de votre formation en un clic." },
-  { icon: Bot, titre: "Chatbot support apprenant 24/7", desc: "Configurez un assistant IA qui répond aux questions de vos apprenants à toute heure avec le contexte de votre formation. Disponibilité permanente, même quand vous dormez." },
-  { icon: Languages, titre: "Contexte culturel africain intégré", desc: "L'IA intègre des références, exemples et cas d'usage pertinents pour le marché africain : noms, devises, situations professionnelles locales, plateformes de paiement régionales. Vos textes générés sonnent locaux, pas traduits." },
+  { icon: Bot, phare: true, titre: "Chatbot support apprenant 24/7", desc: "Configurez un assistant IA qui répond aux questions de vos apprenants à toute heure avec le contexte de votre formation. Disponibilité permanente, même quand vous dormez." },
+  { icon: Languages, phare: true, titre: "Contexte culturel africain intégré", desc: "L'IA intègre des références, exemples et cas d'usage pertinents pour le marché africain : noms, devises, situations professionnelles locales, plateformes de paiement régionales. Vos textes générés sonnent locaux, pas traduits." },
   { icon: Brain, titre: "Optimisation SEO assistée", desc: "Suggestions de titres optimisés pour Google, mots-clés à intégrer dans vos descriptions, meta descriptions générées automatiquement, score de lisibilité. Vos produits remontent dans les recherches Google sans effort technique." },
 ];
 
@@ -153,14 +169,14 @@ const CERTIFICATS: Fonction[] = [
 
 /* ─── Automatiser ────────────────────────────────────────────── */
 const EMAILS: Fonction[] = [
-  { icon: Mail, titre: "23 séquences email prêtes à l'emploi", desc: "Bienvenue personnalisé, relance panier abandonné (3 emails), suivi post-achat J+1/J+3/J+7, rappel de progression, demande d'avis, offre de montée en gamme. 23 templates conçus pour le marché africain, modifiables en 2 clics." },
+  { icon: Mail, phare: true, titre: "23 séquences email prêtes à l'emploi", desc: "Bienvenue personnalisé, relance panier abandonné (3 emails), suivi post-achat J+1/J+3/J+7, rappel de progression, demande d'avis, offre de montée en gamme. 23 templates conçus pour le marché africain, modifiables en 2 clics." },
   { icon: BellRing, titre: "Notifications email, SMS et push", desc: "Alertez vos clients selon les événements importants (achat, livraison, accès, nouveau module disponible) via email, SMS court ou notification push navigateur. Paramétrez finement quelle alerte va sur quel canal selon le type d'événement." },
-  { icon: ShoppingCart, titre: "Récupération panier abandonné", desc: "65 % des visiteurs commencent un achat sans le finir. Novakou envoie automatiquement 3 emails de relance intelligents (1 h, 24 h, 72 h après l'abandon) avec des arguments adaptés à l'objection probable de chaque étape." },
+  { icon: ShoppingCart, phare: true, titre: "Récupération panier abandonné", desc: "65 % des visiteurs commencent un achat sans le finir. Novakou envoie automatiquement 3 emails de relance intelligents (1 h, 24 h, 72 h après l'abandon) avec des arguments adaptés à l'objection probable de chaque étape." },
 ];
 
 const AUTOMATISATIONS: Fonction[] = [
-  { icon: Workflow, titre: "Workflows sans code", desc: "Activez un template en 1 clic, ou composez vos propres scénarios (conditions, branches, délais) dans l'éditeur visuel. Configurez une fois, le système tourne indéfiniment à votre place." },
-  { icon: Repeat, titre: "Abonnements et revenus récurrents", desc: "Créez des produits en abonnement mensuel ou annuel : accès à une communauté privée, coaching groupe mensuel, bibliothèque de ressources en continu. Facturation automatique, gestion des suspensions et reprises sans intervention manuelle." },
+  { icon: Workflow, phare: true, titre: "Workflows sans code", desc: "Activez un template en 1 clic, ou composez vos propres scénarios (conditions, branches, délais) dans l'éditeur visuel. Configurez une fois, le système tourne indéfiniment à votre place." },
+  { icon: Repeat, phare: true, titre: "Abonnements et revenus récurrents", desc: "Créez des produits en abonnement mensuel ou annuel : accès à une communauté privée, coaching groupe mensuel, bibliothèque de ressources en continu. Facturation automatique, gestion des suspensions et reprises sans intervention manuelle." },
   { icon: UserPlus, titre: "Programme d'affiliation automatisé", desc: "Vos clients les plus satisfaits deviennent vos vendeurs. Commission paramétrable librement (20 %, 30 %, 40 %), lien de tracking unique par affilié, calcul automatique des commissions, paiement automatique à chaque vente. Zéro gestion manuelle." },
 ];
 
@@ -198,27 +214,13 @@ const TEMOIGNAGES = [
   { initiales: "FN", nom: "Fatou N.", lieu: "Douala, Cameroun", domaine: "Design Canva", citation: "Avant Novakou, je ne savais pas comment accepter les paiements. Maintenant mes clients paient facilement par Wave ou Orange Money. Les automatisations gèrent tout à ma place." },
 ];
 
+/* Condensé des quatre arguments « Pourquoi Novakou », fusionnés avec le
+   comparatif : le détail de chacun vit déjà dans les familles ci-dessus. */
 const POURQUOI = [
-  {
-    titre: "Les paiements que votre audience utilise vraiment",
-    p1: "En Afrique francophone, la majorité de la population utilise un service de Mobile Money au quotidien. Novakou intègre nativement Wave, Orange Money, MTN MoMo, et Moov Money — permettant à vos clients de payer en quelques secondes avec leur téléphone, sans compte bancaire requis.",
-    p2: "Cette intégration n'est pas en option, n'est pas un module payant : elle est au cœur de la plateforme.",
-  },
-  {
-    titre: "Une boutique qui se vend même quand vous dormez",
-    p1: "73 % des ventes enregistrées sur Novakou ont lieu hors des heures ouvrées classiques — la nuit, le week-end, les jours fériés. C'est parce que vos clients sont au Sénégal, en Côte d'Ivoire, au Cameroun, en France et au Canada — dans des fuseaux horaires différents. Votre boutique, elle, est ouverte 24h/24 et 7j/7.",
-    p2: "Les automatisations Novakou — email de bienvenue, accès immédiat à la formation, séquences de suivi — s'activent instantanément à chaque vente, à toute heure, sans aucune intervention de votre part. Configurez une fois, récoltez indéfiniment.",
-  },
-  {
-    titre: "Hébergez vos vidéos sans compromis",
-    p1: "Beaucoup de créateurs africains hébergent leurs vidéos sur YouTube (public, sans contrôle d'accès) ou Vimeo (coûteux, conçu pour les marchés occidentaux). Novakou offre un hébergement vidéo professionnel inclus dans votre compte : streaming adaptatif pour les connexions 3G/4G africaines, protection DRM anti-téléchargement, player brandé à vos couleurs, analytics de visionnage module par module.",
-    p2: "Aucun frais supplémentaire, aucune limite de stockage ou de bande passante. Vos vidéos restent votre propriété — elles ne peuvent être ni téléchargées, ni partagées, ni re-publiées sans votre autorisation.",
-  },
-  {
-    titre: "Un assistant IA qui parle africain",
-    p1: "Les outils IA génériques génèrent des textes qui sonnent américains ou européens — avec des références culturelles, des exemples de revenus en dollars et des situations qui ne correspondent pas à votre audience. L'assistant IA Novakou est entraîné sur les données du marché francophone africain.",
-    p2: "Il génère des titres de formations, des pages de vente, des plans de cours et des emails qui résonnent avec les créateurs et acheteurs d'Afrique francophone. Les textes générés utilisent les bons exemples, les bonnes devises (FCFA, EUR), les bons arguments culturels. Résultat : des taux de conversion significativement plus élevés que sur des outils génériques.",
-  },
+  { titre: "Les paiements que votre audience utilise vraiment", texte: "Wave, Orange Money, MTN MoMo, Moov Money natifs : un paiement en quelques secondes, sans compte bancaire." },
+  { titre: "Une boutique qui se vend même quand vous dormez", texte: "73 % des ventes ont lieu hors des heures ouvrées : accès, bienvenue et suivi partent seuls, à toute heure." },
+  { titre: "Hébergez vos vidéos sans compromis", texte: "Streaming adapté à la 3G, protection DRM, lecteur à vos couleurs : inclus, sans limite de stockage." },
+  { titre: "Un assistant IA qui parle africain", texte: "Entraîné sur le marché francophone africain : bons exemples, bonnes devises (FCFA, EUR), bons arguments." },
 ];
 
 const FAQ: { q: string; a: string }[] = [
@@ -234,6 +236,9 @@ const FAQ: { q: string; a: string }[] = [
   { q: "Est-ce que Novakou est adapté aux débutants qui n'ont aucune expérience technique ?", a: "Novakou est conçu pour être utilisé sans aucune connaissance technique. Création de compte en 3 minutes, boutique active immédiatement, premier produit publié en moins d'une heure, paiements configurés sans connaissance en développement web. Tous les outils sont accompagnés de guides étape par étape et de tutoriels vidéo. Le support est disponible en français, disponible sur WhatsApp pour les questions urgentes." },
 ];
 
+/** Questions affichées d'emblée ; les suivantes sont dans « Plus de questions ». */
+const FAQ_VISIBLES = 6;
+
 const FAMILLES = [
   { id: "vendre", label: "Vendre", icon: Store },
   { id: "encaisser", label: "Encaisser", icon: Wallet },
@@ -242,17 +247,17 @@ const FAMILLES = [
 ];
 
 /* ─── Briques ────────────────────────────────────────────────── */
-function ListeFonctions({ items, cols = 2 }: { items: Fonction[]; cols?: 1 | 2 | 3 }) {
+function ListeFonctions({ items, cols = 2, court = false }: { items: Fonction[]; cols?: 1 | 2; court?: boolean }) {
   return (
-    <ul className={`nkp-feat-list${cols === 1 ? " nkp-feat-list--1" : cols === 3 ? " nkp-feat-list--3" : ""}`}>
+    <ul className={`nkp-feat-list${cols === 1 ? " nkp-feat-list--1" : ""}`}>
       {items.map((f) => (
-        <li key={f.titre}>
+        <li key={f.titre} data-fonction="">
           <span className="nkp-ic" aria-hidden="true">
             <f.icon strokeWidth={1.75} />
           </span>
           <div>
             <b>{f.titre}</b>
-            <p>{f.desc}</p>
+            <p className={court ? "line-clamp-2" : undefined}>{f.desc}</p>
           </div>
         </li>
       ))}
@@ -260,68 +265,131 @@ function ListeFonctions({ items, cols = 2 }: { items: Fonction[]; cols?: 1 | 2 |
   );
 }
 
-function CarteFonction({
+/** En-tête de section scindé : étiquette + titre à gauche, accroche à droite. */
+function EnTeteSection({ tag, id, titre, children }: { tag: string; id: string; titre: string; children: ReactNode }) {
+  return (
+    <div className="nkp-head nkp-head--split nkp-reveal">
+      <div>
+        <span className="nkp-tag">{tag}</span>
+        <h2 id={id}>{titre}</h2>
+      </div>
+      <p>{children}</p>
+    </div>
+  );
+}
+
+/** Grande carte d'une famille : texte + fonctionnalités phares, visuel borné à droite. */
+function CartePrincipale({
   id,
   icon: Icon,
   titre,
   lead,
   visuel,
   items,
-  cols = 2,
-  span,
-  rows = false,
-  bande = false,
-  ancreLegacy,
+  extra,
 }: {
   id: string;
   icon: LucideIcon;
   titre: string;
-  lead: ReactNode;
-  visuel?: ReactNode;
+  lead: string;
+  visuel: ReactNode;
   items: Fonction[];
-  cols?: 1 | 2 | 3;
-  span: 4 | 5 | 6 | 7 | 8 | 12;
-  rows?: boolean;
-  bande?: boolean;
-  /** Ancien identifiant d'onglet encore cité ailleurs (ex. #tunnels). */
-  ancreLegacy?: string;
+  extra?: ReactNode;
 }) {
-  const entete = (
-    <>
-      {ancreLegacy && <span id={ancreLegacy} className="nkp-anchor" />}
-      <div className="nkp-feat__top">
-        <span className="nkp-ic" aria-hidden="true">
-          <Icon strokeWidth={1.75} />
-        </span>
-        <h3 id={`${id}-titre`}>{titre}</h3>
-      </div>
-      <p className="nkp-feat__lead">{lead}</p>
-    </>
-  );
   return (
-    <article
-      id={id}
-      className={`nkp-card nkp-card--hover nkp-reveal nkp-span-${span}${rows ? " nkp-rows-2" : ""}${bande ? " nkp-feat--band" : ""}`}
-      aria-labelledby={`${id}-titre`}
-    >
+    <article id={id} className="nkp-card nkp-card--hover nkp-reveal nkp-feat--band nkp-feat--main" aria-labelledby={`${id}-titre`}>
       <div className="nkp-card__core">
-        {bande ? (
-          <>
-            <div>
-              {entete}
-              <ListeFonctions items={items} cols={cols} />
-            </div>
-            {visuel && <div className="nkp-feat__vis">{visuel}</div>}
-          </>
-        ) : (
-          <>
-            {entete}
-            {visuel && <div className="nkp-feat__vis">{visuel}</div>}
-            <ListeFonctions items={items} cols={cols} />
-          </>
-        )}
+        <div>
+          <div className="nkp-feat__top">
+            <span className="nkp-ic" aria-hidden="true">
+              <Icon strokeWidth={1.75} />
+            </span>
+            <h3 id={`${id}-titre`}>{titre}</h3>
+          </div>
+          <p className="nkp-feat__lead line-clamp-2">{lead}</p>
+          <ListeFonctions items={items} court />
+        </div>
+        <div className="nkp-feat__side">
+          {/* Avec un complément (pastilles), le visuel se raccourcit pour ne pas allonger la carte. */}
+          <div className={`nkp-vis-peek${extra ? " nkp-vis-peek--court" : ""}`}>{visuel}</div>
+          {extra}
+        </div>
       </div>
     </article>
+  );
+}
+
+/** Tuile compacte : porte l'ancre du menu ; son détail est dans la zone repliée. */
+function Tuile({
+  id,
+  titreId,
+  ancreLegacy,
+  icon: Icon,
+  titre,
+  lead,
+  children,
+}: {
+  id?: string;
+  titreId: string;
+  /** Ancien identifiant d'onglet encore cité ailleurs (ex. #tunnels), posé sur un élément visible. */
+  ancreLegacy?: string;
+  icon: LucideIcon;
+  titre: string;
+  lead: string;
+  children?: ReactNode;
+}) {
+  return (
+    <article id={id} className="nkp-card nkp-card--hover nkp-reveal nkp-tuile" aria-labelledby={titreId}>
+      <div className="nkp-card__core">
+        <div className="nkp-feat__top" id={ancreLegacy}>
+          <span className="nkp-ic nkp-ic--sm" aria-hidden="true">
+            <Icon strokeWidth={1.75} />
+          </span>
+          <h3 id={titreId}>{titre}</h3>
+        </div>
+        <p className="nkp-feat__lead line-clamp-2">{lead}</p>
+        {children}
+      </div>
+    </article>
+  );
+}
+
+type Groupe = { titre: string; icon: LucideIcon; items: Fonction[]; visuel?: ReactNode };
+
+/** Zone « Voir les N autres fonctionnalités » : descriptions complètes, rangées par rubrique. */
+function AutresFonctions({ groupes, ancres }: { groupes: Groupe[]; ancres: string[] }) {
+  const n = groupes.reduce((total, g) => total + g.items.length, 0);
+  const seul = groupes.length === 1;
+  return (
+    <Depliant
+      libelle={`Voir les ${n} autres fonctionnalités`}
+      libelleOuvert={`Masquer les ${n} fonctionnalités`}
+      detail={groupes.map((g) => g.titre).join(" · ")}
+      ancres={ancres}
+      classeBouton="nkp-reveal"
+    >
+      <div className="nkp-card nkp-zone">
+        <div className="nkp-card__core">
+          <div className={`nkp-groupes${seul ? " nkp-groupes--1" : ""}`}>
+            {groupes.map((g) => (
+              <div key={g.titre} className="nkp-groupe">
+                <div className="nkp-groupe__tete">
+                  <span className="nkp-ic nkp-ic--sm" aria-hidden="true">
+                    <g.icon strokeWidth={1.75} />
+                  </span>
+                  <h3>{g.titre}</h3>
+                  <span className="nkp-groupe__n" aria-hidden="true">
+                    {g.items.length}
+                  </span>
+                </div>
+                {g.visuel && <div className="nkp-vis-peek">{g.visuel}</div>}
+                <ListeFonctions items={g.items} cols={seul ? 2 : 1} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Depliant>
   );
 }
 
@@ -344,7 +412,7 @@ function Non() {
 export default function FonctionnalitesPage() {
   return (
     <CoquePublique>
-      {/* FAQPage JSON-LD : mêmes questions que l'accordéon (rich results). */}
+      {/* FAQPage JSON-LD : toutes les questions, y compris celles repliées sous « Plus de questions ». */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -389,7 +457,7 @@ export default function FonctionnalitesPage() {
       </EnTetePage>
 
       {/* ── Preuve chiffrée ── */}
-      <section className="nkp-section nkp-section--tight" aria-label="Novakou en chiffres">
+      <section className="nkp-section nkp-section--tight nkp-section--band" aria-label="Novakou en chiffres">
         <div className="nkp-wrap">
           <div className="nkp-kpis nkp-kpis--band">
             <div className="nkp-kpi nkp-reveal">
@@ -422,87 +490,65 @@ export default function FonctionnalitesPage() {
       </section>
 
       {/* ── VENDRE ── */}
-      <section id="vendre" className="nkp-section" aria-labelledby="vendre-titre">
+      <section id="vendre" className="nkp-section nkp-section--compact" aria-labelledby="vendre-titre">
         <div className="nkp-wrap">
-          <div className="nkp-head nkp-reveal">
-            <span className="nkp-tag">Vendre</span>
-            <h2 id="vendre-titre">Une vitrine et des tunnels qui convertissent</h2>
-            <p>Votre boutique est en ligne dès la création du compte. Vos tunnels de vente guident chaque visiteur jusqu'au paiement, sans une ligne de code.</p>
-          </div>
-          <div className="nkp-bento">
-            <CarteFonction
+          <EnTeteSection tag="Vendre" id="vendre-titre" titre="Une vitrine et des tunnels qui convertissent">
+            Votre boutique est en ligne dès la création du compte. Vos tunnels de vente guident chaque visiteur jusqu'au paiement, sans une ligne de code.
+          </EnTeteSection>
+          <div className="nkp-fam">
+            <CartePrincipale
               id="boutique"
               icon={Store}
               titre="Votre boutique en ligne en 3 minutes"
               lead="Publiez vos formations, ebooks, templates et coaching sur une vitrine professionnelle clé en main. Aucune connaissance technique requise — votre boutique est active dès que vous créez votre compte, avec votre branding, vos couleurs et votre domaine personnalisé."
               visuel={<VisuelBoutique />}
-              items={BOUTIQUE}
-              span={7}
+              items={phares(BOUTIQUE)}
             />
-            <CarteFonction
-              id="funnels"
-              ancreLegacy="tunnels"
-              icon={Workflow}
-              titre="Des tunnels qui convertissent à chaque clic"
-              lead="Builder visuel drag-and-drop avec 30+ blocs prêts à l'emploi, génération automatique par IA et templates optimisés pour le marché africain. Construisez des pages de vente professionnelles qui guident chaque visiteur vers l'achat."
-              visuel={<VisuelTunnel />}
-              items={TUNNELS}
-              cols={1}
-              span={5}
-              rows
-            />
-            <CarteFonction
-              id="pricing"
-              icon={Tag}
-              titre="Pricing flexible"
-              lead="Forfaits, promos, coupons : chaque levier de prix est natif, sans plugin."
-              items={PRICING}
-              cols={2}
-              span={7}
-            />
+            <div className="nkp-fam__tiles">
+              <Tuile
+                id="funnels"
+                ancreLegacy="tunnels"
+                titreId="funnels-titre"
+                icon={Workflow}
+                titre="Des tunnels qui convertissent à chaque clic"
+                lead="Builder visuel drag-and-drop avec 30+ blocs prêts à l'emploi, génération automatique par IA et templates optimisés pour le marché africain. Construisez des pages de vente professionnelles qui guident chaque visiteur vers l'achat."
+              />
+              <Tuile
+                id="pricing"
+                titreId="pricing-titre"
+                icon={Tag}
+                titre="Pricing flexible"
+                lead="Forfaits, promos, coupons : chaque levier de prix est natif, sans plugin."
+              />
+              <AutresFonctions
+                ancres={["funnels", "tunnels", "pricing"]}
+                groupes={[
+                  { titre: "Boutique", icon: Store, items: autres(BOUTIQUE) },
+                  { titre: "Tunnels de vente", icon: Workflow, items: TUNNELS, visuel: <VisuelTunnel /> },
+                  { titre: "Pricing", icon: Tag, items: PRICING },
+                ]}
+              />
+            </div>
           </div>
         </div>
       </section>
 
       {/* ── ENCAISSER ── */}
-      <section id="encaisser" className="nkp-section nkp-section--tint" aria-labelledby="encaisser-titre">
+      <section id="encaisser" className="nkp-section nkp-section--compact nkp-section--tint" aria-labelledby="encaisser-titre">
         <div className="nkp-wrap">
-          <div className="nkp-head nkp-reveal">
-            <span className="nkp-tag">Encaisser</span>
-            <h2 id="encaisser-titre">Encaissez comme vos clients paient vraiment</h2>
-            <p>Le Mobile Money est natif sur Novakou, pas un ajout. Carte bancaire et PayPal pour la diaspora, retraits rapides vers votre compte.</p>
-          </div>
-          <div className="nkp-bento">
-            <CarteFonction
+          <EnTeteSection tag="Encaisser" id="encaisser-titre" titre="Encaissez comme vos clients paient vraiment">
+            Le Mobile Money est natif sur Novakou, pas un ajout. Carte bancaire et PayPal pour la diaspora, retraits rapides vers votre compte.
+          </EnTeteSection>
+          <div className="nkp-fam">
+            <CartePrincipale
               id="paiements"
               icon={Wallet}
               titre="Encaissez partout en Afrique et dans le monde"
               lead="Orange Money, Wave, MTN MoMo, Moov Money, cartes Visa / Mastercard, PayPal, virement SEPA. Vos clients paient avec le moyen qu'ils utilisent au quotidien — aucune friction, maximum de conversions."
               visuel={<VisuelPaiement />}
-              items={PAIEMENTS}
-              span={7}
-              rows
-            />
-            <CarteFonction
-              id="retraits"
-              icon={Gauge}
-              titre="Retraits rapides, factures automatiques"
-              lead="Vos fonds arrivent sur votre solde dès la vente confirmée. Vous les retirez quand vous voulez."
-              visuel={<VisuelRetrait />}
-              items={RETRAITS}
-              cols={1}
-              span={5}
-            />
-            <article className="nkp-card nkp-reveal nkp-span-5" aria-labelledby="couverture-titre">
-              <div className="nkp-card__core">
-                <div className="nkp-feat__top">
-                  <span className="nkp-ic" aria-hidden="true">
-                    <Globe strokeWidth={1.75} />
-                  </span>
-                  <h3 id="couverture-titre">Tous les moyens de paiement de vos clients</h3>
-                </div>
-                <p className="nkp-feat__lead">Le client choisit son pays, puis ne voit que les moyens réellement encaissables chez lui. Vous n'avez rien à configurer.</p>
-                <div className="nkp-ops mt-5">
+              items={phares(PAIEMENTS)}
+              extra={
+                <div className="nkp-ops nkp-ops--sm">
                   {OPERATEURS.map((o) => (
                     <span key={o.nom} className="nkp-op">
                       <i style={{ background: o.couleur }} aria-hidden="true" />
@@ -510,6 +556,22 @@ export default function FonctionnalitesPage() {
                     </span>
                   ))}
                 </div>
+              }
+            />
+            <div className="nkp-fam__tiles">
+              <Tuile
+                id="retraits"
+                titreId="retraits-titre"
+                icon={Gauge}
+                titre="Retraits rapides, factures automatiques"
+                lead="Vos fonds arrivent sur votre solde dès la vente confirmée. Vous les retirez quand vous voulez."
+              />
+              <Tuile
+                titreId="couverture-titre"
+                icon={Globe}
+                titre="Tous les moyens de paiement de vos clients"
+                lead="Le client choisit son pays, puis ne voit que les moyens réellement encaissables chez lui. Vous n'avez rien à configurer."
+              >
                 <div className="nkp-card__foot">
                   <Link href="/documentation-paiements" className="nkp-link">
                     Lire la documentation des paiements
@@ -518,150 +580,173 @@ export default function FonctionnalitesPage() {
                     </svg>
                   </Link>
                 </div>
-              </div>
-            </article>
+              </Tuile>
+              <AutresFonctions
+                ancres={["retraits"]}
+                groupes={[{ titre: "Retraits et factures", icon: Gauge, items: RETRAITS, visuel: <VisuelRetrait /> }]}
+              />
+            </div>
           </div>
         </div>
       </section>
 
       {/* ── CRÉER ── */}
-      <section id="creer" className="nkp-section" aria-labelledby="creer-titre">
+      <section id="creer" className="nkp-section nkp-section--compact" aria-labelledby="creer-titre">
         <div className="nkp-wrap">
-          <div className="nkp-head nkp-reveal">
-            <span className="nkp-tag">Créer</span>
-            <h2 id="creer-titre">Créez plus vite, hébergez sans compromis</h2>
-            <p>Un assistant IA qui comprend votre marché, un hébergement vidéo sécurisé inclus et des certificats générés pour chaque apprenant.</p>
-          </div>
-          <div className="nkp-bento">
-            <CarteFonction
+          <EnTeteSection tag="Créer" id="creer-titre" titre="Créez plus vite, hébergez sans compromis">
+            Un assistant IA qui comprend votre marché, un hébergement vidéo sécurisé inclus et des certificats générés pour chaque apprenant.
+          </EnTeteSection>
+          <div className="nkp-fam">
+            <CartePrincipale
               id="ia"
               icon={Sparkles}
               titre="Un assistant IA qui comprend le marché africain"
               lead="Générez des plans de cours complets, rédigez vos pages de vente, créez des quiz pertinents, structurez vos modules pédagogiques. Notre IA est entraînée sur des données du marché francophone africain — les textes générés résonnent avec votre audience, pas avec celle du marché américain."
               visuel={<VisuelIA />}
-              items={IA}
-              span={7}
-              rows
+              items={phares(IA)}
             />
-            <CarteFonction
-              id="video"
-              icon={PlayCircle}
-              titre="Hébergez vos vidéos en toute sécurité"
-              lead="Uploadez directement sur Novakou — pas besoin de YouTube, Vimeo ou d'un service tiers. Streaming adaptatif qui s'adapte à la connexion de vos apprenants (de la 3G à la fibre), protection anti-téléchargement avancée et lecteur brandé à vos couleurs."
-              visuel={<VisuelVideo />}
-              items={VIDEO}
-              cols={1}
-              span={5}
-              rows
-            />
-            <CarteFonction
-              id="certificats"
-              icon={Award}
-              titre="Certificats automatiques"
-              lead="Un diplôme est généré pour chaque apprenant qui termine votre formation."
-              visuel={<VisuelCertificat />}
-              items={CERTIFICATS}
-              cols={1}
-              span={12}
-              bande
-            />
+            <div className="nkp-fam__tiles">
+              <Tuile
+                id="video"
+                titreId="video-titre"
+                icon={PlayCircle}
+                titre="Hébergez vos vidéos en toute sécurité"
+                lead="Uploadez directement sur Novakou — pas besoin de YouTube, Vimeo ou d'un service tiers. Streaming adaptatif qui s'adapte à la connexion de vos apprenants (de la 3G à la fibre), protection anti-téléchargement avancée et lecteur brandé à vos couleurs."
+              />
+              <Tuile
+                id="certificats"
+                titreId="certificats-titre"
+                icon={Award}
+                titre="Certificats automatiques"
+                lead="Un diplôme est généré pour chaque apprenant qui termine votre formation."
+              />
+              <AutresFonctions
+                ancres={["video", "certificats"]}
+                groupes={[
+                  { titre: "Assistant IA", icon: Sparkles, items: autres(IA) },
+                  { titre: "Hébergement vidéo", icon: PlayCircle, items: VIDEO, visuel: <VisuelVideo /> },
+                  { titre: "Certificats", icon: Award, items: CERTIFICATS, visuel: <VisuelCertificat /> },
+                ]}
+              />
+            </div>
           </div>
         </div>
       </section>
 
       {/* ── AUTOMATISER ── */}
-      <section id="automatiser" className="nkp-section nkp-section--tint" aria-labelledby="automatiser-titre">
+      <section id="automatiser" className="nkp-section nkp-section--compact nkp-section--tint" aria-labelledby="automatiser-titre">
         <div className="nkp-wrap">
-          <div className="nkp-head nkp-reveal">
-            <span className="nkp-tag">Automatiser</span>
-            <h2 id="automatiser-titre">Vendez et accompagnez sans être connecté H24</h2>
-            <p>Emails automatiques, workflows sans code, affiliation : configurez une fois, le système tourne ensuite indéfiniment à votre place. 73 % des ventes Novakou se font hors des heures ouvrées.</p>
-          </div>
-          <div className="nkp-bento">
-            <CarteFonction
-              id="emails"
-              icon={Mail}
-              titre="Emails automatiques"
-              lead="Séquences de bienvenue, relances de paniers abandonnés, notifications multi-canaux : tout est prêt, modifiable en 2 clics."
-              visuel={<VisuelFlux />}
-              items={EMAILS}
-              cols={1}
-              span={5}
-            />
-            <CarteFonction
+          <EnTeteSection tag="Automatiser" id="automatiser-titre" titre="Vendez et accompagnez sans être connecté H24">
+            Emails automatiques, workflows sans code, affiliation : configurez une fois, le système tourne ensuite indéfiniment à votre place. 73 % des ventes Novakou se font hors des heures ouvrées.
+          </EnTeteSection>
+          <div className="nkp-fam">
+            <CartePrincipale
               id="automatisations"
               icon={Zap}
               titre="Automatisations sans code"
               lead="Emails automatiques de bienvenue, séquences de nurturing, relances de paniers abandonnés, certificats automatiques, notifications multi-canaux — configurez une fois, le système tourne ensuite indéfiniment à votre place."
               visuel={<VisuelWorkflow />}
-              items={AUTOMATISATIONS}
-              cols={1}
-              span={7}
+              items={[...phares(AUTOMATISATIONS), ...phares(EMAILS)]}
             />
-            <CarteFonction
-              id="affiliation"
-              icon={Users}
-              titre="Vos clients deviennent vos meilleurs vendeurs"
-              lead="Créez votre programme d'affiliation en 5 minutes. Chaque affilié reçoit un lien traçable unique, un tableau de bord dédié pour suivre ses performances, et ses commissions sont calculées et payées automatiquement à chaque vente générée."
-              visuel={<VisuelAffiliation />}
-              items={AFFILIATION}
-              cols={2}
-              span={12}
-              bande
-            />
+            <div className="nkp-fam__tiles">
+              <Tuile
+                id="emails"
+                titreId="emails-titre"
+                icon={Mail}
+                titre="Emails automatiques"
+                lead="Séquences de bienvenue, relances de paniers abandonnés, notifications multi-canaux : tout est prêt, modifiable en 2 clics."
+              />
+              <Tuile
+                id="affiliation"
+                titreId="affiliation-titre"
+                icon={Users}
+                titre="Vos clients deviennent vos meilleurs vendeurs"
+                lead="Créez votre programme d'affiliation en 5 minutes. Chaque affilié reçoit un lien traçable unique, un tableau de bord dédié pour suivre ses performances, et ses commissions sont calculées et payées automatiquement à chaque vente générée."
+              />
+              <AutresFonctions
+                ancres={["emails", "affiliation"]}
+                groupes={[
+                  { titre: "Emails", icon: Mail, items: autres(EMAILS), visuel: <VisuelFlux /> },
+                  { titre: "Automatisations", icon: Zap, items: autres(AUTOMATISATIONS) },
+                  { titre: "Affiliation", icon: Users, items: AFFILIATION, visuel: <VisuelAffiliation /> },
+                ]}
+              />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── COMPARAISON ── */}
-      <section className="nkp-section" aria-labelledby="comparaison-titre">
-        <div className="nkp-wrap nkp-wrap--md">
-          <div className="nkp-head nkp-head--center nkp-reveal">
-            <span className="nkp-tag">Comparaison</span>
-            <h2 id="comparaison-titre">Novakou face à la concurrence</h2>
-            <p>Les autres plateformes n'ont pas été conçues pour l'Afrique. Novakou, si.</p>
-          </div>
-          <div className="nkp-bezel nkp-bezel--float nkp-reveal">
-            <div className="nkp-core">
-              <div className="nkp-scroll">
-                <table className="nkp-table">
-                  <thead>
-                    <tr>
-                      <th scope="col">Fonctionnalité</th>
-                      <th scope="col" className="nova">
-                        Novakou
-                      </th>
-                      <th scope="col">Systeme.io</th>
-                      <th scope="col">Gumroad</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {COMPARAISON.map(([label, nova, sys, gum]) => (
-                      <tr key={label}>
-                        <th scope="row">{label}</th>
-                        <td className="nova">{nova ? <Oui /> : <Non />}</td>
-                        <td>{sys ? <Oui /> : <Non />}</td>
-                        <td>{gum ? <Oui /> : <Non />}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+      {/* ── POURQUOI NOVAKOU + COMPARATIF (fusionnés : mêmes arguments) ── */}
+      <section id="pourquoi" className="nkp-section nkp-section--compact" aria-labelledby="pourquoi-titre">
+        <div className="nkp-wrap">
+          <div className="nkp-duo nkp-duo--top nkp-duo--why">
+            <div>
+              <div className="nkp-head nkp-head--flush nkp-reveal">
+                <span className="nkp-tag">Pourquoi Novakou</span>
+                <h2 id="pourquoi-titre">La plateforme construite pour les créateurs africains</h2>
+                <p>Novakou n'est pas une adaptation d'un outil américain. C'est une plateforme conçue dès la première ligne de code pour les réalités du marché africain : connexions mobiles, paiements locaux, audiences francophones.</p>
               </div>
+              <ol className="nkp-why">
+                {POURQUOI.map((b, i) => (
+                  <li key={b.titre} className="nkp-reveal">
+                    <span className="nkp-eyebrow" aria-hidden="true">
+                      0{i + 1}
+                    </span>
+                    <div>
+                      <h3>{b.titre}</h3>
+                      <p>{b.texte}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <div className="nkp-reveal">
+              <div className="nkp-cmp__tete">
+                <h3 id="comparaison-titre">Novakou face à la concurrence</h3>
+                <p>Les autres plateformes n'ont pas été conçues pour l'Afrique. Novakou, si.</p>
+              </div>
+              <div className="nkp-bezel nkp-bezel--float">
+                <div className="nkp-core">
+                  <div className="nkp-scroll">
+                    <table className="nkp-table nkp-table--compact" aria-labelledby="comparaison-titre">
+                      <thead>
+                        <tr>
+                          <th scope="col">Fonctionnalité</th>
+                          <th scope="col" className="nova">
+                            Novakou
+                          </th>
+                          <th scope="col">Systeme.io</th>
+                          <th scope="col">Gumroad</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {COMPARAISON.map(([label, nova, sys, gum]) => (
+                          <tr key={label}>
+                            <th scope="row">{label}</th>
+                            <td className="nova">{nova ? <Oui /> : <Non />}</td>
+                            <td>{sys ? <Oui /> : <Non />}</td>
+                            <td>{gum ? <Oui /> : <Non />}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <p className="nkp-table-note">Comparaison indicative basée sur les offres standards du marché.</p>
             </div>
           </div>
-          <p className="nkp-table-note">Comparaison indicative basée sur les offres standards du marché.</p>
         </div>
       </section>
 
       {/* ── TÉMOIGNAGES ── */}
-      <section className="nkp-section nkp-section--tint" aria-labelledby="temoignages-titre">
+      <section className="nkp-section nkp-section--compact nkp-section--tint" aria-labelledby="temoignages-titre">
         <div className="nkp-wrap">
-          <div className="nkp-head nkp-head--center nkp-reveal">
-            <span className="nkp-tag">Témoignages</span>
-            <h2 id="temoignages-titre">Ils créent et vendent sur Novakou</h2>
-            <p>Des créateurs africains qui ont transformé leur expertise en revenus récurrents grâce aux fonctionnalités Novakou.</p>
-          </div>
-          <div className="nkp-grid-3">
+          <EnTeteSection tag="Témoignages" id="temoignages-titre" titre="Ils créent et vendent sur Novakou">
+            Des créateurs africains qui ont transformé leur expertise en revenus récurrents grâce aux fonctionnalités Novakou.
+          </EnTeteSection>
+          {/* Grille sur desktop, carrousel défilable sur tablette/téléphone : focusable pour défiler au clavier. */}
+          <div className="nkp-rail" role="region" aria-label="Témoignages de créateurs" tabIndex={0}>
             {TEMOIGNAGES.map((t) => (
               <figure key={t.nom} className="nkp-card nkp-card--hover nkp-quote nkp-reveal m-0">
                 <div className="nkp-card__core">
@@ -687,49 +772,32 @@ export default function FonctionnalitesPage() {
         </div>
       </section>
 
-      {/* ── POURQUOI NOVAKOU ── */}
-      <section className="nkp-section" aria-labelledby="pourquoi-titre">
-        <div className="nkp-wrap">
-          <div className="nkp-head nkp-head--center nkp-reveal">
-            <span className="nkp-tag">Pourquoi Novakou</span>
-            <h2 id="pourquoi-titre">La plateforme construite pour les créateurs africains</h2>
-            <p>Novakou n'est pas une adaptation d'un outil américain. C'est une plateforme conçue dès la première ligne de code pour les réalités du marché africain : connexions mobiles, paiements locaux, audiences francophones.</p>
-          </div>
-          <div className="nkp-grid-2">
-            {POURQUOI.map((b, i) => (
-              <article key={b.titre} className="nkp-card nkp-reveal">
-                <div className="nkp-card__core">
-                  <span className="nkp-eyebrow self-start">0{i + 1}</span>
-                  <h3 className="mt-4">{b.titre}</h3>
-                  <div className="nkp-prose mt-3 text-[.95rem]">
-                    <p>{b.p1}</p>
-                    <p>{b.p2}</p>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── FAQ ── */}
-      <section className="nkp-section nkp-section--tint" aria-labelledby="faq-titre">
+      <section className="nkp-section nkp-section--compact" aria-labelledby="faq-titre">
         <div className="nkp-wrap">
-          <div className="nkp-head nkp-head--center nkp-reveal">
-            <span className="nkp-tag">Questions fréquentes</span>
-            <h2 id="faq-titre">Questions fréquentes sur les fonctionnalités Novakou</h2>
-          </div>
-          <div className="nkp-reveal">
-            <Accordeon items={FAQ} />
+          <div className="nkp-duo nkp-duo--top nkp-duo--faq">
+            <div className="nkp-head nkp-head--flush nkp-reveal">
+              <span className="nkp-tag">Questions fréquentes</span>
+              <h2 id="faq-titre">Questions fréquentes sur les fonctionnalités Novakou</h2>
+              <p>
+                Une autre question ?{" "}
+                <Link href="/aide" className="nkp-link">
+                  Consulter le centre d'aide
+                </Link>
+              </p>
+            </div>
+            <div className="nkp-reveal">
+              <Accordeon items={FAQ} visibles={FAQ_VISIBLES} />
+            </div>
           </div>
         </div>
       </section>
 
       {/* ── CTA ── */}
-      <section className="nkp-section nkp-section--top0 mt-16" aria-labelledby="cta-titre">
+      <section className="nkp-section nkp-section--compact nkp-section--top0" aria-labelledby="cta-titre">
         <div className="nkp-wrap">
           <div className="nkp-bezel nkp-bezel--dark nkp-bezel--xl nkp-bezel--float nkp-reveal">
-            <div className="nkp-cta">
+            <div className="nkp-cta nkp-cta--compact">
               <span className="nkp-tag nkp-tag--dark">Rejoignez 850+ créateurs africains</span>
               <h2 id="cta-titre">Lancez votre business en ligne aujourd'hui.</h2>
               <p>10 % de commission. Zéro abonnement. Toutes les fonctionnalités incluses. Mobile Money natif. Commencez en 3 minutes.</p>
