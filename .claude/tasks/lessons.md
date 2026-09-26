@@ -221,3 +221,38 @@
   un module manquant dans le code ; la cause est un parallélisme de mes propres
   commandes. Un build se lance seul, depuis la racine, et rien ne touche
   `.next/` avant son verdict.
+
+## Leçon du 2026-09-26 — « redirect_uri_mismatch » Google
+- **Problème** : le fondateur voit « Erreur 400 : redirect_uri_mismatch » en se
+  connectant avec Google ; en prod, tout semble correct (redirect_uri = www).
+- **Cause racine** : l'essai venait de son poste. `apps/web/.env.local` fixe
+  `NEXTAUTH_URL` à `localhost:3001` ; le port 3000 étant pris par un autre
+  `next dev`, Next a basculé sur 3001 et NextAuth a envoyé à Google un
+  `http://localhost:3001/api/auth/callback/google` jamais enregistré. Les logs
+  Vercel (`request-logs?search=signin/google`) ne montraient AUCUN départ hors
+  `www` sur la plage horaire : la prod n'était pas en cause.
+- **Règle** : avant de chercher un bug OAuth « en prod », lire les logs de
+  requêtes pour trouver l'HÔTE de départ ; le message Google ne le dit pas.
+  Et sur Vercel, NextAuth 4 suit `x-forwarded-host` en ignorant `NEXTAUTH_URL`
+  (`next-auth/utils/detect-origin.js`) — d'où la garde serveur posée dans la
+  route `[...nextauth]` : tout départ OAuth hors domaine principal est rebasculé.
+- **Preuve** : 434 comptes Google liés, callbacks 302 sur www jusqu'à 00:59 UTC ;
+  aucun POST signin/google entre 00:59 et l'heure du signalement.
+- **Priorité** : Normale.
+
+## Leçon du 2026-09-26 — trois agents en parallèle ont tué la session (deux fois)
+- **Problème** : trois sous-agents design lancés en parallèle (chacun avec
+  typecheck, lint, Playwright et parfois son propre `next dev`) ; la session
+  Claude Code est morte deux fois avant leurs rapports, et un `next dev`
+  orphelin de 2,6 Go restait planté sur le port 3450.
+- **Cause racine** : la machine a 7,4 Go de RAM ; à trois agents on tombait à
+  0,4 Go libre. Plusieurs `next dev` sur le même `.next/` s'écrasent en plus
+  mutuellement.
+- **Règle** : sur ce poste, UN seul processus lourd à la fois (un `next dev`
+  partagé sur 3450 lancé par `preview_start web-test`, un seul `tsc`, un seul
+  Playwright avec `--workers=1`). Au plus deux agents simultanés, et jamais
+  deux qui lancent des tests en même temps. Avant de relancer quoi que ce
+  soit, tuer les `node` orphelins (`Get-CimInstance Win32_Process`).
+- **Preuve** : après nettoyage, RAM libre 2,8 Go ; les mêmes tests passent
+  (55 specs en 7 min) là où ils échouaient par timeout.
+- **Priorité** : Haute.
