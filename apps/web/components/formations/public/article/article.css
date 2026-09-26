@@ -1,0 +1,294 @@
+/* ============================================================
+   Gabarit « article » des pages publiques : guides, documents
+   légaux, centre d'aide, nouveautés. Préfixe nka-, scopé .nkpub
+   (tokens de public.css). Lisibilité d'abord : colonne ≈ 68
+   caractères, interlignage 1,7, titres Sora, sommaire collant en
+   desktop, encadrés sobres. Rien ici ne modifie une règle nkp-.
+   ============================================================ */
+
+/* Le <main> global porte overflow-x:hidden (ConditionalPlatformNavbar) :
+   il devient conteneur de défilement et neutralise position:sticky.
+   `clip` rogne l'axe X à l'identique sans créer de conteneur — même
+   raisonnement que html/body dans globals.css. Limité aux pages à sommaire. */
+main:has(.nka-layout){overflow-x:clip}
+@media (prefers-reduced-motion:no-preference){html:has(.nka-layout){scroll-behavior:smooth}}
+
+.nkpub{--nka-col:680px;--nka-toc:244px;--nka-text:#27312c;--nka-top:104px}
+
+/* ── Grille : sommaire | colonne de lecture ─────────────────── */
+.nka-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:28px;padding:8px 0 88px}
+@media (min-width:1024px){
+  .nka-layout{grid-template-columns:var(--nka-toc) minmax(0,var(--nka-col));gap:72px;align-items:start}
+  .nka-layout--seul{grid-template-columns:minmax(0,var(--nka-col))}
+  /* Colonne de lecture puis rail à droite (centre d'aide). */
+  .nka-layout--droite{grid-template-columns:minmax(0,var(--nka-col)) 300px}
+}
+.nka-corps{min-width:0}
+
+/* ── Fil d'Ariane ──────────────────────────────────────────── */
+.nka-ariane ol{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:.84rem;color:var(--nkp-grey)}
+.nka-ariane li{display:inline-flex;align-items:center;gap:8px;min-width:0}
+.nka-ariane li+li::before{content:"";width:5px;height:5px;border-top:1.5px solid currentColor;border-right:1.5px solid currentColor;transform:rotate(45deg);opacity:.55;flex-shrink:0}
+.nka-ariane a{border-radius:4px;transition:color var(--nkp-fast) var(--nkp-ease)}
+.nka-ariane a:hover{color:var(--nkp-green)}
+.nka-ariane a:focus-visible{outline:2px solid var(--nkp-green);outline-offset:2px}
+.nka-ariane [aria-current]{color:var(--nkp-ink);font-weight:500;max-width:34ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:560px){.nka-ariane [aria-current]{max-width:22ch}}
+
+/* ── Ligne d'infos sous le titre (auteur, dates, durée) ─────── */
+.nka-infos{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px}
+.nka-infos>span{display:inline-flex;align-items:center;gap:8px}
+.nka-infos svg{width:16px;height:16px;color:var(--nkp-green);flex-shrink:0}
+.nka-auteur{gap:11px !important}
+.nka-auteur__av{width:38px;height:38px;border-radius:12px;flex-shrink:0;display:grid;place-items:center;font-family:var(--font-sora),"Sora",sans-serif;font-weight:700;font-size:.9rem;color:#fff;
+  background:linear-gradient(150deg,var(--nkp-green),var(--nkp-green-deep));box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 6px 14px -8px rgba(0,110,47,.6)}
+.nka-auteur b{display:block;color:var(--nkp-ink);font-weight:600;font-size:.9rem;line-height:1.3}
+.nka-auteur small{display:block;font-size:.8rem;line-height:1.4}
+.nka-infos__sep{width:1px;height:26px;background:var(--nkp-line)}
+@media (max-width:560px){.nka-infos>.nka-infos__sep{display:none}}
+
+/* ── Couverture et chiffres sous l'en-tête ──────────────────── */
+.nka-couv{margin:0 0 28px;max-width:calc(var(--nka-toc) + 72px + var(--nka-col))}
+.nka-couv__img{position:relative;aspect-ratio:2/1;overflow:hidden;background:var(--nkp-tint)}
+.nka-couv figcaption{padding:10px 6px 2px;font-size:.84rem;color:var(--nkp-grey)}
+.nka-chiffres{list-style:none;margin:0 0 36px;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;max-width:calc(var(--nka-toc) + 72px + var(--nka-col))}
+.nka-chiffre{padding:18px 18px 16px;border-radius:16px;background:#fff;box-shadow:inset 0 0 0 1px var(--nkp-line),inset 0 1px 0 #fff,var(--nkp-shadow-sm)}
+.nka-chiffre b{display:block;font-family:var(--font-sora),"Sora",sans-serif;font-size:clamp(1.4rem,1.1rem + 1vw,1.85rem);font-weight:700;letter-spacing:-.03em;line-height:1.1;color:var(--nkp-green);font-variant-numeric:tabular-nums}
+.nka-chiffre span{display:block;margin-top:6px;font-size:.8rem;line-height:1.45;color:var(--nkp-grey)}
+@media (max-width:560px){.nka-chiffres{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.nka-chiffre{padding:14px}}
+
+/* ── Sommaire : collant en desktop, repliable sur téléphone ─── */
+.nka-toc__d{display:none}
+.nka-toc__t{margin:0;font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--nkp-grey)}
+.nka-toc__list{list-style:none;margin:0;padding:0;box-shadow:inset 1px 0 0 var(--nkp-line)}
+.nka-toc__a{position:relative;display:flex;gap:10px;padding:7px 8px 7px 16px;font-size:.875rem;line-height:1.4;color:var(--nkp-grey);border-radius:0 8px 8px 0;
+  transition:color var(--nkp-fast) var(--nkp-ease),background-color var(--nkp-fast) var(--nkp-ease)}
+.nka-toc__a::before{content:"";position:absolute;left:0;top:7px;bottom:7px;width:2px;border-radius:2px;background:var(--nkp-green);transform:scaleY(0);transition:transform var(--nkp-base) var(--nkp-ease)}
+.nka-toc__a:hover{color:var(--nkp-ink);background:rgba(14,21,18,.03)}
+.nka-toc__a:focus-visible{outline:2px solid var(--nkp-green);outline-offset:-2px}
+.nka-toc__a[aria-current]{color:var(--nkp-green);font-weight:600}
+.nka-toc__a[aria-current]::before{transform:scaleY(1)}
+.nka-toc__n{flex-shrink:0;min-width:1.5em;font-size:.75rem;font-weight:500;padding-top:.12em;font-variant-numeric:tabular-nums;opacity:.85}
+.nka-toc__bas{margin-top:22px;padding-top:18px;box-shadow:inset 0 1px 0 var(--nkp-line);display:flex;flex-direction:column;gap:10px;font-size:.86rem}
+.nka-toc__bas a{display:inline-flex;align-items:center;gap:8px;color:var(--nkp-grey);border-radius:4px;transition:color var(--nkp-fast) var(--nkp-ease)}
+.nka-toc__bas a:hover,.nka-toc__bas a[aria-current]{color:var(--nkp-green)}
+.nka-toc__bas a:focus-visible{outline:2px solid var(--nkp-green);outline-offset:2px}
+.nka-toc__bas svg{width:15px;height:15px;flex-shrink:0}
+.nka-toc__bas .nka-toc__t{margin-bottom:2px}
+/* Téléphone / tablette : <details> natif, fonctionne sans JS. */
+.nka-toc__m{border-radius:16px;background:#fff;box-shadow:inset 0 0 0 1px var(--nkp-line),inset 0 1px 0 #fff,var(--nkp-shadow-sm)}
+.nka-toc__m>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;padding:10px 12px 10px 18px;border-radius:16px;-webkit-tap-highlight-color:transparent}
+.nka-toc__m>summary::-webkit-details-marker{display:none}
+.nka-toc__m>summary:focus-visible{outline:2px solid var(--nkp-green);outline-offset:2px}
+.nka-toc__m>summary b{display:block;font-weight:600;font-size:.95rem;color:var(--nkp-ink)}
+.nka-toc__m>summary small{display:block;font-size:.78rem;color:var(--nkp-grey)}
+.nka-toc__chev{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;color:var(--nkp-green);background:var(--nkp-tint);box-shadow:inset 0 0 0 1px var(--nkp-tint-2)}
+.nka-toc__chev svg{width:16px;height:16px;transition:transform var(--nkp-base) var(--nkp-ease)}
+.nka-toc__m[open] .nka-toc__chev svg{transform:rotate(180deg)}
+.nka-toc__m .nka-toc__list{margin:0 18px 16px}
+.nka-toc__m .nka-toc__a{min-height:40px;align-items:center}
+@media (min-width:1024px){
+  .nka-toc{position:sticky;top:var(--nka-top)}
+  .nka-toc__m{display:none}
+  .nka-toc__d{display:block;max-height:calc(100dvh - var(--nka-top) - 24px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:2px 4px 8px 2px}
+  .nka-toc__d>.nka-toc__t{margin-bottom:12px}
+}
+/* Barre de lecture : animation liée au défilement de l'article (compositeur,
+   transform uniquement). Masquée là où la chronologie n'existe pas. */
+.nka-toc__prog{display:none}
+@supports (timeline-scope:--nka-lecture){
+  .nka-layout{timeline-scope:--nka-lecture}
+  .nka-corps{view-timeline:--nka-lecture block;view-timeline-inset:var(--nka-top) 0px}
+  .nka-toc__prog{display:block;height:2px;margin:0 0 14px;border-radius:2px;background:var(--nkp-line);overflow:hidden}
+  .nka-toc__prog i{display:block;height:100%;background:var(--nkp-green);transform-origin:0 50%;transform:scaleX(0);
+    animation:nka-lecture linear both;animation-timeline:--nka-lecture;animation-range:contain 0% contain 100%}
+}
+@keyframes nka-lecture{to{transform:scaleX(1)}}
+
+/* ── Prose ─────────────────────────────────────────────────── */
+.nka-prose{font-size:1.0625rem;line-height:1.7;color:var(--nka-text);max-width:68ch;overflow-wrap:break-word}
+@media (min-width:768px){.nka-prose{font-size:1.125rem}}
+.nkpub .nka-prose>:first-child{margin-top:0}
+/* :is() : spécificité (0,1,1), au-dessus des utilitaires Tailwind que posent
+   certains contenus (markdown du centre d'aide) — la prose garde la main. */
+.nka-prose :is(p,ul,ol,li,blockquote){font-size:inherit;line-height:inherit;color:inherit}
+.nka-prose p{margin:0 0 1.15em}
+.nkpub .nka-prose h2{font-size:clamp(1.45rem,1.2rem + .9vw,1.85rem);font-weight:700;letter-spacing:-.03em;line-height:1.2;margin:2.1em 0 .65em;color:var(--nkp-ink)}
+.nkpub .nka-prose h3{font-size:1.2em;font-weight:600;letter-spacing:-.02em;line-height:1.3;margin:1.9em 0 .6em;color:var(--nkp-ink)}
+.nkpub .nka-prose h4{font-size:1.02em;font-weight:600;letter-spacing:-.01em;line-height:1.35;margin:1.6em 0 .5em;color:var(--nkp-ink)}
+.nkpub .nka-prose :is(h2,h3,h4)+:is(h3,h4){margin-top:.6em}
+.nka-prose ul,.nka-prose ol{margin:0 0 1.2em;padding-left:1.35em}
+.nka-prose ul{list-style:disc}
+.nka-prose ol{list-style:decimal}
+.nka-prose li{padding-left:.3em}
+.nka-prose li+li{margin-top:.5em}
+.nka-prose li::marker{color:var(--nkp-green)}
+.nka-prose ol>li::marker{font-weight:700;font-variant-numeric:tabular-nums}
+.nka-prose strong{color:var(--nkp-ink);font-weight:600}
+.nka-prose em{font-style:italic}
+.nka-prose a{color:var(--nkp-green);font-weight:600;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:rgba(0,110,47,.35);
+  transition:text-decoration-color var(--nkp-fast) var(--nkp-ease)}
+.nka-prose a:hover{text-decoration-color:currentColor}
+.nka-prose a:focus-visible{outline:2px solid var(--nkp-green);outline-offset:2px;border-radius:3px}
+.nka-prose blockquote{margin:1.6em 0;padding:.3em 0 .3em 1.2em;background:none;border:0;box-shadow:inset 2px 0 0 var(--nkp-green);color:var(--nkp-ink)}
+.nka-prose code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;padding:.14em .42em;border-radius:6px;background:var(--nkp-tint);color:var(--nkp-green-deep);overflow-wrap:anywhere}
+.nka-prose hr{border:0;height:1px;background:var(--nkp-line);margin:2.4em 0}
+.nka-prose table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.nka-prose th{text-align:left;color:var(--nkp-ink)}
+/* Chapô (paragraphe d'ouverture). */
+.nka-chapo{font-size:1.08em;color:var(--nkp-ink);margin:0 0 2em;padding-bottom:1.6em;box-shadow:inset 0 -1px 0 var(--nkp-line)}
+.nka-chapo p:last-child{margin-bottom:0}
+
+/* ── Sections numérotées ───────────────────────────────────── */
+.nka-sec+.nka-sec{margin-top:3.2rem}
+.nka-sec__tete{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:0 0 .9em}
+.nkpub .nka-prose .nka-sec__tete h2{margin:0;display:flex;align-items:flex-start;gap:14px;flex:1 1 18rem;min-width:0}
+.nka-sec__n{flex-shrink:0;display:inline-grid;place-items:center;min-width:2.4em;height:1.75em;padding:0 .5em;border-radius:9px;margin-top:.33em;
+  font-family:var(--font-sora),"Sora",sans-serif;font-size:.5em;font-weight:700;letter-spacing:.02em;color:var(--nkp-green);background:var(--nkp-tint);box-shadow:inset 0 0 0 1px var(--nkp-tint-2);font-variant-numeric:tabular-nums}
+/* Étiquette d'état à droite du titre (ex. « Obligatoires »). */
+.nka-badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:100px;font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;
+  color:var(--nkp-grey);background:rgba(14,21,18,.05);box-shadow:inset 0 0 0 1px rgba(14,21,18,.06)}
+.nka-badge--on{color:#fff;background:var(--nkp-green);box-shadow:none}
+
+/* Tableaux des documents (finalités, cookies). */
+.nka-table-wrap{margin:1.2em 0 1.4em;border-radius:14px;overflow-x:auto;background:#fff;box-shadow:inset 0 0 0 1px var(--nkp-line);-webkit-overflow-scrolling:touch}
+.nka-prose .nka-table{font-size:.86em;line-height:1.55;min-width:0}
+.nka-table th,.nka-table td{padding:11px 16px;vertical-align:top;border-bottom:1px solid var(--nkp-line)}
+.nka-table tr:last-child td{border-bottom:0}
+.nka-table th{font-size:.9em;font-weight:600;background:#fbfcfb;letter-spacing:.01em;white-space:nowrap}
+.nka-table td:first-child{color:var(--nkp-ink)}
+.nka-table code{white-space:normal}
+@media (max-width:560px){.nka-table th,.nka-table td{padding:10px 12px}}
+
+/* Pied de document (« Voir aussi »). */
+.nka-pied{margin-top:3rem;padding:18px 20px;border-radius:16px;font-size:.9em;color:var(--nkp-grey);background:#fbfcfb;box-shadow:inset 0 0 0 1px var(--nkp-line)}
+
+/* Encadré « En bref » (résumé avant les sections). */
+.nka-bref{margin:0 0 2.6rem;padding:22px 24px;border-radius:18px;background:var(--nkp-tint);box-shadow:inset 0 0 0 1px var(--nkp-tint-2),inset 0 1px 0 rgba(255,255,255,.7)}
+.nkpub .nka-prose .nka-bref h2{font-size:1.1em;margin:0 0 .7em;letter-spacing:-.02em}
+.nka-prose .nka-bref ul{list-style:none;padding:0;margin:0}
+.nka-prose .nka-bref li{display:flex;gap:10px;align-items:flex-start;padding:0}
+.nka-bref li svg{width:18px;height:18px;margin-top:.3em;color:var(--nkp-green);flex-shrink:0}
+
+/* ── Encadrés des guides (info, succès, attention, astuce) ──── */
+.nka-note{--nka-note-bg:#f4f6f5;--nka-note-ring:#e3e9e5;--nka-note-ic:#3d4b43;--nka-note-t:var(--nkp-ink);
+  display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;margin:1.8em 0;padding:18px 20px;border-radius:16px;
+  background:var(--nka-note-bg);box-shadow:inset 0 0 0 1px var(--nka-note-ring),inset 0 1px 0 rgba(255,255,255,.7);font-size:.94em;line-height:1.65}
+.nka-note--success,.nka-note--tip{--nka-note-bg:var(--nkp-tint);--nka-note-ring:var(--nkp-tint-2);--nka-note-ic:var(--nkp-green);--nka-note-t:var(--nkp-green-deep)}
+.nka-note--warning{--nka-note-bg:#fdf7ea;--nka-note-ring:#f3e3bd;--nka-note-ic:#9a6200;--nka-note-t:#6b4500}
+.nka-note__ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:var(--nka-note-ic);background:#fff;box-shadow:inset 0 0 0 1px var(--nka-note-ring),0 1px 2px rgba(14,21,18,.05)}
+.nka-note__ic svg{width:17px;height:17px}
+.nka-prose .nka-note__t{margin:.35em 0 .35em;font-weight:700;font-size:.98em;line-height:1.35;color:var(--nka-note-t)}
+.nka-prose .nka-note__c p{margin:0 0 .55em}
+.nka-prose .nka-note__c>:last-child{margin-bottom:0}
+.nka-note__c{min-width:0;padding-top:.3em}
+.nka-note__t+.nka-note__c{padding-top:0}
+
+/* ── Figures, chiffres et cartes dans le corps ──────────────── */
+.nka-fig{margin:2em 0}
+.nka-fig__img{position:relative;aspect-ratio:16/9;overflow:hidden;background:var(--nkp-tint)}
+.nka-prose .nka-fig figcaption{margin-top:10px;font-size:.84em;line-height:1.5;color:var(--nkp-grey);text-align:center}
+.nka-prose ul.nka-chiffres{margin:2em 0;max-width:none;list-style:none;padding:0}
+.nka-prose li.nka-chiffre{margin:0;padding:18px 18px 16px}
+@media (max-width:560px){.nka-prose li.nka-chiffre{padding:14px}}
+.nka-cartes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:2em 0}
+.nka-carte{padding:18px 18px 16px;border-radius:16px;background:#fff;box-shadow:inset 0 0 0 1px var(--nkp-line),inset 0 1px 0 #fff,var(--nkp-shadow-sm);
+  transition:box-shadow var(--nkp-base) var(--nkp-ease),transform var(--nkp-base) var(--nkp-ease)}
+.nka-carte:hover{transform:translateY(-2px);box-shadow:inset 0 0 0 1px var(--nkp-tint-2),var(--nkp-shadow-md)}
+.nka-carte .nkp-ic{margin-bottom:12px}
+.nka-prose .nka-carte__t{margin:0 0 .3em;font-family:var(--font-sora),"Sora",sans-serif;font-weight:600;font-size:.98em;letter-spacing:-.015em;line-height:1.3;color:var(--nkp-ink)}
+.nka-prose .nka-carte__d{margin:0;font-size:.86em;line-height:1.6;color:var(--nkp-grey)}
+@media (max-width:560px){.nka-cartes{grid-template-columns:1fr}}
+
+/* ── Titres hors prose (FAQ, blocs de fin) ──────────────────── */
+.nkpub .nka-h2{font-size:clamp(1.45rem,1.2rem + .9vw,1.85rem);font-weight:700;letter-spacing:-.03em;line-height:1.2}
+.nka-faq{margin-top:3.6rem}
+.nka-faq .nka-h2{margin-bottom:1.1rem}
+.nka-faq .nkp-faq{max-width:none}
+
+/* ── Guides liés ───────────────────────────────────────────── */
+.nka-fin{margin-bottom:64px}
+@media (max-width:560px){.nka-fin{margin-bottom:48px}}
+.nka-lie__meta{margin:0 0 6px;font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--nkp-grey)}
+.nkpub .nka-lie h3{font-size:1.06rem;line-height:1.35}
+.nka-lie .nkp-link{margin-top:auto;padding-top:18px}
+
+/* ── Centre d'aide ─────────────────────────────────────────── */
+.nka-rail{display:flex;flex-direction:column;gap:16px}
+@media (min-width:1024px){.nka-rail{position:sticky;top:var(--nka-top)}}
+.nkpub .nka-rail__t{margin:0 0 10px;font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--nkp-grey)}
+.nka-liens{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.nka-liens a{display:flex;align-items:flex-start;gap:10px;padding:11px 4px;border-radius:10px;font-size:.9rem;line-height:1.4;font-weight:500;color:var(--nkp-ink);box-shadow:inset 0 -1px 0 var(--nkp-line);
+  transition:color var(--nkp-fast) var(--nkp-ease)}
+.nka-liens li:last-child a{box-shadow:none}
+.nka-liens a:hover{color:var(--nkp-green)}
+.nka-liens a:focus-visible{outline:2px solid var(--nkp-green);outline-offset:2px}
+.nka-liens small{display:block;margin-top:2px;font-size:.76rem;font-weight:400;color:var(--nkp-grey)}
+.nka-liens svg{width:15px;height:15px;margin-top:3px;color:var(--nkp-green);flex-shrink:0}
+.nka-sujets{margin-top:2.6rem;padding-top:1.4rem;box-shadow:inset 0 1px 0 var(--nkp-line)}
+.nka-sujets ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.nka-sujet{display:inline-flex;align-items:center;padding:5px 11px;border-radius:100px;font-size:.78rem;font-weight:600;color:var(--nkp-grey);background:rgba(14,21,18,.04);box-shadow:inset 0 0 0 1px rgba(14,21,18,.06)}
+/* « Cet article vous a-t-il aidé ? » */
+.nka-avis{margin-top:2.2rem}
+.nka-avis__t{margin:0 0 14px;font-weight:600;font-size:1rem;color:var(--nkp-ink)}
+.nka-avis__btns{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.nka-avis__b{display:inline-flex;align-items:center;gap:9px;min-height:44px;padding:8px 16px;border:0;border-radius:100px;cursor:pointer;font:inherit;font-size:.88rem;font-weight:600;
+  color:var(--nkp-ink);background:#fff;box-shadow:inset 0 0 0 1px rgba(14,21,18,.1),0 1px 2px rgba(14,21,18,.04);
+  transition:background-color var(--nkp-base) var(--nkp-ease),box-shadow var(--nkp-base) var(--nkp-ease),color var(--nkp-base) var(--nkp-ease),transform var(--nkp-fast) var(--nkp-ease)}
+.nka-avis__b svg{width:16px;height:16px}
+.nka-avis__b:hover{box-shadow:inset 0 0 0 1px rgba(0,110,47,.35),var(--nkp-shadow-sm)}
+.nka-avis__b:active{transform:scale(.98)}
+.nka-avis__b:focus-visible{outline:2px solid var(--nkp-green);outline-offset:3px}
+.nka-avis__b[aria-pressed="true"]{color:#fff;background:var(--nkp-green);box-shadow:0 8px 20px -10px rgba(0,110,47,.6)}
+.nka-avis__msg{margin:12px 0 0;min-height:1.5em;font-size:.88rem;color:var(--nkp-grey)}
+.nka-avis__msg a{color:var(--nkp-green);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.nka-avis .nkp-btn{margin-left:auto}
+@media (max-width:560px){.nka-avis .nkp-btn{margin-left:0;width:100%}}
+
+/* ── Nouveautés : étapes « Comment l'utiliser » ─────────────── */
+.nka-etapes{margin:1.4em 0 0;padding:20px 22px;border-radius:18px;background:#fbfcfb;box-shadow:inset 0 0 0 1px var(--nkp-line)}
+.nka-prose .nka-etapes ol{list-style:none;padding:0;margin:0;counter-reset:nka-etape}
+.nka-prose .nka-etapes li{position:relative;padding-left:40px;counter-increment:nka-etape;font-size:.94em}
+.nka-prose .nka-etapes li+li{margin-top:.8em}
+.nka-etapes li::before{content:counter(nka-etape);position:absolute;left:0;top:.05em;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+  font-size:.74rem;font-weight:700;color:#fff;background:var(--nkp-green);font-variant-numeric:tabular-nums}
+
+@media (prefers-reduced-motion:reduce){
+  .nka-toc__a::before,.nka-toc__chev svg{transition:none}
+  .nka-carte:hover,.nka-avis__b:active{transform:none}
+}
+@media print{
+  .nka-toc,.nka-rail{display:none}
+  .nka-layout{display:block;padding-bottom:0}
+  .nka-prose{max-width:none;font-size:11pt}
+}
+
+/* Variantes de prose des documents légaux (présentation d'origine conservée). */
+.nka-prose ul.nka-sans-puces{list-style:none;padding-left:0}
+.nka-prose ul.nka-sans-puces li{padding-left:0}
+.nka-prose .nka-petit{font-size:.86em;color:var(--nkp-grey)}
+.nka-table td.nka-table__fort{color:var(--nkp-ink);font-weight:500}
+.nka-table__cap{caption-side:top;text-align:left;padding:12px 16px 4px;font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--nkp-grey);background:#fbfcfb}
+.nka-pied>:last-child{margin-bottom:0}
+
+/* Nouveautés : pictogramme + étiquette au-dessus du titre de rubrique. */
+.nka-nv__tete{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.nkpub .nka-prose .nka-nv__h2{margin-top:0}
+.nka-prose .nka-etapes .nka-lie__meta{margin:0 0 14px;font-size:.72rem;line-height:1.4;color:var(--nkp-grey)}
+/* Conseil vendeurs : carte vert nuit dans la prose. */
+.nka-prose .nka-conseil .nkp-card__core{padding:28px}
+.nka-prose .nka-conseil p{color:rgba(255,255,255,.8)}
+.nka-prose .nka-conseil p:last-child{margin-bottom:0}
+.nka-prose .nka-conseil strong{color:#fff}
+.nkpub .nka-prose .nka-conseil h2{color:#fff}
+.nka-prose .nka-conseil__liste{list-style:none;padding:0;margin:0 0 1.2em}
+.nka-prose .nka-conseil__liste li{display:flex;gap:10px;align-items:flex-start;padding:0;color:rgba(255,255,255,.9);font-size:.95em}
+.nka-conseil__liste svg{margin-top:.3em;flex-shrink:0;color:#7fc59a}
+@media (max-width:560px){.nka-prose .nka-conseil .nkp-card__core{padding:20px}}
+/* Cartes vert nuit : le halo décoratif (::before) reste dans la carte. */
+.nka-conseil .nkp-card__core,.nka-rail .nkp-card--dark .nkp-card__core{overflow:hidden}
+/* Tableaux des cookies : colonnes fixes, le nom technique garde de la place sur téléphone. */
+.nka-table--cookies{table-layout:fixed}
+.nka-table--cookies th:nth-child(1){width:37%}
+.nka-table--cookies th:nth-child(2){width:39%}
+.nka-table--cookies th:nth-child(3){width:24%;white-space:normal}

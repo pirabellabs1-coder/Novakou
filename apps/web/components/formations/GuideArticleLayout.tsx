@@ -1,23 +1,37 @@
 // Layout partagé pour les guides v2.
 // Permet d'écrire un guide complet en ~200 lignes au lieu de 1500.
 // Chaque guide définit son meta + un tableau de sections, le layout
-// rend hero, sommaire, sections, CTA et JSON-LD Article automatiquement.
+// rend en-tête, sommaire, sections, FAQ, CTA, guides liés et JSON-LD.
+//
+// Présentation : coque publique (.nkpub) + gabarit article
+// (components/formations/public/article). Les props, les helpers G* et
+// les blocs JSON-LD (Article, BreadcrumbList, FAQPage) sont inchangés :
+// 33 articles en dépendent et le workflow SEO vérifie les schémas.
 
 import type { ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  Info,
+  Lightbulb,
+  ListOrdered,
+  type LucideIcon,
+} from "lucide-react";
+import { CoquePublique } from "@/components/formations/public/CoquePublique";
+import { EnTetePage } from "@/components/formations/public/EnTetePage";
+import { BoutonVerre } from "@/components/formations/public/BoutonVerre";
+import { Accordeon } from "@/components/formations/public/Accordeon";
+import { SommaireArticle } from "@/components/formations/public/article/SommaireArticle";
+import { FilAriane } from "@/components/formations/public/article/FilAriane";
+import { guidesLies } from "@/components/formations/public/article/guides-lies";
+import "@/components/formations/public/article/article.css";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://novakou.com";
-
-const satoshi = {
-  fontFamily: "'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-} as const;
-
-const satoshiHeading = {
-  ...satoshi,
-  fontWeight: 700,
-  letterSpacing: "-0.04em",
-} as const;
 
 const COLORS = {
   primary: "#006e2f",
@@ -72,6 +86,24 @@ export interface Props {
   heroImage?: { src: string; alt: string; caption?: string };
 }
 
+const numero = (i: number) => String(i + 1).padStart(2, "0");
+
+/**
+ * Typographie française à l'affichage : espace insécable avant « ? ! : ; »
+ * pour qu'un signe ne parte jamais seul en début de ligne. Les données
+ * (meta, JSON-LD) restent telles quelles.
+ */
+function insecables(texte: string): string {
+  return texte.replace(/ ([?!:;»])/g, "\u00a0$1").replace(/« /g, "«\u00a0");
+}
+
+/** Date ISO (AAAA-MM-JJ) en toutes lettres ; UTC pour ne jamais glisser d'un jour selon le fuseau du serveur. */
+function dateFr(iso: string): string {
+  const d = new Date(`${iso.slice(0, 10)}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+}
+
 export function GuideArticleLayout({ meta, sections, faq, stats, heroImage }: Props) {
   const url = `${APP_URL}/guides/${meta.slug}`;
   const ogImage = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
@@ -114,6 +146,13 @@ export function GuideArticleLayout({ meta, sections, faq, stats, heroImage }: Pr
     ],
   };
 
+  const aFaq = Boolean(faq && faq.length > 0);
+  const aSommaire = sections.length > 1;
+  const entrees = sections.map((s, i) => ({ id: s.id, label: insecables(s.label), n: numero(i) }));
+  if (aFaq) entrees.push({ id: "faq", label: "Questions fréquentes", n: numero(sections.length) });
+  const lies = guidesLies(meta.slug, meta.category);
+  const misAJour = meta.updatedAt !== meta.publishedAt;
+
   return (
     <>
       <script
@@ -141,261 +180,246 @@ export function GuideArticleLayout({ meta, sections, faq, stats, heroImage }: Pr
         />
       )}
 
-      <article className="min-h-screen bg-white" style={satoshi}>
-        {/* ── HERO ─────────────────────────────────────────────── */}
-        <section
-          className="w-full pt-12 pb-16 md:pt-20 md:pb-24 px-4 sm:px-6 text-white"
-          style={{ background: meta.gradient }}
-        >
-          <div className="max-w-4xl mx-auto">
-            <nav className="text-sm text-white/80 mb-6" aria-label="Fil d'Ariane">
-              <Link href="/" className="hover:text-white hover:underline">
-                Accueil
-              </Link>
-              <span className="mx-2">/</span>
-              <Link href="/guides" className="hover:text-white hover:underline">
-                Guides
-              </Link>
-              <span className="mx-2">/</span>
-              <span className="text-white font-semibold">{meta.category}</span>
-            </nav>
-
-            <div className="flex items-center gap-3 mb-6">
-              <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-3">
-                <span
-                  className="material-symbols-outlined text-white text-[36px]"
-                  style={{ fontVariationSettings: "'FILL' 1" }}
-                >
-                  {meta.icon}
+      <CoquePublique>
+        <article>
+          {/* ── EN-TÊTE ─────────────────────────────────────────── */}
+          <EnTetePage
+            align="left"
+            avant={
+              <FilAriane
+                etapes={[
+                  { label: "Accueil", href: "/" },
+                  { label: "Guides", href: "/guides" },
+                  { label: meta.title },
+                ]}
+              />
+            }
+            eyebrow={`${meta.category} · ${meta.level}`}
+            titre={insecables(meta.title)}
+            sousTitre={insecables(meta.subtitle)}
+            infos={
+              <span className="nka-infos">
+                <span className="nka-auteur">
+                  <span className="nka-auteur__av" aria-hidden="true">
+                    N
+                  </span>
+                  <span>
+                    <b>Équipe Novakou</b>
+                    <small>
+                      Publié le <time dateTime={meta.publishedAt}>{dateFr(meta.publishedAt)}</time>
+                      {misAJour && (
+                        <>
+                          {" "}
+                          · mis à jour le <time dateTime={meta.updatedAt}>{dateFr(meta.updatedAt)}</time>
+                        </>
+                      )}
+                    </small>
+                  </span>
                 </span>
-              </div>
-              <div>
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/80">
-                  <span>{meta.category}</span>
-                  <span className="opacity-50">•</span>
-                  <span>{meta.level}</span>
+                <span className="nka-infos__sep" aria-hidden="true" />
+                <span>
+                  <Clock strokeWidth={1.9} aria-hidden="true" />
+                  {meta.time} de lecture
+                </span>
+                <span>
+                  <ListOrdered strokeWidth={1.9} aria-hidden="true" />
+                  {meta.chapters}
+                </span>
+              </span>
+            }
+          />
+
+          {/* ── COUVERTURE + CHIFFRES CLÉS ──────────────────────── */}
+          {(heroImage || (stats && stats.length > 0)) && (
+            <div className="nkp-wrap">
+              {heroImage && (
+                <figure className="nka-couv">
+                  <div className="nkp-bezel nkp-bezel--xl nkp-bezel--float">
+                    <div className="nka-couv__img">
+                      <Image
+                        src={heroImage.src}
+                        alt={heroImage.alt}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 1080px) 100vw, 1000px"
+                        priority
+                      />
+                    </div>
+                  </div>
+                  {heroImage.caption && <figcaption>{heroImage.caption}</figcaption>}
+                </figure>
+              )}
+              {stats && stats.length > 0 && (
+                <ul className="nka-chiffres" aria-label="Chiffres clés">
+                  {stats.map((s, i) => (
+                    <li key={i} className="nka-chiffre">
+                      <b>{s.value}</b>
+                      <span>{s.label}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {/* ── SOMMAIRE + CORPS ────────────────────────────────── */}
+          <div className="nkp-wrap">
+            <div className={`nka-layout${aSommaire ? "" : " nka-layout--seul"}`}>
+              {aSommaire && (
+                <SommaireArticle
+                  items={entrees}
+                  bas={
+                    <Link href="/guides">
+                      <ArrowLeft strokeWidth={2} aria-hidden="true" />
+                      Tous les guides
+                    </Link>
+                  }
+                />
+              )}
+              <div className="nka-corps">
+                <div className="nka-prose">
+                  {sections.map((s, i) => (
+                    <section key={s.id} id={s.id} className="nka-sec" aria-labelledby={`${s.id}-titre`}>
+                      <div className="nka-sec__tete">
+                        <h2 id={`${s.id}-titre`}>
+                          <span className="nka-sec__n" aria-hidden="true">
+                            {numero(i)}
+                          </span>
+                          <span>{insecables(s.label)}</span>
+                        </h2>
+                      </div>
+                      {s.content}
+                    </section>
+                  ))}
                 </div>
-                <div className="flex items-center gap-2 text-sm text-white/90 mt-0.5">
-                  <span>{meta.time} de lecture</span>
-                  <span className="opacity-50">•</span>
-                  <span>{meta.chapters}</span>
-                </div>
+
+                {/* ── FAQ (rich results) ─────────────────────────── */}
+                {faq && faq.length > 0 && (
+                  <section id="faq" className="nka-faq" aria-labelledby="faq-titre">
+                    <h2 id="faq-titre" className="nka-h2">
+                      Questions fréquentes
+                    </h2>
+                    <Accordeon items={faq} />
+                  </section>
+                )}
               </div>
             </div>
+          </div>
+        </article>
 
-            <h1
-              className="text-4xl sm:text-5xl md:text-6xl mb-5 leading-tight"
-              style={satoshiHeading}
-            >
-              {meta.title}
-            </h1>
-            <p className="text-base md:text-lg leading-relaxed max-w-2xl text-white/90">
-              {meta.subtitle}
-            </p>
-
-            {stats && stats.length > 0 && (
-              <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {stats.map((s, i) => (
-                  <div key={i} className="rounded-2xl bg-white/10 backdrop-blur-sm border border-white/15 p-4">
-                    <p className="text-2xl md:text-3xl font-extrabold text-white" style={satoshiHeading}>
-                      {s.value}
-                    </p>
-                    <p className="text-[12px] text-white/80 mt-1 leading-snug">{s.label}</p>
-                  </div>
-                ))}
+        {/* ── CTA inscription ──────────────────────────────────── */}
+        <section className="nkp-wrap nka-fin" aria-labelledby="guide-cta-titre">
+          <div className="nkp-bezel nkp-bezel--dark nkp-bezel--xl nkp-bezel--float nkp-reveal">
+            <div className="nkp-cta nkp-cta--compact">
+              <span className="nkp-tag nkp-tag--dark">Passez à l&apos;action</span>
+              <h2 id="guide-cta-titre">Prêt à appliquer ce guide ?</h2>
+              <p>
+                Créez votre boutique Novakou gratuitement et mettez en pratique ces stratégies dès aujourd&apos;hui.
+              </p>
+              <div className="nkp-actions">
+                <BoutonVerre href="/inscription?role=vendeur" variante="white" taille="lg" fleche>
+                  Créer ma boutique gratuitement
+                </BoutonVerre>
               </div>
-            )}
+            </div>
           </div>
         </section>
 
-        {/* ── IMAGE DE COUVERTURE ──────────────────────────────── */}
-        {heroImage && (
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 -mt-8 md:-mt-12 mb-4 relative z-10">
-            <figure className="relative w-full rounded-3xl overflow-hidden shadow-2xl border border-black/5" style={{ aspectRatio: "16 / 8" }}>
-              <Image src={heroImage.src} alt={heroImage.alt} fill className="object-cover" sizes="(max-width: 896px) 100vw, 896px" priority />
-              {heroImage.caption && (
-                <>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
-                  <figcaption className="absolute bottom-4 left-5 right-5 text-white text-sm font-medium">
-                    {heroImage.caption}
-                  </figcaption>
-                </>
-              )}
-            </figure>
-          </div>
-        )}
-
-        {/* ── SOMMAIRE ─────────────────────────────────────────── */}
-        {sections.length > 1 && (
-          <aside className={`max-w-4xl mx-auto px-4 sm:px-6 mb-12 relative z-10 ${heroImage ? "mt-8" : "-mt-8 md:-mt-12"}`}>
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-xl p-6 md:p-8">
-              <p className="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">
-                Au sommaire
-              </p>
-              <ul className="space-y-2">
-                {sections.map((s, i) => (
-                  <li key={s.id}>
-                    <a
-                      href={`#${s.id}`}
-                      className="text-sm text-[#006e2f] hover:underline font-medium flex items-start gap-2"
-                    >
-                      <span className="font-mono text-gray-400 text-xs mt-1 flex-shrink-0">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      <span>{s.label}</span>
-                    </a>
+        {/* ── Guides liés + retour aux guides ──────────────────── */}
+        <section className="nkp-section nkp-section--compact nkp-section--tint" aria-labelledby="guides-lies-titre">
+          <div className="nkp-wrap">
+            <div className="nkp-head nkp-head--split nkp-reveal">
+              <div>
+                <span className="nkp-tag">À lire ensuite</span>
+                <h2 id="guides-lies-titre">Poursuivez votre lecture</h2>
+              </div>
+              <p>D&apos;autres guides gratuits pour passer de l&apos;idée à la vente, écrits pour l&apos;Afrique francophone.</p>
+            </div>
+            {lies.length > 0 && (
+              <ul className="nkp-rail m-0 list-none p-0">
+                {lies.map((g) => (
+                  <li key={g.href} className="nkp-reveal">
+                    <article className="nkp-card nkp-card--hover nka-lie h-full">
+                      <div className="nkp-card__core">
+                        <span className="nkp-ic mb-5" aria-hidden="true">
+                          <span className="material-symbols-outlined text-[20px]">{g.icone}</span>
+                        </span>
+                        <p className="nka-lie__meta">
+                          {g.categorie} · {g.duree}
+                        </p>
+                        <h3>
+                          <Link href={g.href} className="nkp-stretch transition-colors hover:text-[#006e2f]">
+                            {g.titre}
+                          </Link>
+                        </h3>
+                        <p className="nkp-card__desc line-clamp-3">{g.resume}</p>
+                        <span className="nkp-link" aria-hidden="true">
+                          Lire le guide
+                          <ArrowRight strokeWidth={2.2} />
+                        </span>
+                      </div>
+                    </article>
                   </li>
                 ))}
               </ul>
+            )}
+            <div className="nkp-center-btn">
+              <BoutonVerre href="/guides" fleche>
+                Retour à tous les guides
+              </BoutonVerre>
             </div>
-          </aside>
-        )}
-
-        {/* ── SECTIONS ─────────────────────────────────────────── */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-16">
-          {sections.map((s) => (
-            <section
-              key={s.id}
-              id={s.id}
-              className="scroll-mt-24 mb-12 last:mb-0"
-            >
-              <h2
-                className="text-2xl md:text-3xl font-extrabold text-[#191c1e] mb-5"
-                style={satoshiHeading}
-              >
-                {s.label}
-              </h2>
-              <div className="text-gray-700 text-[17px] md:text-[18px] leading-[1.8]">
-                {s.content}
-              </div>
-            </section>
-          ))}
-        </div>
-
-        {/* ── FAQ (rich results) ───────────────────────────────── */}
-        {faq && faq.length > 0 && (
-          <section className="max-w-4xl mx-auto px-4 sm:px-6 pb-16" id="faq">
-            <h2 className="text-2xl md:text-3xl font-extrabold text-[#191c1e] mb-6" style={satoshiHeading}>
-              Questions fréquentes
-            </h2>
-            <div className="space-y-3">
-              {faq.map((f, i) => (
-                <details
-                  key={i}
-                  className="group bg-white rounded-xl border border-gray-200 p-5 [&_summary::-webkit-details-marker]:hidden"
-                >
-                  <summary className="flex items-center justify-between cursor-pointer font-bold text-[#191c1e] gap-3">
-                    {f.q}
-                    <span className="text-[#006e2f] transition-transform group-open:rotate-45 text-xl leading-none flex-shrink-0">
-                      +
-                    </span>
-                  </summary>
-                  <p className="text-gray-700 mt-3 leading-relaxed">{f.a}</p>
-                </details>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* ── CTA inscription ──────────────────────────────────── */}
-        <section className="max-w-4xl mx-auto px-4 sm:px-6 pb-16">
-          <div className="bg-gradient-to-br from-[#f0fdf4] to-white border border-[#bbf7d0] rounded-3xl p-8 text-center">
-            <span className="material-symbols-outlined text-[#006e2f] text-4xl mb-3 inline-block">
-              rocket_launch
-            </span>
-            <h2 className="text-xl md:text-2xl font-extrabold text-[#191c1e] mb-2" style={satoshiHeading}>
-              Prêt à appliquer ce guide ?
-            </h2>
-            <p className="text-sm text-gray-600 mb-5 max-w-md mx-auto">
-              Créez votre boutique Novakou gratuitement et mettez en pratique ces stratégies dès aujourd'hui.
-            </p>
-            <Link
-              href="/inscription?role=vendeur"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#006e2f] text-white font-bold hover:bg-[#005a26] transition-colors"
-            >
-              Créer ma boutique gratuitement
-              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-            </Link>
           </div>
         </section>
-
-        {/* ── Retour aux guides ────────────────────────────────── */}
-        <section className="bg-gray-50 py-12 border-t border-gray-100">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
-            <Link
-              href="/guides"
-              className="inline-flex items-center gap-2 text-sm font-bold text-[#006e2f] hover:underline"
-            >
-              <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-              Retour à tous les guides
-            </Link>
-          </div>
-        </section>
-      </article>
+      </CoquePublique>
     </>
   );
 }
 
-// Helpers d'écriture pour les sections (alignés avec _bodies/_prose.tsx du blog)
+// Helpers d'écriture pour les sections (alignés avec _bodies/_prose.tsx du blog).
+// La typographie vient de la prose (.nka-prose, article.css) : pas de couleur
+// ni de taille codées ici.
 export function GP({ children }: { children: ReactNode }) {
-  return <p className="mb-5">{children}</p>;
+  return <p>{children}</p>;
 }
 
 export function GH3({ children }: { children: ReactNode }) {
-  return (
-    <h3 className="text-xl font-bold text-[#191c1e] mt-8 mb-3" style={satoshiHeading}>
-      {children}
-    </h3>
-  );
+  return <h3>{children}</h3>;
 }
 
 export function GUl({ children }: { children: ReactNode }) {
-  return (
-    <ul className="list-disc list-outside pl-6 mb-5 space-y-2 marker:text-[#006e2f]">
-      {children}
-    </ul>
-  );
+  return <ul>{children}</ul>;
 }
 
 export function GOl({ children }: { children: ReactNode }) {
-  return (
-    <ol className="list-decimal list-outside pl-6 mb-5 space-y-2 marker:text-[#006e2f] marker:font-bold">
-      {children}
-    </ol>
-  );
+  return <ol>{children}</ol>;
 }
 
 export function GLi({ children }: { children: ReactNode }) {
-  return <li className="pl-2">{children}</li>;
+  return <li>{children}</li>;
 }
 
 export function GStrong({ children }: { children: ReactNode }) {
-  return <strong className="font-bold text-[#191c1e]">{children}</strong>;
+  return <strong>{children}</strong>;
 }
 
 export function GA({ href, children }: { href: string; children: ReactNode }) {
   const isExternal = /^https?:\/\//.test(href);
   if (isExternal) {
     return (
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-[#006e2f] font-semibold underline decoration-[#006e2f]/30 hover:decoration-[#006e2f] transition-all"
-      >
+      <a href={href} target="_blank" rel="noopener noreferrer">
         {children}
       </a>
     );
   }
-  return (
-    <Link
-      href={href}
-      className="text-[#006e2f] font-semibold underline decoration-[#006e2f]/30 hover:decoration-[#006e2f] transition-all"
-    >
-      {children}
-    </Link>
-  );
+  return <Link href={href}>{children}</Link>;
 }
+
+const ENCADRES: Record<"info" | "success" | "warning" | "tip", { icone: LucideIcon; nom: string }> = {
+  info: { icone: Info, nom: "Information" },
+  success: { icone: CheckCircle2, nom: "À retenir" },
+  warning: { icone: AlertTriangle, nom: "Attention" },
+  tip: { icone: Lightbulb, nom: "Astuce" },
+};
 
 export function GCallout({
   variant = "info",
@@ -406,33 +430,15 @@ export function GCallout({
   title?: string;
   children: ReactNode;
 }) {
-  const styles = {
-    info: { bg: "#eff6ff", color: "#1d4ed8", icon: "info" },
-    success: { bg: "#f0fdf4", color: "#047857", icon: "check_circle" },
-    warning: { bg: "#fef3c7", color: "#b45309", icon: "warning" },
-    tip: { bg: "#f5f3ff", color: "#5b21b6", icon: "lightbulb" },
-  }[variant];
-
+  const { icone: Icone, nom } = ENCADRES[variant];
   return (
-    <div
-      className="my-6 p-5 rounded-xl border-l-4 flex gap-3"
-      style={{ backgroundColor: styles.bg, borderLeftColor: styles.color }}
-    >
-      <span
-        className="material-symbols-outlined text-[22px] flex-shrink-0 mt-0.5"
-        style={{ color: styles.color }}
-      >
-        {styles.icon}
+    <div className={`nka-note nka-note--${variant}`} role="note" aria-label={title ?? nom}>
+      <span className="nka-note__ic" aria-hidden="true">
+        <Icone strokeWidth={1.9} />
       </span>
-      <div className="flex-1 min-w-0">
-        {title && (
-          <p className="font-bold text-sm mb-1.5" style={{ color: styles.color }}>
-            {title}
-          </p>
-        )}
-        <div className="text-sm text-gray-700 leading-relaxed [&>p:last-child]:mb-0 [&>p]:mb-2">
-          {children}
-        </div>
+      <div className="min-w-0">
+        {title && <p className="nka-note__t">{title}</p>}
+        <div className="nka-note__c">{children}</div>
       </div>
     </div>
   );
@@ -441,11 +447,13 @@ export function GCallout({
 /** Image légendée pleine largeur dans le corps (photo de pub / illustration). */
 export function GImage({ src, alt, caption }: { src: string; alt: string; caption?: string }) {
   return (
-    <figure className="my-8 -mx-1">
-      <div className="relative w-full rounded-2xl overflow-hidden border border-gray-200 shadow-sm" style={{ aspectRatio: "16 / 9" }}>
-        <Image src={src} alt={alt} fill className="object-cover" sizes="(max-width: 896px) 100vw, 896px" />
+    <figure className="nka-fig">
+      <div className="nkp-bezel">
+        <div className="nka-fig__img">
+          <Image src={src} alt={alt} fill className="object-cover" sizes="(max-width: 760px) 100vw, 680px" />
+        </div>
       </div>
-      {caption && <figcaption className="mt-2 text-sm text-gray-500 text-center italic">{caption}</figcaption>}
+      {caption && <figcaption>{caption}</figcaption>}
     </figure>
   );
 }
@@ -453,30 +461,30 @@ export function GImage({ src, alt, caption }: { src: string; alt: string; captio
 /** Grille de statistiques marquantes (2-4 chiffres). */
 export function GStats({ items }: { items: Array<{ value: string; label: string }> }) {
   return (
-    <div className="my-8 grid grid-cols-2 md:grid-cols-4 gap-3">
+    <ul className="nka-chiffres">
       {items.map((s, i) => (
-        <div key={i} className="rounded-2xl bg-[#f6fbf2] border border-[#dcefd6] p-5 text-center">
-          <p className="text-3xl font-extrabold text-[#006e2f]" style={satoshiHeading}>{s.value}</p>
-          <p className="text-[12.5px] text-gray-600 mt-1 leading-snug">{s.label}</p>
-        </div>
+        <li key={i} className="nka-chiffre">
+          <b>{s.value}</b>
+          <span>{s.label}</span>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }
 
 /** Grille de cartes (fonctionnalités, étapes, points clés). */
 export function GCards({ items }: { items: Array<{ icon?: string; title: string; text: string }> }) {
   return (
-    <div className="my-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div className="nka-cartes">
       {items.map((c, i) => (
-        <div key={i} className="rounded-2xl border border-gray-200 bg-white p-5 hover:shadow-md transition-shadow">
+        <div key={i} className="nka-carte">
           {c.icon && (
-            <span className="material-symbols-outlined text-[#006e2f] text-[28px] mb-2 inline-block" style={{ fontVariationSettings: "'FILL' 1" }}>
-              {c.icon}
+            <span className="nkp-ic nkp-ic--sm" aria-hidden="true">
+              <span className="material-symbols-outlined text-[18px]">{c.icon}</span>
             </span>
           )}
-          <p className="font-bold text-[#191c1e] mb-1" style={satoshiHeading}>{c.title}</p>
-          <p className="text-[15px] text-gray-600 leading-relaxed">{c.text}</p>
+          <p className="nka-carte__t">{c.title}</p>
+          <p className="nka-carte__d">{c.text}</p>
         </div>
       ))}
     </div>

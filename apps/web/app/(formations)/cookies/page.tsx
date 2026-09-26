@@ -1,12 +1,7 @@
 import type { Metadata } from "next";
-import {
-  BarChart3,
-  CheckCircle2,
-  Lock,
-  Megaphone,
-  SlidersHorizontal,
-} from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import { DocumentLegal, type SectionLegale } from "@/components/formations/public/article/DocumentLegal";
 
 export const metadata: Metadata = {
   title: "Politique de cookies",
@@ -18,8 +13,6 @@ export const metadata: Metadata = {
 const COOKIE_CATEGORIES = [
   {
     key: "essential",
-    icon: Lock,
-    color: "#006e2f",
     title: "Strictement nécessaires",
     required: true,
     desc: "Indispensables au fonctionnement du site (authentification, panier, sécurité). Vous ne pouvez pas les désactiver.",
@@ -31,8 +24,6 @@ const COOKIE_CATEGORIES = [
   },
   {
     key: "preferences",
-    icon: SlidersHorizontal,
-    color: "#2563eb",
     title: "Préférences",
     required: false,
     desc: "Mémorisent vos choix (devise, langue, thème) pour une expérience personnalisée.",
@@ -43,8 +34,6 @@ const COOKIE_CATEGORIES = [
   },
   {
     key: "analytics",
-    icon: BarChart3,
-    color: "#f59e0b",
     title: "Analytiques",
     required: false,
     desc: "Mesurent l'audience de façon agrégée/pseudonymisée pour comprendre quelles pages fonctionnent et améliorer la Plateforme.",
@@ -54,8 +43,6 @@ const COOKIE_CATEGORIES = [
   },
   {
     key: "marketing",
-    icon: Megaphone,
-    color: "#dc2626",
     title: "Marketing & publicité",
     required: false,
     desc: "Permettent de mesurer les conversions et de personnaliser les publicités sur d'autres sites. Certains sont déposés par les vendeurs (pixels de leur boutique) et par des tiers, qui appliquent leurs propres politiques.",
@@ -67,50 +54,73 @@ const COOKIE_CATEGORIES = [
   },
 ];
 
+/* Une section par catégorie : description, puis le tableau des cookies. */
+const SECTIONS_CATEGORIES: SectionLegale[] = COOKIE_CATEGORIES.map((cat) => ({
+  id: `cookies-${cat.key}`,
+  titre: cat.title,
+  badge: <span className={`nka-badge${cat.required ? " nka-badge--on" : ""}`}>{cat.required ? "Obligatoires" : "Optionnels"}</span>,
+  contenu: (
+    <>
+      <p>{cat.desc}</p>
+      <div className="nka-table-wrap">
+        <table className="nka-table nka-table--cookies">
+          <caption className="nka-table__cap">Cookies utilisés</caption>
+          <thead>
+            <tr>
+              <th scope="col">Nom</th>
+              <th scope="col">Finalité</th>
+              <th scope="col">Durée</th>
+            </tr>
+          </thead>
+          <tbody>
+            {cat.examples.map((c) => (
+              <tr key={c.name}>
+                <td>
+                  <code>{c.name}</code>
+                </td>
+                <td>{c.purpose}</td>
+                <td>{c.duration}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  ),
+}));
+
 export default function CookiesPage() {
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
-      {/* HERO */}
-      <section className="pt-32 pb-12 px-6">
-        <div className="max-w-3xl mx-auto text-center">
-          <span className="inline-block text-[11px] font-bold uppercase tracking-widest text-[#006e2f] bg-[#006e2f]/10 px-3 py-1 rounded-full mb-4">
-            Vie privée
-          </span>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-[#191c1e] leading-tight tracking-tight">
-            Politique de cookies
-          </h1>
-          <p className="text-base text-[#5c647a] mt-4">
-            Dernière mise à jour : 12 juillet 2026 · Transparence totale sur ce qu&apos;on stocke et pourquoi.
-          </p>
-        </div>
-      </section>
-
-      {/* INTRO */}
-      <section className="px-6 mb-12">
-        <div className="max-w-3xl mx-auto bg-slate-50 border border-slate-200 rounded-2xl p-6 md:p-8">
-          <h2 className="text-lg font-extrabold text-[#191c1e] mb-3">En bref</h2>
-          <ul className="space-y-2 text-sm text-[#5c647a] leading-relaxed">
-            <li className="flex items-start gap-2">
-              <CheckCircle2 size={18} className="text-[#006e2f] mt-0.5 flex-shrink-0" />
+    <DocumentLegal
+      chemin="/cookies"
+      eyebrow="Vie privée"
+      titre="Politique de cookies"
+      miseAJour="12 juillet 2026"
+      sousTitre="Transparence totale sur ce qu'on stocke et pourquoi."
+      avant={
+        <aside className="nka-bref" aria-labelledby="cookies-bref">
+          <h2 id="cookies-bref">En bref</h2>
+          <ul>
+            <li>
+              <CheckCircle2 strokeWidth={1.9} aria-hidden="true" />
               Nous utilisons uniquement les cookies nécessaires + ceux que vous acceptez.
             </li>
-            <li className="flex items-start gap-2">
-              <CheckCircle2 size={18} className="text-[#006e2f] mt-0.5 flex-shrink-0" />
+            <li>
+              <CheckCircle2 strokeWidth={1.9} aria-hidden="true" />
               Aucun cookie tiers à des fins publicitaires sans consentement explicite.
             </li>
-            <li className="flex items-start gap-2">
-              <CheckCircle2 size={18} className="text-[#006e2f] mt-0.5 flex-shrink-0" />
+            <li>
+              <CheckCircle2 strokeWidth={1.9} aria-hidden="true" />
               Vous pouvez modifier vos préférences à tout moment depuis vos paramètres.
             </li>
           </ul>
-        </div>
-      </section>
-
-      {/* EXPLICATION + BASE LÉGALE */}
-      <section className="px-6 mb-12">
-        <div className="max-w-3xl mx-auto space-y-6 text-sm text-[#5c647a] leading-relaxed">
-          <div>
-            <h2 className="text-lg font-extrabold text-[#191c1e] mb-2">Qu&apos;est-ce qu&apos;un cookie ?</h2>
+        </aside>
+      }
+      sections={[
+        {
+          id: "cookie-definition",
+          titre: "Qu'est-ce qu'un cookie ?",
+          contenu: (
             <p>
               Un cookie est un petit fichier déposé sur votre appareil lorsque vous visitez un site. Il permet de
               reconnaître votre navigateur, de mémoriser des informations (session, préférences) ou de mesurer l&apos;audience.
@@ -119,9 +129,12 @@ export default function CookiesPage() {
               <strong> persistants</strong> (conservés pendant une durée définie). Nous utilisons également des technologies
               similaires (stockage local, pixels).
             </p>
-          </div>
-          <div>
-            <h2 className="text-lg font-extrabold text-[#191c1e] mb-2">Base légale et consentement</h2>
+          ),
+        },
+        {
+          id: "base-legale",
+          titre: "Base légale et consentement",
+          contenu: (
             <p>
               Les cookies <strong>strictement nécessaires</strong> reposent sur notre intérêt légitime à fournir un service
               fonctionnel et sûr ; ils ne requièrent pas votre consentement. Tous les autres cookies (préférences,
@@ -130,89 +143,42 @@ export default function CookiesPage() {
               Vous pouvez le modifier ou le retirer à tout moment, sans que cela n&apos;affecte la licéité du traitement
               antérieur.
             </p>
-          </div>
-        </div>
-      </section>
-
-      {/* CATEGORIES */}
-      <section className="px-6 mb-16">
-        <div className="max-w-4xl mx-auto space-y-6">
-          {COOKIE_CATEGORIES.map((cat) => (
-            <div key={cat.key} className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-              <div className="p-6 border-b border-slate-100">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${cat.color}15` }}>
-                      {(()=>{const _I=cat.icon;return _I?<_I size={22} />:null;})()}
-                    </div>
-                    <div>
-                      <h2 className="text-lg font-extrabold text-[#191c1e]">{cat.title}</h2>
-                      <p className="text-sm text-[#5c647a] mt-1 leading-relaxed">{cat.desc}</p>
-                    </div>
-                  </div>
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full whitespace-nowrap ${
-                    cat.required ? "bg-[#006e2f] text-white" : "bg-slate-100 text-[#5c647a]"
-                  }`}>
-                    {cat.required ? "Obligatoires" : "Optionnels"}
-                  </span>
-                </div>
-              </div>
-              <div className="bg-slate-50 px-6 py-4">
-                <p className="text-[10px] font-bold text-[#5c647a] uppercase tracking-wider mb-3">Cookies utilisés</p>
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="text-[#5c647a] text-left">
-                      <th className="py-1.5 pr-3 font-semibold">Nom</th>
-                      <th className="py-1.5 pr-3 font-semibold">Finalité</th>
-                      <th className="py-1.5 font-semibold">Durée</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {cat.examples.map((c) => (
-                      <tr key={c.name} className="border-t border-slate-200">
-                        <td className="py-2 pr-3 tabular-nums text-[#191c1e]">{c.name}</td>
-                        <td className="py-2 pr-3 text-[#5c647a]">{c.purpose}</td>
-                        <td className="py-2 text-[#5c647a]">{c.duration}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* GÉRER + DROITS */}
-      <section className="px-6 pb-20">
-        <div className="max-w-4xl mx-auto bg-slate-50 rounded-2xl p-8">
-          <h2 className="text-xl font-extrabold text-[#191c1e] mb-4">Gérer vos cookies &amp; vos droits</h2>
-          <div className="space-y-3 text-sm text-[#5c647a] leading-relaxed">
-            <p>Conformément au RGPD et aux législations équivalentes, vous pouvez à tout moment :</p>
-            <ul className="space-y-2 list-disc list-inside">
-              <li><strong className="text-[#191c1e]">Modifier ou retirer votre consentement</strong> aux cookies non essentiels via le bandeau ou les paramètres.</li>
-              <li><strong className="text-[#191c1e]">Configurer votre navigateur</strong> pour bloquer ou supprimer les cookies. La désactivation des cookies essentiels peut toutefois dégrader le fonctionnement du site.</li>
-              <li>Exercer vos droits d&apos;<strong className="text-[#191c1e]">accès, de rectification, d&apos;effacement, d&apos;opposition et de portabilité</strong> (voir notre <Link href="/confidentialite" className="text-[#006e2f] font-semibold underline">politique de confidentialité</Link>).</li>
-            </ul>
-            <p className="pt-1">
-              Réglages par navigateur :{" "}
-              <a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener noreferrer" className="text-[#006e2f] underline">Chrome</a>,{" "}
-              <a href="https://support.mozilla.org/fr/kb/cookies-informations-sites-enregistrent" target="_blank" rel="noopener noreferrer" className="text-[#006e2f] underline">Firefox</a>,{" "}
-              <a href="https://support.apple.com/fr-fr/guide/safari/sfri11471/mac" target="_blank" rel="noopener noreferrer" className="text-[#006e2f] underline">Safari</a>,{" "}
-              <a href="https://support.microsoft.com/fr-fr/windows/supprimer-et-g%C3%A9rer-les-cookies-168dab11-0753-043d-7c16-ede5947fc64d" target="_blank" rel="noopener noreferrer" className="text-[#006e2f] underline">Edge</a>.
-            </p>
-            <p>
-              <strong className="text-[#191c1e]">Cookies tiers</strong> : les cookies analytiques et marketing peuvent être
-              déposés par des partenaires (Meta, TikTok, Google, PostHog) qui appliquent leurs propres politiques de
-              confidentialité.
-            </p>
-            <p className="pt-2">
-              Pour toute question : <Link href="/contact" className="text-[#006e2f] font-semibold underline">contactez-nous</Link> ·
-              {" "}<Link href="/mentions-legales" className="text-[#006e2f] font-semibold underline">mentions légales</Link>.
-            </p>
-          </div>
-        </div>
-      </section>
-    </div>
+          ),
+        },
+        ...SECTIONS_CATEGORIES,
+        {
+          id: "gerer",
+          titre: "Gérer vos cookies & vos droits",
+          contenu: (
+            <>
+              <p>Conformément au RGPD et aux législations équivalentes, vous pouvez à tout moment :</p>
+              <ul>
+                <li><strong>Modifier ou retirer votre consentement</strong> aux cookies non essentiels via le bandeau ou les paramètres.</li>
+                <li><strong>Configurer votre navigateur</strong> pour bloquer ou supprimer les cookies. La désactivation des cookies essentiels peut toutefois dégrader le fonctionnement du site.</li>
+                <li>Exercer vos droits d&apos;<strong>accès, de rectification, d&apos;effacement, d&apos;opposition et de portabilité</strong> (voir notre <Link href="/confidentialite">politique de confidentialité</Link>).</li>
+              </ul>
+              <p>
+                Réglages par navigateur :{" "}
+                <a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener noreferrer">Chrome</a>,{" "}
+                <a href="https://support.mozilla.org/fr/kb/cookies-informations-sites-enregistrent" target="_blank" rel="noopener noreferrer">Firefox</a>,{" "}
+                <a href="https://support.apple.com/fr-fr/guide/safari/sfri11471/mac" target="_blank" rel="noopener noreferrer">Safari</a>,{" "}
+                <a href="https://support.microsoft.com/fr-fr/windows/supprimer-et-g%C3%A9rer-les-cookies-168dab11-0753-043d-7c16-ede5947fc64d" target="_blank" rel="noopener noreferrer">Edge</a>.
+              </p>
+              <p>
+                <strong>Cookies tiers</strong> : les cookies analytiques et marketing peuvent être
+                déposés par des partenaires (Meta, TikTok, Google, PostHog) qui appliquent leurs propres politiques de
+                confidentialité.
+              </p>
+            </>
+          ),
+        },
+      ]}
+      pied={
+        <p>
+          Pour toute question : <Link href="/contact">contactez-nous</Link> ·
+          {" "}<Link href="/mentions-legales">mentions légales</Link>.
+        </p>
+      }
+    />
   );
 }

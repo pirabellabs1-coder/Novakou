@@ -836,3 +836,28 @@
 @media (prefers-reduced-motion:reduce){
   .nkp-more__panel,.nkp-more__ic svg{transition:none}
 }
+
+/* ── En-tête : fil d'Ariane au-dessus, infos sous le sous-titre
+   (props facultatives d'EnTetePage, additif) ──────────────── */
+.nkp-avant{margin-bottom:22px;display:flex;justify-content:center}
+.nkp-hero--left .nkp-avant{justify-content:flex-start}
+.nkp-infos{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px 22px;margin:-6px 0 28px;font-size:.88rem;color:var(--nkp-grey)}
+.nkp-hero--left .nkp-infos{justify-content:flex-start}
+@media (max-width:560px){.nkp-avant{margin-bottom:16px}.nkp-infos{margin:-4px 0 22px}}
+
+/* ── Pages hors navigation (404, maintenance) : marque en haut,
+   contenu centré sur toute la hauteur, pied minimal ───────── */
+.nkp-etat{min-height:100dvh;display:flex;flex-direction:column}
+.nkp-etat__barre{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 24px 0;max-width:var(--nkp-maxw);width:100%;margin:0 auto}
+.nkp-etat__logo{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:1.06rem;letter-spacing:-.02em;color:var(--nkp-ink);border-radius:100px}
+.nkp-etat__logo svg{width:34px;height:34px}
+a.nkp-etat__logo:focus-visible{outline:2px solid var(--nkp-green);outline-offset:3px}
+.nkp-etat__main{flex:1;display:flex;flex-direction:column;justify-content:center}
+.nkp-etat__main .nkp-hero{padding-bottom:32px}
+.nkp-etat__pied{padding:24px;text-align:center;font-size:.8rem;color:var(--nkp-grey)}
+.nkp-etat__pied a{color:var(--nkp-green);font-weight:600}
+@media (max-width:560px){.nkp-etat__barre{padding:16px 16px 0}}
+/* Jauge du prochain essai (maintenance) : scaleX piloté par --p. */
+.nkp-maint-jauge{height:4px;border-radius:4px;background:var(--nkp-tint-2);overflow:hidden}
+.nkp-maint-jauge i{display:block;height:100%;background:var(--nkp-green);transform-origin:0 50%;transform:scaleX(var(--p,1));transition:transform 1s linear}
+@media (prefers-reduced-motion:reduce){.nkp-maint-jauge i{transition:none}}

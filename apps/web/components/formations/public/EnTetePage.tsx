@@ -11,6 +11,10 @@ export function monte(i: number) {
  * fluide (un seul h1 par page), sous-titre, CTA principal + secondaire,
  * puis une rangée de garanties et d'éventuels enfants (recherche, chips).
  * Fond : trame fine masquée + halo vert, comme le hero de l'accueil.
+ *
+ * `avant` (fil d'Ariane…) précède l'étiquette ; `infos` (date, durée de
+ * lecture, auteur) suit le sous-titre. Tous deux facultatifs : sans eux,
+ * le rendu est identique à l'existant.
  */
 export function EnTetePage({
   eyebrow,
@@ -20,6 +24,8 @@ export function EnTetePage({
   meta,
   children,
   align = "center",
+  avant,
+  infos,
 }: {
   eyebrow: string;
   titre: ReactNode;
@@ -28,12 +34,19 @@ export function EnTetePage({
   meta?: string[];
   children?: ReactNode;
   align?: "center" | "left";
+  avant?: ReactNode;
+  infos?: ReactNode;
 }) {
   let rang = 0;
   return (
     <header className={`nkp-hero${align === "left" ? " nkp-hero--left" : ""}`}>
       <div className="nkp-wrap">
         <div className="nkp-hero__inner">
+          {avant && (
+            <div {...monte(rang++)} className="nkp-avant">
+              {avant}
+            </div>
+          )}
           <span {...monte(rang++)} className="nkp-tag">
             {eyebrow}
           </span>
@@ -44,6 +57,11 @@ export function EnTetePage({
             <p {...monte(rang++)} className="nkp-sub">
               {sousTitre}
             </p>
+          )}
+          {infos && (
+            <div {...monte(rang++)} className="nkp-infos">
+              {infos}
+            </div>
           )}
           {actions && (
             <div {...monte(rang++)} className="nkp-actions">

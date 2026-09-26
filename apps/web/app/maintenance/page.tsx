@@ -1,17 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  HardHat,
-  Loader2,
-  RefreshCw,
-  Rocket,
-} from "lucide-react";
+import { useEffect, useState, type CSSProperties } from "react";
+import { Loader2, Mail, RefreshCw } from "lucide-react";
+import { PageEtat } from "@/components/formations/public/PageEtat";
+import { EnTetePage } from "@/components/formations/public/EnTetePage";
+
+const INTERVALLE_S = 60;
 
 export default function MaintenancePage() {
-  const [message, setMessage] = useState("La plateforme est en maintenance. Nous serons de retour bientot.");
+  const [message, setMessage] = useState("La plateforme est en maintenance. Nous serons de retour bientôt.");
   const [checking, setChecking] = useState(false);
-  const [countdown, setCountdown] = useState(60);
+  const [countdown, setCountdown] = useState(INTERVALLE_S);
+  // Résultat d'une vérification manuelle, annoncé aux lecteurs d'écran.
+  const [statut, setStatut] = useState("");
 
   // Fetch maintenance message and auto-check every 60 seconds
   useEffect(() => {
@@ -30,7 +31,7 @@ export default function MaintenancePage() {
     }
 
     checkMaintenance();
-    const interval = setInterval(checkMaintenance, 60_000);
+    const interval = setInterval(checkMaintenance, INTERVALLE_S * 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -38,7 +39,7 @@ export default function MaintenancePage() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
-        if (prev <= 1) return 60;
+        if (prev <= 1) return INTERVALLE_S;
         return prev - 1;
       });
     }, 1000);
@@ -47,70 +48,80 @@ export default function MaintenancePage() {
 
   async function checkStatus() {
     setChecking(true);
+    setStatut("");
     try {
       const res = await fetch("/api/public/maintenance");
       const data = await res.json();
       if (!data.enabled) {
         window.location.href = "/";
+        return;
       }
+      setStatut("La maintenance est toujours en cours. Nouvel essai automatique dans une minute.");
     } catch {
       // Still in maintenance
+      setStatut("Vérification impossible pour le moment. Nouvel essai automatique dans une minute.");
     } finally {
       setChecking(false);
-      setCountdown(60);
+      setCountdown(INTERVALLE_S);
     }
   }
 
   return (
-    <div className="min-h-screen bg-[#0F172A] flex items-center justify-center p-6">
-      <div className="max-w-lg w-full text-center">
-        {/* Logo */}
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <Rocket size={30} className="text-[#6C2BD9]" />
-          <span className="font-bold text-2xl text-white">Novakou</span>
-        </div>
-
-        {/* Maintenance icon */}
-        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-amber-500/10 flex items-center justify-center animate-pulse">
-          <HardHat size={36} className="text-amber-400" />
-        </div>
-
-        <h1 className="text-3xl font-bold text-white mb-4">Maintenance en cours</h1>
-        <p className="text-slate-400 text-lg mb-8 leading-relaxed">{message}</p>
-
-        {/* Check button */}
-        <button
-          onClick={checkStatus}
-          disabled={checking}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-[#6C2BD9] text-white font-bold rounded-xl hover:bg-[#5B21B6] transition-all disabled:opacity-50"
-        >
-          {checking ? (
-            <Loader2 size={18} className="animate-spin" />
-          ) : (
-            <RefreshCw size={18} />
-          )}
-          {checking ? "Verification..." : "Verifier le statut"}
-        </button>
-
-        {/* Auto-check countdown */}
-        <p className="text-xs text-slate-600 mt-6">
-          Verification automatique dans {countdown}s
-        </p>
-
-        {/* Contact info */}
-        <div className="mt-12 pt-6 border-t border-slate-800">
-          <p className="text-xs text-slate-600">
-            Nous effectuons des mises a jour pour ameliorer votre experience.
+    <PageEtat
+      lienAccueil={false}
+      pied={
+        <>
+          © 2026 Novakou — Éditée par Pirabel Labs · <a href="mailto:support@novakou.com">support@novakou.com</a>
+        </>
+      }
+    >
+      <EnTetePage
+        eyebrow="Maintenance"
+        titre={
+          <>
+            Maintenance <em>en cours</em>
+          </>
+        }
+        sousTitre={message}
+        actions={
+          <button type="button" onClick={checkStatus} disabled={checking} className="nkp-btn nkp-btn--primary nkp-btn--lg">
+            {checking ? "Vérification…" : "Vérifier le statut"}
+            <span className="nkp-btn__ico" aria-hidden="true">
+              {checking ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} strokeWidth={2.2} />}
+            </span>
+          </button>
+        }
+      >
+        <div className="mx-auto max-w-sm">
+          {/* Jauge du prochain essai : transform uniquement (compositeur). */}
+          <div className="nkp-maint-jauge" aria-hidden="true">
+            <i style={{ "--p": countdown / INTERVALLE_S } as CSSProperties} />
+          </div>
+          <p className="mt-3 text-[.84rem] text-[#5c6b62]">
+            Vérification automatique dans <span className="nkp-num">{countdown}</span> s
           </p>
-          <p className="text-xs text-slate-600 mt-1">
-            Contact : <span className="text-slate-500">support@novakou.com</span>
+          <p className="mt-2 min-h-[1.4em] text-[.84rem] font-medium text-[#0e1512]" role="status">
+            {statut}
           </p>
         </div>
 
-        <p className="text-[10px] text-slate-700 mt-8">
-          © 2026 Novakou — Editee par Pirabel Labs
-        </p>
-      </div>
-    </div>
+        <div className="nkp-card mx-auto mt-8 max-w-md text-left">
+          <div className="nkp-card__core !flex-row items-start gap-4 !p-5">
+            <span className="nkp-ic nkp-ic--sm" aria-hidden="true">
+              <Mail strokeWidth={1.9} />
+            </span>
+            <div>
+              <p className="text-[.9rem] text-[#0e1512]">Nous effectuons des mises à jour pour améliorer votre expérience.</p>
+              <p className="mt-1 text-[.84rem] text-[#5c6b62]">
+                Contact :{" "}
+                <a href="mailto:support@novakou.com" className="font-semibold text-[#006e2f] underline underline-offset-2">
+                  support@novakou.com
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </EnTetePage>
+    </PageEtat>
   );
 }

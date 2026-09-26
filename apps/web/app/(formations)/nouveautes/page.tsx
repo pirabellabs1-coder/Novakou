@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import {
-  Rocket,
   MessagesSquare,
   Sparkles,
   BellRing,
@@ -10,16 +8,21 @@ import {
   Megaphone,
   Share,
   Plus,
-  ArrowRight,
   CheckCircle2,
 } from "lucide-react";
+import { CoquePublique } from "@/components/formations/public/CoquePublique";
+import { EnTetePage } from "@/components/formations/public/EnTetePage";
+import { BoutonVerre } from "@/components/formations/public/BoutonVerre";
+import { SommaireArticle } from "@/components/formations/public/article/SommaireArticle";
+import "@/components/formations/public/article/article.css";
 
 export const metadata: Metadata = {
   // `absolute` : « Novakou » est deja dans le titre. Sans ça, le template
   // du layout racine ajoute « | Novakou » et le nom sort deux fois.
   title: { absolute: "Nouveautés Novakou 2.0 — tout ce qui change" },
+  // ≤ 160 caractères (workflow SEO) : même promesse, formulée plus court.
   description:
-    "Messagerie en temps réel, recherche par IA, notifications push, application installable, badge Vendeur vérifié… Découvrez les nouveautés de Novakou 2.0 et apprenez à les utiliser pas à pas.",
+    "Messagerie en temps réel, recherche par IA, notifications push, application installable, badge Vendeur vérifié : les nouveautés de Novakou 2.0, pas à pas.",
   alternates: { canonical: "/nouveautes" },
   openGraph: {
     title: "Novakou 2.0 est arrivé 🚀",
@@ -106,163 +109,148 @@ const FEATURES: Feature[] = [
   },
 ];
 
+const SOMMAIRE = [
+  ...FEATURES.map((f, i) => ({ id: f.id, label: f.title, n: String(i + 1).padStart(2, "0") })),
+  { id: "conseil-vendeurs", label: "Vendeurs : le conseil n°1", n: String(FEATURES.length + 1).padStart(2, "0") },
+];
+
 export default function NouveautesPage() {
   return (
-    <div className="bg-white">
-      {/* Hero */}
-      <header className="relative overflow-hidden bg-gradient-to-br from-[#04361a] via-[#006e2f] to-[#22c55e] text-white">
-        <div className="absolute inset-0 opacity-10 [background-image:radial-gradient(circle_at_1px_1px,#fff_1px,transparent_0)] [background-size:22px_22px]" />
-        <div className="relative max-w-3xl mx-auto px-5 py-16 md:py-20 text-center">
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-xs font-bold backdrop-blur">
-            <Rocket size={14} /> Mise à jour majeure
-          </span>
-          <h1 className="mt-5 text-3xl md:text-5xl font-black tracking-tight">Novakou 2.0 est arrivé</h1>
-          <p className="mt-4 text-base md:text-lg text-white/85 leading-relaxed">
-            Plus rapide, plus humain, plus rentable. Voici tout ce qui change — et comment en profiter
-            dès aujourd'hui pour apprendre, vendre et gagner.
-          </p>
-          <div className="mt-7 flex flex-wrap justify-center gap-3">
-            <Link
-              href="/explorer"
-              className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-[#006e2f] hover:bg-white/90 transition-colors"
-            >
-              Explorer le catalogue <ArrowRight size={16} />
-            </Link>
-            <a
-              href="#messagerie"
-              className="inline-flex items-center gap-2 rounded-xl border border-white/40 px-6 py-3 text-sm font-bold text-white hover:bg-white/10 transition-colors"
-            >
+    <CoquePublique>
+      <EnTetePage
+        eyebrow="Mise à jour majeure"
+        titre={
+          <>
+            Novakou 2.0 <em>est arrivé</em>
+          </>
+        }
+        sousTitre="Plus rapide, plus humain, plus rentable. Voici tout ce qui change — et comment en profiter dès aujourd'hui pour apprendre, vendre et gagner."
+        actions={
+          <>
+            <BoutonVerre href="/explorer" variante="primary" taille="lg" fleche>
+              Explorer le catalogue
+            </BoutonVerre>
+            <BoutonVerre href="#messagerie" taille="lg">
               Voir les nouveautés
-            </a>
-          </div>
-        </div>
-      </header>
+            </BoutonVerre>
+          </>
+        }
+      />
 
-      {/* Sommaire */}
-      <nav className="border-b border-[#e4eae6] bg-[#f7faf8]">
-        <div className="max-w-3xl mx-auto px-5 py-4 flex flex-wrap gap-2 justify-center">
-          {FEATURES.map((f) => (
-            <a
-              key={f.id}
-              href={`#${f.id}`}
-              className="inline-flex items-center gap-1.5 rounded-full border border-[#d7ecde] bg-white px-3 py-1.5 text-xs font-bold text-[#006e2f] hover:bg-[#f0faf3] transition-colors"
-            >
-              <f.icon size={13} />
-              {f.title.split(" ").slice(0, 2).join(" ")}
-            </a>
-          ))}
-        </div>
-      </nav>
+      <div className="nkp-wrap">
+        <div className="nka-layout">
+          <SommaireArticle items={SOMMAIRE} titre="Les nouveautés" unite="rubriques" />
 
-      {/* Sections fonctionnalités */}
-      <main className="max-w-3xl mx-auto px-5 py-12 md:py-16 space-y-16">
-        {FEATURES.map((f, i) => {
-          const Icon = f.icon;
-          return (
-            <section key={f.id} id={f.id} className="scroll-mt-24">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#006e2f] to-[#22c55e] text-white">
-                  <Icon size={22} />
-                </div>
-                <div>
-                  <p className="text-[11px] font-extrabold uppercase tracking-widest text-[#22a043]">
-                    {String(i + 1).padStart(2, "0")} · {f.badge}
-                  </p>
-                  <h2 className="text-xl md:text-2xl font-extrabold text-[#13241b] leading-tight">{f.title}</h2>
-                </div>
-              </div>
+          <div className="nka-corps nka-prose">
+            {/* Sections fonctionnalités */}
+            {FEATURES.map((f, i) => {
+              const Icon = f.icon;
+              return (
+                <section key={f.id} id={f.id} className="nka-sec" aria-labelledby={`${f.id}-titre`}>
+                  <div className="nka-nv__tete">
+                    <span className="nkp-ic nkp-ic--sm" aria-hidden="true">
+                      <Icon strokeWidth={1.9} />
+                    </span>
+                    <span className="nkp-eyebrow">
+                      {String(i + 1).padStart(2, "0")} · {f.badge}
+                    </span>
+                  </div>
+                  <h2 id={`${f.id}-titre`} className="nka-nv__h2">
+                    {f.title}
+                  </h2>
 
-              <p className="text-[15px] leading-relaxed text-[#5c647a]">{f.intro}</p>
+                  <p>{f.intro}</p>
 
-              <div className="mt-5 rounded-2xl border border-[#e4eae6] bg-[#f7faf8] p-5">
-                <p className="text-xs font-extrabold uppercase tracking-widest text-[#006e2f] mb-3">
-                  Comment l'utiliser
-                </p>
-                <ol className="space-y-3">
-                  {f.steps.map((step, idx) => (
-                    <li key={idx} className="flex items-start gap-3">
-                      <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[#006e2f] text-[11px] font-bold text-white">
-                        {idx + 1}
+                  <div className="nka-etapes">
+                    <p className="nka-lie__meta">Comment l&apos;utiliser</p>
+                    <ol>
+                      {f.steps.map((step, idx) => (
+                        <li key={idx}>{step}</li>
+                      ))}
+                    </ol>
+                  </div>
+
+                  {/* Encart iOS spécifique sous la section installation */}
+                  {f.id === "installation" && (
+                    <div className="nka-note nka-note--tip" role="note" aria-label="Sur iPhone">
+                      <span className="nka-note__ic" aria-hidden="true">
+                        <Smartphone strokeWidth={1.9} />
                       </span>
-                      <span className="text-sm leading-relaxed text-[#13241b]">{step}</span>
-                    </li>
-                  ))}
-                </ol>
-              </div>
+                      <div className="nka-note__c">
+                        <p>
+                          <strong>Sur iPhone</strong>, l&apos;installation se fait toujours via Safari : touchez{" "}
+                          <Share size={14} className="inline -mt-0.5 text-[#006e2f]" aria-hidden="true" /> <strong>Partager</strong> en bas
+                          de l&apos;écran, faites défiler, puis touchez{" "}
+                          <Plus size={14} className="inline -mt-0.5 text-[#006e2f]" aria-hidden="true" />{" "}
+                          <strong>« Sur l&apos;écran d&apos;accueil »</strong>. Apple ne permet pas de bouton d&apos;installation
+                          automatique — c&apos;est normal.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </section>
+              );
+            })}
 
-              {/* Encart iOS spécifique sous la section installation */}
-              {f.id === "installation" && (
-                <div className="mt-4 flex items-start gap-3 rounded-2xl border border-[#d7ecde] bg-[#f0faf3] p-4">
-                  <Smartphone size={18} className="mt-0.5 flex-shrink-0 text-[#006e2f]" />
-                  <p className="text-[13px] leading-relaxed text-[#13241b]">
-                    <strong>Sur iPhone</strong>, l'installation se fait toujours via Safari : touchez{" "}
-                    <Share size={13} className="inline -mt-0.5 text-[#006e2f]" /> <strong>Partager</strong> en bas
-                    de l'écran, faites défiler, puis touchez{" "}
-                    <Plus size={13} className="inline -mt-0.5 text-[#006e2f]" />{" "}
-                    <strong>« Sur l'écran d'accueil »</strong>. Apple ne permet pas de bouton d'installation
-                    automatique — c'est normal.
+            {/* Conseil vendeurs */}
+            <section id="conseil-vendeurs" className="nka-sec" aria-labelledby="conseil-vendeurs-titre">
+              <div className="nkp-card nkp-card--dark nka-conseil">
+                <div className="nkp-card__core">
+                  <div className="nka-nv__tete">
+                    <span className="nkp-ic nkp-ic--dark" aria-hidden="true">
+                      <Megaphone strokeWidth={1.9} />
+                    </span>
+                    <span className="nkp-eyebrow nkp-eyebrow--dark">Conseil</span>
+                  </div>
+                  <h2 id="conseil-vendeurs-titre" className="nka-nv__h2">
+                    Vendeurs : le conseil n°1 pour vos premières ventes
+                  </h2>
+                  <p>
+                    Un bon produit ne suffit pas : pour vendre, il faut être <strong>vu</strong>. La majorité des
+                    vendeurs qui réussissent sur Novakou commencent par <strong>lancer une publicité</strong>.
                   </p>
+                  <ul className="nka-conseil__liste">
+                    {[
+                      "Partagez le lien de votre produit sur WhatsApp, TikTok, Facebook et Instagram.",
+                      "Créez une promotion de lancement pour donner envie d'acheter tout de suite.",
+                      "Diffusez une annonce sponsorisée ciblée pour toucher de nouveaux acheteurs.",
+                      "Soignez votre titre, votre image de couverture et votre description : c'est votre vitrine.",
+                    ].map((tip) => (
+                      <li key={tip}>
+                        <CheckCircle2 size={18} strokeWidth={1.9} aria-hidden="true" />
+                        {tip}
+                      </li>
+                    ))}
+                  </ul>
+                  <p>C&apos;est l&apos;étape qui transforme vos visiteurs en acheteurs — et vos efforts en revenus.</p>
                 </div>
-              )}
-            </section>
-          );
-        })}
-
-        {/* Conseil vendeurs */}
-        <section id="conseil-vendeurs" className="scroll-mt-24">
-          <div className="rounded-3xl bg-gradient-to-br from-[#04361a] to-[#006e2f] p-7 md:p-9 text-white">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
-                <Megaphone size={22} />
               </div>
-              <h2 className="text-xl md:text-2xl font-extrabold">Vendeurs : le conseil n°1 pour vos premières ventes</h2>
-            </div>
-            <p className="text-[15px] leading-relaxed text-white/85">
-              Un bon produit ne suffit pas : pour vendre, il faut être <strong>vu</strong>. La majorité des
-              vendeurs qui réussissent sur Novakou commencent par <strong>lancer une publicité</strong>.
-            </p>
-            <ul className="mt-5 space-y-2.5">
-              {[
-                "Partagez le lien de votre produit sur WhatsApp, TikTok, Facebook et Instagram.",
-                "Créez une promotion de lancement pour donner envie d'acheter tout de suite.",
-                "Diffusez une annonce sponsorisée ciblée pour toucher de nouveaux acheteurs.",
-                "Soignez votre titre, votre image de couverture et votre description : c'est votre vitrine.",
-              ].map((tip) => (
-                <li key={tip} className="flex items-start gap-2.5">
-                  <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-[#7ff0a8]" />
-                  <span className="text-sm leading-relaxed text-white/90">{tip}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-5 text-sm text-white/80">
-              C'est l'étape qui transforme vos visiteurs en acheteurs — et vos efforts en revenus.
-            </p>
+            </section>
           </div>
-        </section>
+        </div>
+      </div>
 
-        {/* CTA final */}
-        <section className="text-center">
-          <h2 className="text-2xl font-extrabold text-[#13241b]">Prêt à profiter de Novakou 2.0 ?</h2>
-          <p className="mt-2 text-[15px] text-[#5c647a]">Tout est déjà disponible dans votre espace.</p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link
-              href="/explorer"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#006e2f] to-[#22c55e] px-6 py-3.5 text-sm font-bold text-white hover:opacity-90 transition-opacity"
-            >
-              Explorer le catalogue <ArrowRight size={16} />
-            </Link>
-            <Link
-              href="/vendeur/dashboard"
-              className="inline-flex items-center gap-2 rounded-xl border border-[#e4eae6] px-6 py-3.5 text-sm font-bold text-[#13241b] hover:bg-gray-50 transition-colors"
-            >
-              Espace vendeur
-            </Link>
+      {/* CTA final */}
+      <section className="nkp-section nkp-section--compact nkp-section--top0" aria-labelledby="nouveautes-cta-titre">
+        <div className="nkp-wrap">
+          <div className="nkp-bezel nkp-bezel--dark nkp-bezel--xl nkp-bezel--float nkp-reveal">
+            <div className="nkp-cta nkp-cta--compact">
+              <span className="nkp-tag nkp-tag--dark">Novakou 2.0</span>
+              <h2 id="nouveautes-cta-titre">Prêt à profiter de Novakou 2.0 ?</h2>
+              <p>Tout est déjà disponible dans votre espace.</p>
+              <div className="nkp-actions">
+                <BoutonVerre href="/explorer" variante="white" taille="lg" fleche>
+                  Explorer le catalogue
+                </BoutonVerre>
+                <BoutonVerre href="/vendeur/dashboard" variante="white" taille="lg">
+                  Espace vendeur
+                </BoutonVerre>
+              </div>
+              <small>Merci de faire partie de l&apos;aventure — l&apos;équipe Novakou, l&apos;académie des créateurs digitaux.</small>
+            </div>
           </div>
-          <p className="mt-8 text-[13px] text-[#8a93a6]">
-            Merci de faire partie de l'aventure — l'équipe Novakou, l'académie des créateurs digitaux.
-          </p>
-        </section>
-      </main>
-    </div>
+        </div>
+      </section>
+    </CoquePublique>
   );
 }

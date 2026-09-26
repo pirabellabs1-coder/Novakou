@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import {
   Activity,
-  ArrowRight,
   BadgeCheck,
   Bot,
   Code,
@@ -11,117 +10,132 @@ import {
   Palette,
   ShieldCheck,
   TrendingUp,
+  type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { CoquePublique } from "@/components/formations/public/CoquePublique";
+import { EnTetePage } from "@/components/formations/public/EnTetePage";
+import { BoutonVerre } from "@/components/formations/public/BoutonVerre";
 
 export const metadata: Metadata = {
   title: "Freelances et Mentors",
   description: "Découvrez les meilleurs créateurs et mentors d'Afrique francophone. Formations, coaching, expertise.",
 };
 
-const SPECIALTIES = [
-  { icon: Code, label: "Développement", count: "120+", color: "#006e2f" },
-  { icon: Megaphone, label: "Marketing digital", count: "85+", color: "#dc2626" },
-  { icon: Palette, label: "Design", count: "60+", color: "#8b5cf6" },
-  { icon: Activity, label: "Business & Stratégie", count: "75+", color: "#0ea5e9" },
-  { icon: Edit, label: "Rédaction & Contenu", count: "40+", color: "#f59e0b" },
-  { icon: Bot, label: "Intelligence artificielle", count: "30+", color: "#7c3aed" },
+const SPECIALTIES: { icon: LucideIcon; label: string; count: string }[] = [
+  { icon: Code, label: "Développement", count: "120+" },
+  { icon: Megaphone, label: "Marketing digital", count: "85+" },
+  { icon: Palette, label: "Design", count: "60+" },
+  { icon: Activity, label: "Business & Stratégie", count: "75+" },
+  { icon: Edit, label: "Rédaction & Contenu", count: "40+" },
+  { icon: Bot, label: "Intelligence artificielle", count: "30+" },
 ];
 
-const PERKS = [
+const PERKS: { icon: LucideIcon; title: string; desc: string }[] = [
   { icon: BadgeCheck, title: "Profils vérifiés", desc: "Chaque créateur est validé manuellement par notre équipe avant d'apparaître sur la marketplace." },
   { icon: TrendingUp, title: "Notes & avis transparents", desc: "Les évaluations sont laissées par de vrais acheteurs. Pas de modération abusive." },
   { icon: Headset, title: "Support client réactif", desc: "En cas de problème avec un créateur, notre support intervient sous 24h." },
   { icon: ShieldCheck, title: "Garantie satisfait", desc: "14 jours pour tester. Si ça ne convient pas, remboursement intégral." },
 ];
 
+/* Page héritée (encore au sitemap) : même coque que les pages publiques. */
 export default function FreelancesPage() {
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
-      {/* HERO */}
-      <section className="pt-32 pb-16 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <span className="inline-block text-[11px] font-bold uppercase tracking-widest text-[#006e2f] bg-[#006e2f]/10 px-3 py-1 rounded-full mb-4">
-            Mentors & créateurs
-          </span>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-[#191c1e] leading-tight tracking-tight">
-            Apprenez avec les meilleurs <br /> créateurs d&apos;Afrique francophone
-          </h1>
-          <p className="text-lg text-[#5c647a] mt-5 max-w-2xl mx-auto">
-            Des mentors experts qui partagent leur savoir à travers formations, e-books, coaching individuel et templates.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center mt-8">
-            <Link href="/mentors" className="px-7 py-4 rounded-2xl text-white font-bold text-sm hover:opacity-90 transition-opacity shadow-lg" style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}>
+    <CoquePublique>
+      <EnTetePage
+        eyebrow="Mentors & créateurs"
+        titre={
+          <>
+            Apprenez avec les meilleurs <em>créateurs d&apos;Afrique francophone</em>
+          </>
+        }
+        sousTitre="Des mentors experts qui partagent leur savoir à travers formations, e-books, coaching individuel et templates."
+        actions={
+          <>
+            <BoutonVerre href="/mentors" variante="primary" taille="lg" fleche>
               Découvrir tous les mentors
-            </Link>
-            <Link href="/inscription?role=instructeur" className="px-7 py-4 rounded-2xl bg-slate-100 text-[#191c1e] font-bold text-sm hover:bg-slate-200 transition-colors">
+            </BoutonVerre>
+            <BoutonVerre href="/inscription?role=instructeur" taille="lg">
               Devenir créateur
-            </Link>
-          </div>
-        </div>
-      </section>
+            </BoutonVerre>
+          </>
+        }
+      />
 
       {/* SPECIALTIES */}
-      <section className="py-16 px-6 bg-slate-50">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-[#006e2f] mb-3">Spécialités</p>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-[#191c1e] tracking-tight">Une expertise dans tous les domaines</h2>
+      <section className="nkp-section nkp-section--compact nkp-section--tint" aria-labelledby="specialites-titre">
+        <div className="nkp-wrap">
+          <div className="nkp-head nkp-reveal">
+            <span className="nkp-tag">Spécialités</span>
+            <h2 id="specialites-titre">Une expertise dans tous les domaines</h2>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
-            {SPECIALTIES.map((s) => (
-              <Link
-                key={s.label}
-                href={`/explorer?category=${encodeURIComponent(s.label)}`}
-                className="group bg-white border border-slate-200 rounded-2xl p-6 text-center hover:shadow-lg hover:-translate-y-1 transition-all"
-              >
-                <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ background: `${s.color}15` }}>
-                  {(()=>{const _I=s.icon;return _I?<_I size={28} />:null;})()}
+          <ul className="nkp-grid-3 nkp-grid-2--sm m-0 list-none p-0">
+            {SPECIALTIES.map(({ icon: Icone, label, count }) => (
+              <li key={label} className="nkp-reveal">
+                <div className="nkp-card nkp-card--hover h-full">
+                  <div className="nkp-card__core">
+                    <span className="nkp-ic mb-5" aria-hidden="true">
+                      <Icone strokeWidth={1.9} />
+                    </span>
+                    <h3 className="!text-[1.02rem]">
+                      <Link
+                        href={`/explorer?category=${encodeURIComponent(label)}`}
+                        className="nkp-stretch transition-colors hover:text-[#006e2f]"
+                      >
+                        {label}
+                      </Link>
+                    </h3>
+                    <p className="nkp-num mt-1 text-[.8rem] font-bold text-[#006e2f]">{count} créateurs</p>
+                  </div>
                 </div>
-                <h3 className="text-base font-extrabold text-[#191c1e]">{s.label}</h3>
-                <p className="text-xs font-bold text-[#006e2f] mt-1">{s.count} créateurs</p>
-              </Link>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       </section>
 
       {/* PERKS */}
-      <section className="py-16 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-[#006e2f] mb-3">Pourquoi nous</p>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-[#191c1e] tracking-tight">La confiance, notre priorité</h2>
+      <section className="nkp-section nkp-section--compact" aria-labelledby="confiance-titre">
+        <div className="nkp-wrap">
+          <div className="nkp-head nkp-reveal">
+            <span className="nkp-tag">Pourquoi nous</span>
+            <h2 id="confiance-titre">La confiance, notre priorité</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {PERKS.map((p) => (
-              <div key={p.title} className="flex items-start gap-4 bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-lg transition-shadow">
-                <div className="w-12 h-12 rounded-xl bg-[#006e2f]/10 flex items-center justify-center flex-shrink-0">
-                  {(()=>{const _I=p.icon;return _I?<_I size={24} className="text-[#006e2f]" />:null;})()}
+          <ul className="nkp-grid-4 m-0 list-none p-0">
+            {PERKS.map(({ icon: Icone, title, desc }) => (
+              <li key={title} className="nkp-reveal">
+                <div className="nkp-card h-full">
+                  <div className="nkp-card__core">
+                    <span className="nkp-ic nkp-ic--sm mb-4" aria-hidden="true">
+                      <Icone strokeWidth={1.9} />
+                    </span>
+                    <h3 className="!text-[1rem]">{title}</h3>
+                    <p className="nkp-card__desc text-[.9rem]">{desc}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-base font-extrabold text-[#191c1e] mb-1">{p.title}</h3>
-                  <p className="text-sm text-[#5c647a] leading-relaxed">{p.desc}</p>
-                </div>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-16 px-6">
-        <div className="max-w-4xl mx-auto text-center bg-gradient-to-br from-[#006e2f] to-[#22c55e] rounded-3xl p-12 text-white">
-          <h2 className="text-3xl md:text-4xl font-extrabold mb-3 tracking-tight">Prêt à apprendre des meilleurs ?</h2>
-          <p className="text-lg opacity-90 mb-6 max-w-xl mx-auto">
-            Parcourez le catalogue ou contactez directement un mentor pour un coaching personnalisé.
-          </p>
-          <Link href="/mentors" className="inline-flex items-center gap-2 bg-white text-[#006e2f] px-7 py-4 rounded-2xl font-bold text-sm hover:bg-slate-100 transition-colors">
-            Voir tous les mentors
-            <ArrowRight size={18} />
-          </Link>
+      <section className="nkp-section nkp-section--compact nkp-section--top0" aria-labelledby="freelances-cta-titre">
+        <div className="nkp-wrap">
+          <div className="nkp-bezel nkp-bezel--dark nkp-bezel--xl nkp-bezel--float nkp-reveal">
+            <div className="nkp-cta nkp-cta--compact">
+              <span className="nkp-tag nkp-tag--dark">Mentorat</span>
+              <h2 id="freelances-cta-titre">Prêt à apprendre des meilleurs ?</h2>
+              <p>Parcourez le catalogue ou contactez directement un mentor pour un coaching personnalisé.</p>
+              <div className="nkp-actions">
+                <BoutonVerre href="/mentors" variante="white" taille="lg" fleche>
+                  Voir tous les mentors
+                </BoutonVerre>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
-    </div>
+    </CoquePublique>
   );
 }
