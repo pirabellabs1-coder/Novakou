@@ -249,8 +249,10 @@ REGLES STRICTES :
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-5 right-5 z-[9999] w-14 h-14 rounded-full shadow-xl text-white flex items-center justify-center hover:scale-105 transition-transform"
-          style={{ backgroundColor: config.color }}
+          className="fixed right-5 z-[9999] w-14 h-14 rounded-full shadow-xl text-white flex items-center justify-center hover:scale-105 transition-transform"
+          // `--nk-barre-bas` : posée par la barre d'achat mobile des fiches pour
+          // que la bulle ne la recouvre pas (0 partout ailleurs).
+          style={{ backgroundColor: config.color, bottom: "calc(1.25rem + var(--nk-barre-bas, 0px))" }}
           aria-label="Ouvrir l'assistant"
         >
           <span className="material-symbols-outlined text-[26px]" style={{ fontVariationSettings: "'FILL' 1" }}>chat</span>

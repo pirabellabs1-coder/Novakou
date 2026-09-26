@@ -1,43 +1,31 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useDeviseAffichage } from "@/components/formations/SelecteurDevise";
-import { formaterPrix } from "@/lib/currency/rates";
+import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import ShopFooter from "@/components/formations/ShopFooter";
 import { FormationsFooter } from "@/components/formations/FormationsFooter";
 import { FormationsNavbar } from "@/components/formations/FormationsNavbar";
 import { ShopHeader } from "@/components/formations/ShopHeader";
 import { shopFontStack, shopFontHref } from "@/lib/formations/shop-fonts";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { sora } from "@/lib/fonts";
+import { trackEvents } from "@/lib/tracking/events";
 import {
-  Star,
-  GraduationCap,
-  ArrowLeft,
   ArrowRight,
-  LayoutGrid,
   Award,
-  Flame,
-  Users,
-  PlayCircle,
-  Clock,
-  Globe,
-  CheckCircle2,
-  ChevronDown,
-  ChevronRight,
-  Lock,
-  MessageSquare,
-  BadgeCheck,
-  Play,
-  Zap,
-  Loader2,
-  Check,
-  ShieldCheck,
-  ShoppingCart,
-  Infinity as InfinityIcon,
-  MonitorSmartphone,
   CalendarCheck,
-  Store,
+  Clock,
+  Flame,
+  Globe,
+  GraduationCap,
+  Infinity as InfinityIcon,
+  Lock,
+  MonitorSmartphone,
+  Play,
+  PlayCircle,
+  RotateCcw,
+  ShieldCheck,
+  Zap,
 } from "lucide-react";
 import { PixelInjector } from "@/components/formations/PixelInjector";
 import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
@@ -46,6 +34,22 @@ import ReviewsCarousel from "@/components/formations/ReviewsCarousel";
 import { InquiryWidget } from "@/components/formations/InquiryWidget";
 import { BlocContact } from "@/components/formations/BlocContact";
 import AISupportWidget from "@/components/formations/AISupportWidget";
+import "@/components/formations/fiche/fiche.css";
+import { EnTeteFiche } from "@/components/formations/fiche/EnTeteFiche";
+import { VignetteFiche } from "@/components/formations/fiche/VignetteFiche";
+import { CarteAchat } from "@/components/formations/fiche/CarteAchat";
+import { BarreAchatMobile } from "@/components/formations/fiche/BarreAchatMobile";
+import {
+  Accordeon,
+  EtatChargementFiche,
+  EtatIntrouvable,
+  FaqFiche,
+  ListeAvis,
+  ListeCoches,
+  SectionFiche,
+  type QuestionFaq,
+} from "@/components/formations/fiche/SectionsFiche";
+import { useRevealFiche } from "@/components/formations/fiche/use-reveal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Lesson {
@@ -117,13 +121,6 @@ interface Formation {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(n);
-
-function initials(name: string | null) {
-  if (!name) return "?";
-  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
-}
-
 function fmtDuration(minutes: number) {
   if (minutes < 60) return `${minutes} min`;
   const h = Math.floor(minutes / 60);
@@ -131,106 +128,67 @@ function fmtDuration(minutes: number) {
   return m > 0 ? `${h}h${m.toString().padStart(2, "0")}` : `${h}h`;
 }
 
-function timeAgo(iso: string) {
-  const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
-  if (d < 1) return "Aujourd'hui";
-  if (d < 30) return `Il y a ${d}j`;
-  if (d < 365) return `Il y a ${Math.floor(d / 30)} mois`;
-  return `Il y a ${Math.floor(d / 365)} an(s)`;
-}
-
-const LEVEL_LABELS: Record<string, { label: string; color: string }> = {
-  DEBUTANT: { label: "Débutant", color: "bg-green-100 text-green-700" },
-  INTERMEDIAIRE: { label: "Intermédiaire", color: "bg-amber-100 text-amber-700" },
-  AVANCE: { label: "Avancé", color: "bg-red-100 text-red-700" },
-  TOUS_NIVEAUX: { label: "Tous niveaux", color: "bg-blue-100 text-blue-700" },
+const LEVEL_LABELS: Record<string, { label: string; chip: string }> = {
+  DEBUTANT: { label: "Débutant", chip: "nkf-chip--green" },
+  INTERMEDIAIRE: { label: "Intermédiaire", chip: "nkf-chip--amber" },
+  AVANCE: { label: "Avancé", chip: "nkf-chip--red" },
+  TOUS_NIVEAUX: { label: "Tous niveaux", chip: "" },
 };
 
-function StarRating({ rating, size = 14 }: { rating: number; size?: number }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((s) => (
-        <Star
-          key={s}
-          size={size}
-          className={s <= Math.round(rating) ? "fill-amber-500 text-amber-500" : "text-gray-300"}
-        />
-      ))}
-    </div>
-  );
-}
+// Objections classiques avant l'achat d'une formation. Rien de chiffré : les
+// délais et seuils de remboursement vivent dans la configuration (CGU §9).
+const FAQ_FORMATION: QuestionFaq[] = [
+  {
+    q: "Comment accéder à la formation après l'achat ?",
+    r: (
+      <>
+        Dès que le paiement est confirmé, la formation apparaît dans votre espace <strong>Mes formations</strong>. Vous suivez les
+        leçons à votre rythme, depuis un téléphone ou un ordinateur.
+      </>
+    ),
+  },
+  {
+    q: "Quels moyens de paiement sont acceptés ?",
+    r: (
+      <>
+        Mobile Money (Orange Money, MTN, Moov, Wave…) et carte bancaire, selon votre pays. Le choix se fait à l&apos;étape suivante,
+        sur une page de paiement sécurisée.
+      </>
+    ),
+  },
+  {
+    q: "L'accès est-il limité dans le temps ?",
+    r: <>Non : l&apos;accès est à vie. Vous pouvez revoir les leçons autant de fois que vous le souhaitez.</>,
+  },
+  {
+    q: "Puis-je être remboursé ?",
+    r: (
+      <>
+        Oui, pendant une courte période après l&apos;achat et tant que la formation n&apos;a pas été consommée au-delà d&apos;un certain
+        seuil. Les modalités exactes sont dans nos <Link href="/cgu">conditions générales</Link>.
+      </>
+    ),
+  },
+];
 
-// ─── Section item ─────────────────────────────────────────────────────────────
-function SectionAccordion({ section, index }: { section: Section; index: number }) {
-  const [open, setOpen] = useState(index === 0);
-
-  return (
-    <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
-      >
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-8 h-8 rounded-lg bg-[#006e2f]/10 flex items-center justify-center flex-shrink-0">
-            <span className="text-xs font-extrabold text-[#006e2f]">{index + 1}</span>
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-bold text-[#191c1e] truncate">{section.title}</p>
-            <p className="text-[11px] text-[#5c647a]">
-              {section.lessonCount} leçon{section.lessonCount > 1 ? "s" : ""}
-              {section.duration > 0 && ` · ${fmtDuration(section.duration)}`}
-            </p>
-          </div>
-        </div>
-        <ChevronDown
-          size={20}
-          className="text-[#5c647a] flex-shrink-0"
-          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
-        />
-      </button>
-      {open && (
-        <div className="border-t border-gray-100 bg-[#f7f9fb]/50">
-          {section.lessons.map((l) => (
-            <div
-              key={l.id}
-              className="flex items-center gap-3 px-5 py-2.5 border-b border-gray-50 last:border-0"
-            >
-              {l.isFree ? (
-                <PlayCircle size={16} className="fill-[#006e2f] text-white" />
-              ) : (
-                <Lock size={16} className="text-[#9ca3af]" />
-              )}
-              <p className="text-xs text-[#191c1e] flex-1 min-w-0 truncate">{l.title}</p>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {l.isFree && (
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#006e2f]/10 text-[#006e2f]">
-                    Aperçu
-                  </span>
-                )}
-                {l.duration && (
-                  <span className="text-[10px] text-[#5c647a]">{fmtDuration(l.duration)}</span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+const FAQ_CERTIFICAT: QuestionFaq = {
+  q: "Un certificat est-il délivré ?",
+  r: <>Oui : un certificat de complétion est généré une fois toutes les leçons terminées, disponible dans votre espace.</>,
+};
 
 // ─── Main ──────────────────────────────────────────────────────────────────────
 export default function FormationPageClient({ slug }: { slug: string }) {
   const router = useRouter();
-  // Meme regle que la fiche produit : le prix STOCKE reste en FCFA, seule sa
-  // lecture suit le pays choisi dans l'en-tete.
-  const deviseAffichage = useDeviseAffichage();
-  const fmtPrix = (n: number) => formaterPrix(n, deviseAffichage);
   const [formation, setFormation] = useState<Formation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [addingToCart, setAddingToCart] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
+
+  const racineRef = useRef<HTMLDivElement>(null);
+  const enteteRef = useRef<HTMLDivElement>(null);
+  const carteRef = useRef<HTMLElement>(null);
+  useRevealFiche(racineRef, formation?.id ?? "");
 
   useEffect(() => {
     async function load() {
@@ -262,8 +220,16 @@ export default function FormationPageClient({ slug }: { slug: string }) {
     document.head.appendChild(link);
   }, [formation?.shop?.font]);
 
+  function retour() {
+    // Retour à la page précédente si on a un historique interne,
+    // sinon fallback vers le catalogue (cas d'arrivée directe depuis Google).
+    if (typeof window !== "undefined" && window.history.length > 1) router.back();
+    else router.push("/explorer");
+  }
+
   function handleBuyNow() {
     if (!formation) return;
+    trackEvents.ctaClick({ id: formation.id, kind: "formation", price: formation.price, title: formation.title }, "fiche_formation");
     router.push(`/checkout?fids=${formation.id}`);
   }
 
@@ -279,6 +245,7 @@ export default function FormationPageClient({ slug }: { slug: string }) {
       if (res.ok) {
         // Reste « Ajouté au panier » (coloré) : on ne réinitialise plus.
         setAddedToCart(true);
+        trackEvents.addToCart({ id: formation.id, kind: "formation", price: formation.price, title: formation.title });
         // Notify the navbar cart badge to refresh
         try {
           window.dispatchEvent(new CustomEvent("nk:cart-change"));
@@ -289,49 +256,51 @@ export default function FormationPageClient({ slug }: { slug: string }) {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#f7f9fb] animate-pulse">
-        <div className="h-72 bg-gray-200" />
-        <div className="max-w-6xl mx-auto px-6 py-8 space-y-4">
-          <div className="h-10 w-2/3 bg-gray-200 rounded-xl" />
-          <div className="h-60 bg-gray-200 rounded-2xl" />
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <EtatChargementFiche />;
 
   if (error || !formation) {
     return (
-      <div className="min-h-screen bg-[#f7f9fb] flex items-center justify-center px-6">
-        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center max-w-md">
-          <GraduationCap size={48} className="text-gray-300 mx-auto" />
-          <h2 className="text-lg font-bold text-[#191c1e] mt-3">Formation introuvable</h2>
-          <p className="text-sm text-[#5c647a] mt-1.5 mb-4">
-            Cette formation n&apos;existe pas ou n&apos;est plus disponible.
-          </p>
-          <Link
-            href="/explorer"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-bold"
-            style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-          >
-            <ArrowLeft size={16} />
-            Voir le catalogue
-          </Link>
-        </div>
-      </div>
+      <EtatIntrouvable
+        Icone={GraduationCap}
+        titre="Formation introuvable"
+        texte="Cette formation n'existe pas ou n'est plus disponible."
+      />
     );
   }
 
-  const levelInfo = LEVEL_LABELS[formation.level] ?? { label: formation.level, color: "bg-gray-100 text-gray-700" };
+  const levelInfo = LEVEL_LABELS[formation.level] ?? { label: formation.level, chip: "" };
   const discount = formation.originalPrice && formation.originalPrice > formation.price
     ? Math.round(((formation.originalPrice - formation.price) / formation.originalPrice) * 100)
     : 0;
 
+  // Police de la boutique : corps ET titres, pour garder son identité.
+  const policeBoutique = formation.shop?.font ? shopFontStack(formation.shop.font) : null;
+  const stylePolice = policeBoutique
+    ? ({ fontFamily: policeBoutique, "--nkf-display": policeBoutique } as CSSProperties)
+    : undefined;
+
+  // Fil d'Ariane : depuis une boutique, on ne renvoie JAMAIS vers la place de
+  // marché (les concurrents du vendeur) — la catégorie reste un simple texte.
+  const fil = [
+    formation.shop ? { label: formation.shop.name, href: `/${formation.shop.slug}` } : { label: "Explorer", href: "/explorer" },
+    ...(formation.category
+      ? [{ label: formation.category.name, href: formation.shop ? undefined : `/explorer?categorie=${formation.category.slug}` }]
+      : []),
+    { label: formation.title },
+  ];
+
+  const faq = formation.hasCertificate ? [...FAQ_FORMATION, FAQ_CERTIFICAT] : FAQ_FORMATION;
+  const programmeMeta = [
+    `${formation.sections.length} section${formation.sections.length > 1 ? "s" : ""}`,
+    `${formation.totalLessons} leçon${formation.totalLessons > 1 ? "s" : ""}`,
+    ...(formation.duration > 0 ? [fmtDuration(formation.duration)] : []),
+  ].join(" · ");
+
   return (
     <div
-      className="min-h-screen bg-[#f7f9fb] pb-24 md:pb-0"
-      style={formation.shop?.font ? { fontFamily: shopFontStack(formation.shop.font) } : undefined}
+      ref={racineRef}
+      className={`nkf ${sora.variable} min-h-screen bg-[#f7f9fb] pb-24 lg:pb-0 ${formation.shop ? "" : "pt-16 lg:pt-[76px]"}`}
+      style={stylePolice}
     >
       {/* En-tête : celui de la BOUTIQUE quand la formation en a une, pour que
           l'acheteur reste dans son univers. Le menu plateforme est masqué sur
@@ -360,333 +329,141 @@ export default function FormationPageClient({ slug }: { slug: string }) {
         pageContext={`Le visiteur consulte la formation "${formation.title}" à ${formation.price} F CFA.`}
       />
 
-      {/* Breadcrumb minimal + back button — no hero cover */}
-      <div className="max-w-6xl mx-auto px-4 md:px-6 pt-6 flex items-center gap-2 flex-wrap">
-        <button
-          type="button"
-          onClick={() => {
-            // Retour à la page précédente si on a un historique interne,
-            // sinon fallback vers le catalogue (cas d'arrivée directe depuis Google).
-            if (typeof window !== "undefined" && window.history.length > 1) router.back();
-            else router.push("/explorer");
-          }}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-gray-200 text-[#5c647a] text-xs font-semibold hover:bg-gray-50 hover:text-[#191c1e] transition-colors"
-        >
-          <ArrowLeft size={14} />
-          Retour
-        </button>
-        <Link
-          href="/explorer"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[#5c647a] text-xs font-semibold hover:text-[#006e2f] transition-colors"
-        >
-          <LayoutGrid size={14} />
-          Catalogue
-        </Link>
-        {/* Mobile title */}
-        <h1 className="text-2xl font-extrabold text-[#191c1e] leading-tight mt-4 md:hidden">
-          {formation.title}
-        </h1>
-      </div>
-
-      <div className="max-w-6xl mx-auto px-4 md:px-6 mt-6 pb-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          {/* ── Main content ─────────────────────────────────────────── */}
-          <div className="lg:col-span-2 space-y-5">
-            {/* Product image card — aspect 16:9 */}
-            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-              <div className="aspect-video w-full bg-gradient-to-br from-[#006e2f]/10 to-[#22c55e]/10 flex items-center justify-center">
-                {formation.thumbnail ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={formation.thumbnail}
-                    alt={formation.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="text-center">
-                    <PlayCircle size={64} className="text-[#006e2f] opacity-40 mx-auto" />
-                    <p className="text-xs text-[#5c647a] mt-2 font-semibold uppercase tracking-wide">
-                      Formation vidéo
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Header card */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8 shadow-sm">
-              <div className="flex flex-wrap items-center gap-2 mb-3">
-                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${levelInfo.color}`}>
-                  {levelInfo.label}
-                </span>
-                {formation.category && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-[#5c647a]">
-                    {formation.category.name}
-                  </span>
-                )}
-                {formation.hasCertificate && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-700">
-                    <Award size={13} />
-                    Certificat
-                  </span>
-                )}
-                {formation.studentsCount > 100 && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-700">
-                    <Flame size={13} className="fill-amber-700" />
-                    POPULAIRE
-                  </span>
-                )}
-              </div>
-
-              <h1 className="hidden md:block text-2xl md:text-3xl font-extrabold text-[#191c1e] leading-tight">
-                {formation.title}
-              </h1>
-              {formation.shortDesc && (
-                <p className="text-sm text-[#5c647a] mt-3 leading-relaxed">{formation.shortDesc}</p>
-              )}
-
-              {/* Stats — note affichée seulement si la formation a des avis
-                  (pas de « Nouveau » qui fait vide sur les nouvelles formations) */}
-              <div className="flex items-center gap-4 mt-4 flex-wrap">
-                {formation.rating > 0 && (
-                  <div className="flex items-center gap-1.5">
-                    <StarRating rating={formation.rating} size={16} />
-                    <span className="text-sm font-bold text-[#191c1e]">
-                      {formation.rating.toFixed(1)}
+      <div className="mx-auto max-w-6xl px-4 pb-14 pt-5 md:px-6 md:pb-20 md:pt-7">
+        {/* Grille : en-tête sur toute la largeur, puis contenu à gauche et
+            carte d'achat à droite (collante, sur deux rangées). Sur mobile,
+            l'ordre du DOM fait foi : en-tête, visuel, carte, contenu. */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:grid-rows-[auto_auto_1fr] lg:gap-x-10 lg:gap-y-8 xl:grid-cols-[minmax(0,1fr)_384px]">
+          <div ref={enteteRef} className="lg:col-span-2">
+            <EnTeteFiche
+              fil={fil}
+              onRetour={retour}
+              eyebrow={formation.category?.name ?? "Formation en ligne"}
+              titre={formation.title}
+              sousTitre={formation.shortDesc}
+              note={formation.rating}
+              nbAvis={formation.reviewsCount}
+              // Le nombre d'apprenants n'est une preuve qu'au-delà de 100 (règle de
+              // l'ancienne fiche) ; en dessous il dessert la formation.
+              compteur={
+                formation.studentsCount > 100
+                  ? { valeur: formation.studentsCount, libelle: formation.studentsCount > 1 ? "apprenants" : "apprenant" }
+                  : null
+              }
+              infos={[
+                ...(formation.totalLessons > 0
+                  ? [
+                      <Fragment key="lecons">
+                        <PlayCircle aria-hidden="true" />
+                        <strong>{formation.totalLessons}</strong> leçon{formation.totalLessons > 1 ? "s" : ""}
+                      </Fragment>,
+                    ]
+                  : []),
+                ...(formation.duration > 0
+                  ? [
+                      <Fragment key="duree">
+                        <Clock aria-hidden="true" />
+                        <strong>{fmtDuration(formation.duration)}</strong> de contenu
+                      </Fragment>,
+                    ]
+                  : []),
+                ...(formation.languages.length > 0
+                  ? [
+                      <Fragment key="langues">
+                        <Globe aria-hidden="true" />
+                        {formation.languages.map((l) => l.toUpperCase()).join(", ")}
+                      </Fragment>,
+                    ]
+                  : []),
+              ]}
+              badges={
+                <>
+                  <span className={`nkf-chip ${levelInfo.chip}`}>{levelInfo.label}</span>
+                  {formation.hasCertificate && (
+                    <span className="nkf-chip nkf-chip--green">
+                      <Award aria-hidden="true" />
+                      Certificat inclus
                     </span>
-                    {formation.reviewsCount > 0 && (
-                      <span className="text-xs text-[#5c647a]">({formation.reviewsCount})</span>
-                    )}
-                  </div>
-                )}
-                <span className="text-xs text-[#5c647a] flex items-center gap-1">
-                  <Users size={14} />
-                  {fmt(formation.studentsCount)} apprenant{formation.studentsCount > 1 ? "s" : ""}
-                </span>
-                <span className="text-xs text-[#5c647a] flex items-center gap-1">
-                  <PlayCircle size={14} />
-                  {formation.totalLessons} leçon{formation.totalLessons > 1 ? "s" : ""}
-                </span>
-                {formation.duration > 0 && (
-                  <span className="text-xs text-[#5c647a] flex items-center gap-1">
-                    <Clock size={14} />
-                    {fmtDuration(formation.duration)}
-                  </span>
-                )}
-                <span className="text-xs text-[#5c647a] flex items-center gap-1">
-                  <Globe size={14} />
-                  {formation.languages.map((l) => l.toUpperCase()).join(", ")}
-                </span>
-              </div>
-            </div>
-
-            {/* What you'll learn */}
-            {formation.learnPoints && formation.learnPoints.length > 0 && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
-                <h2 className="text-lg font-extrabold text-[#191c1e] mb-4">Ce que vous allez apprendre</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {formation.learnPoints.map((p, i) => (
-                    <div key={i} className="flex items-start gap-2">
-                      <CheckCircle2 size={18} className="text-[#006e2f] flex-shrink-0 mt-0.5" />
-                      <p className="text-sm text-[#191c1e] leading-relaxed">{p}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Course content */}
-            {formation.sections && formation.sections.length > 0 && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
-                <h2 className="text-lg font-extrabold text-[#191c1e] mb-2">Contenu de la formation</h2>
-                <p className="text-xs text-[#5c647a] mb-4">
-                  {formation.sections.length} section{formation.sections.length > 1 ? "s" : ""} ·{" "}
-                  {formation.totalLessons} leçon{formation.totalLessons > 1 ? "s" : ""}
-                  {formation.duration > 0 && ` · ${fmtDuration(formation.duration)}`}
-                </p>
-                <div className="space-y-2">
-                  {formation.sections.map((s, i) => (
-                    <SectionAccordion key={s.id} section={s} index={i} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Requirements */}
-            {formation.requirements && formation.requirements.length > 0 && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
-                <h2 className="text-lg font-extrabold text-[#191c1e] mb-4">Prérequis</h2>
-                <ul className="space-y-2">
-                  {formation.requirements.map((r, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <ArrowRight size={18} className="text-[#5c647a] flex-shrink-0 mt-0.5" />
-                      <p className="text-sm text-[#5c647a] leading-relaxed">{r}</p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Target audience */}
-            {formation.targetAudience && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
-                <h2 className="text-lg font-extrabold text-[#191c1e] mb-3">À qui s&apos;adresse cette formation ?</h2>
-                <p className="text-sm text-[#5c647a] leading-relaxed whitespace-pre-wrap">{formation.targetAudience}</p>
-              </div>
-            )}
-
-            {/* Description */}
-            {formation.description && (
-              <div className="nk-desc bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
-                <h2 className="text-lg font-extrabold text-[#191c1e] mb-3">Description</h2>
-                {/* Rendu unifié HTML/Markdown — identique à l'éditeur (nk-rich) */}
-                <TiptapRenderer content={formation.description} />
-              </div>
-            )}
-
-            {/* Reviews */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
-              <h2 className="text-lg font-extrabold text-[#191c1e] mb-4 flex items-center gap-2">
-                Avis des apprenants
-                <span className="text-sm font-semibold text-[#5c647a]">({formation.reviewsCount})</span>
-              </h2>
-              {formation.reviews.length === 0 ? (
-                <div className="text-center py-8">
-                  <MessageSquare size={48} className="text-gray-300 mx-auto" />
-                  <p className="text-sm text-[#5c647a] mt-3">Aucun avis pour cette formation pour l&apos;instant.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {formation.reviews.map((r) => (
-                    <div key={r.id} className="pb-4 border-b border-gray-100 last:border-0 last:pb-0">
-                      <div className="flex items-start gap-3">
-                        <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-600 text-xs font-bold flex-shrink-0">
-                          {r.user.image ? (
-                            <img src={r.user.image} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            initials(r.user.name)
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="text-sm font-bold text-[#191c1e]">{r.user.name ?? "Client"}</p>
-                            <span className="text-[11px] text-[#5c647a]">{timeAgo(r.createdAt)}</span>
-                          </div>
-                          <StarRating rating={r.rating} size={13} />
-                          <p className="text-sm text-[#5c647a] mt-1.5 leading-relaxed whitespace-pre-wrap">{r.comment}</p>
-
-                          {/* Vendor response */}
-                          {r.response && (
-                            <div className="mt-3 ml-0 border-l-2 border-emerald-300 pl-4 py-2 bg-emerald-50/40 rounded-r-lg">
-                              <div className="flex items-center gap-1.5 mb-1">
-                                <BadgeCheck size={14} className="text-emerald-600" />
-                                <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-700">
-                                  Réponse du créateur
-                                </p>
-                                {r.respondedAt && (
-                                  <span className="text-[11px] text-emerald-600">· {timeAgo(r.respondedAt)}</span>
-                                )}
-                              </div>
-                              <p className="text-sm text-[#191c1e] leading-relaxed whitespace-pre-wrap">{r.response}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  )}
+                  {formation.studentsCount > 100 && (
+                    <span className="nkf-chip nkf-chip--amber">
+                      <Flame aria-hidden="true" />
+                      Populaire
+                    </span>
+                  )}
+                </>
+              }
+              boutique={
+                formation.shop ? { nom: formation.shop.name, href: `/${formation.shop.slug}`, logoUrl: formation.shop.logoUrl } : null
+              }
+            />
           </div>
 
-          {/* ── Sidebar ─────────────────────────────────────────────────── */}
-          <div className="space-y-5">
-            {/* Price card */}
-            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden sticky top-4">
-              {/* Preview video */}
-              {formation.previewVideo && (
-                <div className="relative aspect-video bg-black">
+          {/* Visuel : la vidéo de présentation quand il y en a une (elle vivait
+              dans la colonne prix, à l'étroit), sinon la vignette 16:9. */}
+          <div className="lg:col-start-1 lg:row-start-2">
+            <VignetteFiche
+              src={formation.thumbnail}
+              alt={formation.title}
+              Icone={PlayCircle}
+              media={
+                formation.previewVideo ? (
                   <video
                     src={formation.previewVideo}
                     controls
-                    className="w-full h-full object-cover"
+                    preload="metadata"
                     poster={formation.thumbnail ?? undefined}
+                    className="absolute inset-0 h-full w-full bg-black object-cover"
                   />
-                </div>
-              )}
+                ) : undefined
+              }
+              badges={
+                <>
+                  <span className="nkf-tag">
+                    <PlayCircle aria-hidden="true" />
+                    {formation.previewVideo ? "Aperçu vidéo" : "Formation vidéo"}
+                  </span>
+                  {discount > 0 && !formation.isFree && <span className="nkf-tag nkf-tag--ink tabular-nums">−{discount} %</span>}
+                </>
+              }
+            />
+          </div>
 
-              <div className="p-6">
-                <div className="mb-4">
-                  {discount > 0 && (
-                    <span className="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700 mb-2">
-                      -{discount}%
-                    </span>
-                  )}
-                  <div className="flex items-baseline gap-2">
-                    {formation.isFree ? (
-                      <p className="text-3xl font-extrabold text-[#006e2f]">Gratuit</p>
-                    ) : (
+          <aside ref={carteRef} className="lg:col-start-2 lg:row-start-2 lg:row-span-2" aria-label="Acheter cette formation">
+            <div className="lg:sticky lg:top-24">
+              <CarteAchat
+                prix={formation.price}
+                prixInitial={formation.originalPrice}
+                gratuit={formation.isFree}
+                principal={{
+                  libelle: formation.isFree ? "Commencer maintenant" : "Acheter maintenant",
+                  onClick: handleBuyNow,
+                  Icone: formation.isFree ? Play : Zap,
+                }}
+                panier={
+                  !formation.isFree
+                    ? { onClick: handleAddToCart, etat: addedToCart ? "ajoute" : addingToCart ? "chargement" : "repos" }
+                    : null
+                }
+                moyensPaiement={!formation.isFree}
+                garanties={[
+                  { Icone: CalendarCheck, contenu: formation.isFree ? "Accès immédiat" : "Accès immédiat après paiement" },
+                  { Icone: InfinityIcon, contenu: "Accès à vie" },
+                  ...(formation.hasCertificate ? [{ Icone: Award, contenu: "Certificat de complétion" }] : []),
+                  { Icone: MonitorSmartphone, contenu: "Accessible sur mobile & desktop" },
+                  { Icone: ShieldCheck, contenu: "Paiement 100 % sécurisé" },
+                  {
+                    Icone: RotateCcw,
+                    contenu: (
                       <>
-                        <p className="text-3xl font-extrabold text-[#006e2f]">
-                          {fmtPrix(formation.price)}
-                        </p>
+                        Remboursement encadré — <Link href="/cgu">conditions</Link>
                       </>
-                    )}
-                  </div>
-                  {formation.originalPrice && formation.originalPrice > formation.price && (
-                    <p className="text-sm text-gray-400 line-through">{fmtPrix(formation.originalPrice)}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <button
-                    onClick={handleBuyNow}
-                    className="w-full py-3.5 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
-                    style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-                  >
-                    {formation.isFree ? <Play size={18} className="fill-white" /> : <Zap size={18} />}
-                    {formation.isFree ? "Commencer maintenant" : "Acheter maintenant"}
-                  </button>
-                  {!formation.isFree && (
-                    <button
-                      onClick={handleAddToCart}
-                      disabled={addingToCart}
-                      className="w-full py-3 rounded-xl text-[#006e2f] font-bold text-sm border-2 border-[#006e2f]/20 hover:border-[#006e2f]/40 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                    >
-                      {addingToCart ? (
-                        <Loader2 size={18} className="animate-spin" />
-                      ) : addedToCart ? (
-                        <>
-                          <Check size={18} />
-                          Ajouté au panier
-                        </>
-                      ) : (
-                        <>
-                          <ShoppingCart size={18} />
-                          Ajouter au panier
-                        </>
-                      )}
-                    </button>
-                  )}
-
-                  {/* Réassurance + moyens de paiement acceptés */}
-                  {!formation.isFree && (
-                    <div className="mt-3.5 pt-3.5 border-t border-gray-100">
-                      <div className="flex items-center justify-center gap-1.5 text-[#5c647a]">
-                        <ShieldCheck size={13} className="text-[#006e2f]" />
-                        <span className="text-[11px] font-semibold">Paiement 100% sécurisé</span>
-                      </div>
-                      <div className="flex items-center justify-center gap-1.5 flex-wrap mt-2">
-                        {["Carte", "Orange Money", "MTN", "Moov", "Wave"].map((m) => (
-                          <span key={m} className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-gray-100 text-[#5c647a]">
-                            {m}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
+                    ),
+                  },
+                ]}
+                boutique={formation.shop ? { nom: formation.shop.name, href: `/${formation.shop.slug}` } : null}
+                partage={formation.title}
+              >
                 <div className="mt-3">
                   <InquiryWidget
                     formationId={formation.id}
@@ -694,68 +471,114 @@ export default function FormationPageClient({ slug }: { slug: string }) {
                     vendorName={formation.shop?.name ?? "la boutique"}
                   />
                 </div>
-
-                <div className="mt-5 pt-5 border-t border-gray-100 space-y-2.5">
-                  <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-                    <InfinityIcon size={16} className="text-[#006e2f]" />
-                    Accès à vie
-                  </div>
-                  {formation.hasCertificate && (
-                    <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-                      <Award size={16} className="text-[#006e2f]" />
-                      Certificat de complétion
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-                    <MonitorSmartphone size={16} className="text-[#006e2f]" />
-                    Accessible sur mobile & desktop
-                  </div>
-                </div>
-                {formation.shop && (
-                  <Link
-                    href={`/${formation.shop.slug}`}
-                    className="mt-4 flex items-center justify-between gap-2 rounded-xl border border-gray-200 px-4 py-3 hover:border-[#006e2f]/40 hover:bg-[#006e2f]/[0.03] transition-colors group"
-                  >
-                    <span className="flex items-center gap-2 min-w-0">
-                      <Store size={16} className="text-[#006e2f] flex-shrink-0" />
-                      <span className="text-sm font-semibold text-[#191c1e] truncate">Voir la boutique {formation.shop.name}</span>
-                    </span>
-                    <ChevronRight size={16} className="text-[#5c647a] group-hover:text-[#006e2f] flex-shrink-0" />
-                  </Link>
-                )}
-              </div>
+              </CarteAchat>
             </div>
+          </aside>
 
+          <div className="grid gap-6 lg:col-start-1 lg:row-start-3 lg:self-start">
+            {formation.learnPoints && formation.learnPoints.length > 0 && (
+              <SectionFiche id="objectifs" titre="Ce que vous allez apprendre" eyebrow="Objectifs">
+                <ListeCoches items={formation.learnPoints} colonnes={2} />
+              </SectionFiche>
+            )}
+
+            {formation.description && (
+              <SectionFiche id="description" titre="Description" eyebrow="À propos de cette formation">
+                <div className="nkf-prose">
+                  {/* Rendu unifié HTML/Markdown — identique à l'éditeur (nk-rich) */}
+                  <TiptapRenderer content={formation.description} />
+                </div>
+              </SectionFiche>
+            )}
+
+            {formation.sections && formation.sections.length > 0 && (
+              <SectionFiche id="programme" titre="Programme de la formation" eyebrow="Contenu" meta={programmeMeta}>
+                <div className="grid gap-2.5">
+                  {formation.sections.map((s, i) => (
+                    <Accordeon
+                      key={s.id}
+                      num={i + 1}
+                      titre={s.title}
+                      meta={`${s.lessonCount} leçon${s.lessonCount > 1 ? "s" : ""}${s.duration > 0 ? ` · ${fmtDuration(s.duration)}` : ""}`}
+                      defautOuvert={i === 0}
+                    >
+                      <ul className="m-0 list-none p-0">
+                        {s.lessons.map((l) => (
+                          <li key={l.id} className="nkf-lesson">
+                            {l.isFree ? (
+                              <PlayCircle className="text-[#006e2f]" aria-hidden="true" />
+                            ) : (
+                              <Lock className="text-[#8a968e]" aria-hidden="true" />
+                            )}
+                            <span className="min-w-0 flex-1 truncate">{l.title}</span>
+                            {l.isFree && <span className="nkf-chip nkf-chip--green">Aperçu</span>}
+                            {l.duration ? <span className="text-xs tabular-nums text-[#5c6b62]">{fmtDuration(l.duration)}</span> : null}
+                            {!l.isFree && <span className="sr-only">(réservé aux inscrits)</span>}
+                          </li>
+                        ))}
+                      </ul>
+                    </Accordeon>
+                  ))}
+                </div>
+              </SectionFiche>
+            )}
+
+            {formation.targetAudience && (
+              <SectionFiche id="pour-qui" titre="À qui s'adresse cette formation ?" eyebrow="Pour qui">
+                <p className="max-w-[68ch] whitespace-pre-wrap text-[0.9375rem] leading-relaxed text-[#2f3a34]">{formation.targetAudience}</p>
+              </SectionFiche>
+            )}
+
+            {formation.requirements && formation.requirements.length > 0 && (
+              <SectionFiche id="prerequis" titre="Prérequis" eyebrow="Avant de commencer">
+                <ListeCoches items={formation.requirements} Icone={ArrowRight} />
+              </SectionFiche>
+            )}
+
+            <SectionFiche id="faq" titre="Questions fréquentes" eyebrow="Avant d'acheter">
+              <FaqFiche items={faq} />
+            </SectionFiche>
+
+            <SectionFiche
+              id="avis"
+              titre="Avis des apprenants"
+              eyebrow="Ils ont suivi la formation"
+              meta={`${formation.reviewsCount} avis`}
+            >
+              {formation.reviews.length >= 2 ? (
+                <>
+                  <ReviewsCarousel reviews={formation.reviews} themeColor={formation.shop?.themeColor ?? "#006e2f"} sansCadre />
+                  {/* Liste complète (avec les réponses du créateur) repliée sous le carrousel. */}
+                  <div className="mt-5">
+                    <Accordeon titre={`Lire tous les avis (${formation.reviews.length})`}>
+                      <ListeAvis avis={formation.reviews} vide="Aucun avis pour cette formation pour l'instant." />
+                    </Accordeon>
+                  </div>
+                </>
+              ) : (
+                <ListeAvis avis={formation.reviews} vide="Aucun avis pour cette formation pour l'instant." />
+              )}
+            </SectionFiche>
+
+            {/* Contact : l'acheteur vient de finir la description, il hésite, et
+                c'est là qu'une question sans réponse le fait partir. Même
+                placement que la fiche produit — les deux pages se lisent pareil. */}
+            <div className="nkf-reveal [&>section]:mt-0">
+              <BlocContact
+                contactEmail={formation.shop?.contactEmail}
+                whatsapp={formation.shop?.whatsapp}
+                nomBoutique={formation.shop?.name}
+                titreProduit={formation.title}
+                themeColor={formation.shop?.themeColor}
+                chatDisponible
+              />
+            </div>
           </div>
         </div>
 
-        {/* Carrousel d'avis — preuve sociale (affiché s'il y a ≥ 2 avis) */}
-        {formation.reviews.length >= 2 && (
-          <div className="mt-6">
-            <ReviewsCarousel reviews={formation.reviews} themeColor={formation.shop?.themeColor ?? "#006e2f"} />
-          </div>
-        )}
-
-        {/* Contact : l'acheteur vient de finir la description, il hesite, et
-            c'est la qu'une question sans reponse le fait partir. Apres les
-            recommandations, on le lui offrirait une fois deja parti ailleurs.
-            Meme placement que la fiche produit — les deux pages se lisent pareil. */}
-        <BlocContact
-          contactEmail={formation.shop?.contactEmail}
-          whatsapp={formation.shop?.whatsapp}
-          nomBoutique={formation.shop?.name}
-          titreProduit={formation.title}
-          themeColor={formation.shop?.themeColor}
-          chatDisponible
-        />
-
         {/* Recommandations « Vous aimerez aussi » (v2 Phase 2) */}
-        <div className="mt-6">
-          <RelatedProducts
-            instructeurId={formation.instructeur?.id}
-            excludeId={formation.id}
-            title="Autres produits de la boutique"
-          />
+        <div className="nkf-reveal mt-10 md:mt-14">
+          <RelatedProducts instructeurId={formation.instructeur?.id} excludeId={formation.id} title="Autres produits de la boutique" />
         </div>
       </div>
 
@@ -766,23 +589,17 @@ export default function FormationPageClient({ slug }: { slug: string }) {
         <FormationsFooter />
       )}
 
-      {/* Barre d'achat collante — mobile uniquement. */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-4 py-3 flex items-center gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="text-[11px] text-[#5c647a] leading-none">{formation.isFree ? "" : "Prix"}</p>
-          <p className="text-lg font-extrabold text-[#006e2f] leading-tight truncate">
-            {formation.isFree ? "Gratuit" : fmtPrix(formation.price)}
-          </p>
-        </div>
-        <button
-          onClick={handleBuyNow}
-          className="flex-shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white font-bold text-sm shadow-md active:scale-95 transition-transform"
-          style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-        >
-          {formation.isFree ? <Play size={17} className="fill-white" /> : <Zap size={17} />}
-          {formation.isFree ? "Commencer" : "Acheter"}
-        </button>
-      </div>
+      {/* Barre d'achat fixe en bas — sous `lg` uniquement. */}
+      <BarreAchatMobile
+        prix={formation.price}
+        prixInitial={formation.originalPrice}
+        gratuit={formation.isFree}
+        libelle={formation.isFree ? "Commencer" : "Acheter"}
+        Icone={formation.isFree ? Play : Zap}
+        onClick={handleBuyNow}
+        apresRef={enteteRef}
+        carteRef={carteRef}
+      />
     </div>
   );
 }

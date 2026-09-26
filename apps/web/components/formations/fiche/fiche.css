@@ -1,0 +1,370 @@
+/* ============================================================
+   Fiches produit / formation / pack — styles scopés sous .nkf.
+   Même langue visuelle que l'accueil (home.css), le menu (nav.css) et
+   la marketplace (explorer.css) : verre, double-bezel, ombres teintées
+   vert nuit, courbe --nkf-ease. Préfixe nkf- pour ne jamais entrer en
+   conflit avec ces feuilles. Tout ce qui bouge n'anime que transform et
+   opacity — sauf les accordéons, en grid-template-rows (jamais height).
+   ============================================================ */
+.nkf {
+  --nkf-green: #006e2f;
+  --nkf-green-hover: #005c27;
+  --nkf-green-night: #032314;
+  --nkf-tint: #f0f6f2;
+  --nkf-tint-2: #dfede4;
+  --nkf-ink: #0e1512;
+  --nkf-grey: #5c6b62;
+  --nkf-line: #e6ece8;
+  --nkf-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --nkf-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --nkf-fast: 0.18s;
+  --nkf-base: 0.3s;
+  --nkf-bz-r: 22px;
+  --nkf-bz-p: 6px;
+  --nkf-bz-shell: rgba(14, 21, 18, 0.035);
+  --nkf-bz-ring: rgba(14, 21, 18, 0.06);
+  --nkf-shadow-sm: 0 1px 2px rgba(14, 21, 18, 0.05), 0 1px 3px rgba(14, 21, 18, 0.06);
+  --nkf-shadow-md: 0 4px 6px -2px rgba(14, 21, 18, 0.05), 0 14px 28px -8px rgba(14, 21, 18, 0.12);
+  --nkf-shadow-lg: 0 24px 60px -18px rgba(3, 35, 20, 0.22);
+  /* Titres en Sora ; une boutique à police propre la remplace (variable
+     posée en inline par la page) pour garder son identité. */
+  --nkf-display: var(--font-sora), "Sora", var(--font-inter), "Inter", system-ui, sans-serif;
+  color: var(--nkf-ink);
+  -webkit-font-smoothing: antialiased;
+}
+.nkf ::selection { background: var(--nkf-green); color: #fff; }
+
+/* ── En-tête : halo radial discret, comme le hero de la marketplace ── */
+.nkf-hero { position: relative; isolation: isolate; }
+.nkf-hero::before {
+  content: ""; position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+  width: min(1100px, 100%); height: 420px; pointer-events: none; z-index: -1;
+  background: radial-gradient(50% 60% at 50% 0%, rgba(0, 110, 47, 0.08), transparent 70%);
+}
+
+/* ── Typographie (pas de reset de marge ici : le preflight Tailwind s'en
+   charge, et un `margin:0` déclaré après lui écraserait les mt-* des pages) ── */
+.nkf-h1 {
+  font-family: var(--nkf-display); font-size: clamp(1.75rem, 1.15rem + 2.2vw, 2.75rem);
+  font-weight: 700; letter-spacing: -0.03em; line-height: 1.08; color: var(--nkf-ink); text-wrap: balance;
+}
+.nkf-h2 {
+  font-family: var(--nkf-display); font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+  font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; color: var(--nkf-ink);
+}
+.nkf-lead { font-size: 1.0625rem; line-height: 1.6; color: var(--nkf-grey); max-width: 62ch; text-wrap: pretty; }
+.nkf-eyebrow {
+  display: inline-flex; align-items: center; gap: 7px; font-size: 0.6875rem; font-weight: 700;
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--nkf-green);
+}
+.nkf-eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--nkf-green); }
+/* Contenu riche (nk-rich, globals.css) : mesure de lecture et titres en Sora. */
+.nkf-prose { max-width: 68ch; }
+.nkf .nk-rich { font-size: 0.9375rem; line-height: 1.75; color: #2f3a34; }
+.nkf .nk-rich h1, .nkf .nk-rich h2, .nkf .nk-rich h3 { font-family: var(--nkf-display); letter-spacing: -0.02em; color: var(--nkf-ink); }
+.nkf .nk-rich img { border-radius: 14px; }
+
+/* ── Fil d'Ariane + retour ── */
+.nkf-back {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px 0 10px; border-radius: 999px;
+  font-size: 0.75rem; font-weight: 600; color: var(--nkf-ink); background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.07), inset 0 1px 0 #fff, 0 1px 2px rgba(14, 21, 18, 0.04);
+  transition: transform var(--nkf-base) var(--nkf-ease), background-color var(--nkf-base) var(--nkf-ease);
+}
+.nkf-back svg { width: 14px; height: 14px; transition: transform var(--nkf-base) var(--nkf-ease); }
+.nkf-back:hover { background: #fff; transform: translateY(-1px); }
+.nkf-back:hover svg { transform: translateX(-2px); }
+.nkf-back:focus-visible { outline: 2px solid var(--nkf-green); outline-offset: 2px; }
+.nkf-crumb { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; list-style: none; font-size: 0.75rem; color: var(--nkf-grey); min-width: 0; }
+.nkf-crumb li { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.nkf-crumb a { border-radius: 4px; transition: color var(--nkf-fast) var(--nkf-ease); }
+.nkf-crumb a:hover { color: var(--nkf-green); }
+.nkf-crumb a:focus-visible { outline: 2px solid var(--nkf-green); outline-offset: 3px; }
+.nkf-crumb__sep { width: 14px; height: 14px; color: #b7c2bb; flex-shrink: 0; }
+.nkf-crumb__cur { color: var(--nkf-ink); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: min(280px, 56vw); }
+
+/* ── Ligne de confiance, étiquettes, auteur ── */
+.nkf-trust { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; list-style: none; font-size: 0.8125rem; color: var(--nkf-grey); }
+.nkf-trust li { display: inline-flex; align-items: center; gap: 6px; }
+.nkf-trust svg { width: 15px; height: 15px; flex-shrink: 0; }
+.nkf-trust strong { color: var(--nkf-ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+.nkf-trust a { border-radius: 4px; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(14, 21, 18, 0.25); transition: color var(--nkf-fast) var(--nkf-ease); }
+.nkf-trust a:hover { color: var(--nkf-green); }
+.nkf-trust a:focus-visible { outline: 2px solid var(--nkf-green); outline-offset: 3px; }
+.nkf-chip {
+  display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 999px; line-height: 1;
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.02em; color: var(--nkf-ink); background: rgba(255, 255, 255, 0.8);
+  box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.07), inset 0 1px 0 #fff;
+}
+.nkf-chip svg { width: 12px; height: 12px; }
+.nkf-chip--green { color: var(--nkf-green); background: var(--nkf-tint); box-shadow: inset 0 0 0 1px rgba(0, 110, 47, 0.12); }
+.nkf-chip--ink { color: #fff; background: rgba(14, 21, 18, 0.88); box-shadow: none; }
+.nkf-chip--amber { color: #8a4b00; background: #fff4e0; box-shadow: inset 0 0 0 1px rgba(138, 75, 0, 0.12); }
+.nkf-chip--red { color: #b42318; background: #fdecea; box-shadow: inset 0 0 0 1px rgba(180, 35, 24, 0.12); }
+.nkf-author {
+  display: inline-flex; align-items: center; gap: 10px; max-width: 100%; padding: 5px 16px 5px 5px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72); box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.07), inset 0 1px 0 #fff, 0 1px 2px rgba(14, 21, 18, 0.04);
+  transition: transform var(--nkf-base) var(--nkf-ease), background-color var(--nkf-base) var(--nkf-ease), box-shadow var(--nkf-base) var(--nkf-ease);
+}
+.nkf-author:hover { background: #fff; transform: translateY(-1px); box-shadow: inset 0 0 0 1px rgba(0, 110, 47, 0.2), inset 0 1px 0 #fff, 0 8px 20px -12px rgba(3, 35, 20, 0.25); }
+.nkf-author:focus-visible { outline: 2px solid var(--nkf-green); outline-offset: 3px; }
+.nkf-author__avatar {
+  width: 34px; height: 34px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: grid; place-items: center;
+  color: #fff; font-size: 0.6875rem; font-weight: 700; background: linear-gradient(135deg, var(--nkf-green), #22c55e);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+}
+.nkf-author__avatar img { width: 100%; height: 100%; object-fit: cover; }
+.nkf-author__label { display: block; font-size: 0.5625rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--nkf-grey); line-height: 1; }
+.nkf-author__name { display: block; margin-top: 3px; font-size: 0.8125rem; font-weight: 700; color: var(--nkf-ink); line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nkf-author__chev { width: 15px; height: 15px; color: var(--nkf-grey); flex-shrink: 0; transition: transform var(--nkf-base) var(--nkf-ease); }
+.nkf-author:hover .nkf-author__chev { transform: translateX(2px); color: var(--nkf-green); }
+
+/* ── Double-bezel : coque (shell + liseré) autour d'un cœur blanc aux
+   rayons concentriques (rayon interne = externe − épaisseur). ── */
+.nkf-bezel {
+  position: relative; padding: var(--nkf-bz-p); border-radius: var(--nkf-bz-r); background: var(--nkf-bz-shell);
+  box-shadow: inset 0 0 0 1px var(--nkf-bz-ring), inset 0 1px 0 rgba(255, 255, 255, 0.6), var(--nkf-shadow-sm);
+}
+.nkf-bezel__core {
+  position: relative; border-radius: calc(var(--nkf-bz-r) - var(--nkf-bz-p)); background: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(14, 21, 18, 0.05);
+}
+/* Carte d'achat : ombre longue teintée, elle « flotte » au-dessus du contenu. */
+.nkf-bezel--float { box-shadow: inset 0 0 0 1px var(--nkf-bz-ring), inset 0 1px 0 rgba(255, 255, 255, 0.6), var(--nkf-shadow-lg); }
+.nkf-bezel--xl { --nkf-bz-r: 28px; --nkf-bz-p: 8px; }
+/* Média : cœur rogné, zoom léger de l'image au survol (transform seul). */
+.nkf-media { overflow: hidden; background: #eef3ef; }
+.nkf-media__img { transition: transform 0.7s var(--nkf-ease); }
+.nkf-bezel:hover .nkf-media__img { transform: scale(1.03); }
+.nkf-media__blur { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.12); filter: blur(28px); opacity: 0.5; }
+.nkf-tag {
+  display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 100px; line-height: 1;
+  font-size: 0.625rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--nkf-green); background: rgba(255, 255, 255, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.9), 0 1px 3px rgba(14, 21, 18, 0.12);
+}
+.nkf-tag svg { width: 11px; height: 11px; }
+.nkf-tag--ink { color: #fff; background: rgba(14, 21, 18, 0.88); }
+.nkf-tag--green { color: #fff; background: var(--nkf-green); }
+
+/* ── Boutons verre + « bouton dans le bouton » (disque de la flèche),
+   mêmes cotes que .nk-btn (menu) et .nkx-btn (marketplace). ── */
+.nkf-btn {
+  position: relative; isolation: isolate; overflow: hidden; display: inline-flex; align-items: center; justify-content: center;
+  gap: 10px; min-height: 46px; padding: 6px 20px; border-radius: 999px; font-size: 0.875rem; font-weight: 700; line-height: 1;
+  white-space: nowrap; color: var(--nkf-ink); background: rgba(255, 255, 255, 0.74); -webkit-tap-highlight-color: transparent;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.9), inset 0 1px 0 #fff, inset 0 -1px 1px rgba(14, 21, 18, 0.06),
+    0 1px 2px rgba(14, 21, 18, 0.05), 0 10px 26px -14px rgba(3, 35, 20, 0.28), 0 0 0 1px rgba(14, 21, 18, 0.05);
+  transition: transform var(--nkf-base) var(--nkf-ease), box-shadow var(--nkf-base) var(--nkf-ease),
+    background-color var(--nkf-base) var(--nkf-ease), color var(--nkf-base) var(--nkf-ease);
+}
+.nkf-btn:has(.nkf-btn__ico) { padding-right: 7px; }
+.nkf-btn::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: inherit; opacity: 0.9;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.12) 42%, rgba(255, 255, 255, 0) 60%);
+  transition: opacity var(--nkf-base) var(--nkf-ease);
+}
+/* Reflet balayé au survol : transform uniquement. */
+.nkf-btn::after {
+  content: ""; position: absolute; top: -40%; bottom: -40%; left: 0; width: 45%; z-index: -1; pointer-events: none;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0));
+  transform: translateX(-160%) skewX(-18deg); transition: transform 0.7s var(--nkf-ease);
+}
+.nkf-btn:hover {
+  transform: translateY(-1px); background: rgba(255, 255, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.95), inset 0 1px 0 #fff, inset 0 -1px 1px rgba(14, 21, 18, 0.06),
+    0 2px 4px rgba(14, 21, 18, 0.05), 0 16px 34px -16px rgba(3, 35, 20, 0.32), 0 0 0 1px rgba(14, 21, 18, 0.07);
+}
+.nkf-btn:hover::before { opacity: 1; }
+.nkf-btn:hover::after { transform: translateX(320%) skewX(-18deg); }
+.nkf-btn:active { transform: scale(0.98); transition-duration: var(--nkf-fast); }
+.nkf-btn:focus-visible { outline: 2px solid var(--nkf-green); outline-offset: 3px; }
+.nkf-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+.nkf-btn:disabled::after { display: none; }
+.nkf-btn__ico {
+  display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  background: rgba(14, 21, 18, 0.06); box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.05);
+  transition: transform var(--nkf-base) var(--nkf-ease), background-color var(--nkf-base) var(--nkf-ease);
+}
+.nkf-btn__ico svg { width: 15px; height: 15px; transition: transform var(--nkf-base) var(--nkf-ease); }
+.nkf-btn:hover:not(:disabled) .nkf-btn__ico { transform: translate(1px, -1px) scale(1.06); background: rgba(14, 21, 18, 0.09); }
+.nkf-btn:hover:not(:disabled) .nkf-btn__ico svg { transform: translateX(1px); }
+.nkf-btn__label { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.nkf-btn__label svg { width: 17px; height: 17px; flex-shrink: 0; }
+/* Pleine largeur : libellé centré, disque affleurant à droite (grille 3 colonnes). */
+.nkf-btn--block { width: 100%; }
+.nkf-btn--block:has(.nkf-btn__ico) { display: grid; grid-template-columns: 32px minmax(0, 1fr) 32px; padding-left: 7px; }
+.nkf-btn--block:has(.nkf-btn__ico) .nkf-btn__label { grid-column: 2; justify-self: center; }
+.nkf-btn--block:has(.nkf-btn__ico) .nkf-btn__ico { grid-column: 3; }
+.nkf-btn--lg { min-height: 52px; font-size: 0.9375rem; }
+.nkf-btn--lg .nkf-btn__ico { width: 36px; height: 36px; }
+.nkf-btn--lg:has(.nkf-btn__ico) { grid-template-columns: 36px minmax(0, 1fr) 36px; padding-left: 8px; padding-right: 8px; }
+.nkf-btn--sm { min-height: 38px; padding: 4px 14px; font-size: 0.75rem; }
+/* Vert de marque, texte blanc ≥ 5:1 une fois composé sur blanc. */
+.nkf-btn--primary {
+  color: #fff; background: rgba(0, 110, 47, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 -1px 1px rgba(0, 40, 17, 0.35),
+    0 1px 2px rgba(3, 35, 20, 0.2), 0 12px 30px -14px rgba(0, 110, 47, 0.6);
+}
+.nkf-btn--primary::before { background: linear-gradient(115deg, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0.06) 42%, rgba(255, 255, 255, 0) 60%); }
+.nkf-btn--primary:hover:not(:disabled) {
+  background: rgba(0, 92, 39, 0.95);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -1px 1px rgba(0, 40, 17, 0.35),
+    0 2px 4px rgba(3, 35, 20, 0.2), 0 18px 40px -16px rgba(0, 110, 47, 0.65);
+}
+.nkf-btn--primary .nkf-btn__ico { color: #fff; background: rgba(255, 255, 255, 0.16); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22); }
+.nkf-btn--primary:hover:not(:disabled) .nkf-btn__ico { background: rgba(255, 255, 255, 0.24); }
+/* Vente terminée / stock épuisé : gris neutre, pas de vert qui promet. */
+.nkf-btn--primary:disabled { opacity: 1; color: #fff; background: #8a968e; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2); }
+/* État « dans le panier » : verre teinté vert, reste allumé. */
+.nkf-btn.is-on { color: var(--nkf-green); background: var(--nkf-tint); box-shadow: inset 0 0 0 1px rgba(0, 110, 47, 0.2), inset 0 1px 0 #fff; }
+.nkf-btn.is-on .nkf-btn__ico { color: var(--nkf-green); background: rgba(0, 110, 47, 0.1); box-shadow: inset 0 0 0 1px rgba(0, 110, 47, 0.12); }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .nkf-btn { background: #fff; }
+  .nkf-btn--primary { background: var(--nkf-green); }
+}
+
+/* ── Prix (chiffres tabulaires) ── */
+.nkf-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+.nkf-price__main {
+  font-family: var(--nkf-display); font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem); font-weight: 700;
+  letter-spacing: -0.03em; line-height: 1; color: var(--nkf-ink); font-variant-numeric: tabular-nums;
+}
+.nkf-price__main--free { color: var(--nkf-green); }
+.nkf-price__old { font-size: 0.9375rem; font-weight: 500; color: var(--nkf-grey); font-variant-numeric: tabular-nums; }
+
+/* ── Moyens de paiement, garanties, partage, lien boutique ── */
+.nkf-pay { display: flex; flex-wrap: wrap; gap: 6px; }
+.nkf-pay__pill {
+  display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px; border-radius: 999px; line-height: 1;
+  font-size: 0.6875rem; font-weight: 600; color: var(--nkf-grey); background: rgba(14, 21, 18, 0.04);
+  box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.06);
+}
+.nkf-pay__pill svg { width: 12px; height: 12px; color: var(--nkf-green); }
+.nkf-pay__pill--strong { color: var(--nkf-ink); background: #fff; box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.08), inset 0 1px 0 #fff; }
+.nkf-garanties { display: grid; gap: 10px; list-style: none; }
+.nkf-garanties li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.8125rem; line-height: 1.45; color: var(--nkf-grey); }
+.nkf-garanties svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px; color: var(--nkf-green); }
+.nkf-garanties a { color: var(--nkf-ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(14, 21, 18, 0.25); border-radius: 3px; }
+.nkf-garanties a:hover { color: var(--nkf-green); }
+.nkf-garanties a:focus-visible { outline: 2px solid var(--nkf-green); outline-offset: 2px; }
+.nkf-share { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.nkf-share__btn {
+  display: inline-grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; color: var(--nkf-ink);
+  background: rgba(255, 255, 255, 0.82); box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.07), inset 0 1px 0 #fff, 0 1px 2px rgba(14, 21, 18, 0.05);
+  transition: transform var(--nkf-base) var(--nkf-ease), background-color var(--nkf-base) var(--nkf-ease), color var(--nkf-base) var(--nkf-ease), box-shadow var(--nkf-base) var(--nkf-ease);
+}
+.nkf-share__btn svg { width: 16px; height: 16px; }
+.nkf-share__btn:hover { color: var(--nkf-green); background: #fff; transform: translateY(-1px); box-shadow: inset 0 0 0 1px rgba(0, 110, 47, 0.25), 0 6px 16px -8px rgba(3, 35, 20, 0.3); }
+.nkf-share__btn:active { transform: scale(0.96); transition-duration: var(--nkf-fast); }
+.nkf-share__btn:focus-visible { outline: 2px solid var(--nkf-green); outline-offset: 2px; }
+.nkf-share__btn.is-on { color: #fff; background: var(--nkf-green); }
+@media (pointer: coarse) { .nkf-share__btn { width: 42px; height: 42px; } }
+.nkf-shoplink {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 14px; border-radius: 14px;
+  font-size: 0.8125rem; font-weight: 600; color: var(--nkf-ink); background: rgba(14, 21, 18, 0.03);
+  box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.06);
+  transition: background-color var(--nkf-base) var(--nkf-ease), box-shadow var(--nkf-base) var(--nkf-ease);
+}
+.nkf-shoplink svg { width: 16px; height: 16px; flex-shrink: 0; transition: transform var(--nkf-base) var(--nkf-ease); }
+.nkf-shoplink:hover { background: var(--nkf-tint); box-shadow: inset 0 0 0 1px rgba(0, 110, 47, 0.16); }
+.nkf-shoplink:hover .nkf-shoplink__chev { transform: translateX(2px); }
+.nkf-shoplink:focus-visible { outline: 2px solid var(--nkf-green); outline-offset: 2px; }
+
+/* ── Accordéons : hauteur par grid-template-rows 0fr → 1fr (jamais height).
+   La visibilité suit avec retard pour sortir le contenu replié du clavier. ── */
+.nkf-acc {
+  border-radius: 16px; background: rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.06), inset 0 1px 0 #fff;
+  transition: box-shadow var(--nkf-base) var(--nkf-ease), background-color var(--nkf-base) var(--nkf-ease);
+}
+.nkf-acc:hover { background: #fff; }
+.nkf-acc[data-open="true"] { background: #fff; box-shadow: inset 0 0 0 1px rgba(0, 110, 47, 0.16), inset 0 1px 0 #fff, 0 8px 20px -14px rgba(3, 35, 20, 0.25); }
+.nkf-acc__btn { display: flex; width: 100%; align-items: center; gap: 12px; padding: 14px 16px; text-align: left; border-radius: 16px; color: var(--nkf-ink); }
+.nkf-acc__btn:focus-visible { outline: 2px solid var(--nkf-green); outline-offset: -2px; }
+.nkf-acc__num {
+  display: grid; place-items: center; width: 30px; height: 30px; border-radius: 10px; flex-shrink: 0;
+  font-size: 0.75rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--nkf-green); background: var(--nkf-tint);
+  box-shadow: inset 0 0 0 1px rgba(0, 110, 47, 0.1);
+}
+.nkf-acc__title { flex: 1; min-width: 0; font-size: 0.9375rem; font-weight: 700; letter-spacing: -0.01em; line-height: 1.3; }
+.nkf-acc__meta { font-size: 0.75rem; color: var(--nkf-grey); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.nkf-acc__chev { width: 18px; height: 18px; flex-shrink: 0; color: var(--nkf-grey); transition: transform 0.35s var(--nkf-ease); }
+.nkf-acc__btn[aria-expanded="true"] .nkf-acc__chev { transform: rotate(180deg); }
+.nkf-acc__panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.4s var(--nkf-ease); }
+.nkf-acc[data-open="true"] .nkf-acc__panel { grid-template-rows: 1fr; }
+.nkf-acc__inner { min-height: 0; overflow: hidden; visibility: hidden; transition: visibility 0s 0.4s; }
+.nkf-acc[data-open="true"] .nkf-acc__inner { visibility: visible; transition-delay: 0s; }
+.nkf-acc__body { padding: 2px 16px 16px; }
+.nkf-lesson { display: flex; align-items: center; gap: 10px; padding: 9px 0; font-size: 0.8125rem; color: var(--nkf-ink); box-shadow: inset 0 -1px 0 rgba(14, 21, 18, 0.05); }
+.nkf-lesson:last-child { box-shadow: none; }
+.nkf-lesson svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* ── Listes à coches (apprentissages, prérequis, « ce que vous obtenez ») ── */
+.nkf-check { display: grid; gap: 10px; list-style: none; }
+@media (min-width: 768px) { .nkf-check--2 { grid-template-columns: 1fr 1fr; gap: 12px 28px; } }
+.nkf-check li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.9375rem; line-height: 1.5; color: #2f3a34; }
+.nkf-check__ico {
+  display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; margin-top: 1px;
+  color: var(--nkf-green); background: var(--nkf-tint); box-shadow: inset 0 0 0 1px rgba(0, 110, 47, 0.12);
+}
+.nkf-check__ico svg { width: 12px; height: 12px; }
+
+/* ── Ligne d'article (contenu d'un pack) ── */
+.nkf-item {
+  display: flex; align-items: center; gap: 14px; padding: 10px; border-radius: 16px; background: rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 0 0 1px rgba(14, 21, 18, 0.06), inset 0 1px 0 #fff;
+  transition: transform var(--nkf-base) var(--nkf-ease), box-shadow var(--nkf-base) var(--nkf-ease), background-color var(--nkf-base) var(--nkf-ease);
+}
+.nkf-item:hover { background: #fff; transform: translateY(-2px); box-shadow: inset 0 0 0 1px rgba(0, 110, 47, 0.16), inset 0 1px 0 #fff, 0 10px 24px -14px rgba(3, 35, 20, 0.25); }
+.nkf-item:focus-visible { outline: 2px solid var(--nkf-green); outline-offset: 2px; }
+.nkf-item__img { width: 72px; height: 72px; border-radius: 12px; overflow: hidden; flex-shrink: 0; background: #eef3ef; display: grid; place-items: center; color: rgba(0, 110, 47, 0.55); }
+.nkf-item__img img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ── Barre d'achat mobile : fixe en bas, verre, glisse depuis le bord
+   (transform/opacity). Masquée dès `lg`, où la carte est collante. ── */
+.nkf-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: rgba(255, 255, 255, 0.84);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 -1px 0 rgba(14, 21, 18, 0.06), 0 -14px 34px -20px rgba(3, 35, 20, 0.3);
+  transform: translateY(110%); opacity: 0; pointer-events: none;
+  transition: transform 0.35s var(--nkf-ease), opacity 0.25s var(--nkf-ease);
+}
+.nkf-bar.is-visible { transform: none; opacity: 1; pointer-events: auto; }
+.nkf-bar__price { font-family: var(--nkf-display); font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; color: var(--nkf-ink); font-variant-numeric: tabular-nums; }
+.nkf-bar__price s { margin-left: 6px; font-family: var(--font-inter), "Inter", sans-serif; font-size: 0.75rem; font-weight: 500; color: var(--nkf-grey); }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .nkf-bar { background: #fff; } }
+@media (min-width: 1024px) { .nkf-bar { display: none; } }
+
+/* ── Squelettes (chargement) ── */
+@keyframes nkf-shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+.nkf-skel { position: relative; overflow: hidden; border-radius: 8px; background: #eef2ef; }
+.nkf-skel::after {
+  content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent);
+  animation: nkf-shimmer 1.4s var(--nkf-ease) infinite;
+}
+
+/* ── Révélation en cascade (état initial ; le mouvement est piloté par
+   anime.js, components/formations/fiche/reveal.ts). Pas de transition CSS
+   tant que l'animation n'est pas posée : elle se battrait avec les styles
+   inline écrits à chaque image. ── */
+.nkf-reveal { opacity: 0; transform: translateY(20px); }
+.nkf-reveal.in { opacity: 1; transform: none; }
+.nkf-reveal:not(.settled) { transition: none; }
+
+@media (max-width: 560px) { .nkf { --nkf-bz-r: 18px; --nkf-bz-p: 5px; } .nkf-bezel--xl { --nkf-bz-r: 22px; --nkf-bz-p: 6px; } }
+
+/* Mouvement réduit : tout visible d'emblée, aucune translation (les durées
+   sont déjà ramenées à 0 par globals.css). */
+@media (prefers-reduced-motion: reduce) {
+  .nkf-reveal { opacity: 1; transform: none; }
+  .nkf-btn::after { display: none; }
+  .nkf-btn:hover, .nkf-btn:active, .nkf-btn:hover:not(:disabled) .nkf-btn__ico, .nkf-btn:hover:not(:disabled) .nkf-btn__ico svg,
+  .nkf-bezel:hover .nkf-media__img, .nkf-back:hover, .nkf-back:hover svg, .nkf-author:hover, .nkf-author:hover .nkf-author__chev,
+  .nkf-item:hover, .nkf-share__btn:hover, .nkf-share__btn:active, .nkf-shoplink:hover .nkf-shoplink__chev { transform: none; }
+  .nkf-acc__panel, .nkf-acc__inner, .nkf-bar { transition: none; }
+  .nkf-skel::after { animation: none; }
+}

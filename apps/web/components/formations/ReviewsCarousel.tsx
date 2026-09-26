@@ -13,15 +13,16 @@ export interface CarouselReview {
 
 function Stars({ rating }: { rating: number }) {
   return (
-    <div className="flex items-center gap-0.5">
+    <span className="inline-flex items-center gap-0.5" role="img" aria-label={`${rating} sur 5`}>
       {[1, 2, 3, 4, 5].map((s) => (
         <Star
           key={s}
           size={13}
-          className={s <= Math.round(rating) ? "fill-amber-400 text-amber-400" : "text-gray-300"}
+          className={s <= Math.round(rating) ? "fill-amber-400 text-amber-400" : "text-[#d5ddd8]"}
+          aria-hidden="true"
         />
       ))}
-    </div>
+    </span>
   );
 }
 
@@ -33,18 +34,28 @@ function fmtDate(d: string): string {
   }
 }
 
+const FLECHE =
+  "grid h-9 w-9 place-items-center rounded-full bg-white text-[#5c6b62] " +
+  "shadow-[inset_0_0_0_1px_rgba(14,21,18,.08),inset_0_1px_0_#fff,0_1px_2px_rgba(14,21,18,.05)] " +
+  "transition-colors hover:text-[#006e2f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#006e2f]";
+
 /**
  * Carrousel d'avis — cartes défilables horizontalement (scroll-snap) avec
  * flèches précédent/suivant. Ne rend rien s'il n'y a pas assez d'avis.
+ *
+ * `sansCadre` : rendu nu (ni carte ni titre), pour s'insérer dans une section
+ * qui porte déjà son en-tête (fiches produit / formation).
  */
 export default function ReviewsCarousel({
   reviews,
   title = "Ce qu'en disent les acheteurs",
   themeColor = "#006e2f",
+  sansCadre = false,
 }: {
   reviews: CarouselReview[];
   title?: string;
   themeColor?: string;
+  sansCadre?: boolean;
 }) {
   const scroller = useRef<HTMLDivElement>(null);
 
@@ -53,70 +64,82 @@ export default function ReviewsCarousel({
   const scrollBy = (dir: 1 | -1) => {
     const el = scroller.current;
     if (!el) return;
-    el.scrollBy({ left: dir * Math.min(340, el.clientWidth * 0.9), behavior: "smooth" });
+    const reduit = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollBy({ left: dir * Math.min(340, el.clientWidth * 0.9), behavior: reduit ? "auto" : "smooth" });
   };
 
-  return (
-    <section className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
-      <div className="flex items-center justify-between gap-3 mb-5">
-        <h2 className="text-lg font-extrabold text-[#191c1e] flex items-center gap-2">
-          <Star size={18} className="fill-amber-400 text-amber-400" />
-          {title}
-        </h2>
-        <div className="hidden sm:flex items-center gap-2">
-          <button
-            type="button"
-            aria-label="Avis précédents"
-            onClick={() => scrollBy(-1)}
-            className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-[#5c647a] hover:bg-gray-50 hover:text-[#191c1e] transition-colors"
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <button
-            type="button"
-            aria-label="Avis suivants"
-            onClick={() => scrollBy(1)}
-            className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-[#5c647a] hover:bg-gray-50 hover:text-[#191c1e] transition-colors"
-          >
-            <ChevronRight size={18} />
-          </button>
-        </div>
-      </div>
+  const fleches = (
+    <div className="hidden items-center gap-2 sm:flex">
+      <button type="button" aria-label="Avis précédents" onClick={() => scrollBy(-1)} className={FLECHE}>
+        <ChevronLeft size={18} aria-hidden="true" />
+      </button>
+      <button type="button" aria-label="Avis suivants" onClick={() => scrollBy(1)} className={FLECHE}>
+        <ChevronRight size={18} aria-hidden="true" />
+      </button>
+    </div>
+  );
 
-      <div
-        ref={scroller}
-        className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
-        {reviews.map((r) => (
-          <div
-            key={r.id}
-            className="snap-start shrink-0 w-[280px] md:w-[320px] bg-slate-50 border border-slate-100 rounded-2xl p-5 flex flex-col"
-          >
-            <Quote size={22} style={{ color: themeColor }} className="opacity-30 mb-2" />
-            <p className="text-sm text-[#374151] leading-relaxed line-clamp-5 flex-1">{r.comment}</p>
-            <div className="flex items-center gap-3 mt-4 pt-4 border-t border-slate-200/70">
-              {r.user.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={r.user.image} alt="" className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
-              ) : (
-                <span
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                  style={{ background: themeColor }}
-                >
-                  {(r.user.name?.[0] ?? "A").toUpperCase()}
-                </span>
-              )}
-              <div className="min-w-0">
-                <p className="text-sm font-bold text-[#191c1e] truncate">{r.user.name ?? "Acheteur"}</p>
-                <div className="flex items-center gap-2">
-                  <Stars rating={r.rating} />
-                  <span className="text-[11px] text-[#9ca3af]">{fmtDate(r.createdAt)}</span>
-                </div>
+  const piste = (
+    <div
+      ref={scroller}
+      // Région défilable atteignable au clavier (flèches gauche/droite).
+      role="region"
+      aria-label={title}
+      tabIndex={0}
+      className="-mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-2 [scrollbar-width:none] focus-visible:rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#006e2f] [&::-webkit-scrollbar]:hidden"
+    >
+      {reviews.map((r) => (
+        <article
+          key={r.id}
+          className="flex w-[280px] shrink-0 snap-start flex-col rounded-2xl bg-[#f7f9fb] p-5 shadow-[inset_0_0_0_1px_rgba(14,21,18,.06),inset_0_1px_0_#fff] md:w-[320px]"
+        >
+          <Quote size={22} style={{ color: themeColor }} className="mb-2 opacity-30" aria-hidden="true" />
+          <p className="line-clamp-5 flex-1 text-sm leading-relaxed text-[#2f3a34]">{r.comment}</p>
+          <div className="mt-4 flex items-center gap-3 border-t border-[#e6ece8] pt-4">
+            {r.user.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={r.user.image} alt="" loading="lazy" decoding="async" className="h-9 w-9 flex-shrink-0 rounded-full object-cover" />
+            ) : (
+              <span
+                className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
+                style={{ background: themeColor }}
+                aria-hidden="true"
+              >
+                {(r.user.name?.[0] ?? "A").toUpperCase()}
+              </span>
+            )}
+            <div className="min-w-0">
+              <p className="truncate text-sm font-bold text-[#0e1512]">{r.user.name ?? "Acheteur"}</p>
+              <div className="flex items-center gap-2">
+                <Stars rating={r.rating} />
+                <span className="text-[11px] text-[#8a968e]">{fmtDate(r.createdAt)}</span>
               </div>
             </div>
           </div>
-        ))}
+        </article>
+      ))}
+    </div>
+  );
+
+  if (sansCadre) {
+    return (
+      <div>
+        <div className="mb-4 flex justify-end">{fleches}</div>
+        {piste}
       </div>
+    );
+  }
+
+  return (
+    <section className="rounded-[22px] bg-white p-6 shadow-[inset_0_0_0_1px_rgba(14,21,18,.06),0_1px_2px_rgba(14,21,18,.05)] md:p-8">
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#0e1512]">
+          <Star size={18} className="fill-amber-400 text-amber-400" aria-hidden="true" />
+          {title}
+        </h2>
+        {fleches}
+      </div>
+      {piste}
     </section>
   );
 }

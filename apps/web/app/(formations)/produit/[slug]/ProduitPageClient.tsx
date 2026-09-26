@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ShopFooter from "@/components/formations/ShopFooter";
@@ -9,34 +9,29 @@ import { FormationsNavbar } from "@/components/formations/FormationsNavbar";
 import { ApercuPdf } from "@/components/formations/ApercuPdf";
 import { PAGES_APERCU } from "@/lib/formations/apercu";
 import { ShopHeader } from "@/components/formations/ShopHeader";
-import { productImageSrc, avatarSrc } from "@/lib/utils/image-url";
 import { shopFontStack, shopFontHref } from "@/lib/formations/shop-fonts";
+import { sora } from "@/lib/fonts";
+import { trackEvents } from "@/lib/tracking/events";
 import {
-  Star,
+  Ban,
+  BookOpen,
+  CalendarCheck,
+  Code,
+  Download,
+  Eye,
+  FileType,
+  Flame,
+  GraduationCap,
+  Infinity as InfinityIcon,
+  LayoutDashboard,
+  MonitorSmartphone,
+  Music,
+  Package,
+  PlayCircle,
+  RotateCcw,
+  ShieldCheck,
   ShoppingBag,
   ShoppingCart,
-  ArrowLeft,
-  ChevronRight,
-  Flame,
-  FileText,
-  Eye,
-  MessageSquare,
-  Download,
-  Ban,
-  Infinity as InfinityIcon,
-  MonitorSmartphone,
-  ShieldCheck,
-  BadgeCheck,
-  CalendarCheck,
-  Store,
-  FileType,
-  BookOpen,
-  PlayCircle,
-  Music,
-  LayoutDashboard,
-  GraduationCap,
-  Code,
-  Package,
   type LucideIcon,
 } from "lucide-react";
 import { PixelInjector } from "@/components/formations/PixelInjector";
@@ -46,12 +41,23 @@ import AISupportWidget from "@/components/formations/AISupportWidget";
 import { SaleAvailability } from "@/components/formations/SaleAvailability";
 import { RelatedProducts } from "@/components/formations/RelatedProducts";
 import { BlocContact } from "@/components/formations/BlocContact";
-// Le pays choisi dans l'en-tete doit valoir ICI aussi : afficher « Guinee (GNF) »
-// au-dessus d'un prix en FCFA laisse l'acheteur sans reponse a la seule
-// question qu'il se pose — combien ca lui coute.
-import { useDeviseAffichage } from "@/components/formations/SelecteurDevise";
-import { formaterPrix } from "@/lib/currency/rates";
 import ReviewsCarousel from "@/components/formations/ReviewsCarousel";
+import "@/components/formations/fiche/fiche.css";
+import { EnTeteFiche } from "@/components/formations/fiche/EnTeteFiche";
+import { VignetteFiche } from "@/components/formations/fiche/VignetteFiche";
+import { CarteAchat } from "@/components/formations/fiche/CarteAchat";
+import { BarreAchatMobile } from "@/components/formations/fiche/BarreAchatMobile";
+import {
+  Accordeon,
+  EtatChargementFiche,
+  EtatIntrouvable,
+  FaqFiche,
+  ListeAvis,
+  ListeCoches,
+  SectionFiche,
+  type QuestionFaq,
+} from "@/components/formations/fiche/SectionsFiche";
+import { useRevealFiche } from "@/components/formations/fiche/use-reveal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Review {
@@ -98,21 +104,6 @@ interface Product {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(n);
-
-function initials(name: string | null) {
-  if (!name) return "?";
-  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
-}
-
-function timeAgo(iso: string) {
-  const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
-  if (d < 1) return "Aujourd'hui";
-  if (d < 30) return `Il y a ${d}j`;
-  if (d < 365) return `Il y a ${Math.floor(d / 30)} mois`;
-  return `Il y a ${Math.floor(d / 365)} an(s)`;
-}
-
 const TYPE_LABELS: Record<string, { label: string; icon: LucideIcon }> = {
   PDF: { label: "PDF", icon: FileType },
   EBOOK: { label: "E-book", icon: BookOpen },
@@ -125,36 +116,62 @@ const TYPE_LABELS: Record<string, { label: string; icon: LucideIcon }> = {
   OTHER: { label: "Produit digital", icon: ShoppingBag },
 };
 
-function StarRating({ rating, size = 14 }: { rating: number; size?: number }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((s) => (
-        <Star
-          key={s}
-          size={size}
-          className={s <= Math.floor(rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}
-        />
-      ))}
-    </div>
-  );
-}
+// Objections classiques avant un achat numérique. Rien de chiffré ici : les
+// délais et seuils de remboursement vivent dans la configuration (CGU §9).
+const FAQ_PRODUIT: QuestionFaq[] = [
+  {
+    q: "Comment récupérer le produit après l'achat ?",
+    r: (
+      <>
+        Dès que le paiement est confirmé, le fichier est disponible dans votre espace <strong>Mes achats</strong>, accessible à tout
+        moment depuis un téléphone ou un ordinateur.
+      </>
+    ),
+  },
+  {
+    q: "Quels moyens de paiement sont acceptés ?",
+    r: (
+      <>
+        Mobile Money (Orange Money, MTN, Moov, Wave…) et carte bancaire, selon votre pays. Le choix se fait à l&apos;étape suivante,
+        sur une page de paiement sécurisée.
+      </>
+    ),
+  },
+  {
+    q: "Puis-je poser une question avant d'acheter ?",
+    r: <>Oui : le bouton « Une question ? » envoie votre message directement à la boutique.</>,
+  },
+  {
+    q: "Et si je change d'avis ?",
+    r: (
+      <>
+        Un contenu numérique téléchargé n&apos;est pas remboursable : le téléchargement vaut renonciation au droit de rétractation. En
+        cas de problème (fichier inaccessible, contenu non conforme), Novakou arbitre les litiges — voir les{" "}
+        <Link href="/cgu">conditions générales</Link>.
+      </>
+    ),
+  },
+];
 
 // ─── Main ──────────────────────────────────────────────────────────────────────
 export default function ProduitPageClient({ slug }: { slug: string }) {
   const router = useRouter();
-  // Devise choisie dans l'en-tete de la boutique. Le prix STOCKE reste en FCFA,
-  // seule sa lecture change.
-  const deviseAffichage = useDeviseAffichage();
-  const fmtPrix = (n: number) => formaterPrix(n, deviseAffichage);
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [activeTab, setActiveTab] = useState<"description" | "apercu" | "avis">("description");
   // Mis à jour par <SaleAvailability> à chaque tick (deadline ou stock atteint).
   // Permet de désactiver le bouton "Acheter" en temps réel sans recharger la page.
   const [canBuy, setCanBuy] = useState(true);
   const [addingCart, setAddingCart] = useState(false);
   const [addedCart, setAddedCart] = useState(false);
+  // L'aperçu PDF se dessine sur canvas (coûteux sur téléphone) : monté
+  // seulement quand l'acheteur ouvre l'accordéon, comme l'ancien onglet.
+  const [apercuOuvert, setApercuOuvert] = useState(false);
+
+  const racineRef = useRef<HTMLDivElement>(null);
+  const enteteRef = useRef<HTMLDivElement>(null);
+  const carteRef = useRef<HTMLElement>(null);
+  useRevealFiche(racineRef, product?.id ?? "");
 
   useEffect(() => {
     async function load() {
@@ -187,8 +204,15 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
     document.head.appendChild(link);
   }, [product?.shop?.font]);
 
+  function retour() {
+    // Retour d'où l'on vient (boutique, catalogue) ; arrivée directe → catalogue.
+    if (typeof window !== "undefined" && window.history.length > 1) router.back();
+    else router.push("/explorer");
+  }
+
   function handleBuyNow() {
     if (!product) return;
+    trackEvents.ctaClick({ id: product.id, kind: "product", price: product.price, title: product.title }, "fiche_produit");
     router.push(`/checkout?pids=${product.id}`);
   }
 
@@ -203,6 +227,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
       });
       if (res.ok) {
         setAddedCart(true); // reste coloré
+        trackEvents.addToCart({ id: product.id, kind: "product", price: product.price, title: product.title });
         try { window.dispatchEvent(new CustomEvent("nk:cart-change")); } catch { /* ignore */ }
       }
     } finally {
@@ -210,37 +235,11 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#f7f9fb] animate-pulse">
-        <div className="h-72 bg-gray-200" />
-        <div className="max-w-6xl mx-auto px-6 py-8 space-y-4">
-          <div className="h-10 w-2/3 bg-gray-200 rounded-xl" />
-          <div className="h-60 bg-gray-200 rounded-2xl" />
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <EtatChargementFiche />;
 
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-[#f7f9fb] flex items-center justify-center px-6">
-        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center max-w-md">
-          <ShoppingBag size={48} className="text-gray-300 mx-auto" />
-          <h2 className="text-lg font-bold text-[#191c1e] mt-3">Produit introuvable</h2>
-          <p className="text-sm text-[#5c647a] mt-1.5 mb-4">
-            Ce produit n&apos;existe pas ou n&apos;est plus disponible.
-          </p>
-          <Link
-            href="/explorer"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-bold"
-            style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-          >
-            <ArrowLeft size={16} />
-            Voir le catalogue
-          </Link>
-        </div>
-      </div>
+      <EtatIntrouvable Icone={ShoppingBag} titre="Produit introuvable" texte="Ce produit n'existe pas ou n'est plus disponible." />
     );
   }
 
@@ -261,10 +260,30 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
     ? Math.max(0, product.maxBuyers - displayedSold)
     : null;
 
+  // Police de la boutique : corps ET titres, pour garder son identité.
+  const policeBoutique = product.shop?.font ? shopFontStack(product.shop.font) : null;
+  const stylePolice = policeBoutique
+    ? ({ fontFamily: policeBoutique, "--nkf-display": policeBoutique } as CSSProperties)
+    : undefined;
+
+  // Fil d'Ariane : depuis une boutique, on ne renvoie JAMAIS vers la place de
+  // marché (les concurrents du vendeur) — la catégorie reste un simple texte.
+  const fil = [
+    product.shop ? { label: product.shop.name, href: `/${product.shop.slug}` } : { label: "Explorer", href: "/explorer" },
+    ...(product.category
+      ? [{ label: product.category.name, href: product.shop ? undefined : `/explorer?categorie=${product.category.slug}` }]
+      : []),
+    { label: product.title },
+  ];
+
+  const libelleAchat = !canBuy ? "Vente terminée" : isFree ? "Télécharger maintenant" : "Acheter maintenant";
+  const IconeAchat = !canBuy ? Ban : isFree ? Download : ShoppingCart;
+
   return (
     <div
-      className="min-h-screen bg-[#f7f9fb] pb-24 md:pb-0"
-      style={product.shop?.font ? { fontFamily: shopFontStack(product.shop.font) } : undefined}
+      ref={racineRef}
+      className={`nkf ${sora.variable} min-h-screen bg-[#f7f9fb] pb-24 lg:pb-0 ${product.shop ? "" : "pt-16 lg:pt-[76px]"}`}
+      style={stylePolice}
     >
       {/* En-tête : celui de la BOUTIQUE quand le produit en a une, pour que
           l'acheteur reste dans son univers. Le menu plateforme est masqué sur
@@ -293,186 +312,96 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
         pageContext={`Le visiteur consulte le produit "${product.title}" à ${product.price} F CFA.`}
       />
 
-      {/* Breadcrumb + bouton retour */}
-      <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-3">
-        <div className="max-w-7xl mx-auto flex items-center gap-3 flex-wrap text-xs text-[#5c647a]">
-          <button
-            type="button"
-            onClick={() => {
-              if (typeof window !== "undefined" && window.history.length > 1) router.back();
-              else router.push("/explorer");
-            }}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 hover:text-[#191c1e] font-semibold transition-colors"
-          >
-            <ArrowLeft size={14} />
-            Retour
-          </button>
-          {/* Plus de « Accueil > Explorer » : l'acheteur arrive depuis la
-              boutique d'un vendeur, et ces liens le renvoyaient vers la
-              place de marché — donc chez les concurrents du vendeur. Seul le
-              bouton Retour subsiste, il ramène d'où l'on vient. */}
-          <span className="text-gray-300">·</span>
-          <span className="text-[#191c1e] font-medium truncate max-w-[220px]">{product.title}</span>
-        </div>
-      </div>
-
-      <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
-          {/* ── Main content ──────────────────────────────────────────── */}
-          <div className="lg:col-span-2 space-y-5">
-            {/* Bannière — object-contain sur fond neutre : l'image du produit
-                s'affiche EN ENTIER (jamais rognée), quelle que soit sa taille,
-                y compris sur mobile. Un flou de l'image remplit joliment le fond. */}
-            <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-100">
-              {(product.banner || product.thumbnail) ? (
-                <>
-                  {/* Fond flouté pour combler les bords sans bandes vides */}
-                  <img src={productImageSrc(product.banner ?? product.thumbnail, 1000) ?? ""} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-40" />
-                  <img src={productImageSrc(product.banner ?? product.thumbnail, 1000) ?? ""} alt={product.title} loading="lazy" decoding="async" className="relative w-full h-full object-contain" />
-                </>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#003d1a] to-[#22c55e]">
-                  <TypeIcon size={100} className="text-white/30" />
-                </div>
-              )}
-              <div className="absolute top-4 left-4 flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-white/95 text-[#191c1e] shadow-sm backdrop-blur-sm">
-                  <TypeIcon size={12} className="text-[#006e2f]" />
-                  {typeInfo.label}
-                </span>
-                {product.category && (
-                  <span className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-[#006e2f] text-white">
-                    {product.category.name}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Header */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
-              <div className="flex flex-wrap items-center gap-2 mb-3">
-                {product.tags && product.tags.slice(0, 4).map((t) => (
-                  <span key={t} className="inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 text-[#5c647a]">
-                    #{t}
-                  </span>
-                ))}
-                {product.salesCount > 50 && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-700">
-                    <Flame size={13} className="fill-amber-700" />
-                    POPULAIRE
-                  </span>
-                )}
-              </div>
-
-              <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e] leading-tight">{product.title}</h1>
-
-              {/* Ni nombre de ventes, ni date d'ajout (demande fondateur).
-                  La date desservait les catalogues : un bon produit publié il
-                  y a deux ans paraissait périmé, alors que la date d'ajout ne
-                  dit rien de sa valeur pour l'acheteur. Le nombre de ventes
-                  est désormais masqué par défaut, ici comme sur les cartes. */}
-
-              {/* Stats — note affichée uniquement si le produit a déjà des avis
-                  (pas de « Nouveau » ni de second compteur de ventes en doublon) */}
-              {product.rating > 0 && (
-                <div className="flex items-center gap-4 mt-4 flex-wrap">
-                  <div className="flex items-center gap-1.5">
-                    <StarRating rating={product.rating} size={16} />
-                    <span className="text-sm font-bold text-[#191c1e]">
-                      {product.rating.toFixed(1)}
-                    </span>
-                    {product.reviewsCount > 0 && (
-                      <span className="text-xs text-[#5c647a]">({product.reviewsCount} avis)</span>
+      <div className="mx-auto max-w-6xl px-4 pb-14 pt-5 md:px-6 md:pb-20 md:pt-7">
+        {/* Grille : en-tête sur toute la largeur, puis contenu à gauche et
+            carte d'achat à droite (collante, sur deux rangées). Sur mobile,
+            l'ordre du DOM fait foi : en-tête, visuel, carte, contenu. */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:grid-rows-[auto_auto_1fr] lg:gap-x-10 lg:gap-y-8 xl:grid-cols-[minmax(0,1fr)_384px]">
+          <div ref={enteteRef} className="lg:col-span-2">
+            <EnTeteFiche
+              fil={fil}
+              onRetour={retour}
+              eyebrow={product.category?.name ?? typeInfo.label}
+              titre={product.title}
+              note={product.rating}
+              nbAvis={product.reviewsCount}
+              // Ni nombre de ventes, ni date d'ajout (demande fondateur) : un petit
+              // chiffre ou une vieille date dessert le produit sans rien dire de sa valeur.
+              compteur={null}
+              badges={
+                product.tags.length > 0 || product.salesCount > 50 || (remaining !== null && remaining < 50) ? (
+                  <>
+                    {product.salesCount > 50 && (
+                      <span className="nkf-chip nkf-chip--amber">
+                        <Flame aria-hidden="true" />
+                        Populaire
+                      </span>
                     )}
-                  </div>
-                  {remaining !== null && remaining < 50 && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-700">
-                      Plus que {remaining} {remaining > 1 ? "places" : "place"}
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-
+                    {remaining !== null && remaining < 50 && (
+                      <span className="nkf-chip nkf-chip--red tabular-nums">
+                        Plus que {remaining} {remaining > 1 ? "places" : "place"}
+                      </span>
+                    )}
+                    {product.tags.slice(0, 4).map((t) => (
+                      <span key={t} className="nkf-chip">
+                        #{t}
+                      </span>
+                    ))}
+                  </>
+                ) : undefined
+              }
+              boutique={product.shop ? { nom: product.shop.name, href: `/${product.shop.slug}`, logoUrl: product.shop.logoUrl } : null}
+            />
           </div>
 
-          {/* ── Sidebar ─────────────────────────────────────────────────── */}
-          <div className="space-y-5 lg:row-span-2">
-            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden sticky top-4">
-              <div className="p-6">
-                <div className="mb-4">
-                  {discount > 0 && (
-                    <span className="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700 mb-2">
-                      -{discount}% de réduction
-                    </span>
-                  )}
-                  <div className="flex items-baseline gap-2">
-                    {isFree ? (
-                      <p className="text-3xl font-extrabold text-[#006e2f]">Gratuit</p>
-                    ) : (
+          {/* Visuel : l'image du produit EN ENTIER (jamais rognée), fond flouté. */}
+          <div className="lg:col-start-1 lg:row-start-2">
+            <VignetteFiche
+              src={product.banner ?? product.thumbnail}
+              alt={product.title}
+              ajuster="contain"
+              Icone={TypeIcon}
+              badges={
+                <>
+                  <span className="nkf-tag">
+                    <TypeIcon aria-hidden="true" />
+                    {typeInfo.label}
+                  </span>
+                  {/* La catégorie est déjà l'eyebrow du titre ; un produit gratuit
+                      à prix initial afficherait « −100 % », sans intérêt. */}
+                  {discount > 0 && !isFree && <span className="nkf-tag nkf-tag--ink tabular-nums">−{discount} %</span>}
+                </>
+              }
+            />
+          </div>
+
+          <aside ref={carteRef} className="lg:col-start-2 lg:row-start-2 lg:row-span-2" aria-label="Acheter ce produit">
+            <div className="lg:sticky lg:top-24">
+              <CarteAchat
+                prix={product.price}
+                prixInitial={product.originalPrice}
+                gratuit={isFree}
+                principal={{ libelle: libelleAchat, onClick: handleBuyNow, disabled: !canBuy, Icone: IconeAchat }}
+                panier={!isFree && canBuy ? { onClick: handleAddToCart, etat: addedCart ? "ajoute" : addingCart ? "chargement" : "repos" } : null}
+                moyensPaiement={!isFree}
+                garanties={[
+                  { Icone: CalendarCheck, contenu: isFree ? "Accès immédiat" : "Accès immédiat après paiement" },
+                  { Icone: InfinityIcon, contenu: "Accès et téléchargement à vie" },
+                  { Icone: TypeIcon, contenu: `Format ${typeInfo.label}` },
+                  { Icone: MonitorSmartphone, contenu: "Accessible sur mobile & desktop" },
+                  { Icone: ShieldCheck, contenu: "Paiement 100 % sécurisé" },
+                  {
+                    Icone: RotateCcw,
+                    contenu: (
                       <>
-                        <p className="text-3xl font-extrabold text-[#006e2f]">
-                          {fmtPrix(product.price)}
-                        </p>
+                        Litiges encadrés par Novakou — <Link href="/cgu">conditions</Link>
                       </>
-                    )}
-                  </div>
-                  {product.originalPrice && product.originalPrice > product.price && (
-                    <p className="text-sm text-gray-400 line-through mt-1">{fmtPrix(product.originalPrice)}</p>
-                  )}
-                </div>
-
-                <button
-                  onClick={handleBuyNow}
-                  disabled={!canBuy}
-                  className="w-full py-3.5 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90 hover:-translate-y-0.5 flex items-center justify-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-                  style={{
-                    background: canBuy
-                      ? "linear-gradient(to right, #006e2f, #22c55e)"
-                      : "linear-gradient(to right, #94a3b8, #64748b)",
-                  }}
-                >
-                  {!canBuy ? <Ban size={18} /> : isFree ? <Download size={18} /> : <ShoppingCart size={18} />}
-                  {!canBuy
-                    ? "Vente terminée"
-                    : isFree
-                      ? "Télécharger maintenant"
-                      : "Acheter maintenant"}
-                </button>
-
-                {!isFree && canBuy && (
-                  <button
-                    onClick={handleAddToCart}
-                    disabled={addingCart || addedCart}
-                    className="w-full mt-2.5 py-3 rounded-xl font-bold text-sm border flex items-center justify-center gap-2 transition-colors disabled:cursor-default"
-                    style={
-                      addedCart
-                        ? { background: "#e6f5eb", color: "#006e2f", borderColor: "#006e2f" }
-                        : { background: "#fff", color: "#191c1e", borderColor: "#e4eae6" }
-                    }
-                  >
-                    <ShoppingCart size={17} />
-                    {addedCart ? "Ajouté au panier ✓" : addingCart ? "Ajout…" : "Ajouter au panier"}
-                  </button>
-                )}
-
-                {/* Réassurance + moyens de paiement acceptés */}
-                {!isFree && (
-                  <div className="mt-3.5 pt-3.5 border-t border-gray-100">
-                    <div className="flex items-center justify-center gap-1.5 text-[#5c647a]">
-                      <ShieldCheck size={13} className="text-[#006e2f]" />
-                      <span className="text-[11px] font-semibold">Paiement 100% sécurisé</span>
-                    </div>
-                    <div className="flex items-center justify-center gap-1.5 flex-wrap mt-2">
-                      {["Carte", "Orange Money", "MTN", "Moov", "Wave"].map((m) => (
-                        <span key={m} className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-gray-100 text-[#5c647a]">
-                          {m}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
+                    ),
+                  },
+                ]}
+                boutique={product.shop ? { nom: product.shop.name, href: `/${product.shop.slug}` } : null}
+                partage={product.title}
+              >
                 {/* Compte à rebours + barre de progression — affichés uniquement
                     si le vendeur a configuré une deadline ou un stock max. */}
                 <SaleAvailability
@@ -481,183 +410,108 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                   currentBuyers={displayedSold}
                   onAvailabilityChange={setCanBuy}
                 />
-
                 <div className="mt-3">
-                  <InquiryWidget
-                    productId={product.id}
-                    productTitle={product.title}
-                    vendorName={product.shop?.name ?? "la boutique"}
-                  />
+                  <InquiryWidget productId={product.id} productTitle={product.title} vendorName={product.shop?.name ?? "la boutique"} />
                 </div>
-
-                <div className="mt-5 pt-5 border-t border-gray-100 space-y-2.5">
-                  <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-                    <InfinityIcon size={16} className="text-[#006e2f]" />
-                    Accès et téléchargement à vie
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-                    <TypeIcon size={16} className="text-[#006e2f]" />
-                    Format {typeInfo.label}
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-                    <MonitorSmartphone size={16} className="text-[#006e2f]" />
-                    Accessible sur mobile & desktop
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-                    <ShieldCheck size={16} className="text-[#006e2f]" />
-                    Paiement 100% sécurisé
-                  </div>
-                </div>
-
-                {/* Lien vers la boutique du vendeur (où se trouve le produit). */}
-                {product.shop && (
-                  <Link
-                    href={`/${product.shop.slug}`}
-                    className="mt-4 flex items-center justify-between gap-2 rounded-xl border border-gray-200 px-4 py-3 hover:border-[#006e2f]/40 hover:bg-[#006e2f]/[0.03] transition-colors group"
-                  >
-                    <span className="flex items-center gap-2 min-w-0">
-                      <Store size={16} className="text-[#006e2f] flex-shrink-0" />
-                      <span className="text-sm font-semibold text-[#191c1e] truncate">Voir la boutique {product.shop.name}</span>
-                    </span>
-                    <ChevronRight size={16} className="text-[#5c647a] group-hover:text-[#006e2f] flex-shrink-0" />
-                  </Link>
-                )}
-              </div>
+              </CarteAchat>
             </div>
+          </aside>
 
-          </div>
-
-        {/* Description & détails — DANS la grille (colonne 2/3). La sidebar,
-            bien plus haute que la bannière + le titre, laissait sinon un grand
-            vide sous le titre : elle s'étend maintenant sur les deux rangées
-            et la description vient combler cet espace. */}
-        <div className="lg:col-span-2">
-            {/* Tabs */}
-            <div className="flex items-center gap-1 bg-white rounded-xl border border-gray-100 p-1 w-fit">
-              {(
-                [
-                  { id: "description", label: "Description", show: true },
-                  { id: "apercu", label: "Aperçu", show: !!product.previewAvailable },
-                  { id: "avis", label: `Avis (${product.reviewsCount})`, show: true },
-                ] as const
-              )
-                .filter((t) => t.show)
-                .map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                      activeTab === tab.id ? "bg-[#006e2f] text-white shadow-sm" : "text-[#5c647a] hover:text-[#191c1e]"
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-            </div>
-
-            {/* Description tab */}
-            {activeTab === "description" && (
-              <div className="space-y-5">
-                {product.description ? (
-                  <div className="nk-desc bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
-                    {/* Rendu unifié HTML/Markdown — identique à l'éditeur (nk-rich) */}
-                    <TiptapRenderer content={product.description} />
-                  </div>
-                ) : (
-                  <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-                    <FileText size={36} className="text-gray-300 mx-auto" />
-                    <p className="text-sm text-[#5c647a] mt-2">Aucune description fournie pour ce produit.</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Onglet Aperçu — 2 premières pages filigranées, rendues sur canvas */}
-            {activeTab === "apercu" && product.previewAvailable && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-6 space-y-4">
-                <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-                  <Eye size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
-                  <div className="text-xs text-amber-900 leading-relaxed">
-                    <p className="font-bold mb-0.5">
-                      Aperçu gratuit — {PAGES_APERCU} première{PAGES_APERCU > 1 ? "s" : ""} page{PAGES_APERCU > 1 ? "s" : ""}
-                    </p>
-                    <p>
-                      Les pages affichées portent un filigrane Novakou. Achetez le produit pour télécharger le fichier complet sans filigrane.
-                    </p>
-                  </div>
+          <div className="grid gap-6 lg:col-start-1 lg:row-start-3 lg:self-start">
+            <SectionFiche id="description" titre="Description" eyebrow="À propos de ce produit">
+              {product.description ? (
+                <div className="nkf-prose">
+                  {/* Rendu unifié HTML/Markdown — identique à l'éditeur (nk-rich) */}
+                  <TiptapRenderer content={product.description} />
                 </div>
-                <ApercuPdf produitId={product.id} titre={product.title} />
-              </div>
-            )}
+              ) : (
+                <p className="text-sm text-[#5c6b62]">Aucune description fournie pour ce produit.</p>
+              )}
+            </SectionFiche>
 
-            {/* Reviews tab */}
-            {activeTab === "avis" && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
-                {product.reviews.length === 0 ? (
-                  <div className="text-center py-8">
-                    <MessageSquare size={48} className="text-gray-300 mx-auto" />
-                    <p className="text-sm text-[#5c647a] mt-3">Aucun avis pour ce produit pour l&apos;instant.</p>
-                    <p className="text-xs text-[#5c647a] mt-1">Soyez le premier à laisser votre retour après l&apos;achat.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {product.reviews.map((r) => (
-                      <div key={r.id} className="pb-4 border-b border-gray-100 last:border-0 last:pb-0">
-                        <div className="flex items-start gap-3">
-                          <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-600 text-xs font-bold flex-shrink-0">
-                            {r.user.image ? (
-                              <img src={avatarSrc(r.user.image, 64) ?? r.user.image ?? ""} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                            ) : (
-                              initials(r.user.name)
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <p className="text-sm font-bold text-[#191c1e]">{r.user.name ?? "Acheteur"}</p>
-                              <span className="text-[11px] text-[#5c647a]">{timeAgo(r.createdAt)}</span>
-                            </div>
-                            <StarRating rating={r.rating} size={13} />
-                            <p className="text-sm text-[#5c647a] mt-1.5 leading-relaxed">{r.comment}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-        </div>
-        </div>
+            <SectionFiche id="inclus" titre="Ce que vous obtenez" eyebrow="Inclus">
+              <ListeCoches
+                items={[
+                  <span key="format">
+                    Format <strong>{typeInfo.label}</strong>
+                  </span>,
+                  isFree ? "Téléchargement immédiat" : "Téléchargement immédiat après paiement",
+                  "Accès à vie depuis votre espace Mes achats",
+                  "Lisible sur mobile et ordinateur",
+                ]}
+                colonnes={2}
+              />
+              {/* Aperçu : 2 premières pages filigranées, rendues sur canvas. */}
+              {product.previewAvailable && (
+                <div className="mt-6">
+                  <Accordeon
+                    titre={`Aperçu gratuit — ${PAGES_APERCU} première${PAGES_APERCU > 1 ? "s" : ""} page${PAGES_APERCU > 1 ? "s" : ""}`}
+                    ouvert={apercuOuvert}
+                    onChange={setApercuOuvert}
+                  >
+                    <div className="flex items-start gap-3 rounded-xl bg-[#fff4e0] px-4 py-3 text-xs leading-relaxed text-[#6b3a00]">
+                      <Eye size={18} className="mt-0.5 flex-shrink-0" aria-hidden="true" />
+                      <p>
+                        Les pages affichées portent un filigrane Novakou. Achetez le produit pour télécharger le fichier complet sans
+                        filigrane.
+                      </p>
+                    </div>
+                    <div className="mt-4">{apercuOuvert && <ApercuPdf produitId={product.id} titre={product.title} />}</div>
+                  </Accordeon>
+                </div>
+              )}
+            </SectionFiche>
 
-        {/* Carrousel d'avis — preuve sociale (affiché s'il y a ≥ 2 avis) */}
-        {product.reviews.length >= 2 && (
-          <div className="mt-6">
-            <ReviewsCarousel reviews={product.reviews} themeColor={product.shop?.themeColor ?? "#006e2f"} />
+            <SectionFiche id="faq" titre="Questions fréquentes" eyebrow="Avant d'acheter">
+              <FaqFiche items={FAQ_PRODUIT} />
+            </SectionFiche>
+
+            <SectionFiche
+              id="avis"
+              titre="Avis des acheteurs"
+              eyebrow="Ils l'ont acheté"
+              meta={`${product.reviewsCount} avis`}
+            >
+              {product.reviews.length >= 2 ? (
+                <>
+                  <ReviewsCarousel reviews={product.reviews} themeColor={product.shop?.themeColor ?? "#006e2f"} sansCadre />
+                  <div className="mt-5">
+                    <Accordeon titre={`Lire tous les avis (${product.reviews.length})`}>
+                      <ListeAvis avis={product.reviews} vide="Aucun avis pour ce produit pour l'instant." />
+                    </Accordeon>
+                  </div>
+                </>
+              ) : (
+                <ListeAvis
+                  avis={product.reviews}
+                  vide="Aucun avis pour ce produit pour l'instant."
+                  sousVide="Soyez le premier à laisser votre retour après l'achat."
+                />
+              )}
+            </SectionFiche>
+
+            {/* Contact : l'acheteur vient de finir la description, il hésite, et
+                c'est là qu'une question sans réponse le fait partir. Après les
+                recommandations, on le lui offrirait une fois déjà parti ailleurs. */}
+            <div className="nkf-reveal [&>section]:mt-0">
+              <BlocContact
+                contactEmail={product.shop?.contactEmail}
+                whatsapp={product.shop?.whatsapp}
+                nomBoutique={product.shop?.name}
+                titreProduit={product.title}
+                themeColor={product.shop?.themeColor}
+                // Le formulaire est monté plus haut, sans condition : on peut donc
+                // toujours proposer de l'ouvrir. C'est ce qui garantit un chemin vers
+                // le vendeur même quand la boutique n'a ni e-mail ni WhatsApp.
+                chatDisponible
+              />
+            </div>
           </div>
-        )}
-
-        {/* Contact : l'acheteur vient de finir la description, il hesite, et
-            c'est la qu'une question sans reponse le fait partir. Apres les
-            recommandations, on le lui offrirait une fois deja parti ailleurs. */}
-        <BlocContact
-          contactEmail={product.shop?.contactEmail}
-          whatsapp={product.shop?.whatsapp}
-          nomBoutique={product.shop?.name}
-          titreProduit={product.title}
-          themeColor={product.shop?.themeColor}
-          // Le formulaire est monté plus haut, sans condition : on peut donc
-          // toujours proposer de l'ouvrir. C'est ce qui garantit un chemin vers
-          // le vendeur même quand la boutique n'a ni e-mail ni WhatsApp.
-          chatDisponible
-        />
+        </div>
 
         {/* Recommandations « Vous aimerez aussi » (v2 Phase 2) */}
-        <div className="mt-6">
-          <RelatedProducts
-            instructeurId={product.instructeur?.id}
-            excludeId={product.id}
-            title="Autres produits de la boutique"
-          />
+        <div className="nkf-reveal mt-10 md:mt-14">
+          <RelatedProducts instructeurId={product.instructeur?.id} excludeId={product.id} title="Autres produits de la boutique" />
         </div>
       </div>
 
@@ -669,25 +523,19 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
         <FormationsFooter />
       )}
 
-      {/* Barre d'achat COLLANTE en bas — mobile uniquement (le desktop a la carte
-          d'achat sticky en colonne). Améliore la conversion sur petit écran. */}
+      {/* Barre d'achat fixe en bas — sous `lg` uniquement (au-delà, la carte
+          d'achat est collante). Apparaît une fois l'en-tête dépassé. */}
       {canBuy && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-4 py-3 flex items-center gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] text-[#5c647a] leading-none">{isFree ? "" : "Prix"}</p>
-            <p className="text-lg font-extrabold text-[#006e2f] leading-tight truncate">
-              {isFree ? "Gratuit" : fmtPrix(product.price)}
-            </p>
-          </div>
-          <button
-            onClick={handleBuyNow}
-            className="flex-shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white font-bold text-sm shadow-md active:scale-95 transition-transform"
-            style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-          >
-            {isFree ? <Download size={17} /> : <ShoppingCart size={17} />}
-            {isFree ? "Télécharger" : "Acheter"}
-          </button>
-        </div>
+        <BarreAchatMobile
+          prix={product.price}
+          prixInitial={product.originalPrice}
+          gratuit={isFree}
+          libelle={isFree ? "Télécharger" : "Acheter"}
+          Icone={isFree ? Download : ShoppingCart}
+          onClick={handleBuyNow}
+          apresRef={enteteRef}
+          carteRef={carteRef}
+        />
       )}
     </div>
   );

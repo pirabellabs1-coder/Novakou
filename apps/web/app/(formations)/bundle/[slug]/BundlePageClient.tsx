@@ -1,20 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { usePrix } from "@/components/formations/Prix";
-import { useSession } from "next-auth/react";
-import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
-import { KkiapayWidget, type KkiapayInit } from "@/components/formations/KkiapayWidget";
+import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import {
+  CalendarCheck,
   Gift,
   GraduationCap,
-  Package,
   Infinity as InfinityIcon,
+  MonitorSmartphone,
+  Package,
+  RotateCcw,
   ShieldCheck,
-  CalendarCheck,
+  ShoppingBag,
 } from "lucide-react";
+import { usePrix } from "@/components/formations/Prix";
+import { UnifiedPaymentScreen } from "@/components/formations/UnifiedPaymentScreen";
+import { KkiapayWidget, type KkiapayInit } from "@/components/formations/KkiapayWidget";
 import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
+import { sora } from "@/lib/fonts";
+import { productImageSrc } from "@/lib/utils/image-url";
+import "@/components/formations/fiche/fiche.css";
+import { EnTeteFiche } from "@/components/formations/fiche/EnTeteFiche";
+import { VignetteFiche } from "@/components/formations/fiche/VignetteFiche";
+import { CarteAchat } from "@/components/formations/fiche/CarteAchat";
+import { BarreAchatMobile } from "@/components/formations/fiche/BarreAchatMobile";
+import { FaqFiche, SectionFiche, type QuestionFaq } from "@/components/formations/fiche/SectionsFiche";
+import { useRevealFiche } from "@/components/formations/fiche/use-reveal";
+import { mouvementReduit } from "@/components/formations/fiche/reveal";
 
 // Le formateur vit DANS le composant et derive du pays choisi : il couvre
 // ainsi tous les prix de cet ecran d un coup. En fonction de module, il
@@ -48,17 +62,65 @@ interface Bundle {
   items: BundleItem[];
 }
 
+const FAQ_PACK: QuestionFaq[] = [
+  {
+    q: "Que se passe-t-il après le paiement ?",
+    r: (
+      <>
+        Dès que le paiement est confirmé, chaque article du pack — formations et produits — apparaît dans votre espace{" "}
+        <strong>Mes achats</strong>, sans rien avoir à réclamer.
+      </>
+    ),
+  },
+  {
+    q: "Quels moyens de paiement sont acceptés ?",
+    r: (
+      <>
+        Mobile Money (Orange Money, MTN, Moov, Wave…) et carte bancaire, selon votre pays. Choisissez votre pays et votre moyen
+        directement dans la carte d&apos;achat.
+      </>
+    ),
+  },
+  {
+    q: "Faut-il un compte pour acheter ?",
+    r: <>Non : une adresse e-mail suffit. C&apos;est là que le pack vous est envoyé, et elle vous permet d&apos;y accéder ensuite.</>,
+  },
+  {
+    q: "Puis-je être remboursé ?",
+    r: (
+      <>
+        Les formations du pack sont remboursables pendant une courte période, tant qu&apos;elles n&apos;ont pas été consommées
+        au-delà d&apos;un certain seuil ; un produit téléchargé ne l&apos;est pas. Les modalités exactes sont dans nos{" "}
+        <Link href="/cgu">conditions générales</Link>.
+      </>
+    ),
+  },
+];
+
+const CHAMP =
+  "w-full rounded-full bg-white px-4 py-3 text-sm text-[#0e1512] placeholder:text-[#8a968e] " +
+  "shadow-[inset_0_0_0_1px_rgba(14,21,18,.1),inset_0_1px_0_#fff] outline-none transition-shadow " +
+  "focus:shadow-[inset_0_0_0_1px_#006e2f,0_0_0_4px_rgba(0,110,47,.12)]";
+
 export default function BundlePageClient({ bundle }: { bundle: Bundle }) {
+  const router = useRouter();
   const fmtFCFA = usePrix();
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const themeColor = bundle.shop?.themeColor ?? "#006e2f";
 
   const [kkiapay, setKkiapay] = useState<KkiapayInit | null>(null);
   const [email, setEmail] = useState(session?.user?.email ?? "");
   const [name, setName] = useState(session?.user?.name ?? "");
   const connecte = !!session?.user?.id;
+
+  const racineRef = useRef<HTMLDivElement>(null);
+  const enteteRef = useRef<HTMLDivElement>(null);
+  const carteRef = useRef<HTMLElement>(null);
+  useRevealFiche(racineRef, bundle.id);
+
+  const n = bundle.items.length;
+  const libelleArticles = `${n} article${n > 1 ? "s" : ""}`;
 
   /**
    * Achat d'un pack par le MÊME chemin que tout le reste : l'écran de paiement
@@ -110,173 +172,222 @@ export default function BundlePageClient({ bundle }: { bundle: Bundle }) {
     }
   }
 
+  function retour() {
+    if (typeof window !== "undefined" && window.history.length > 1) router.back();
+    else router.push("/explorer");
+  }
+
+  // Sur mobile, le paiement se choisit dans la carte : la barre y conduit.
+  function allerALaCarte() {
+    document.getElementById("achat")?.scrollIntoView({ behavior: mouvementReduit() ? "auto" : "smooth", block: "start" });
+  }
+
   return (
-    <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
-      <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8 grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Main — la bannière vit MAINTENANT dans la colonne de gauche pour
-            qu'elle reste à côté de la sidebar prix sur desktop, et qu'elle
-            s'empile au-dessus uniquement sur mobile (lg:col-span-2). */}
-        <div className="lg:col-span-2 space-y-5">
-          {/* Banner */}
-          <div className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-[#003d1a] to-[#22c55e]">
-            {bundle.banner || bundle.thumbnail ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={bundle.banner ?? bundle.thumbnail ?? ""} alt={bundle.title} className="w-full h-full object-cover" />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Gift size={100} className="text-white/30" />
-              </div>
-            )}
-            <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-white/95 text-[#191c1e] shadow-sm">
-              <Gift size={12} style={{ color: themeColor }} />
-              Pack — {bundle.items.length} articles
-            </div>
-            {bundle.savingsPct > 0 && (
-              <div className="absolute top-3 right-3 inline-flex items-center gap-1 text-[11px] font-bold uppercase px-3 py-1.5 rounded-full bg-amber-400 text-amber-900 shadow-sm">
-                -{bundle.savingsPct}% ÉCONOMIE
-              </div>
-            )}
-          </div>
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
-            <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e] leading-tight">{bundle.title}</h1>
-            {bundle.shop && (
-              <Link href={`/${bundle.shop.slug}`} className="inline-flex items-center gap-2 mt-3 text-sm text-[#5c647a] hover:text-[#191c1e]">
-                {bundle.shop.logoUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={bundle.shop.logoUrl} alt="" className="w-7 h-7 rounded-full object-cover" />
-                ) : (
-                  <span className="w-7 h-7 rounded-full bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white text-xs font-bold">
-                    {bundle.shop.name.slice(0, 2).toUpperCase()}
+    <div ref={racineRef} className={`nkf ${sora.variable} min-h-screen bg-[#f7f9fb] pb-24 lg:pb-0`}>
+      <div className="mx-auto max-w-6xl px-4 pb-14 pt-5 md:px-6 md:pb-20 md:pt-7">
+        {/* Grille : en-tête pleine largeur, contenu à gauche, carte d'achat à
+            droite (collante, deux rangées). Sur mobile : en-tête, visuel,
+            contenu du pack, puis la carte — on voit ce qu'on achète avant de
+            choisir son moyen de paiement. */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:grid-rows-[auto_auto_1fr] lg:gap-x-10 lg:gap-y-8 xl:grid-cols-[minmax(0,1fr)_384px]">
+          <div ref={enteteRef} className="lg:col-span-2">
+            <EnTeteFiche
+              fil={[{ label: "Explorer", href: "/explorer" }, { label: "Packs" }, { label: bundle.title }]}
+              onRetour={retour}
+              eyebrow={`Pack · ${libelleArticles}`}
+              titre={bundle.title}
+              // Pas de nombre d'achats : même règle que la fiche produit (demande fondateur).
+              compteur={null}
+              badges={
+                bundle.savingsPct > 0 ? (
+                  <span className="nkf-chip nkf-chip--green tabular-nums">
+                    <Gift aria-hidden="true" />
+                    −{bundle.savingsPct} % par rapport à l&apos;achat séparé
                   </span>
-                )}
-                <span className="font-semibold">{bundle.shop.name}</span>
-              </Link>
-            )}
+                ) : undefined
+              }
+              boutique={bundle.shop ? { nom: bundle.shop.name, href: `/${bundle.shop.slug}`, logoUrl: bundle.shop.logoUrl } : null}
+            />
+          </div>
+
+          <div className="lg:col-start-1 lg:row-start-2">
+            <VignetteFiche
+              src={bundle.banner ?? bundle.thumbnail}
+              alt={bundle.title}
+              Icone={Gift}
+              badges={
+                <>
+                  <span className="nkf-tag">
+                    <Gift aria-hidden="true" />
+                    Pack — {libelleArticles}
+                  </span>
+                  {bundle.savingsPct > 0 && <span className="nkf-tag nkf-tag--ink tabular-nums">−{bundle.savingsPct} %</span>}
+                </>
+              }
+            />
+          </div>
+
+          <div className="grid gap-6 lg:col-start-1 lg:row-start-3 lg:self-start">
             {bundle.description && (
-              <TiptapRenderer content={bundle.description} className="mt-4" />
+              <SectionFiche id="description" titre="Description" eyebrow="À propos de ce pack">
+                <div className="nkf-prose">
+                  <TiptapRenderer content={bundle.description} />
+                </div>
+              </SectionFiche>
             )}
+
+            <SectionFiche id="contenu" titre={`Ce pack contient (${n})`} eyebrow="Inclus" meta={`Valeur séparée : ${fmtFCFA(bundle.itemsSum)}`}>
+              <ul className="m-0 grid list-none gap-2.5 p-0">
+                {bundle.items.map((it) => {
+                  const Icone = it.kind === "formation" ? GraduationCap : Package;
+                  const src = it.image ? (productImageSrc(it.image, 200) ?? it.image) : null;
+                  // La description d'un produit est du HTML d'éditeur : on n'en
+                  // garde que le texte pour l'extrait, jamais les balises.
+                  const extrait = it.description?.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() || null;
+                  return (
+                    <li key={`${it.kind}-${it.id}`}>
+                      <Link href={it.kind === "formation" ? `/formation/${it.slug}` : `/produit/${it.slug}`} className="nkf-item group">
+                        <span className="nkf-item__img" aria-hidden="true">
+                          {src ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={src} alt="" loading="lazy" decoding="async" />
+                          ) : (
+                            <Icone size={28} strokeWidth={1.25} />
+                          )}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-[#006e2f]">
+                            {it.kind === "formation" ? "Formation" : "Produit"}
+                          </span>
+                          {/* Pas de `block` à côté de line-clamp : les deux fixent display, et block l'emportait (extraits sur 40 lignes). */}
+                          <span className="mt-0.5 line-clamp-1 text-[0.9375rem] font-bold tracking-tight text-[#0e1512] transition-colors group-hover:text-[#006e2f]">
+                            {it.title}
+                          </span>
+                          {extrait && <span className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-[#5c6b62]">{extrait}</span>}
+                        </span>
+                        <span className="flex-shrink-0 text-right">
+                          <span className="block text-sm font-extrabold tabular-nums text-[#0e1512]">{fmtFCFA(it.price)}</span>
+                          <span className="block text-[10px] text-[#5c6b62]">valeur unitaire</span>
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </SectionFiche>
+
+            <SectionFiche id="faq" titre="Questions fréquentes" eyebrow="Avant d'acheter">
+              <FaqFiche items={FAQ_PACK} />
+            </SectionFiche>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
-            <h2 className="text-lg font-extrabold text-[#191c1e] mb-4">
-              Ce pack contient ({bundle.items.length})
-            </h2>
-            <div className="space-y-3">
-              {bundle.items.map((it) => (
-                <Link
-                  key={`${it.kind}-${it.id}`}
-                  href={it.kind === "formation" ? `/formation/${it.slug}` : `/produit/${it.slug}`}
-                  className="flex items-start gap-3 p-3 rounded-xl border border-gray-100 hover:border-[#006e2f]/30 hover:shadow-sm transition-all group"
-                >
-                  <div className="w-16 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 flex-shrink-0">
-                    {it.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={it.image} alt={it.title} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        {it.kind === "formation" ? (
-                          <GraduationCap size={28} className="text-white/60" />
-                        ) : (
-                          <Package size={28} className="text-white/60" />
-                        )}
-                      </div>
-                    )}
+          <aside ref={carteRef} className="lg:col-start-2 lg:row-start-2 lg:row-span-2" aria-label="Acheter ce pack">
+            <div className="lg:sticky lg:top-24">
+              <CarteAchat
+                etiquette="Prix du pack"
+                prix={bundle.priceXof}
+                prixInitial={bundle.itemsSum > bundle.priceXof ? bundle.itemsSum : null}
+                sousPrix={
+                  bundle.savings > 0 ? (
+                    <>
+                      Vous économisez <strong className="tabular-nums text-[#006e2f]">{fmtFCFA(bundle.savings)}</strong> par rapport à
+                      l&apos;achat séparé.
+                    </>
+                  ) : undefined
+                }
+                garanties={[
+                  { Icone: CalendarCheck, contenu: "Accès immédiat après paiement" },
+                  { Icone: InfinityIcon, contenu: `Accès à vie aux ${libelleArticles}` },
+                  { Icone: MonitorSmartphone, contenu: "Accessible sur mobile & desktop" },
+                  { Icone: ShieldCheck, contenu: "Paiement 100 % sécurisé" },
+                  {
+                    Icone: RotateCcw,
+                    contenu: (
+                      <>
+                        Remboursement encadré — <Link href="/cgu">conditions</Link>
+                      </>
+                    ),
+                  },
+                ]}
+                boutique={bundle.shop ? { nom: bundle.shop.name, href: `/${bundle.shop.slug}` } : null}
+                partage={bundle.title}
+              >
+                {!connecte && (
+                  <div className="mt-5 grid gap-2">
+                    <label htmlFor="pack-email" className="sr-only">
+                      Votre e-mail
+                    </label>
+                    <input
+                      id="pack-email"
+                      type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Votre e-mail"
+                      required
+                      className={CHAMP}
+                    />
+                    <label htmlFor="pack-nom" className="sr-only">
+                      Votre nom (facultatif)
+                    </label>
+                    <input
+                      id="pack-nom"
+                      type="text"
+                      autoComplete="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Votre nom (facultatif)"
+                      className={CHAMP}
+                    />
+                    <p className="text-[11px] text-[#5c6b62]">C&apos;est là que le pack sera envoyé.</p>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#5c647a]">
-                      {it.kind === "formation" ? "Formation" : "Produit"}
-                    </p>
-                    <p className="font-bold text-[#191c1e] group-hover:text-[#006e2f] transition-colors line-clamp-1">
-                      {it.title}
-                    </p>
-                    {it.description && (
-                      <p className="text-xs text-[#5c647a] mt-1 line-clamp-2">{it.description}</p>
-                    )}
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-extrabold text-[#191c1e]">{fmtFCFA(it.price)}</p>
-                    <p className="text-[10px] text-[#5c647a]">valeur unitaire</p>
-                  </div>
-                </Link>
-              ))}
+                )}
+
+                {/* L'écran de paiement de la plateforme, identique à celui d'un
+                    achat simple : pays, moyen, numéro, puis paiement. */}
+                <div className="mt-5">
+                  {kkiapay && (
+                    // Passerelle à fenêtre : elle s'ouvre SUR notre page, l'acheteur
+                    // ne part jamais ailleurs.
+                    <KkiapayWidget
+                      init={kkiapay}
+                      onDelivered={() => { window.location.href = `/payment/return?ref=${encodeURIComponent(kkiapay.internalRef)}`; }}
+                      onFailed={(m) => { setKkiapay(null); setError(m); setLoading(false); }}
+                    />
+                  )}
+                  <UnifiedPaymentScreen
+                    embedded
+                    amount={bundle.priceXof}
+                    buyerName={name.trim() || null}
+                    merchantName={bundle.shop?.name ?? undefined}
+                    submitting={loading}
+                    onPay={(args) => { void startPayment(args); }}
+                  />
+                </div>
+
+                {error && (
+                  <p role="alert" className="mt-3 rounded-xl bg-[#fdecea] px-3 py-2 text-xs font-medium text-[#b42318]">
+                    {error}
+                  </p>
+                )}
+              </CarteAchat>
             </div>
-          </div>
-        </div>
-
-        {/* Sidebar buy */}
-        <div className="space-y-5">
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 sticky top-4">
-            {bundle.savingsPct > 0 && (
-              <span className="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 mb-2">
-                Économisez {fmtFCFA(bundle.savings)}
-              </span>
-            )}
-            <div className="flex items-baseline gap-2">
-              <p className="text-3xl font-extrabold" style={{ color: themeColor }}>{fmtFCFA(bundle.priceXof)}</p>
-            </div>
-            {bundle.itemsSum > bundle.priceXof && (
-              <p className="text-sm text-gray-400 line-through mt-1">{fmtFCFA(bundle.itemsSum)}</p>
-            )}
-
-            {!connecte && (
-              <div className="mt-5 space-y-2">
-                <input
-                  type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Votre e-mail" required
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#006e2f]"
-                />
-                <input
-                  type="text" value={name} onChange={(e) => setName(e.target.value)}
-                  placeholder="Votre nom (facultatif)"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#006e2f]"
-                />
-                <p className="text-[11px] text-[#5c647a]">C'est là que le pack sera envoyé.</p>
-              </div>
-            )}
-
-            {/* L'écran de paiement de la plateforme, identique à celui d'un
-                achat simple : pays, moyen, numéro, puis paiement. */}
-            <div className="mt-5">
-              {kkiapay && (
-                // Passerelle à fenêtre : elle s'ouvre SUR notre page, l'acheteur
-                // ne part jamais ailleurs.
-                <KkiapayWidget
-                  init={kkiapay}
-                  onDelivered={() => { window.location.href = `/payment/return?ref=${encodeURIComponent(kkiapay.internalRef)}`; }}
-                  onFailed={(m) => { setKkiapay(null); setError(m); setLoading(false); }}
-                />
-              )}
-              <UnifiedPaymentScreen
-                embedded
-                amount={bundle.priceXof}
-                buyerName={name.trim() || null}
-                merchantName={bundle.shop?.name ?? undefined}
-                submitting={loading}
-                onPay={(args) => { void startPayment(args); }}
-              />
-            </div>
-
-            {error && (
-              <p className="text-xs text-red-600 mt-3 bg-red-50 border border-red-200 rounded-lg p-2">{error}</p>
-            )}
-
-            <div className="mt-5 pt-5 border-t border-gray-100 space-y-2 text-xs text-[#5c647a]">
-              <div className="flex items-center gap-2">
-                <InfinityIcon size={16} style={{ color: themeColor }} />
-                Accès à vie aux {bundle.items.length} articles
-              </div>
-              <div className="flex items-center gap-2">
-                <ShieldCheck size={16} style={{ color: themeColor }} />
-                Paiement 100% sécurisé
-              </div>
-              <div className="flex items-center gap-2">
-                <CalendarCheck size={16} style={{ color: themeColor }} />
-                Accès immédiat après achat
-              </div>
-            </div>
-          </div>
+          </aside>
         </div>
       </div>
+
+      {/* Barre fixe (sous `lg`) : le paiement se choisit dans la carte, la
+          barre y amène. */}
+      <BarreAchatMobile
+        prix={bundle.priceXof}
+        prixInitial={bundle.itemsSum > bundle.priceXof ? bundle.itemsSum : null}
+        libelle="Acheter le pack"
+        Icone={ShoppingBag}
+        onClick={allerALaCarte}
+        apresRef={enteteRef}
+        carteRef={carteRef}
+      />
     </div>
   );
 }
