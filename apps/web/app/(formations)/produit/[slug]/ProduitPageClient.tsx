@@ -418,7 +418,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
           </aside>
 
           <div className="grid gap-6 lg:col-start-1 lg:row-start-3 lg:self-start">
-            <SectionFiche id="description" titre="Description" eyebrow="À propos de ce produit">
+            <SectionFiche id="description" eyebrow="À propos de ce produit">
               {product.description ? (
                 <div className="nkf-prose">
                   {/* Rendu unifié HTML/Markdown — identique à l'éditeur (nk-rich) */}

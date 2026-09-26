@@ -483,7 +483,7 @@ export default function FormationPageClient({ slug }: { slug: string }) {
             )}
 
             {formation.description && (
-              <SectionFiche id="description" titre="Description" eyebrow="À propos de cette formation">
+              <SectionFiche id="description" eyebrow="À propos de cette formation">
                 <div className="nkf-prose">
                   {/* Rendu unifié HTML/Markdown — identique à l'éditeur (nk-rich) */}
                   <TiptapRenderer content={formation.description} />

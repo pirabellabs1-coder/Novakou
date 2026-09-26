@@ -229,7 +229,7 @@ export default function BundlePageClient({ bundle }: { bundle: Bundle }) {
 
           <div className="grid gap-6 lg:col-start-1 lg:row-start-3 lg:self-start">
             {bundle.description && (
-              <SectionFiche id="description" titre="Description" eyebrow="À propos de ce pack">
+              <SectionFiche id="description" eyebrow="À propos de ce pack">
                 <div className="nkf-prose">
                   <TiptapRenderer content={bundle.description} />
                 </div>

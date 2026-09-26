@@ -26,7 +26,10 @@ export function ilYA(iso: string) {
   return `Il y a ${ans} an${ans > 1 ? "s" : ""}`;
 }
 
-/* ── Section : coque double-bezel, titre h2, méta optionnelle ─────────── */
+/* ── Section : coque double-bezel, titre h2, méta optionnelle ─────────────
+   Sans `titre`, la pilule verte (`eyebrow`) devient elle-même le h2 : sous
+   « À propos de ce produit », un second titre « Description » répétait la
+   même chose (retour du fondateur, 2026-09-26). */
 export function SectionFiche({
   id,
   titre,
@@ -37,7 +40,7 @@ export function SectionFiche({
   className = "",
 }: {
   id?: string;
-  titre: string;
+  titre?: string;
   eyebrow?: string;
   meta?: ReactNode;
   actions?: ReactNode;
@@ -51,10 +54,18 @@ export function SectionFiche({
       <div className="nkf-bezel__core p-5 sm:p-7 md:p-8">
         <header className="mb-5 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
           <div className="min-w-0">
-            {eyebrow && <p className="nkf-eyebrow mb-2">{eyebrow}</p>}
-            <h2 id={titreId} className="nkf-h2">
-              {titre}
-            </h2>
+            {titre ? (
+              <>
+                {eyebrow && <p className="nkf-eyebrow mb-2">{eyebrow}</p>}
+                <h2 id={titreId} className="nkf-h2">
+                  {titre}
+                </h2>
+              </>
+            ) : (
+              <h2 id={titreId} className="nkf-eyebrow">
+                {eyebrow}
+              </h2>
+            )}
           </div>
           {meta && <p className="text-xs tabular-nums text-[#5c6b62]">{meta}</p>}
           {actions}
