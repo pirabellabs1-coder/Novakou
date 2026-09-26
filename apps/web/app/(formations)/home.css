@@ -159,8 +159,15 @@
   -webkit-mask-image:radial-gradient(60% 90% at 50% 0%,#000 30%,transparent 75%);
   mask-image:radial-gradient(60% 90% at 50% 0%,#000 30%,transparent 75%)}
 .nkhome .hero .inner{max-width:800px;margin:0 auto;position:relative}
-.nkhome h1{font-size:clamp(2.6rem,5.8vw,4.25rem);font-weight:700;letter-spacing:-.04em;line-height:1.08;margin:26px 0 22px}
+.nkhome h1{font-size:clamp(1.4rem,7.2vw,4rem);font-weight:700;letter-spacing:-.04em;line-height:1.08;margin:26px 0 22px}
 .nkhome h1 em{font-style:normal;color:var(--green)}
+/* Triangle inverse : trois lignes explicites, de la plus longue a la plus
+   courte, centrees. Le retour a la ligne naturel produisait des lignes de
+   longueurs voisines — un pave. `nowrap` garde la forme ; la taille de police
+   est bornee par la largeur de l'ecran (clamp ci-dessous) pour qu'aucune
+   ligne ne deborde. */
+.nkhome h1 .hline{display:block;white-space:nowrap}
+.nkhome h1 em{display:inline}
 /* Masque mot à mot du titre : chaque mot glisse hors d'une fenêtre
    overflow:hidden. Les paddings/marges négatives laissent passer les
    ascendantes et descendantes sans changer la hauteur de ligne. */
@@ -549,7 +556,7 @@
   /* Sur téléphone, le titre à 41 px prenait cinq lignes et l'accroche trois :
      on resserre (36 px, ~4 lignes) et on coupe la fin de l'accroche
      (« — et dans le monde entier »), lisible dès 640 px. */
-  .nkhome h1{font-size:2.25rem;line-height:1.1;letter-spacing:-.035em;margin:18px 0 14px}
+  .nkhome h1{line-height:1.1;letter-spacing:-.035em;margin:18px 0 14px}
   .nkhome .hero .tag{font-size:.74rem;line-height:1.35;padding:8px 14px}
   .nkhome .hero .tag .tag-suite{display:none}
   .nkhome .hero-sub{font-size:1.02rem;line-height:1.55}

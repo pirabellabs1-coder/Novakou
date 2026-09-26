@@ -78,8 +78,24 @@ const ICO = `<span class="btn-ico" aria-hidden="true">${ARROW}</span>`;
    .hw/.hw-in, animée dans HomeClient). Les spans sont aria-hidden : le texte
    complet est exposé une seule fois via aria-label sur le <h1>. */
 const H1_TEXTE = "Vendez vos formations et produits digitaux en ligne";
-const mots = (texte: string) =>
-  texte.split(" ").map((m, i) => `<span class="hw" aria-hidden="true"><span class="hw-in" style="--i:${i}">${m}</span></span>`).join(" ");
+/* Les trois lignes du titre, de la plus longue a la plus courte : centrees,
+   elles dessinent un triangle inverse. Le retour a la ligne naturel donnait
+   des lignes de longueurs voisines — un pave (retour du fondateur). */
+const H1_LIGNES = ["Vendez vos formations et", "produits digitaux", "en ligne"];
+/* `decalage` : la cascade continue d'une ligne a l'autre au lieu de repartir
+   de zero a chaque groupe. */
+const mots = (texte: string, decalage = 0) =>
+  texte
+    .split(" ")
+    .map(
+      (m, i) =>
+        `<span class="hw" aria-hidden="true"><span class="hw-in" style="--i:${i + decalage}">${m}</span></span>`,
+    )
+    .join(" ");
+const ligneH1 = (texte: string, decalage: number, vert = false) => {
+  const contenu = mots(texte, decalage);
+  return `<span class="hline">${vert ? `<em>${contenu}</em>` : contenu}</span>`;
+};
 
 const HTML_TOP = `
 <!-- HERO -->
@@ -87,7 +103,7 @@ const HTML_TOP = `
   <div class="wrap">
     <div class="inner">
       <span class="tag" data-hero>★ La plateforme n°1 de vente de produits numériques en Afrique<span class="tag-suite"> — et dans le monde entier</span></span>
-      <h1 aria-label="${H1_TEXTE}">${mots("Vendez vos formations et")} <em>${mots("produits digitaux")}</em> ${mots("en ligne")}</h1>
+      <h1 aria-label="${H1_TEXTE}">${ligneH1(H1_LIGNES[0], 0)}${ligneH1(H1_LIGNES[1], 4, true)}${ligneH1(H1_LIGNES[2], 6)}</h1>
       <p class="hero-sub" data-hero>Formations, e-books, coaching et templates. Boutique en ligne, paiements Mobile&nbsp;Money (Wave, Orange, MTN), tunnels de vente et assistant IA inclus. Lancez-vous en 3&nbsp;minutes.</p>
       <div class="hero-actions">
         <a href="/inscription?role=vendeur" class="btn btn-glass btn-glass--primary btn-lg" data-hero>Lancer ma boutique ${ICO}</a>
