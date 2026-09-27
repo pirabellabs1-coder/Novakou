@@ -214,3 +214,16 @@ fonctionnel, passerelle par passerelle, partout.
 - 🔄 EN_COURS Parcours d'achat (checkout, lien de paiement, attente, panier, abonnement, vitrine affilié) — visuel uniquement
 - 📋 PLANIFIÉE Les 17 anciens guides écrits à la main (~1 500 l. chacun) : extraire leurs composants locaux communs (TipBox, WarnBox, ProTip, SectionHeading, MockupFrame, TOC, FAQ) en versions premium partagées, sans toucher au texte
 - ⏸️ BLOQUÉE côté fondateur : recharge OpenRouter (502 /api/ai/chat), URI Google localhost:3001 en console, claim novakou.com dans Vercel, VPS proxy + IP FeexPay, mail PawaPay, fonds FedaPay → étape 3
+
+## Session du 2026-09-27 — popups, guides, marketing
+- ✅ VÉRIFIÉE Fuite de popups entre vendeurs (API publique sans filtre de propriétaire) — mesurée en prod avant/après
+- ✅ VÉRIFIÉE Invite d'installation cantonnée hors parcours sensibles (+ délai 25 s)
+- ✅ VÉRIFIÉE Plan du site et adresses canoniques sur les adresses finales (1 288 redirections → 0)
+- ✅ VÉRIFIÉE Les 17 anciens guides au gabarit premium (métadonnées et JSON-LD identiques, 17/17)
+- ✅ VÉRIFIÉE Failles d'accès marketing (codes promo, campagnes, offres flash, popups) + chiffres faussés par un bouchon
+- 📋 PLANIFIÉE **Corps JSON malformé → 500 au lieu de 400** : 182 routes appellent `req.json()` sans garde
+      (26 dans le marketing). Un prospecteur peut remplir les journaux d'erreurs et masquer les vraies pannes.
+      Correctif : un helper partagé `lireCorpsJson(req)` puis application route par route, par lots vérifiables.
+- 📋 PLANIFIÉE Conversions de campagne jamais créditées : seul le webhook de la passerelle retirée appelait
+      `creditCampaignConversion` ; à rebrancher dans `lib/formations/fulfillment.ts`
+- 📋 PLANIFIÉE Order bumps et éditeur de tunnels : non refondus visuellement
