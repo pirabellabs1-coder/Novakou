@@ -110,18 +110,21 @@ main:has(.nka-layout){overflow-x:clip}
 @media (min-width:768px){.nka-prose{font-size:1.125rem}}
 .nkpub .nka-prose>:first-child{margin-top:0}
 /* :is() : spécificité (0,1,1), au-dessus des utilitaires Tailwind que posent
-   certains contenus (markdown du centre d'aide) — la prose garde la main. */
-.nka-prose :is(p,ul,ol,li,blockquote){font-size:inherit;line-height:inherit;color:inherit}
-.nka-prose p{margin:0 0 1.15em}
+   certains contenus (markdown du centre d'aide) — la prose garde la main.
+   Exception `:not(.nka-maq *)` : à l'intérieur d'une maquette d'écran, le
+   contenu n'est pas de la prose mais une miniature d'interface ; ses propres
+   classes (tailles, marges) doivent reprendre la main. */
+.nka-prose :is(p,ul,ol,li,blockquote):not(.nka-maq *){font-size:inherit;line-height:inherit;color:inherit}
+.nka-prose p:not(.nka-maq *){margin:0 0 1.15em}
 .nkpub .nka-prose h2{font-size:clamp(1.45rem,1.2rem + .9vw,1.85rem);font-weight:700;letter-spacing:-.03em;line-height:1.2;margin:2.1em 0 .65em;color:var(--nkp-ink)}
 .nkpub .nka-prose h3{font-size:1.2em;font-weight:600;letter-spacing:-.02em;line-height:1.3;margin:1.9em 0 .6em;color:var(--nkp-ink)}
 .nkpub .nka-prose h4{font-size:1.02em;font-weight:600;letter-spacing:-.01em;line-height:1.35;margin:1.6em 0 .5em;color:var(--nkp-ink)}
 .nkpub .nka-prose :is(h2,h3,h4)+:is(h3,h4){margin-top:.6em}
-.nka-prose ul,.nka-prose ol{margin:0 0 1.2em;padding-left:1.35em}
-.nka-prose ul{list-style:disc}
-.nka-prose ol{list-style:decimal}
-.nka-prose li{padding-left:.3em}
-.nka-prose li+li{margin-top:.5em}
+.nka-prose :is(ul,ol):not(.nka-maq *){margin:0 0 1.2em;padding-left:1.35em}
+.nka-prose ul:not(.nka-maq *){list-style:disc}
+.nka-prose ol:not(.nka-maq *){list-style:decimal}
+.nka-prose li:not(.nka-maq *){padding-left:.3em}
+.nka-prose li:not(.nka-maq *)+li{margin-top:.5em}
 .nka-prose li::marker{color:var(--nkp-green)}
 .nka-prose ol>li::marker{font-weight:700;font-variant-numeric:tabular-nums}
 .nka-prose strong{color:var(--nkp-ink);font-weight:600}
@@ -292,3 +295,114 @@ main:has(.nka-layout){overflow-x:clip}
 .nka-table--cookies th:nth-child(1){width:37%}
 .nka-table--cookies th:nth-child(2){width:39%}
 .nka-table--cookies th:nth-child(3){width:24%;white-space:normal}
+
+/* ============================================================
+   Anciens guides écrits à la main (17 pages) : blocs que le
+   gabarit v2 n'avait pas — encadré « conseil de pro », étapes
+   d'un mode opératoire, maquettes d'écran, faux boutons.
+   Même langue visuelle : double-bezel, tokens nkp-, sobriété.
+   ============================================================ */
+
+/* Encadré « conseil de pro » : bleu-gris froid, au-dessus du neutre. */
+.nka-note--pro{--nka-note-bg:#f4f7fb;--nka-note-ring:#e0e8f1;--nka-note-ic:#31537a;--nka-note-t:#24405e}
+
+/* Mention de source sous une grille de chiffres. */
+.nka-prose .nka-source{margin:-1.4em 0 2em;font-size:.8em;line-height:1.5;color:var(--nkp-grey)}
+
+/* ── Étapes d'un mode opératoire ────────────────────────────── */
+.nka-etapes-l{margin:2em 0}
+.nka-etape{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;margin:1.4em 0}
+/* Trait de liaison : relie la pastille à la suivante, jamais sous la dernière.
+   `:has(+ …)` évite d'imposer un conteneur aux guides qui enchaînent les étapes. */
+.nka-etape:has(+ .nka-etape){margin-bottom:0;padding-bottom:1.5em}
+.nka-etape:has(+ .nka-etape)::before{content:"";position:absolute;left:19px;top:46px;bottom:4px;width:2px;border-radius:2px;background:var(--nkp-tint-2)}
+.nka-etape__n{position:relative;width:40px;height:40px;border-radius:12px;flex-shrink:0;display:grid;place-items:center;line-height:1;
+  font-family:var(--font-sora),"Sora",sans-serif;font-size:1.05rem;font-weight:700;font-variant-numeric:tabular-nums;
+  color:var(--nkp-green);background:var(--nkp-tint);box-shadow:inset 0 0 0 1px var(--nkp-tint-2),inset 0 1px 0 rgba(255,255,255,.8)}
+.nka-etape__c{min-width:0;padding-top:.15em}
+.nka-prose .nka-etape__lbl{margin:0 0 .25em;font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:none;color:var(--nkp-green)}
+.nka-prose .nka-etape__t{margin:0 0 .3em;font-family:var(--font-sora),"Sora",sans-serif;font-size:1em;font-weight:600;letter-spacing:-.015em;line-height:1.35;color:var(--nkp-ink)}
+.nka-prose .nka-etape__c>p{font-size:.94em;line-height:1.65;color:var(--nkp-grey)}
+.nka-prose .nka-etape__c>p:last-child{margin-bottom:0}
+.nka-prose .nka-etape__kpi{display:inline-flex;align-items:center;margin:.7em 0 0;padding:4px 11px;border-radius:100px;
+  font-size:.8em;font-weight:600;color:var(--nkp-green-deep);background:var(--nkp-tint);box-shadow:inset 0 0 0 1px var(--nkp-tint-2)}
+
+/* ── Maquettes d'écran ─────────────────────────────────────── */
+.nka-maq{margin:2.2em 0}
+.nka-maq__in{background:#fff;overflow:hidden}
+.nka-maq__tete{display:flex;align-items:center;gap:12px;padding:11px 16px;background:#fbfcfb;box-shadow:inset 0 -1px 0 var(--nkp-line)}
+.nka-maq__pts{display:inline-flex;gap:5px;flex-shrink:0}
+.nka-maq__pts i{width:7px;height:7px;border-radius:50%;background:var(--nkp-line);box-shadow:inset 0 0 0 1px rgba(14,21,18,.05)}
+.nka-maq__pts i:first-child{background:#e7d7d1}
+.nka-maq__pts i:nth-child(2){background:#eee3cd}
+.nka-maq__pts i:last-child{background:var(--nkp-tint-2)}
+.nka-maq__t{font-size:.78rem;font-weight:600;line-height:1.35;color:var(--nkp-grey);min-width:0}
+.nka-maq__corps{padding:22px}
+.nka-prose .nka-maq__corps>:last-child{margin-bottom:0}
+.nka-prose .nka-maq figcaption{margin-top:10px;font-size:.84em;line-height:1.5;color:var(--nkp-grey);text-align:center}
+/* La prose est plus grande que l'interface représentée : on la redescend. */
+.nka-prose .nka-maq__corps{font-size:.93em}
+.nka-prose .nka-maq__corps p{margin-bottom:.8em}
+@media (max-width:560px){.nka-maq__corps{padding:16px}.nka-maq__tete{padding:10px 13px}}
+
+/* Faux bouton d'une maquette : décoratif, non cliquable. */
+.nka-fbtn{display:inline-flex;align-items:center;gap:7px;padding:7px 15px;border-radius:100px;font-size:.82em;font-weight:600;line-height:1.2;
+  color:#fff;background:var(--nkp-green);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 6px 14px -8px rgba(0,110,47,.6)}
+.nka-fbtn--ghost{color:var(--nkp-ink);background:#fff;box-shadow:inset 0 0 0 1px var(--nkp-line),0 1px 2px rgba(14,21,18,.05)}
+
+/* Ligne clé / valeur d'une maquette. */
+.nka-prose .nka-mline{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px;margin:0;padding:9px 0;font-size:.92em;
+  color:var(--nkp-grey);box-shadow:inset 0 -1px 0 var(--nkp-line)}
+.nka-prose .nka-mline:last-child{box-shadow:none;padding-bottom:0}
+.nka-prose .nka-mline b{color:var(--nkp-ink);font-weight:600;text-align:right}
+
+/* Guides complémentaires en deux colonnes (4 liens) : mêmes cartes. */
+.nkpub .nka-lie h3 a{font-weight:inherit}
+
+/* Répartition en barres : teinte unique, valeur écrite (jamais la couleur seule). */
+.nka-prose ul.nka-barres{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
+.nka-prose ul.nka-barres>li{margin:0;padding:0}
+.nka-prose .nka-barres__t{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 14px;margin:0 0 7px;font-size:.9em;color:var(--nkp-grey)}
+.nka-prose .nka-barres__t b{color:var(--nkp-green);font-weight:700;font-variant-numeric:tabular-nums}
+.nka-barres__p{display:block;height:8px;border-radius:100px;background:var(--nkp-tint);box-shadow:inset 0 0 0 1px var(--nkp-tint-2);overflow:hidden}
+.nka-barres__p i{display:block;height:100%;border-radius:100px;background:linear-gradient(90deg,var(--nkp-green),var(--nkp-soft))}
+
+/* Paliers : étiquette, intitulé + valeur, explication. */
+.nka-prose ul.nka-paliers{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.nka-prose ul.nka-paliers>li{display:flex;align-items:flex-start;gap:14px;margin:0;padding:15px 17px;border-radius:14px;background:#fff;
+  box-shadow:inset 0 0 0 1px var(--nkp-line),inset 0 1px 0 #fff,var(--nkp-shadow-sm)}
+.nka-palier__e{flex-shrink:0;display:inline-flex;align-items:center;padding:5px 12px;border-radius:100px;font-size:.78em;font-weight:700;line-height:1.2;
+  color:var(--nkp-green);background:var(--nkp-tint);box-shadow:inset 0 0 0 1px var(--nkp-tint-2)}
+.nka-palier__c{min-width:0;flex:1}
+.nka-prose .nka-palier__t{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 14px;margin:0 0 .3em;font-size:.94em;font-weight:600;color:var(--nkp-ink)}
+.nka-prose .nka-palier__t b{color:var(--nkp-green);font-weight:700;white-space:nowrap}
+.nka-prose .nka-palier__d{margin:0;font-size:.88em;line-height:1.6;color:var(--nkp-grey)}
+@media (max-width:560px){.nka-prose ul.nka-paliers>li{flex-direction:column;gap:10px;padding:14px}}
+
+/* Contenus imbriqués dans une maquette : un seul niveau d'encadrement. */
+.nka-maq__corps--plein{padding:0}
+.nka-prose .nka-maq__corps .nka-table-wrap{margin:0;border-radius:0;box-shadow:none}
+.nka-prose .nka-maq__corps>ul.nka-chiffres{margin:0;gap:0;max-width:none;grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
+.nka-prose .nka-maq__corps li.nka-chiffre{padding:4px 12px;background:none;box-shadow:none;text-align:center}
+.nka-prose .nka-maq__corps li.nka-chiffre+li{box-shadow:inset 1px 0 0 var(--nkp-line)}
+.nka-prose .nka-maq__corps .nka-source{margin:16px 0 0;text-align:center}
+.nka-prose .nka-maq__corps ul.nka-paliers>li{padding:12px 0;border-radius:0;background:none;box-shadow:inset 0 -1px 0 var(--nkp-line)}
+.nka-prose .nka-maq__corps ul.nka-paliers>li:first-child{padding-top:0}
+.nka-prose .nka-maq__corps ul.nka-paliers>li:last-child{padding-bottom:0;box-shadow:none}
+
+/* Mention discrète en fin de ligne du sommaire (durée d'un chapitre). */
+.nka-toc__x{margin-left:auto;padding-left:8px;flex-shrink:0;font-size:.74rem;color:var(--nkp-grey-l);font-variant-numeric:tabular-nums}
+
+/* Téléphone : une maquette d'écran plus large que la colonne défile
+   horizontalement plutôt que d'être rognée. */
+@media (max-width:560px){
+  .nka-maq__corps{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+}
+
+/* Les appels à l'action de ces guides ont des libellés longs (« Lancer ma
+   boutique Novakou en 3 minutes ») : sur téléphone, le bouton passe sur deux
+   lignes plutôt que de rogner le texte (.nkp-btn est en nowrap par défaut). */
+@media (max-width:560px){
+  .nka-fin .nkp-btn{white-space:normal;line-height:1.3;padding-top:12px;padding-bottom:12px;text-align:left}
+  .nka-fin .nkp-btn--lg{font-size:.95rem}
+}

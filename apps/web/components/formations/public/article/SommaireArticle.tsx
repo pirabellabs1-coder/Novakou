@@ -9,6 +9,8 @@ export type EntreeSommaire = {
   label: string;
   /** Numéro affiché (« 01 ») ; décoratif, masqué aux lecteurs d'écran. */
   n?: string;
+  /** Mention discrète en fin de ligne (durée du chapitre, par exemple). */
+  suffixe?: string;
 };
 
 /**
@@ -81,6 +83,7 @@ export function SommaireArticle({
               </span>
             )}
             <span>{it.label}</span>
+            {it.suffixe && <small className="nka-toc__x">{it.suffixe}</small>}
           </a>
         </li>
       ))}

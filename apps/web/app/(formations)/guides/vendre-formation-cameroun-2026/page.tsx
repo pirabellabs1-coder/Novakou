@@ -1,6 +1,23 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
+import { CalendarDays, Clock } from "lucide-react";
+import { Accordeon } from "@/components/formations/public/Accordeon";
+import {
+  CarteActionGuide,
+  CoqueGuide,
+  numeroGuide,
+  SuiteGuides,
+} from "@/components/formations/public/article/CoqueGuide";
+import {
+  Astuce,
+  Attention,
+  Barres,
+  Chiffres,
+  Maquette,
+  Paliers,
+  ProAstuce,
+  SectionGuide,
+} from "@/components/formations/public/article/EncadresGuide";
 
 const OG_TITLE = "Vendre une formation en ligne au Cameroun en 2026";
 const OG_SUBTITLE = "Le guide complet : MTN MoMo, Orange Money, fiscalite, lancement 30 jours";
@@ -25,191 +42,6 @@ export const metadata: Metadata = {
     canonical: "/guides/vendre-formation-cameroun-2026",
   },
 };
-
-/* ─── Typographies Satoshi inline ─────────────────────────── */
-const S = {
-  fontFamily:
-    "'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-} as const;
-const SH = { ...S, fontWeight: 700, letterSpacing: "-0.04em" } as const;
-
-/* ─── Palette Novakou ─────────────────────────────────────── */
-const C = {
-  primary: "#006e2f",
-  accent: "#22c55e",
-  dark: "#191c1e",
-  muted: "#5c647a",
-  surface: "#f6fbf2",
-  surfaceLow: "#f0f5ec",
-  surfaceHigh: "#e5eae1",
-  white: "#ffffff",
-  tipBg: "#ecfdf5",
-  tipBorder: "#a7f3d0",
-  warnBg: "#fffbeb",
-  warnBorder: "#fde68a",
-  proBg: "#eff6ff",
-  proBorder: "#bfdbfe",
-} as const;
-
-/* ─── Helper components ───────────────────────────────────── */
-
-function Breadcrumb() {
-  return (
-    <nav
-      aria-label="Fil d'Ariane"
-      className="flex items-center gap-2 text-sm mb-6"
-      style={{ ...S, color: C.muted }}
-    >
-      <Link href="/" className="hover:underline" style={{ color: C.primary }}>
-        Accueil
-      </Link>
-      <span>/</span>
-      <Link
-        href="/guides/guide-complet-novakou"
-        className="hover:underline"
-        style={{ color: C.primary }}
-      >
-        Guides
-      </Link>
-      <span>/</span>
-      <span style={{ color: C.dark }}>Vendre formation Cameroun 2026</span>
-    </nav>
-  );
-}
-
-function TipBox({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      className="rounded-xl p-5 my-8 border"
-      style={{
-        ...S,
-        backgroundColor: C.tipBg,
-        borderColor: C.tipBorder,
-        color: C.dark,
-      }}
-    >
-      <div className="flex items-start gap-3">
-        <span
-          className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-sm font-bold"
-          style={{ backgroundColor: C.accent }}
-        >
-          i
-        </span>
-        <div className="text-[15px] leading-relaxed">{children}</div>
-      </div>
-    </div>
-  );
-}
-
-function WarnBox({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      className="rounded-xl p-5 my-8 border"
-      style={{
-        ...S,
-        backgroundColor: C.warnBg,
-        borderColor: C.warnBorder,
-        color: C.dark,
-      }}
-    >
-      <div className="flex items-start gap-3">
-        <span className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-sm font-bold bg-amber-500">
-          !
-        </span>
-        <div className="text-[15px] leading-relaxed">{children}</div>
-      </div>
-    </div>
-  );
-}
-
-function ProTip({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      className="rounded-xl p-5 my-8 border"
-      style={{
-        ...S,
-        backgroundColor: C.proBg,
-        borderColor: C.proBorder,
-        color: C.dark,
-      }}
-    >
-      <div className="flex items-start gap-3">
-        <span className="flex-shrink-0 px-2 py-0.5 rounded text-xs font-bold text-white bg-blue-600">
-          PRO
-        </span>
-        <div className="text-[15px] leading-relaxed">{children}</div>
-      </div>
-    </div>
-  );
-}
-
-function SectionHeading({
-  id,
-  number,
-  children,
-}: {
-  id: string;
-  number?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <h2
-      id={id}
-      className="text-2xl sm:text-3xl mt-16 mb-6 scroll-mt-28"
-      style={{ ...SH, color: C.dark }}
-    >
-      {number && (
-        <span
-          className="inline-flex items-center justify-center w-9 h-9 rounded-full text-base mr-3 text-white"
-          style={{ backgroundColor: C.primary }}
-        >
-          {number}
-        </span>
-      )}
-      {children}
-    </h2>
-  );
-}
-
-function MockupFrame({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      className="rounded-2xl overflow-hidden my-10 border"
-      style={{ borderColor: C.surfaceHigh, backgroundColor: C.white }}
-    >
-      <div
-        className="flex items-center gap-2 px-4 py-3 border-b"
-        style={{ backgroundColor: C.surfaceLow, borderColor: C.surfaceHigh }}
-      >
-        <span
-          className="w-3 h-3 rounded-full"
-          style={{ backgroundColor: "#ef4444" }}
-        />
-        <span
-          className="w-3 h-3 rounded-full"
-          style={{ backgroundColor: "#f59e0b" }}
-        />
-        <span
-          className="w-3 h-3 rounded-full"
-          style={{ backgroundColor: C.accent }}
-        />
-        <span
-          className="ml-3 text-xs font-medium"
-          style={{ ...S, color: C.muted }}
-        >
-          {title}
-        </span>
-      </div>
-      <div className="p-5 sm:p-6">{children}</div>
-    </div>
-  );
-}
 
 /* ─── Table of Contents data ──────────────────────────────── */
 const TOC = [
@@ -259,15 +91,16 @@ const FAQ_ITEMS = [
   },
 ] as const;
 
+
 /* ═════════════════════════════════════════════════════════════ */
-/* PAGE COMPONENT                                               */
+/* PAGE                                                         */
 /* ═════════════════════════════════════════════════════════════ */
 
 export default function VendreFormationCamerounPage() {
   const ogImageUrl = `https://novakou.com/api/og?type=guide&title=${encodeURIComponent(OG_TITLE)}&subtitle=${encodeURIComponent(OG_SUBTITLE)}`;
 
   return (
-    <div style={{ backgroundColor: C.surface, color: C.dark, ...S }}>
+    <>
       {/* ───────────────── JSON-LD : Article ───────────────── */}
       <script
         type="application/ld+json"
@@ -357,1160 +190,678 @@ export default function VendreFormationCamerounPage() {
           }),
         }}
       />
-
-      {/* ───────────────── HERO ───────────────── */}
-      <section
-        className="pt-8 pb-16"
-        style={{
-          background: `linear-gradient(180deg, ${C.white} 0%, ${C.surface} 100%)`,
+      <CoqueGuide
+        ariane={[
+          { label: "Accueil", href: "/" },
+          { label: "Guides", href: "/guides/guide-complet-novakou" },
+          { label: "Vendre formation Cameroun 2026" },
+        ]}
+        eyebrow="Guide Cameroun"
+        titre={<>Vendre une formation en ligne au{" "} <em>Cameroun</em> en 2026 : le guide complet</>}
+        sousTitre="MTN MoMo, Orange Money, Yango Pay, fiscalite micro-fiscale, lancement en 30 jours sans budget. Le guide pratique base sur les chiffres reels du marche camerounais et la methode des formateurs qui dechirent a Douala, Yaounde et Buea en 2026."
+        auteur={{
+          nom: "Equipe Novakou - Douala",
+          note: "Guides et ressources pour les formateurs africains francophones",
         }}
+        infos={[
+          { icone: Clock, texte: "14 min de lecture" },
+          { icone: CalendarDays, texte: "Publie le 7 juin 2026" },
+        ]}
+        couverture={{
+          src: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80",
+          alt: "Formateur camerounais enregistrant son cours en ligne depuis Douala",
+        }}
+        sommaire={TOC.map((t, i) => ({ id: t.id, label: t.label, n: numeroGuide(i) }))}
+        fin={
+          <>
+            <CarteActionGuide
+              titre="Pret a lancer ta boutique de formation au Cameroun ?"
+              action={{ href: "/inscription", libelle: "Lancer ma boutique Novakou en 3 minutes" }}
+              note="0 abonnement - paiements Mobile Money inclus - 0 frais cache."
+            >
+              <p>Inscription gratuite en 3 minutes. MTN MoMo, Orange Money, Yango Pay et carte bancaire actives par defaut. Ta premiere vente peut tomber des cette semaine.</p>
+            </CarteActionGuide>
+            <SuiteGuides
+              titre="Guides complementaires"
+              liens={[
+                {
+                  href: "/guides/mobile-money-encaisser-paiements",
+                  titre: "Encaisser tes paiements en Mobile Money",
+                  resume:
+                    "MTN MoMo, Orange Money, Yango Pay : tout sur l'encaissement digital en Afrique francophone.",
+                },
+                {
+                  href: "/guides/fixer-prix-formation",
+                  titre: "Comment fixer le prix de ta formation",
+                  resume:
+                    "La methode complete de pricing adaptee au marche africain en FCFA.",
+                },
+                {
+                  href: "/guides/lancement-30-jours",
+                  titre: "Plan de lancement en 30 jours",
+                  resume:
+                    "Le calendrier exact jour par jour pour aller du zero a la premiere cohorte.",
+                },
+                {
+                  href: "/explorer",
+                  titre: "Explorer les formations Novakou",
+                  resume:
+                    "Inspire-toi des meilleures formations vendues sur la plateforme en Afrique francophone.",
+                },
+              ]}
+            />
+          </>
+        }
       >
-        <div className="max-w-[860px] mx-auto px-6">
-          <Breadcrumb />
-
-          <div className="flex flex-wrap items-center gap-3 mb-6">
-            <span
-              className="inline-block px-3 py-1 rounded-full text-[11px] font-bold tracking-[0.12em] uppercase"
-              style={{ backgroundColor: C.surfaceHigh, color: C.primary, ...S }}
-            >
-              Guide Cameroun
-            </span>
-            <span className="text-sm" style={{ color: C.muted }}>
-              14 min de lecture
-            </span>
-            <span className="text-sm" style={{ color: C.muted }}>
-              Publie le 7 juin 2026
-            </span>
-          </div>
-
-          <h1
-            className="text-3xl sm:text-4xl lg:text-5xl leading-[1.1] mb-6"
-            style={{ ...SH, color: C.dark }}
-          >
-            Vendre une formation en ligne au{" "}
-            <span style={{ color: C.primary }}>Cameroun</span> en 2026 : le
-            guide complet
-          </h1>
-
-          <p
-            className="text-lg leading-relaxed mb-8 max-w-2xl"
-            style={{ color: C.muted }}
-          >
-            MTN MoMo, Orange Money, Yango Pay, fiscalite micro-fiscale,
-            lancement en 30 jours sans budget. Le guide pratique base sur les
-            chiffres reels du marche camerounais et la methode des formateurs
-            qui dechirent a Douala, Yaounde et Buea en 2026.
+        <SectionGuide id="introduction" n={numeroGuide(0)} titre={<>Pourquoi le moment est unique au Cameroun</>}>
+          <p>
+            Le Cameroun de 2026 vit une fenetre d&apos;opportunite rare. Avec
+            plus de 28 millions d&apos;habitants, une mediane d&apos;age sous
+            les 19 ans et un taux d&apos;equipement smartphone qui depasse 70
+            pourcent dans les grandes villes (Douala, Yaounde, Bafoussam,
+            Bamenda), le terrain pour{" "}
+            <strong>vendre une formation en ligne au Cameroun</strong>{" "}
+            n&apos;a jamais ete aussi favorable. La 4G couvre l&apos;essentiel
+            du territoire urbain, la fibre s&apos;etend a Douala et Yaounde,
+            et MTN MoMo et Orange Money ont normalise le paiement digital
+            jusque dans les villages.
+          </p>
+          <p>
+            Dans le meme temps, la generation des 18 - 35 ans cherche
+            activement a se former : entrepreneuriat, anglais business,
+            design, agriculture moderne, religion, freelancing remote. Les
+            ecoles classiques sont cheres (300 000 a 2 500 000 FCFA
+            l&apos;annee a Douala), souvent decalees des realites du marche,
+            et n&apos;offrent ni flexibilite horaire ni accompagnement de
+            pair. Ta formation en ligne, livree par Mobile Money, accessible
+            depuis un smartphone, repond exactement a cette demande.
+          </p>
+          <p>
+            Ce guide te donne la methode integrale : choisir un sujet qui se
+            vend a <strong>Douala formation digitale</strong> et dans tout le
+            pays, encaisser via <strong>MTN MoMo Cameroun</strong>,{" "}
+            <strong>Orange Money Cameroun</strong> ou{" "}
+            <strong>Yango Pay Cameroun</strong>, gérer ta fiscalite freelance
+            dans le cadre du <strong>regime micro-fiscal Cameroun</strong>,
+            promouvoir sans budget pub, lancer en 30 jours et comprendre les
+            revenus realistes. Tout est aligne sur le terrain camerounais de
+            2026, pas sur des recettes copiees du marche français.
           </p>
 
-          {/* Author / meta */}
-          <div className="flex items-center gap-4">
-            <div
-              className="w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-bold"
-              style={{ backgroundColor: C.primary }}
-            >
-              N
-            </div>
-            <div>
-              <p className="text-sm font-semibold" style={{ color: C.dark }}>
-                Equipe Novakou - Douala
-              </p>
-              <p className="text-xs" style={{ color: C.muted }}>
-                Guides et ressources pour les formateurs africains francophones
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+          <Maquette titre="Le marche de la formation digitale au Cameroun en 2026">
+            <Chiffres
+              items={[
+                { valeur: "28M+", libelle: "Population camerounaise" },
+                { valeur: "~70 %", libelle: "Smartphones (urbain)" },
+                { valeur: "19 ans", libelle: "Age median" },
+              ]}
+              source="Estimations 2026 - sources : INS Cameroun, ART, GSMA Intelligence."
+            />
+          </Maquette>
 
-      {/* ───────────────── FEATURED IMAGE ───────────────── */}
-      <div className="max-w-[860px] mx-auto px-4 sm:px-6 pb-2">
-        <div className="rounded-2xl overflow-hidden shadow-sm">
-          <Image
-            src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80"
-            alt="Formateur camerounais enregistrant son cours en ligne depuis Douala"
-            width={1200}
-            height={500}
-            className="w-full object-cover"
-            style={{ maxHeight: 460 }}
-            priority
-          />
-        </div>
-      </div>
+          <Astuce>
+            <strong>Atout bilingue camerounais :</strong> le Cameroun est le
+            seul pays d&apos;Afrique avec le français ET l&apos;anglais comme
+            langues officielles (80 pourcent francophones, 20 pourcent
+            anglophones dans le Nord-Ouest et le Sud-Ouest). Une formation
+            publiee en versions FR + EN double naturellement ton marche
+            adressable, sans concurrent supplementaire significatif. Très peu
+            de formateurs exploitent ce levier en 2026 - c&apos;est un
+            avantage competitif gratuit.
+          </Astuce>
+        </SectionGuide>
 
-      {/* ───────────────── BODY ───────────────── */}
-      <section className="max-w-[860px] mx-auto px-6 pb-32">
-        {/* Table of Contents */}
-        <div
-          className="rounded-2xl p-6 sm:p-8 mb-16 border"
-          style={{
-            backgroundColor: C.white,
-            borderColor: C.surfaceHigh,
-          }}
-        >
-          <p className="text-lg font-bold mb-4" style={{ ...SH, color: C.dark }}>
-            Sommaire
+        <SectionGuide id="sujets" n={numeroGuide(1)} titre={<>Choisir son sujet - ce qui se vend vraiment au Cameroun</>}>
+          <p>
+            Tous les sujets ne se valent pas a Douala. Le marche camerounais
+            a ses préférences propres, structurees par la demographie jeune,
+            la culture entrepreneuriale du Mungo et de l&apos;Ouest, et la
+            presence du <strong>Yaounde tech hub</strong> qui forme une
+            nouvelle classe de talents techniques. Voici les six niches qui
+            generent le plus de ventes de formations digitales en 2026,
+            classees par volume de recherche et taux de conversion observes
+            sur Novakou.
           </p>
-          <ol className="space-y-2">
-            {TOC.map((item, idx) => (
-              <li key={item.id}>
-                <a
-                  href={`#${item.id}`}
-                  className="flex items-start gap-3 py-1.5 text-[15px] hover:underline transition-colors"
-                  style={{ color: C.primary }}
-                >
-                  <span
-                    className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white mt-0.5"
-                    style={{ backgroundColor: C.accent }}
-                  >
-                    {idx + 1}
-                  </span>
-                  {item.label}
-                </a>
-              </li>
-            ))}
-          </ol>
-        </div>
 
-        {/* ════════════════════════════════════════════════════════ */}
-        {/*  INTRODUCTION                                          */}
-        {/* ════════════════════════════════════════════════════════ */}
-        <SectionHeading id="introduction">
-          Pourquoi le moment est unique au Cameroun
-        </SectionHeading>
-
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          Le Cameroun de 2026 vit une fenetre d&apos;opportunite rare. Avec
-          plus de 28 millions d&apos;habitants, une mediane d&apos;age sous
-          les 19 ans et un taux d&apos;equipement smartphone qui depasse 70
-          pourcent dans les grandes villes (Douala, Yaounde, Bafoussam,
-          Bamenda), le terrain pour{" "}
-          <strong>vendre une formation en ligne au Cameroun</strong>{" "}
-          n&apos;a jamais ete aussi favorable. La 4G couvre l&apos;essentiel
-          du territoire urbain, la fibre s&apos;etend a Douala et Yaounde,
-          et MTN MoMo et Orange Money ont normalise le paiement digital
-          jusque dans les villages.
-        </p>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          Dans le meme temps, la generation des 18 - 35 ans cherche
-          activement a se former : entrepreneuriat, anglais business,
-          design, agriculture moderne, religion, freelancing remote. Les
-          ecoles classiques sont cheres (300 000 a 2 500 000 FCFA
-          l&apos;annee a Douala), souvent decalees des realites du marche,
-          et n&apos;offrent ni flexibilite horaire ni accompagnement de
-          pair. Ta formation en ligne, livree par Mobile Money, accessible
-          depuis un smartphone, repond exactement a cette demande.
-        </p>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          Ce guide te donne la methode integrale : choisir un sujet qui se
-          vend a <strong>Douala formation digitale</strong> et dans tout le
-          pays, encaisser via <strong>MTN MoMo Cameroun</strong>,{" "}
-          <strong>Orange Money Cameroun</strong> ou{" "}
-          <strong>Yango Pay Cameroun</strong>, gérer ta fiscalite freelance
-          dans le cadre du <strong>regime micro-fiscal Cameroun</strong>,
-          promouvoir sans budget pub, lancer en 30 jours et comprendre les
-          revenus realistes. Tout est aligne sur le terrain camerounais de
-          2026, pas sur des recettes copiees du marche français.
-        </p>
-
-        <MockupFrame title="Le marche de la formation digitale au Cameroun en 2026">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            {[
-              { value: "28M+", label: "Population camerounaise" },
-              { value: "~70 %", label: "Smartphones (urbain)" },
-              { value: "19 ans", label: "Age median" },
-            ].map((stat) => (
-              <div key={stat.label} className="py-4">
-                <p
-                  className="text-2xl sm:text-3xl font-bold mb-1"
-                  style={{ ...SH, color: C.primary }}
-                >
-                  {stat.value}
-                </p>
-                <p className="text-xs" style={{ color: C.muted }}>
-                  {stat.label}
-                </p>
-              </div>
-            ))}
-          </div>
-          <p
-            className="text-[11px] mt-3 text-center"
-            style={{ color: C.muted }}
-          >
-            Estimations 2026 - sources : INS Cameroun, ART, GSMA Intelligence.
+          <h3>
+            Entrepreneuriat et business local
+          </h3>
+          <p>
+            La niche n°1 au Cameroun. La culture entrepreneuriale est très
+            forte, notamment a Douala et a Bafoussam. Sujets qui marchent :
+            import-export Chine-Cameroun, lancer son commerce a Mboppi,
+            immobilier locatif Douala-Yaounde, e-commerce avec MTN MoMo,
+            structuration d&apos;une SARL camerounaise, gestion de PME en
+            zone CEMAC.
           </p>
-        </MockupFrame>
 
-        <TipBox>
-          <strong>Atout bilingue camerounais :</strong> le Cameroun est le
-          seul pays d&apos;Afrique avec le français ET l&apos;anglais comme
-          langues officielles (80 pourcent francophones, 20 pourcent
-          anglophones dans le Nord-Ouest et le Sud-Ouest). Une formation
-          publiee en versions FR + EN double naturellement ton marche
-          adressable, sans concurrent supplementaire significatif. Très peu
-          de formateurs exploitent ce levier en 2026 - c&apos;est un
-          avantage competitif gratuit.
-        </TipBox>
+          <h3>
+            Anglais business et bilinguisme
+          </h3>
+          <p>
+            Specificite unique du marche camerounais : enorme demande
+            francophone pour apprendre l&apos;anglais professionnel (acces a
+            la zone CEMAC anglophone, freelancing international, embauche
+            dans les grandes entreprises de Bonanjo). Les sujets premium :
+            IELTS, TOEFL, business English pour developpeurs, anglais
+            juridique pour cadres. Tickets eleves : 50 000 a 250 000 FCFA
+            quand combines avec un objectif precis (visa, embauche).
+          </p>
 
-        {/* ════════════════════════════════════════════════════════ */}
-        {/*  H2 #1 - CHOISIR SON SUJET                             */}
-        {/* ════════════════════════════════════════════════════════ */}
-        <SectionHeading id="sujets" number="1">
-          Choisir son sujet - ce qui se vend vraiment au Cameroun
-        </SectionHeading>
+          <h3>
+            Programmation et tech (Silicon Mountain)
+          </h3>
+          <p>
+            Le Cameroun a son propre ecosysteme tech avec Silicon Mountain
+            (Buea), ActivSpaces, Jangolo et Mountain Hub. La demande est
+            forte pour les talents qui veulent passer freelance
+            international. Sujets qui se vendent : developpement web
+            (HTML/CSS/JavaScript, React), Python data, no-code (Bubble,
+            Webflow), creation d&apos;applications mobiles, blockchain. Le
+            talent camerounais cible aussi le freelance international en EUR
+            ou USD - reel levier de prix.
+          </p>
 
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          Tous les sujets ne se valent pas a Douala. Le marche camerounais
-          a ses préférences propres, structurees par la demographie jeune,
-          la culture entrepreneuriale du Mungo et de l&apos;Ouest, et la
-          presence du <strong>Yaounde tech hub</strong> qui forme une
-          nouvelle classe de talents techniques. Voici les six niches qui
-          generent le plus de ventes de formations digitales en 2026,
-          classees par volume de recherche et taux de conversion observes
-          sur Novakou.
-        </p>
+          <h3>
+            Design et creation visuelle
+          </h3>
+          <p>
+            Logo design, identite visuelle pour PME camerounaises, motion
+            design pour reseaux sociaux, retouche photo, montage video CapCut
+            et Premiere Pro. Audience très engagee, fortement portee par la
+            communaute creative de Douala et Yaounde. Ticket moyen : 20 000
+            a 75 000 FCFA, excellente recurrence si tu proposes des
+            templates ou une communaute privee.
+          </p>
 
-        <h3
-          className="text-xl font-bold mt-10 mb-4"
-          style={{ ...SH, color: C.dark }}
-        >
-          Entrepreneuriat et business local
-        </h3>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          La niche n°1 au Cameroun. La culture entrepreneuriale est très
-          forte, notamment a Douala et a Bafoussam. Sujets qui marchent :
-          import-export Chine-Cameroun, lancer son commerce a Mboppi,
-          immobilier locatif Douala-Yaounde, e-commerce avec MTN MoMo,
-          structuration d&apos;une SARL camerounaise, gestion de PME en
-          zone CEMAC.
-        </p>
+          <h3>
+            Agriculture moderne et agro-business
+          </h3>
+          <p>
+            Specificite camerounaise : l&apos;agriculture reste un pilier
+            economique et la demande pour des methodes modernes explose.
+            Sujets qui marchent : pisciculture, aviculture moderne,
+            cacao-cafe haut de gamme, marketing produits agricoles,
+            plantations bananeraies, transformation agro-alimentaire.
+            Audience souvent peri-urbaine mais avec pouvoir
+            d&apos;investissement reel - tickets a 35 000 - 150 000 FCFA.
+          </p>
 
-        <h3
-          className="text-xl font-bold mt-10 mb-4"
-          style={{ ...SH, color: C.dark }}
-        >
-          Anglais business et bilinguisme
-        </h3>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          Specificite unique du marche camerounais : enorme demande
-          francophone pour apprendre l&apos;anglais professionnel (acces a
-          la zone CEMAC anglophone, freelancing international, embauche
-          dans les grandes entreprises de Bonanjo). Les sujets premium :
-          IELTS, TOEFL, business English pour developpeurs, anglais
-          juridique pour cadres. Tickets eleves : 50 000 a 250 000 FCFA
-          quand combines avec un objectif precis (visa, embauche).
-        </p>
+          <h3>
+            Religion et developpement personnel
+          </h3>
+          <p>
+            Christianisme très present (catholiques, protestants,
+            evangeliques pentecotistes), avec une demande forte pour la
+            predication, l&apos;enseignement biblique, le leadership
+            chretien et le mariage. Audience très loyale, faible churn.
+            Communaute musulmane importante au Nord (Garoua, Maroua) avec
+            besoins propres : tajwid, sciences islamiques, finance halal.
+          </p>
 
-        <h3
-          className="text-xl font-bold mt-10 mb-4"
-          style={{ ...SH, color: C.dark }}
-        >
-          Programmation et tech (Silicon Mountain)
-        </h3>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          Le Cameroun a son propre ecosysteme tech avec Silicon Mountain
-          (Buea), ActivSpaces, Jangolo et Mountain Hub. La demande est
-          forte pour les talents qui veulent passer freelance
-          international. Sujets qui se vendent : developpement web
-          (HTML/CSS/JavaScript, React), Python data, no-code (Bubble,
-          Webflow), creation d&apos;applications mobiles, blockchain. Le
-          talent camerounais cible aussi le freelance international en EUR
-          ou USD - reel levier de prix.
-        </p>
-
-        <h3
-          className="text-xl font-bold mt-10 mb-4"
-          style={{ ...SH, color: C.dark }}
-        >
-          Design et creation visuelle
-        </h3>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          Logo design, identite visuelle pour PME camerounaises, motion
-          design pour reseaux sociaux, retouche photo, montage video CapCut
-          et Premiere Pro. Audience très engagee, fortement portee par la
-          communaute creative de Douala et Yaounde. Ticket moyen : 20 000
-          a 75 000 FCFA, excellente recurrence si tu proposes des
-          templates ou une communaute privee.
-        </p>
-
-        <h3
-          className="text-xl font-bold mt-10 mb-4"
-          style={{ ...SH, color: C.dark }}
-        >
-          Agriculture moderne et agro-business
-        </h3>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          Specificite camerounaise : l&apos;agriculture reste un pilier
-          economique et la demande pour des methodes modernes explose.
-          Sujets qui marchent : pisciculture, aviculture moderne,
-          cacao-cafe haut de gamme, marketing produits agricoles,
-          plantations bananeraies, transformation agro-alimentaire.
-          Audience souvent peri-urbaine mais avec pouvoir
-          d&apos;investissement reel - tickets a 35 000 - 150 000 FCFA.
-        </p>
-
-        <h3
-          className="text-xl font-bold mt-10 mb-4"
-          style={{ ...SH, color: C.dark }}
-        >
-          Religion et developpement personnel
-        </h3>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          Christianisme très present (catholiques, protestants,
-          evangeliques pentecotistes), avec une demande forte pour la
-          predication, l&apos;enseignement biblique, le leadership
-          chretien et le mariage. Audience très loyale, faible churn.
-          Communaute musulmane importante au Nord (Garoua, Maroua) avec
-          besoins propres : tajwid, sciences islamiques, finance halal.
-        </p>
-
-        <MockupFrame title="Prix moyens observes sur Novakou - Cameroun 2026">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm" style={{ color: C.dark }}>
-              <thead>
-                <tr style={{ backgroundColor: C.surfaceLow }}>
-                  <th className="text-left p-3 rounded-tl-lg font-semibold">
-                    Niche
-                  </th>
-                  <th className="text-left p-3 font-semibold">Ticket median</th>
-                  <th className="text-left p-3 rounded-tr-lg font-semibold">
-                    Premium
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y" style={{ borderColor: C.surfaceHigh }}>
-                {[
-                  { type: "Entrepreneuriat / business", low: "25 000 FCFA", high: "180 000 FCFA" },
-                  { type: "Anglais business / bilinguisme", low: "30 000 FCFA", high: "250 000 FCFA" },
-                  { type: "Programmation / tech", low: "40 000 FCFA", high: "300 000 FCFA" },
-                  { type: "Design / creation visuelle", low: "20 000 FCFA", high: "75 000 FCFA" },
-                  { type: "Agriculture / agro-business", low: "35 000 FCFA", high: "150 000 FCFA" },
-                  { type: "Religion / spiritualite", low: "9 000 FCFA", high: "50 000 FCFA" },
-                ].map((row) => (
-                  <tr key={row.type}>
-                    <td className="p-3 font-medium">{row.type}</td>
-                    <td
-                      className="p-3 font-semibold"
-                      style={{ color: C.primary }}
-                    >
-                      {row.low}
-                    </td>
-                    <td className="p-3" style={{ color: C.muted }}>
-                      {row.high}
-                    </td>
+          <Maquette titre="Prix moyens observes sur Novakou - Cameroun 2026" plein>
+            <div className="nka-table-wrap">
+              <table className="nka-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Niche</th>
+                    <th scope="col">Ticket median</th>
+                    <th scope="col">Premium</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </MockupFrame>
+                </thead>
+                <tbody>
+                  {[
+                    { type: "Entrepreneuriat / business", low: "25 000 FCFA", high: "180 000 FCFA" },
+                    { type: "Anglais business / bilinguisme", low: "30 000 FCFA", high: "250 000 FCFA" },
+                    { type: "Programmation / tech", low: "40 000 FCFA", high: "300 000 FCFA" },
+                    { type: "Design / creation visuelle", low: "20 000 FCFA", high: "75 000 FCFA" },
+                    { type: "Agriculture / agro-business", low: "35 000 FCFA", high: "150 000 FCFA" },
+                    { type: "Religion / spiritualite", low: "9 000 FCFA", high: "50 000 FCFA" },
+                  ].map((row) => (
+                    <tr key={row.type}>
+                      <th scope="row" className="nka-table__fort">
+                        {row.type}
+                      </th>
+                      <td>{row.low}</td>
+                      <td>{row.high}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Maquette>
 
-        <TipBox>
-          <strong>Conseil terrain :</strong> Plus le resultat de ta
-          formation est concret (decrocher un emploi a Bonanjo, obtenir
-          un visa Canada, gagner X FCFA par mois, perdre Y kilos), plus
-          ton ticket monte haut. Les formations &quot;decouverte&quot;
-          vagues plafonnent autour de 18 000 FCFA, les formations
-          &quot;transformation mesurable&quot; atteignent 120 000 - 350
-          000 FCFA. Pour aller plus loin, lis le guide{" "}
-          <Link
-            href="/guides/trouver-son-idee-de-produit"
-            style={{ color: C.primary }}
-          >
-            trouver son idee de produit qui se vend
-          </Link>
-          .
-        </TipBox>
+          <Astuce>
+            <strong>Conseil terrain :</strong> Plus le resultat de ta
+            formation est concret (decrocher un emploi a Bonanjo, obtenir
+            un visa Canada, gagner X FCFA par mois, perdre Y kilos), plus
+            ton ticket monte haut. Les formations &quot;decouverte&quot;
+            vagues plafonnent autour de 18 000 FCFA, les formations
+            &quot;transformation mesurable&quot; atteignent 120 000 - 350
+            000 FCFA. Pour aller plus loin, lis le guide{" "}
+            <Link href="/guides/trouver-son-idee-de-produit">
+              trouver son idee de produit qui se vend
+            </Link>
+            .
+          </Astuce>
+        </SectionGuide>
 
-        {/* ════════════════════════════════════════════════════════ */}
-        {/*  H2 #2 - ENCAISSER LES PAIEMENTS                       */}
-        {/* ════════════════════════════════════════════════════════ */}
-        <SectionHeading id="paiements" number="2">
-          Encaisser les paiements - MTN MoMo, Orange Money, Yango Pay
-        </SectionHeading>
-
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          C&apos;est la pierre angulaire de ton business. Si ton acheteur
-          galere a payer, il abandonne. Au Cameroun en 2026, le paiement
-          digital est domine par quatre canaux qui doivent imperativement
-          coexister sur ta page de vente.
-        </p>
-
-        <h3
-          className="text-xl font-bold mt-10 mb-4"
-          style={{ ...SH, color: C.dark }}
-        >
-          MTN MoMo Cameroun - le n°1
-        </h3>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          <strong>MTN MoMo Cameroun</strong> domine le marche avec environ
-          60 pourcent des transactions Mobile Money. Très forte penetration
-          a Douala, Bafoussam, Buea, Bamenda et chez les jeunes. Pour un
-          vendeur de formation, c&apos;est le moyen de paiement prefere
-          des moins de 35 ans urbains. L&apos;integration MTN MoMo sur
-          Novakou est native : ton acheteur clique sur &quot;Payer avec
-          MTN MoMo&quot;, saisit son numéro, valide via USSD ou app, et la
-          transaction se confirme en quelques secondes.
-        </p>
-
-        <h3
-          className="text-xl font-bold mt-10 mb-4"
-          style={{ ...SH, color: C.dark }}
-        >
-          Orange Money Cameroun - couverture nationale
-        </h3>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          <strong>Orange Money Cameroun</strong> est très present a
-          Yaounde, dans le Centre, le Sud et l&apos;Est. Très fort aussi
-          aupres de la diaspora europeenne (France, Belgique, Allemagne)
-          via Orange Money International qui permet a un cousin parisien
-          d&apos;acheter la formation pour son neveu de Yaounde en
-          quelques clics. Ne neglige jamais Orange Money comme canal -
-          c&apos;est jusqu&apos;a 30 pourcent des paiements selon ta
-          niche et ta region cible.
-        </p>
-
-        <h3
-          className="text-xl font-bold mt-10 mb-4"
-          style={{ ...SH, color: C.dark }}
-        >
-          Yango Pay Cameroun - l&apos;outsider qui monte
-        </h3>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          <strong>Yango Pay Cameroun</strong> est arrive en 2024 dans le
-          sillage de Yango (VTC) et gagne du terrain chez les 20 - 30 ans
-          urbains de Douala et Yaounde. Frais souvent plus bas, expérience
-          utilisateur très moderne. Encore minoritaire en volume mais en
-          forte croissance - inclure Yango Pay positionne ta boutique
-          comme moderne et accessible a la jeunesse hyper-connectee.
-        </p>
-
-        <h3
-          className="text-xl font-bold mt-10 mb-4"
-          style={{ ...SH, color: C.dark }}
-        >
-          Express Union Mobile et carte bancaire
-        </h3>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          Express Union Mobile couvre une part residuelle mais utile dans
-          l&apos;Ouest et le Nord-Ouest, ainsi qu&apos;aupres de la
-          diaspora americaine et europeenne via les transferts. La carte
-          bancaire (Visa, Mastercard) reste indispensable pour la diaspora
-          camerounaise massive en France, Belgique, Allemagne et USA, qui
-          souhaite acheter en EUR ou USD pour ses proches restes au pays.
-          Novakou prend en charge tous ces moyens de paiement
-          automatiquement, sans config supplementaire.
-        </p>
-
-        <MockupFrame title="Repartition typique des paiements - formateur camerounais 2026">
-          <div className="space-y-3">
-            {[
-              { name: "MTN MoMo (Cameroun urbain)", pct: 48, color: "#fbbf24" },
-              { name: "Orange Money (national + diaspora EU)", pct: 28, color: "#f97316" },
-              { name: "Carte bancaire (diaspora EU/US)", pct: 14, color: "#2563eb" },
-              { name: "Yango Pay + Express Union", pct: 10, color: C.primary },
-            ].map((p) => (
-              <div key={p.name}>
-                <div className="flex justify-between text-sm mb-1">
-                  <span style={{ color: C.dark }}>{p.name}</span>
-                  <span className="font-semibold" style={{ color: p.color }}>
-                    {p.pct} %
-                  </span>
-                </div>
-                <div
-                  className="h-2.5 rounded-full overflow-hidden"
-                  style={{ backgroundColor: C.surfaceLow }}
-                >
-                  <div
-                    className="h-full rounded-full"
-                    style={{
-                      width: `${p.pct}%`,
-                      backgroundColor: p.color,
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </MockupFrame>
-
-        <ProTip>
-          <strong>Pourquoi Novakou integre les quatre sans config :</strong>{" "}
-          quand tu crees ta boutique{" "}
-          <Link href="/inscription" style={{ color: C.primary }}>
-            sur Novakou
-          </Link>
-          , MTN MoMo, Orange Money, Yango Pay et carte bancaire sont
-          actives par defaut. Tu n&apos;ouvres aucun compte marchand,
-          aucun contrat, aucune API : nous gerons les flux pour toi et te
-          reversons ton solde net par cycle. Tu peux te concentrer sur
-          ton contenu et ton marketing. Pour le detail de l&apos;encaissement
-          digital, lis le guide{" "}
-          <Link
-            href="/guides/mobile-money-encaisser-paiements"
-            style={{ color: C.primary }}
-          >
-            Mobile Money pour encaisser tes paiements
-          </Link>
-          .
-        </ProTip>
-
-        {/* ════════════════════════════════════════════════════════ */}
-        {/*  H2 #3 - FISCALITE                                     */}
-        {/* ════════════════════════════════════════════════════════ */}
-        <SectionHeading id="fiscalite" number="3">
-          Le cadre fiscal du formateur freelance au Cameroun
-        </SectionHeading>
-
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          Vendre une formation en ligne, c&apos;est un revenu, et un
-          revenu se declare. Bonne nouvelle : le cadre camerounais a
-          beaucoup simplifie les choses pour le freelance digital ces
-          dernieres annees, notamment avec le regime micro-fiscal. Voici
-          l&apos;essentiel a savoir sur la fiscalite freelance au
-          Cameroun en 2026.
-        </p>
-
-        <h3
-          className="text-xl font-bold mt-10 mb-4"
-          style={{ ...SH, color: C.dark }}
-        >
-          Le statut auto-entrepreneur Cameroun et le NIU
-        </h3>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          C&apos;est le statut adapte pour 90 pourcent des formateurs
-          digitaux qui demarrent. L&apos;
-          <strong>auto-entrepreneur Cameroun</strong> beneficie
-          d&apos;une declaration simplifiee, d&apos;un impot synthetique
-          liberatoire (IL) qui remplace l&apos;IRPP et la patente, et
-          d&apos;une comptabilite allegee. Inscription en agence DGI
-          (Direction Generale des Impots) avec ta CNI, ton justificatif
-          d&apos;adresse et l&apos;ouverture d&apos;un dossier
-          contribuable. Tu obtiens un <strong>NIU</strong> (Numéro
-          d&apos;Identifiant Unique) en quelques jours, indispensable
-          pour toute facturation B2B.
-        </p>
-
-        <h3
-          className="text-xl font-bold mt-10 mb-4"
-          style={{ ...SH, color: C.dark }}
-        >
-          Le seuil de 10 millions FCFA et le regime micro-fiscal
-        </h3>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          Tant que ton chiffre d&apos;affaires annuel reste sous 10
-          millions FCFA (environ 15 200 EUR), tu releves du{" "}
-          <strong>regime micro-fiscal Cameroun</strong> et tu es :
-        </p>
-        <ul
-          className="text-[16px] leading-[1.8] mb-5 pl-6 list-disc"
-          style={{ color: C.dark }}
-        >
-          <li>Exonere de TVA (pas besoin de la facturer ni de la reverser)</li>
-          <li>Soumis a l&apos;impot synthetique liberatoire (IL) a taux fixe selon ta tranche de CA</li>
-          <li>Dispense de tenir une comptabilite reelle complete</li>
-          <li>Autorise a emettre des factures simplifiees avec ton NIU</li>
-        </ul>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          Entre 10 et 50 millions FCFA de CA, tu passes au regime simplifie
-          (RSI), tu deviens assujetti TVA et tu dois tenir une
-          comptabilite plus structuree. Au-dela de 50 millions FCFA, c&apos;est
-          le regime du reel et un expert-comptable devient indispensable.
-        </p>
-
-        <h3
-          className="text-xl font-bold mt-10 mb-4"
-          style={{ ...SH, color: C.dark }}
-        >
-          IRPP simplifie et contribution forfaitaire
-        </h3>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          L&apos;impot synthetique liberatoire se calcule par tranches de
-          CA. Pour donner un ordre d&apos;idee : un formateur qui realise
-          5 millions FCFA de CA annuel paie en general autour de 220 000
-          a 350 000 FCFA d&apos;impot total (selon ses charges
-          deductibles et son secteur). C&apos;est significativement moins
-          que le regime classique du reel. A ne pas oublier : la patente
-          locale (mairie de Douala, Yaounde, Bafoussam...) et la CFPB
-          (contribution forfaitaire) qui peuvent s&apos;ajouter selon ton
-          activité et ta commune. La CNPS (sécurité sociale) est
-          fortement conseillee en adhesion volontaire pour la couverture
-          maladie et retraite.
-        </p>
-
-        <WarnBox>
-          <strong>Avertissement :</strong> Cet article est purement
-          informatif. La fiscalite evolue, ta situation personnelle est
-          unique, et un mauvais choix peut couter cher.{" "}
-          <strong>
-            Consulte imperativement un expert-comptable agree par
-            l&apos;Ordre National des Experts-Comptables du Cameroun
-            (OEC Cameroun) ou un fiscaliste avant de finaliser ton
-            statut.
-          </strong>{" "}
-          Le ticket moyen d&apos;un expert-comptable a Douala pour le
-          setup initial : 60 000 a 180 000 FCFA. Un investissement qui
-          se rentabilise des la premiere annee, surtout si tu vises le
-          passage 10M de seuil.
-        </WarnBox>
-
-        {/* ════════════════════════════════════════════════════════ */}
-        {/*  H2 #4 - PROMOTION                                     */}
-        {/* ════════════════════════════════════════════════════════ */}
-        <SectionHeading id="promotion" number="4">
-          Promouvoir ta formation - les canaux qui marchent au Cameroun
-        </SectionHeading>
-
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          Au Cameroun, le mix marketing pour vendre une formation
-          digitale est radicalement different du marche europeen. Oublie
-          les Ads Google ou la newsletter LinkedIn comme canal principal.
-          La realite terrain en 2026 :
-        </p>
-
-        <h3
-          className="text-xl font-bold mt-10 mb-4"
-          style={{ ...SH, color: C.dark }}
-        >
-          WhatsApp - le canal n°1 absolu
-        </h3>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          Au Cameroun, WhatsApp n&apos;est pas une app, c&apos;est
-          l&apos;infrastructure sociale. Tes acheteurs y passent 3 a 5
-          heures par jour. Trois leviers :
-        </p>
-        <ul
-          className="text-[16px] leading-[1.8] mb-5 pl-6 list-disc"
-          style={{ color: C.dark }}
-        >
-          <li>
-            <strong>Statuts WhatsApp</strong> quotidiens : temoignages
-            clients, micro-conseils, coulisses tournage
-          </li>
-          <li>
-            <strong>Listes de diffusion</strong> segmentees par interet
-            (jamais de groupes de spam, mal vus a Douala)
-          </li>
-          <li>
-            <strong>Groupes communautaires</strong> autour de ta niche
-            (entrepreneurs Mboppi, devs Silicon Mountain, etc.)
-          </li>
-        </ul>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          Le guide{" "}
-          <Link
-            href="/guides/whatsapp-business-vendre-formations"
-            style={{ color: C.primary }}
-          >
-            WhatsApp Business pour vendre des formations
-          </Link>{" "}
-          detaille toute la methode.
-        </p>
-
-        <h3
-          className="text-xl font-bold mt-10 mb-4"
-          style={{ ...SH, color: C.dark }}
-        >
-          Facebook - très fort au Cameroun
-        </h3>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          Particularite camerounaise : Facebook reste extremement
-          puissant, plus que dans d&apos;autres marches francophones.
-          Les groupes Facebook entrepreneuriaux (Femmes d&apos;Affaires
-          Cameroun, Business Douala, Investisseurs Yaounde...) drainent
-          des audiences enormes. La publication native d&apos;un
-          temoignage client genere souvent plus de ventes qu&apos;un
-          Reel Instagram. Sois present sur 2 a 3 groupes pertinents avec
-          du contenu de valeur (jamais de pub directe).
-        </p>
-
-        <h3
-          className="text-xl font-bold mt-10 mb-4"
-          style={{ ...SH, color: C.dark }}
-        >
-          TikTok - la jeunesse camerounaise s&apos;y rue
-        </h3>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          Croissance explosive depuis 2024 chez les 16 - 28 ans.
-          L&apos;algorithme TikTok est le plus accueillant pour les
-          debutants : ton premier post peut faire 50 000 vues sans
-          abonne. Cible ton contenu sur des micro-niches precises (par
-          exemple &quot;comptabilite freelance Cameroun&quot; plutot que
-          &quot;comptabilite&quot;). Hashtags qui performent :
-          #Cameroun237 #Douala237 #Yaounde #SiliconMountain.
-        </p>
-
-        <h3
-          className="text-xl font-bold mt-10 mb-4"
-          style={{ ...SH, color: C.dark }}
-        >
-          LinkedIn - pour les niches B2B et Douala pro
-        </h3>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          Si ta formation cible des entreprises de Bonanjo, des cadres
-          ou des freelances qualifies (developpement, finance, RH,
-          conseil), LinkedIn est ton terrain. Public plus reduit mais
-          ticket moyen beaucoup plus eleve (souvent 80 000 - 350 000
-          FCFA). Le pole tech camerounais (anciens d&apos;ActivSpaces,
-          de Mountain Hub, de Jangolo) est très actif sur LinkedIn.
-        </p>
-
-        <WarnBox>
-          <strong>Pourquoi pas la pub Facebook au depart :</strong> les
-          encheres publicitaires Facebook Ads au Cameroun restent moins
-          cheres qu&apos;en Europe, mais pour un freelance debutant
-          sans tunnel de vente teste, le ROI est negatif 7 fois sur 10.
-          Reserve ce canal pour une phase 2, quand tu as déjà vendu
-          naturellement au moins 30 fois et compris ton message qui
-          convertit. Le guide{" "}
-          <Link
-            href="/guides/publicite-facebook"
-            style={{ color: C.primary }}
-          >
-            publicite Facebook pour formations
-          </Link>{" "}
-          explique quand et comment basculer.
-        </WarnBox>
-
-        {/* ════════════════════════════════════════════════════════ */}
-        {/*  H2 #5 - LANCEMENT 30 JOURS                            */}
-        {/* ════════════════════════════════════════════════════════ */}
-        <SectionHeading id="lancement" number="5">
-          Lancer en 30 jours sans budget - la methode Novakou
-        </SectionHeading>
-
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          La methode appliquee par les formateurs Novakou qui passent de
-          0 a 600 000 FCFA en un mois au Cameroun. Quatre semaines,
-          quatre missions claires, zero euro de budget pub.
-        </p>
-
-        <MockupFrame title="Plan 30 jours pour vendre formation en ligne Cameroun">
-          <div className="space-y-4">
-            {[
-              {
-                week: "Semaine 1",
-                focus: "Créer le contenu",
-                desc: "3h/jour : structure des modules, enregistrement video au smartphone (prevoir power bank pour les coupures), montage CapCut. Objectif fin de semaine : 60 % de la formation enregistree.",
-              },
-              {
-                week: "Semaine 2",
-                focus: "Pre-vente WhatsApp",
-                desc: "Liste de 10 testeurs proches (amis Douala/Yaounde, collegues Silicon Mountain, contacts WhatsApp). Offre pre-lancement a -50 %. Objectif : 5 pre-ventes payees = validation marche.",
-              },
-              {
-                week: "Semaine 3",
-                focus: "Lancement public",
-                desc: "Boutique Novakou en ligne. 5 Reels Instagram/TikTok + 7 statuts WhatsApp + 1 post LinkedIn + 1 post groupes Facebook Cameroun. Annonce officielle a ta communaute avec offre limitee 72h.",
-              },
-              {
-                week: "Semaine 4",
-                focus: "Optimiser et 2eme cohorte",
-                desc: "Analyse des metriques (taux conversion, panier moyen, retours clients). Ajuste prix et page de vente. Relance pour 2eme cohorte avec temoignages de la 1ere. Envisage version EN si ta niche s'y prete.",
-              },
-            ].map((w) => (
-              <div
-                key={w.week}
-                className="flex items-start gap-4 p-4 rounded-xl border"
-                style={{ borderColor: C.surfaceHigh }}
-              >
-                <span
-                  className="flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold text-white"
-                  style={{ backgroundColor: C.primary }}
-                >
-                  {w.week}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p
-                    className="font-bold text-sm mb-1"
-                    style={{ color: C.dark }}
-                  >
-                    {w.focus}
-                  </p>
-                  <p
-                    className="text-sm leading-relaxed"
-                    style={{ color: C.muted }}
-                  >
-                    {w.desc}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </MockupFrame>
-
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          La cle, c&apos;est la semaine 2 : la pre-vente WhatsApp. Si tu
-          n&apos;arrives pas a obtenir 5 pre-ventes a tarif preferentiel
-          aupres de tes 10 contacts les plus proches, c&apos;est que ton
-          offre, ton prix ou ton message ne sont pas alignes. Mieux vaut
-          ajuster maintenant que d&apos;investir 3 semaines de production
-          dans le vide. Pour aller plus loin, le guide{" "}
-          <Link
-            href="/guides/lancement-30-jours"
-            style={{ color: C.primary }}
-          >
-            lancement 30 jours
-          </Link>{" "}
-          decortique chaque jour.
-        </p>
-
-        <TipBox>
-          <strong>Le moment cle :</strong> jour 21 du plan, soit
-          dimanche soir / lundi matin de la semaine 3. C&apos;est ce
-          moment precis que tu envoies ton message d&apos;ouverture sur
-          tous tes canaux en meme temps (WhatsApp, Facebook, Instagram,
-          TikTok, LinkedIn). La synchronisation cree un effet de masse
-          qui declenche les premieres ventes spontanees, et c&apos;est
-          aussi le jour ou tu lances ton hashtag de campagne pour les
-          retweets entre amis.
-        </TipBox>
-
-        {/* ════════════════════════════════════════════════════════ */}
-        {/*  H2 #6 - REVENUS                                       */}
-        {/* ════════════════════════════════════════════════════════ */}
-        <SectionHeading id="revenus" number="6">
-          Combien on peut gagner ? (chiffres reels)
-        </SectionHeading>
-
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          Soyons concrets. Voici les fourchettes de revenus mensuels
-          nets observees chez les formateurs Novakou bases au Cameroun
-          en 2026. Pas des promesses : la moyenne du terrain, hors top
-          1 pourcent.
-        </p>
-
-        <MockupFrame title="Revenus mensuels par niveau - formateur camerounais 2026">
-          <div className="space-y-4">
-            {[
-              {
-                level: "Debutant (0-6 mois)",
-                range: "80 000 - 250 000 FCFA",
-                desc: "1 a 6 ventes par semaine, ticket moyen 18 - 30K FCFA. Pas encore d'audience etablie, beaucoup de prospection manuelle WhatsApp + groupes Facebook Cameroun.",
-                color: "#22c55e",
-              },
-              {
-                level: "Intermediaire (6-18 mois)",
-                range: "400 000 - 1 200 000 FCFA",
-                desc: "Audience Facebook/Instagram 3K - 12K, sequences email actives, 1 a 3 formations dans le catalogue, debut de recurrence (communaute privee), parfois version FR + EN.",
-                color: "#2563eb",
-              },
-              {
-                level: "Avance (1.5 ans+)",
-                range: "1 800 000 - 6 000 000 FCFA+",
-                desc: "Catalogue de 4 a 8 produits, tunnel de vente automatise, programme d'affiliation actif, 1 a 2 lancements signature par an, marche FR+EN exploite. Vrais entrepreneurs.",
-                color: "#7c3aed",
-              },
-            ].map((lvl) => (
-              <div
-                key={lvl.level}
-                className="p-4 rounded-xl border"
-                style={{ borderColor: C.surfaceHigh }}
-              >
-                <div className="flex items-center justify-between mb-2 gap-3">
-                  <span
-                    className="font-bold text-sm"
-                    style={{ color: C.dark }}
-                  >
-                    {lvl.level}
-                  </span>
-                  <span
-                    className="font-bold text-sm"
-                    style={{ color: lvl.color }}
-                  >
-                    {lvl.range}
-                  </span>
-                </div>
-                <p
-                  className="text-sm leading-relaxed"
-                  style={{ color: C.muted }}
-                >
-                  {lvl.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </MockupFrame>
-
-        <h3
-          className="text-xl font-bold mt-10 mb-4"
-          style={{ ...SH, color: C.dark }}
-        >
-          Cas pratique - Mballa Christelle, 29 ans, formatrice anglais business
-        </h3>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          Christelle habite a Bonamoussadi, Douala. Diplomee de
-          l&apos;Universite de Buea (parfaitement bilingue, FR + EN),
-          elle a travaille 4 ans dans une multinationale a Bonanjo avant
-          de basculer formatrice en avril 2026. Son catalogue : une
-          formation cle &quot;Business English pour cadres camerounais
-          en 90 jours&quot; a 45 000 FCFA, une mini-formation
-          &quot;Email anglais professionnel&quot; a 12 000 FCFA, une
-          communaute WhatsApp Premium de coaching hebdomadaire a 7 500
-          FCFA/mois.
-        </p>
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          En octobre 2026, son chiffre d&apos;affaires mensuel atteint
-          1 500 000 FCFA. Repartition : 58 pourcent ventes de la
-          formation principale (boostees par sa double cible FR + EN),
-          22 pourcent ebook/mini-formation (souvent upsell), 20 pourcent
-          abonnements communaute. Après impot synthetique et commissions
-          Novakou, il lui reste environ 1 180 000 FCFA nets - presque 3
-          fois son salaire precedent, pour 25 heures de travail
-          hebdomadaires. Profil fictif mais entierement aligne sur les
-          metriques observees a Douala.
-        </p>
-
-        <ProTip>
-          <strong>Le secret du passage 400K → 1.5M FCFA :</strong>{" "}
-          construire un catalogue ET exploiter le bilinguisme. Une seule
-          formation, meme excellente, plafonne. Ajoute un ebook
-          d&apos;entree de gamme (10 - 14K FCFA), un upsell premium
-          (coaching individuel 90 - 200K FCFA), une communaute privee
-          recurrente (5 - 15K FCFA/mois), et si possible une version
-          anglaise de ta formation phare pour les marches anglophones
-          (Nord-Ouest, Sud-Ouest, Nigeria voisin). Le panier moyen
-          double souvent, sans effort marketing supplementaire. Le
-          guide{" "}
-          <Link
-            href="/guides/scaler-catalogue-produits"
-            style={{ color: C.primary }}
-          >
-            scaler ton catalogue de produits
-          </Link>{" "}
-          explique la sequence exacte.
-        </ProTip>
-
-        {/* ════════════════════════════════════════════════════════ */}
-        {/*  H2 #7 - FAQ                                           */}
-        {/* ════════════════════════════════════════════════════════ */}
-        <SectionHeading id="faq" number="7">
-          FAQ - les questions qu&apos;on me pose tout le temps
-        </SectionHeading>
-
-        <p
-          className="text-[16px] leading-[1.8] mb-5"
-          style={{ color: C.dark }}
-        >
-          Les huit questions qui reviennent en boucle dans les DMs
-          Instagram, les groupes Facebook Cameroun et les WhatsApp de
-          l&apos;equipe Novakou Douala.
-        </p>
-
-        <div className="space-y-4 mb-10">
-          {FAQ_ITEMS.map((item, idx) => (
-            <details
-              key={idx}
-              className="rounded-xl border overflow-hidden"
-              style={{
-                backgroundColor: C.white,
-                borderColor: C.surfaceHigh,
-              }}
-            >
-              <summary
-                className="cursor-pointer px-5 py-4 font-semibold text-[15px] list-none flex items-start gap-3"
-                style={{ color: C.dark }}
-              >
-                <span
-                  className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white mt-0.5"
-                  style={{ backgroundColor: C.primary }}
-                >
-                  {idx + 1}
-                </span>
-                <span className="flex-1">{item.q}</span>
-              </summary>
-              <div
-                className="px-5 pb-5 pt-1 text-[15px] leading-relaxed pl-14"
-                style={{ color: C.muted }}
-              >
-                {item.a}
-              </div>
-            </details>
-          ))}
-        </div>
-
-        {/* ════════════════════════════════════════════════════════ */}
-        {/*  CTA FINAL                                              */}
-        {/* ════════════════════════════════════════════════════════ */}
-        <div
-          className="rounded-2xl p-8 sm:p-12 text-center mt-16"
-          style={{
-            background: `linear-gradient(135deg, ${C.primary} 0%, #004d21 100%)`,
-          }}
-        >
-          <p className="text-2xl sm:text-3xl text-white mb-4" style={SH}>
-            Pret a lancer ta boutique de formation au Cameroun ?
+        <SectionGuide id="paiements" n={numeroGuide(2)} titre={<>Encaisser les paiements - MTN MoMo, Orange Money, Yango Pay</>}>
+          <p>
+            C&apos;est la pierre angulaire de ton business. Si ton acheteur
+            galere a payer, il abandonne. Au Cameroun en 2026, le paiement
+            digital est domine par quatre canaux qui doivent imperativement
+            coexister sur ta page de vente.
           </p>
-          <p
-            className="text-base mb-8 max-w-lg mx-auto"
-            style={{ ...S, color: "rgba(255,255,255,0.8)" }}
-          >
-            Inscription gratuite en 3 minutes. MTN MoMo, Orange Money,
-            Yango Pay et carte bancaire actives par defaut. Ta premiere
-            vente peut tomber des cette semaine.
-          </p>
-          <Link
-            href="/inscription"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl text-base font-bold transition-transform hover:scale-[1.03]"
-            style={{
-              ...S,
-              backgroundColor: C.white,
-              color: C.primary,
-            }}
-          >
-            Lancer ma boutique Novakou en 3 minutes
-            <span aria-hidden="true" className="text-lg">
-              &rarr;
-            </span>
-          </Link>
-          <p
-            className="text-sm mt-4"
-            style={{ ...S, color: "rgba(255,255,255,0.6)" }}
-          >
-            0 abonnement - paiements Mobile Money inclus - 0 frais cache.
-          </p>
-        </div>
 
-        {/* Related guides */}
-        <div className="mt-20">
-          <p className="text-lg font-bold mb-6" style={{ ...SH, color: C.dark }}>
-            Guides complementaires
+          <h3>
+            MTN MoMo Cameroun - le n°1
+          </h3>
+          <p>
+            <strong>MTN MoMo Cameroun</strong> domine le marche avec environ
+            60 pourcent des transactions Mobile Money. Très forte penetration
+            a Douala, Bafoussam, Buea, Bamenda et chez les jeunes. Pour un
+            vendeur de formation, c&apos;est le moyen de paiement prefere
+            des moins de 35 ans urbains. L&apos;integration MTN MoMo sur
+            Novakou est native : ton acheteur clique sur &quot;Payer avec
+            MTN MoMo&quot;, saisit son numéro, valide via USSD ou app, et la
+            transaction se confirme en quelques secondes.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[
-              {
-                href: "/guides/mobile-money-encaisser-paiements",
-                title: "Encaisser tes paiements en Mobile Money",
-                desc: "MTN MoMo, Orange Money, Yango Pay : tout sur l'encaissement digital en Afrique francophone.",
-              },
-              {
-                href: "/guides/fixer-prix-formation",
-                title: "Comment fixer le prix de ta formation",
-                desc: "La methode complete de pricing adaptee au marche africain en FCFA.",
-              },
-              {
-                href: "/guides/lancement-30-jours",
-                title: "Plan de lancement en 30 jours",
-                desc: "Le calendrier exact jour par jour pour aller du zero a la premiere cohorte.",
-              },
-              {
-                href: "/explorer",
-                title: "Explorer les formations Novakou",
-                desc: "Inspire-toi des meilleures formations vendues sur la plateforme en Afrique francophone.",
-              },
-            ].map((guide) => (
-              <Link
-                key={guide.href}
-                href={guide.href}
-                className="block p-5 rounded-xl border transition-shadow hover:shadow-md"
-                style={{
-                  backgroundColor: C.white,
-                  borderColor: C.surfaceHigh,
-                }}
-              >
-                <p className="text-sm font-bold mb-1" style={{ color: C.dark }}>
-                  {guide.title}
-                </p>
-                <p className="text-sm" style={{ color: C.muted }}>
-                  {guide.desc}
-                </p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-    </div>
+
+          <h3>
+            Orange Money Cameroun - couverture nationale
+          </h3>
+          <p>
+            <strong>Orange Money Cameroun</strong> est très present a
+            Yaounde, dans le Centre, le Sud et l&apos;Est. Très fort aussi
+            aupres de la diaspora europeenne (France, Belgique, Allemagne)
+            via Orange Money International qui permet a un cousin parisien
+            d&apos;acheter la formation pour son neveu de Yaounde en
+            quelques clics. Ne neglige jamais Orange Money comme canal -
+            c&apos;est jusqu&apos;a 30 pourcent des paiements selon ta
+            niche et ta region cible.
+          </p>
+
+          <h3>
+            Yango Pay Cameroun - l&apos;outsider qui monte
+          </h3>
+          <p>
+            <strong>Yango Pay Cameroun</strong> est arrive en 2024 dans le
+            sillage de Yango (VTC) et gagne du terrain chez les 20 - 30 ans
+            urbains de Douala et Yaounde. Frais souvent plus bas, expérience
+            utilisateur très moderne. Encore minoritaire en volume mais en
+            forte croissance - inclure Yango Pay positionne ta boutique
+            comme moderne et accessible a la jeunesse hyper-connectee.
+          </p>
+
+          <h3>
+            Express Union Mobile et carte bancaire
+          </h3>
+          <p>
+            Express Union Mobile couvre une part residuelle mais utile dans
+            l&apos;Ouest et le Nord-Ouest, ainsi qu&apos;aupres de la
+            diaspora americaine et europeenne via les transferts. La carte
+            bancaire (Visa, Mastercard) reste indispensable pour la diaspora
+            camerounaise massive en France, Belgique, Allemagne et USA, qui
+            souhaite acheter en EUR ou USD pour ses proches restes au pays.
+            Novakou prend en charge tous ces moyens de paiement
+            automatiquement, sans config supplementaire.
+          </p>
+
+          <Maquette titre="Repartition typique des paiements - formateur camerounais 2026">
+            <Barres
+              items={[
+                { libelle: "MTN MoMo (Cameroun urbain)", valeur: "48 %", part: 48 },
+                { libelle: "Orange Money (national + diaspora EU)", valeur: "28 %", part: 28 },
+                { libelle: "Carte bancaire (diaspora EU/US)", valeur: "14 %", part: 14 },
+                { libelle: "Yango Pay + Express Union", valeur: "10 %", part: 10 },
+              ]}
+            />
+          </Maquette>
+
+          <ProAstuce>
+            <strong>Pourquoi Novakou integre les quatre sans config :</strong>{" "}
+            quand tu crees ta boutique{" "}
+            <Link href="/inscription">
+              sur Novakou
+            </Link>
+            , MTN MoMo, Orange Money, Yango Pay et carte bancaire sont
+            actives par defaut. Tu n&apos;ouvres aucun compte marchand,
+            aucun contrat, aucune API : nous gerons les flux pour toi et te
+            reversons ton solde net par cycle. Tu peux te concentrer sur
+            ton contenu et ton marketing. Pour le detail de l&apos;encaissement
+            digital, lis le guide{" "}
+            <Link href="/guides/mobile-money-encaisser-paiements">
+              Mobile Money pour encaisser tes paiements
+            </Link>
+            .
+          </ProAstuce>
+        </SectionGuide>
+
+        <SectionGuide id="fiscalite" n={numeroGuide(3)} titre={<>Le cadre fiscal du formateur freelance au Cameroun</>}>
+          <p>
+            Vendre une formation en ligne, c&apos;est un revenu, et un
+            revenu se declare. Bonne nouvelle : le cadre camerounais a
+            beaucoup simplifie les choses pour le freelance digital ces
+            dernieres annees, notamment avec le regime micro-fiscal. Voici
+            l&apos;essentiel a savoir sur la fiscalite freelance au
+            Cameroun en 2026.
+          </p>
+
+          <h3>
+            Le statut auto-entrepreneur Cameroun et le NIU
+          </h3>
+          <p>
+            C&apos;est le statut adapte pour 90 pourcent des formateurs
+            digitaux qui demarrent. L&apos;
+            <strong>auto-entrepreneur Cameroun</strong> beneficie
+            d&apos;une declaration simplifiee, d&apos;un impot synthetique
+            liberatoire (IL) qui remplace l&apos;IRPP et la patente, et
+            d&apos;une comptabilite allegee. Inscription en agence DGI
+            (Direction Generale des Impots) avec ta CNI, ton justificatif
+            d&apos;adresse et l&apos;ouverture d&apos;un dossier
+            contribuable. Tu obtiens un <strong>NIU</strong> (Numéro
+            d&apos;Identifiant Unique) en quelques jours, indispensable
+            pour toute facturation B2B.
+          </p>
+
+          <h3>
+            Le seuil de 10 millions FCFA et le regime micro-fiscal
+          </h3>
+          <p>
+            Tant que ton chiffre d&apos;affaires annuel reste sous 10
+            millions FCFA (environ 15 200 EUR), tu releves du{" "}
+            <strong>regime micro-fiscal Cameroun</strong> et tu es :
+          </p>
+          <ul>
+            <li>Exonere de TVA (pas besoin de la facturer ni de la reverser)</li>
+            <li>Soumis a l&apos;impot synthetique liberatoire (IL) a taux fixe selon ta tranche de CA</li>
+            <li>Dispense de tenir une comptabilite reelle complete</li>
+            <li>Autorise a emettre des factures simplifiees avec ton NIU</li>
+          </ul>
+          <p>
+            Entre 10 et 50 millions FCFA de CA, tu passes au regime simplifie
+            (RSI), tu deviens assujetti TVA et tu dois tenir une
+            comptabilite plus structuree. Au-dela de 50 millions FCFA, c&apos;est
+            le regime du reel et un expert-comptable devient indispensable.
+          </p>
+
+          <h3>
+            IRPP simplifie et contribution forfaitaire
+          </h3>
+          <p>
+            L&apos;impot synthetique liberatoire se calcule par tranches de
+            CA. Pour donner un ordre d&apos;idee : un formateur qui realise
+            5 millions FCFA de CA annuel paie en general autour de 220 000
+            a 350 000 FCFA d&apos;impot total (selon ses charges
+            deductibles et son secteur). C&apos;est significativement moins
+            que le regime classique du reel. A ne pas oublier : la patente
+            locale (mairie de Douala, Yaounde, Bafoussam...) et la CFPB
+            (contribution forfaitaire) qui peuvent s&apos;ajouter selon ton
+            activité et ta commune. La CNPS (sécurité sociale) est
+            fortement conseillee en adhesion volontaire pour la couverture
+            maladie et retraite.
+          </p>
+
+          <Attention>
+            <strong>Avertissement :</strong> Cet article est purement
+            informatif. La fiscalite evolue, ta situation personnelle est
+            unique, et un mauvais choix peut couter cher.{" "}
+            <strong>
+              Consulte imperativement un expert-comptable agree par
+              l&apos;Ordre National des Experts-Comptables du Cameroun
+              (OEC Cameroun) ou un fiscaliste avant de finaliser ton
+              statut.
+            </strong>{" "}
+            Le ticket moyen d&apos;un expert-comptable a Douala pour le
+            setup initial : 60 000 a 180 000 FCFA. Un investissement qui
+            se rentabilise des la premiere annee, surtout si tu vises le
+            passage 10M de seuil.
+          </Attention>
+        </SectionGuide>
+
+        <SectionGuide id="promotion" n={numeroGuide(4)} titre={<>Promouvoir ta formation - les canaux qui marchent au Cameroun</>}>
+          <p>
+            Au Cameroun, le mix marketing pour vendre une formation
+            digitale est radicalement different du marche europeen. Oublie
+            les Ads Google ou la newsletter LinkedIn comme canal principal.
+            La realite terrain en 2026 :
+          </p>
+
+          <h3>
+            WhatsApp - le canal n°1 absolu
+          </h3>
+          <p>
+            Au Cameroun, WhatsApp n&apos;est pas une app, c&apos;est
+            l&apos;infrastructure sociale. Tes acheteurs y passent 3 a 5
+            heures par jour. Trois leviers :
+          </p>
+          <ul>
+            <li>
+              <strong>Statuts WhatsApp</strong> quotidiens : temoignages
+              clients, micro-conseils, coulisses tournage
+            </li>
+            <li>
+              <strong>Listes de diffusion</strong> segmentees par interet
+              (jamais de groupes de spam, mal vus a Douala)
+            </li>
+            <li>
+              <strong>Groupes communautaires</strong> autour de ta niche
+              (entrepreneurs Mboppi, devs Silicon Mountain, etc.)
+            </li>
+          </ul>
+          <p>
+            Le guide{" "}
+            <Link href="/guides/whatsapp-business-vendre-formations">
+              WhatsApp Business pour vendre des formations
+            </Link>{" "}
+            detaille toute la methode.
+          </p>
+
+          <h3>
+            Facebook - très fort au Cameroun
+          </h3>
+          <p>
+            Particularite camerounaise : Facebook reste extremement
+            puissant, plus que dans d&apos;autres marches francophones.
+            Les groupes Facebook entrepreneuriaux (Femmes d&apos;Affaires
+            Cameroun, Business Douala, Investisseurs Yaounde...) drainent
+            des audiences enormes. La publication native d&apos;un
+            temoignage client genere souvent plus de ventes qu&apos;un
+            Reel Instagram. Sois present sur 2 a 3 groupes pertinents avec
+            du contenu de valeur (jamais de pub directe).
+          </p>
+
+          <h3>
+            TikTok - la jeunesse camerounaise s&apos;y rue
+          </h3>
+          <p>
+            Croissance explosive depuis 2024 chez les 16 - 28 ans.
+            L&apos;algorithme TikTok est le plus accueillant pour les
+            debutants : ton premier post peut faire 50 000 vues sans
+            abonne. Cible ton contenu sur des micro-niches precises (par
+            exemple &quot;comptabilite freelance Cameroun&quot; plutot que
+            &quot;comptabilite&quot;). Hashtags qui performent :
+            #Cameroun237 #Douala237 #Yaounde #SiliconMountain.
+          </p>
+
+          <h3>
+            LinkedIn - pour les niches B2B et Douala pro
+          </h3>
+          <p>
+            Si ta formation cible des entreprises de Bonanjo, des cadres
+            ou des freelances qualifies (developpement, finance, RH,
+            conseil), LinkedIn est ton terrain. Public plus reduit mais
+            ticket moyen beaucoup plus eleve (souvent 80 000 - 350 000
+            FCFA). Le pole tech camerounais (anciens d&apos;ActivSpaces,
+            de Mountain Hub, de Jangolo) est très actif sur LinkedIn.
+          </p>
+
+          <Attention>
+            <strong>Pourquoi pas la pub Facebook au depart :</strong> les
+            encheres publicitaires Facebook Ads au Cameroun restent moins
+            cheres qu&apos;en Europe, mais pour un freelance debutant
+            sans tunnel de vente teste, le ROI est negatif 7 fois sur 10.
+            Reserve ce canal pour une phase 2, quand tu as déjà vendu
+            naturellement au moins 30 fois et compris ton message qui
+            convertit. Le guide{" "}
+            <Link href="/guides/publicite-facebook">
+              publicite Facebook pour formations
+            </Link>{" "}
+            explique quand et comment basculer.
+          </Attention>
+        </SectionGuide>
+
+        <SectionGuide id="lancement" n={numeroGuide(5)} titre={<>Lancer en 30 jours sans budget - la methode Novakou</>}>
+          <p>
+            La methode appliquee par les formateurs Novakou qui passent de
+            0 a 600 000 FCFA en un mois au Cameroun. Quatre semaines,
+            quatre missions claires, zero euro de budget pub.
+          </p>
+
+          <Maquette titre="Plan 30 jours pour vendre formation en ligne Cameroun">
+            <Paliers
+              items={[
+                {
+                  etiquette: "Semaine 1",
+                  titre: "Créer le contenu",
+                  texte:
+                    "3h/jour : structure des modules, enregistrement video au smartphone (prevoir power bank pour les coupures), montage CapCut. Objectif fin de semaine : 60 % de la formation enregistree.",
+                },
+                {
+                  etiquette: "Semaine 2",
+                  titre: "Pre-vente WhatsApp",
+                  texte:
+                    "Liste de 10 testeurs proches (amis Douala/Yaounde, collegues Silicon Mountain, contacts WhatsApp). Offre pre-lancement a -50 %. Objectif : 5 pre-ventes payees = validation marche.",
+                },
+                {
+                  etiquette: "Semaine 3",
+                  titre: "Lancement public",
+                  texte:
+                    "Boutique Novakou en ligne. 5 Reels Instagram/TikTok + 7 statuts WhatsApp + 1 post LinkedIn + 1 post groupes Facebook Cameroun. Annonce officielle a ta communaute avec offre limitee 72h.",
+                },
+                {
+                  etiquette: "Semaine 4",
+                  titre: "Optimiser et 2eme cohorte",
+                  texte:
+                    "Analyse des metriques (taux conversion, panier moyen, retours clients). Ajuste prix et page de vente. Relance pour 2eme cohorte avec temoignages de la 1ere. Envisage version EN si ta niche s'y prete.",
+                },
+              ]}
+            />
+          </Maquette>
+
+          <p>
+            La cle, c&apos;est la semaine 2 : la pre-vente WhatsApp. Si tu
+            n&apos;arrives pas a obtenir 5 pre-ventes a tarif preferentiel
+            aupres de tes 10 contacts les plus proches, c&apos;est que ton
+            offre, ton prix ou ton message ne sont pas alignes. Mieux vaut
+            ajuster maintenant que d&apos;investir 3 semaines de production
+            dans le vide. Pour aller plus loin, le guide{" "}
+            <Link href="/guides/lancement-30-jours">
+              lancement 30 jours
+            </Link>{" "}
+            decortique chaque jour.
+          </p>
+
+          <Astuce>
+            <strong>Le moment cle :</strong> jour 21 du plan, soit
+            dimanche soir / lundi matin de la semaine 3. C&apos;est ce
+            moment precis que tu envoies ton message d&apos;ouverture sur
+            tous tes canaux en meme temps (WhatsApp, Facebook, Instagram,
+            TikTok, LinkedIn). La synchronisation cree un effet de masse
+            qui declenche les premieres ventes spontanees, et c&apos;est
+            aussi le jour ou tu lances ton hashtag de campagne pour les
+            retweets entre amis.
+          </Astuce>
+        </SectionGuide>
+
+        <SectionGuide id="revenus" n={numeroGuide(6)} titre={<>Combien on peut gagner ? (chiffres reels)</>}>
+          <p>
+            Soyons concrets. Voici les fourchettes de revenus mensuels
+            nets observees chez les formateurs Novakou bases au Cameroun
+            en 2026. Pas des promesses : la moyenne du terrain, hors top
+            1 pourcent.
+          </p>
+
+          <Maquette titre="Revenus mensuels par niveau - formateur camerounais 2026">
+            <Paliers
+              items={[
+                {
+                  titre: "Debutant (0-6 mois)",
+                  valeur: "80 000 - 250 000 FCFA",
+                  texte:
+                    "1 a 6 ventes par semaine, ticket moyen 18 - 30K FCFA. Pas encore d'audience etablie, beaucoup de prospection manuelle WhatsApp + groupes Facebook Cameroun.",
+                },
+                {
+                  titre: "Intermediaire (6-18 mois)",
+                  valeur: "400 000 - 1 200 000 FCFA",
+                  texte:
+                    "Audience Facebook/Instagram 3K - 12K, sequences email actives, 1 a 3 formations dans le catalogue, debut de recurrence (communaute privee), parfois version FR + EN.",
+                },
+                {
+                  titre: "Avance (1.5 ans+)",
+                  valeur: "1 800 000 - 6 000 000 FCFA+",
+                  texte:
+                    "Catalogue de 4 a 8 produits, tunnel de vente automatise, programme d'affiliation actif, 1 a 2 lancements signature par an, marche FR+EN exploite. Vrais entrepreneurs.",
+                },
+              ]}
+            />
+          </Maquette>
+
+          <h3>
+            Cas pratique - Mballa Christelle, 29 ans, formatrice anglais business
+          </h3>
+          <p>
+            Christelle habite a Bonamoussadi, Douala. Diplomee de
+            l&apos;Universite de Buea (parfaitement bilingue, FR + EN),
+            elle a travaille 4 ans dans une multinationale a Bonanjo avant
+            de basculer formatrice en avril 2026. Son catalogue : une
+            formation cle &quot;Business English pour cadres camerounais
+            en 90 jours&quot; a 45 000 FCFA, une mini-formation
+            &quot;Email anglais professionnel&quot; a 12 000 FCFA, une
+            communaute WhatsApp Premium de coaching hebdomadaire a 7 500
+            FCFA/mois.
+          </p>
+          <p>
+            En octobre 2026, son chiffre d&apos;affaires mensuel atteint
+            1 500 000 FCFA. Repartition : 58 pourcent ventes de la
+            formation principale (boostees par sa double cible FR + EN),
+            22 pourcent ebook/mini-formation (souvent upsell), 20 pourcent
+            abonnements communaute. Après impot synthetique et commissions
+            Novakou, il lui reste environ 1 180 000 FCFA nets - presque 3
+            fois son salaire precedent, pour 25 heures de travail
+            hebdomadaires. Profil fictif mais entierement aligne sur les
+            metriques observees a Douala.
+          </p>
+
+          <ProAstuce>
+            <strong>Le secret du passage 400K → 1.5M FCFA :</strong>{" "}
+            construire un catalogue ET exploiter le bilinguisme. Une seule
+            formation, meme excellente, plafonne. Ajoute un ebook
+            d&apos;entree de gamme (10 - 14K FCFA), un upsell premium
+            (coaching individuel 90 - 200K FCFA), une communaute privee
+            recurrente (5 - 15K FCFA/mois), et si possible une version
+            anglaise de ta formation phare pour les marches anglophones
+            (Nord-Ouest, Sud-Ouest, Nigeria voisin). Le panier moyen
+            double souvent, sans effort marketing supplementaire. Le
+            guide{" "}
+            <Link href="/guides/scaler-catalogue-produits">
+              scaler ton catalogue de produits
+            </Link>{" "}
+            explique la sequence exacte.
+          </ProAstuce>
+        </SectionGuide>
+
+        <SectionGuide id="faq" n={numeroGuide(7)} titre={<>FAQ - les questions qu&apos;on me pose tout le temps</>}>
+          <p>
+            Les huit questions qui reviennent en boucle dans les DMs
+            Instagram, les groupes Facebook Cameroun et les WhatsApp de
+            l&apos;equipe Novakou Douala.
+          </p>
+
+          <Accordeon items={FAQ_ITEMS.map((f) => ({ q: f.q, a: f.a }))} />
+        </SectionGuide>
+      </CoqueGuide>
+    </>
   );
 }
