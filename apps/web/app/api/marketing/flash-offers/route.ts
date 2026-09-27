@@ -82,17 +82,30 @@ export async function GET(req: NextRequest) {
     const now = new Date();
 
     if (scope === "public") {
+      // Une offre flash appartient au vendeur du produit qu'elle remise. Sans
+      // `instructeurId`, cette route publique listait les promos flash de TOUS
+      // les vendeurs — même défaut que les pop-ups (corrigé le 2026-09-27) :
+      // une vitrine pouvait afficher les offres d'un concurrent. On filtre donc
+      // sur le vendeur demandé, et on plafonne le volume.
+      const instructeurId = searchParams.get("instructeurId");
+      if (!instructeurId) return NextResponse.json({ offers: [] });
+
       const activeOffers = await prisma.flashPromotion.findMany({
         where: {
           isActive: true,
           startsAt: { lte: now },
           endsAt: { gt: now },
+          OR: [
+            { formation: { instructeurId } },
+            { digitalProduct: { instructeurId } },
+          ],
         },
         include: {
           formation: { select: { id: true, title: true, price: true } },
           digitalProduct: { select: { id: true, title: true, price: true } },
         },
         orderBy: { endsAt: "asc" },
+        take: 50,
       });
 
       return NextResponse.json({ offers: activeOffers });

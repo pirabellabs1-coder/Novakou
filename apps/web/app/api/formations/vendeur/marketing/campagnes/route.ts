@@ -6,8 +6,27 @@ import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 
 import { getActiveShopId } from "@/lib/formations/active-shop";
-import { getInstructeurId as _gii } from "@/lib/formations/instructeur";
-async function getProfileId(userId: string) { return _gii(userId); }
+
+/**
+ * L'URL de destination finit dans un `NextResponse.redirect` servi par notre
+ * domaine (/api/marketing/campaigns/[slug]). On n'accepte donc que http(s) ou
+ * un chemin interne : un schéma exotique (javascript:, data:) ou une chaîne
+ * non parsable n'a rien à faire dans une redirection signée Novakou.
+ */
+function normaliserDestination(valeur: unknown): { ok: true; url: string } | { ok: false; erreur: string } {
+  const brut = typeof valeur === "string" ? valeur.trim() : "";
+  if (!brut) return { ok: false, erreur: "URL de destination requise" };
+  if (brut.startsWith("/")) return { ok: true, url: brut.slice(0, 2000) };
+  try {
+    const parsee = new URL(brut);
+    if (parsee.protocol !== "http:" && parsee.protocol !== "https:") {
+      return { ok: false, erreur: "L'URL doit commencer par http:// ou https://" };
+    }
+    return { ok: true, url: parsee.toString().slice(0, 2000) };
+  } catch {
+    return { ok: false, erreur: "URL de destination invalide" };
+  }
+}
 
 function slugify(text: string) {
   return text
@@ -56,8 +75,12 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, destinationUrl, utmSource, utmMedium, utmCampaign, utmContent } = body;
 
-    if (!name || !destinationUrl) {
-      return NextResponse.json({ error: "Nom et URL destination requis" }, { status: 400 });
+    if (!name || typeof name !== "string" || name.trim().length < 2) {
+      return NextResponse.json({ error: "Le nom doit contenir au moins 2 caractères" }, { status: 400 });
+    }
+    const destination = normaliserDestination(destinationUrl);
+    if (!destination.ok) {
+      return NextResponse.json({ error: destination.erreur }, { status: 400 });
     }
 
     // Build unique slug
@@ -70,9 +93,9 @@ export async function POST(request: Request) {
 
     const campaign = await prisma.campaignTracker.create({
       data: { instructeurId: pid, shopId: activeShopId,
-        name: name.trim(),
+        name: name.trim().slice(0, 140),
         slug,
-        destinationUrl: destinationUrl.trim(),
+        destinationUrl: destination.url,
         utmSource: utmSource?.trim() || null,
         utmMedium: utmMedium?.trim() || null,
         utmCampaign: utmCampaign?.trim() || null,

@@ -5,6 +5,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { safeFetch } from "@/lib/safe-fetch";
 import {
   Sparkles,
   Ticket,
@@ -30,6 +31,7 @@ import {
   StButton,
   ST,
 } from "@/components/stitch";
+import { StErreur } from "@/components/formations/dashboard/MarketingKit";
 
 type MarketingData = {
   summary: { activeTools: number; totalMarketingRevenue: number; totalConversions: number };
@@ -37,7 +39,7 @@ type MarketingData = {
   popups: { total: number; active: number; totalImpressions: number; totalConversions: number; conversionRate: number };
   pixels: { total: number; configured: number; types: string[] };
   campaigns: { total: number; active: number; totalClicks: number; totalConversions: number; revenue: number };
-  affiliation: { hasProgram: boolean; totalAffiliates: number; activeAffiliates: number; revenue: number };
+  affiliation: { hasProgram: boolean; totalAffiliates: number; activeAffiliates: number; commissions: number };
   sequences: { total: number; active: number; totalEnrolled: number };
   funnels: { total: number; active: number; totalConversions: number; revenue: number };
 };
@@ -47,9 +49,13 @@ function formatFCFA(n: number) {
 }
 
 export default function MarketingPage() {
-  const { data: response, isLoading } = useQuery<{ data: MarketingData }>({
+  const { data: response, isLoading, isError, refetch } = useQuery<{ data: MarketingData }>({
     queryKey: ["vendeur-marketing-hub"],
-    queryFn: () => fetch("/api/formations/vendeur/marketing").then((r) => r.json()),
+    queryFn: async () => {
+      const { data, error } = await safeFetch<{ data: MarketingData }>("/api/formations/vendeur/marketing");
+      if (error || !data?.data) throw new Error(error ?? "Chargement impossible");
+      return data;
+    },
     staleTime: 60_000,
   });
 
@@ -68,8 +74,10 @@ export default function MarketingPage() {
 
         {/* ── 3 KPI compacts (maquette) ── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-4">
+          {/* La route somme l'historique COMPLET (codes promo + campagnes +
+              tunnels), pas les 30 derniers jours : le libellé le dit. */}
           <StKpiCompact
-            label="Revenus via promotions (30 j)"
+            label="Revenus attribués à vos outils"
             value={isLoading ? "…" : formatFCFA(d?.summary.totalMarketingRevenue ?? 0)}
             unit="FCFA"
             icon={Ticket}
@@ -82,12 +90,22 @@ export default function MarketingPage() {
             tone="green"
           />
           <StKpiCompact
-            label="Conversions totales — tous outils"
+            label="Conversions — pop-ups, campagnes, tunnels"
             value={isLoading ? "…" : (d?.summary.totalConversions ?? 0).toLocaleString("fr-FR")}
             icon={GitMerge}
             tone="blue"
           />
         </div>
+
+        {isError && (
+          <div className="mb-4">
+            <StErreur
+              titre="Statistiques marketing indisponibles"
+              message="Les compteurs ci-dessus n'ont pas pu être chargés — ils ne valent pas zéro, ils sont inconnus. Vos outils restent accessibles."
+              onRetry={() => refetch()}
+            />
+          </div>
+        )}
 
         {/* ── Bannière AI Studio (maquette : gradient vert + cercle déco) ── */}
         <StHeroGradient className="!rounded-[18px] !p-[19px_24px] mb-4">
@@ -182,7 +200,6 @@ export default function MarketingPage() {
             description="Relances automatiques par email pour récupérer les ventes."
             href="/vendeur/abandons"
             tone="amber"
-            badge="À relancer"
           />
           <StToolCard
             icon={MousePointerClick}

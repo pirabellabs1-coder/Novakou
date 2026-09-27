@@ -1,10 +1,23 @@
 "use client";
-import { useToastStore } from "@/store/toast";
+
+/**
+ * Pixels & tracking — espace vendeur. Design system « Stitch ».
+ *
+ * La liste des évènements affichée ici doit rester le reflet EXACT de ce que le
+ * code envoie (components/formations/PixelInjector : PageView, ViewContent,
+ * InitiateCheckout, Purchase). La version précédente promettait « ajout au
+ * panier », « inscription », « leçon commencée » et « cours terminé » : aucun de
+ * ces évènements n'était envoyé, et le vendeur cherchait en vain dans son
+ * gestionnaire de publicités.
+ */
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToastStore } from "@/store/toast";
 import { confirmAction } from "@/store/confirm";
+import { safeFetch } from "@/lib/safe-fetch";
 import {
+  type LucideIcon,
   Facebook,
   Chrome,
   Music,
@@ -14,293 +27,420 @@ import {
   Pencil,
   Trash2,
   PlusCircle,
-  ChevronRight,
   Eye,
-  ShoppingCart,
+  FileSearch,
   CreditCard,
-  UserPlus,
-  GraduationCap,
   BadgeCheck,
-  type LucideIcon,
+  ShieldCheck,
 } from "lucide-react";
+import { ST, StCard, StPageHeader, StChip, StButton, StSectionTitle } from "@/components/stitch";
+import { StErreur, StRetourMarketing } from "@/components/formations/dashboard/MarketingKit";
+
+type TypePixel = "FACEBOOK" | "GOOGLE" | "TIKTOK" | "SNAPCHAT" | "PINTEREST";
 
 type Pixel = {
   id: string;
-  type: "FACEBOOK" | "GOOGLE" | "TIKTOK" | "SNAPCHAT" | "PINTEREST";
+  type: TypePixel;
   pixelId: string;
   isActive: boolean;
   createdAt: string;
   hasAccessToken?: boolean;
 };
 
-// Aide « où trouver le token de l'API de Conversion » par plateforme.
-const CAPI_HELP: Record<string, string> = {
-  FACEBOOK: "Gestionnaire d'évènements Meta → votre pixel → Paramètres → « API de conversions » → Générer un token d'accès.",
+const AIDE_CAPI: Partial<Record<TypePixel, string>> = {
+  FACEBOOK:
+    "Gestionnaire d'évènements Meta → votre pixel → Paramètres → « API de conversions » → Générer un token d'accès.",
   TIKTOK: "TikTok Events Manager → votre pixel → Settings → « Events API » → Generate Access Token.",
 };
 
-const PIXEL_CONFIG: Record<string, { label: string; icon: LucideIcon; bg: string; color: string; placeholder: string; description: string }> = {
+const PIXELS: Record<TypePixel, { label: string; icon: LucideIcon; fond: string; couleur: string; exemple: string; desc: string }> = {
   FACEBOOK: {
-    label: "Facebook / Meta Pixel",
+    label: "Facebook / Meta",
     icon: Facebook,
-    bg: "bg-blue-50",
-    color: "text-blue-600",
-    placeholder: "123456789012345",
-    description: "Suivez les conversions Facebook Ads et créez des audiences personnalisées pour vos publicités.",
+    fond: ST.blueSoft,
+    couleur: ST.blueText,
+    exemple: "123456789012345",
+    desc: "Suivez les ventes venues de Facebook et Instagram, et créez des audiences similaires.",
   },
   GOOGLE: {
     label: "Google Analytics / Tag Manager",
     icon: Chrome,
-    bg: "bg-red-50",
-    color: "text-red-500",
-    placeholder: "G-XXXXXXXXXX ou GTM-XXXXXXX",
-    description: "Mesurez les conversions Google Ads et suivez votre audience avec Google Analytics 4.",
+    fond: "#fdecec",
+    couleur: "#b03030",
+    exemple: "G-XXXXXXXXXX ou GTM-XXXXXXX",
+    desc: "Mesurez vos conversions Google Ads et votre audience dans Analytics 4.",
   },
   TIKTOK: {
-    label: "TikTok Pixel",
+    label: "TikTok",
     icon: Music,
-    bg: "bg-[#010101]/5",
-    color: "text-[#010101]",
-    placeholder: "CXXXXXXXXXXXXXXXXX",
-    description: "Optimisez vos campagnes TikTok Ads et suivez les achats depuis l'application.",
+    fond: "#f1f1f1",
+    couleur: "#141414",
+    exemple: "CXXXXXXXXXXXXXXXXX",
+    desc: "Optimisez vos campagnes TikTok sur les achats réels, pas sur les clics.",
   },
   SNAPCHAT: {
-    label: "Snapchat Pixel",
+    label: "Snapchat",
     icon: Ghost,
-    bg: "bg-yellow-50",
-    color: "text-yellow-500",
-    placeholder: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-    description: "Suivez les conversions Snapchat Ads et créez des audiences pour vos publicités.",
+    fond: ST.amberSoft,
+    couleur: ST.amberText,
+    exemple: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    desc: "Suivez les conversions Snapchat Ads et constituez vos audiences.",
   },
   PINTEREST: {
-    label: "Pinterest Tag",
+    label: "Pinterest",
     icon: MapPin,
-    bg: "bg-red-50",
-    color: "text-[#e60023]",
-    placeholder: "2612xxxxxxxxx",
-    description: "Mesurez les conversions Pinterest Ads et suivez les achats depuis vos épingles.",
+    fond: ST.roseSoft,
+    couleur: ST.roseText,
+    exemple: "2612xxxxxxxxx",
+    desc: "Mesurez les achats venus de vos épingles.",
   },
 };
 
+const ORDRE: TypePixel[] = ["FACEBOOK", "GOOGLE", "TIKTOK", "SNAPCHAT", "PINTEREST"];
+
+/**
+ * Mêmes formats que la validation serveur (route pixels). Utilisés ici pour
+ * alerter sur un identifiant DEJÀ enregistré qui ne peut pas fonctionner : un
+ * vendeur avait saisi son adresse email, la page affichait « Connecté » et sa
+ * régie ne recevait rien.
+ */
+const FORMATS: Record<TypePixel, RegExp> = {
+  FACEBOOK: /^\d{10,20}$/,
+  GOOGLE: /^(G-[A-Z0-9]{6,12}|GTM-[A-Z0-9]{5,10}|AW-\d{6,15}|UA-\d{4,12}-\d{1,4})$/i,
+  TIKTOK: /^[A-Z0-9]{15,30}$/i,
+  SNAPCHAT: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+  PINTEREST: /^\d{10,16}$/,
+};
+
+/** Ce que le site envoie réellement, page par page. */
+const EVENEMENTS: { icon: LucideIcon; nom: string; quand: string }[] = [
+  { icon: Eye, nom: "PageView", quand: "Toute page publique portant vos pixels" },
+  { icon: FileSearch, nom: "ViewContent", quand: "Fiche formation, fiche produit, lien de paiement" },
+  { icon: CreditCard, nom: "InitiateCheckout", quand: "Entrée dans le paiement" },
+  { icon: BadgeCheck, nom: "Purchase", quand: "Paiement confirmé, avec le montant en FCFA" },
+];
+
 export default function PixelsPage() {
   const qc = useQueryClient();
-  const [editingType, setEditingType] = useState<string | null>(null);
-  const [pixelInputs, setPixelInputs] = useState<Record<string, string>>({});
-  const [tokenInputs, setTokenInputs] = useState<Record<string, string>>({});
+  const [enEdition, setEnEdition] = useState<TypePixel | null>(null);
+  const [identifiants, setIdentifiants] = useState<Record<string, string>>({});
+  const [tokens, setTokens] = useState<Record<string, string>>({});
 
-  const { data: response, isLoading } = useQuery<{ data: Pixel[] }>({
+  const { data: reponse, isLoading, isError, refetch } = useQuery<{ data: Pixel[] }>({
     queryKey: ["vendeur-pixels"],
-    queryFn: () => fetch("/api/formations/vendeur/marketing/pixels").then((r) => r.json()),
+    queryFn: async () => {
+      const { data, error } = await safeFetch<{ data: Pixel[] }>("/api/formations/vendeur/marketing/pixels");
+      if (error || !data) throw new Error(error ?? "Chargement impossible");
+      return data;
+    },
     staleTime: 60_000,
   });
 
-  const pixels = response?.data ?? [];
-  const pixelMap = Object.fromEntries(pixels.map((p) => [p.type, p]));
+  const pixels = reponse?.data ?? [];
+  const parType = Object.fromEntries(pixels.map((p) => [p.type, p])) as Partial<Record<TypePixel, Pixel>>;
 
-  const saveMutation = useMutation({
-    mutationFn: (body: { type: string; pixelId: string; accessToken?: string }) =>
-      fetch("/api/formations/vendeur/marketing/pixels", {
+  const enregistrement = useMutation({
+    mutationFn: async (corps: { type: TypePixel; pixelId: string; accessToken?: string }) => {
+      const { error } = await safeFetch("/api/formations/vendeur/marketing/pixels", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      }).then((r) => r.json()),
-    onSuccess: (res) => {
-      if (res.error) { useToastStore.getState().addToast("error", res.error); return; }
-      qc.invalidateQueries({ queryKey: ["vendeur-pixels"] });
-      qc.invalidateQueries({ queryKey: ["vendeur-marketing-hub"] });
-      setEditingType(null);
+        body: JSON.stringify(corps),
+      });
+      if (error) throw new Error(error);
     },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (type: string) =>
-      fetch(`/api/formations/vendeur/marketing/pixels?type=${type}`, { method: "DELETE" }).then((r) => r.json()),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["vendeur-pixels"] });
       qc.invalidateQueries({ queryKey: ["vendeur-marketing-hub"] });
+      useToastStore.getState().addToast("success", "Pixel enregistré.");
+      setEnEdition(null);
     },
+    onError: (e: Error) => useToastStore.getState().addToast("error", e.message),
   });
 
+  const suppression = useMutation({
+    mutationFn: async (type: TypePixel) => {
+      const { error } = await safeFetch(`/api/formations/vendeur/marketing/pixels?type=${type}`, { method: "DELETE" });
+      if (error) throw new Error(error);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["vendeur-pixels"] });
+      qc.invalidateQueries({ queryKey: ["vendeur-marketing-hub"] });
+      useToastStore.getState().addToast("success", "Pixel supprimé.");
+    },
+    onError: (e: Error) => useToastStore.getState().addToast("error", e.message),
+  });
+
+  // On ne compte comme « connectée » qu'une régie dont l'identifiant peut
+  // réellement fonctionner : annoncer « 2 régies connectées » alors que les deux
+  // identifiants sont invalides, c'est exactement le piège qu'on corrige ici.
+  const nbValides = pixels.filter((p) => FORMATS[p.type]?.test(p.pixelId.trim())).length;
+  const nbInvalides = pixels.length - nbValides;
+
   return (
-    <div className="p-5 md:p-8 max-w-3xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-2 text-sm text-[#5c647a] mb-2">
-          <a href="/vendeur/marketing" className="hover:text-[#006e2f] transition-colors">Marketing</a>
-          <ChevronRight className="w-3.5 h-3.5" />
-          <span className="text-[#191c1e] font-medium">Pixels & Tracking</span>
-        </div>
-        <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Pixels & Tracking</h1>
-        <p className="text-sm text-[#5c647a] mt-1">
-          Connectez vos outils de tracking pour suivre les conversions et optimiser vos publicités.
-        </p>
-      </div>
+    <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[900px] mx-auto">
+        <StRetourMarketing />
 
-      {/* Info banner */}
-      <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-2xl mb-8">
-        <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-        <div>
-          <p className="text-sm font-semibold text-blue-800">Comment ça fonctionne</p>
-          <p className="text-[12px] text-blue-700 mt-0.5">
-            Une fois configuré, votre pixel se déclenche automatiquement sur les événements clés : vue d'une page de formation, ajout au panier, achat complété. Ces données remontent directement dans votre gestionnaire de publicités.
-          </p>
-        </div>
-      </div>
+        <StPageHeader
+          title="Pixels & tracking"
+          subtitle={
+            isLoading
+              ? "Chargement…"
+              : pixels.length === 0
+                ? "Aucune régie connectée pour l'instant."
+                : `${nbValides} régie${nbValides > 1 ? "s" : ""} connectée${nbValides > 1 ? "s" : ""} à vos ventes` +
+                  (nbInvalides > 0
+                    ? ` · ${nbInvalides} identifiant${nbInvalides > 1 ? "s" : ""} à corriger.`
+                    : ".")
+          }
+        />
 
-      {/* Pixel cards */}
-      <div className="space-y-4">
-        {(["FACEBOOK", "GOOGLE", "TIKTOK", "SNAPCHAT", "PINTEREST"] as const).map((type) => {
-          const cfg = PIXEL_CONFIG[type];
-          const CfgIcon = cfg.icon;
-          const existing = pixelMap[type];
-          const isEditing = editingType === type;
+        <StCard className="mb-4 !p-4">
+          <div className="flex items-start gap-3">
+            <div
+              className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[11px]"
+              style={{ background: ST.blueSoft, color: ST.blueText }}
+            >
+              <Info size={18} />
+            </div>
+            <div>
+              <p className="text-[13px] font-extrabold" style={{ color: ST.text }}>
+                Collez l&apos;identifiant, nous posons le pixel
+              </p>
+              <p className="mt-0.5 text-[12px] font-semibold leading-relaxed" style={{ color: ST.textSecondary }}>
+                Le pixel se charge sur vos pages publiques (fiches, boutique, tunnels, paiement) et remonte les
+                évènements ci-dessous dans votre gestionnaire de publicités. Rien à installer.
+              </p>
+            </div>
+          </div>
+        </StCard>
 
-          return (
-            <div key={type} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-              <div className="flex items-start gap-4">
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${cfg.bg}`}>
-                  <CfgIcon className={`w-[22px] h-[22px] ${cfg.color}`} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <h3 className="font-bold text-[#191c1e] text-sm">{cfg.label}</h3>
-                    {existing ? (
-                      <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#006e2f]/10 text-[#006e2f]">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#006e2f]" />
-                        Configuré
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-[#5c647a]">
-                        Non configuré
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-[#5c647a] leading-snug">{cfg.description}</p>
+        {isError ? (
+          <StErreur onRetry={() => refetch()} />
+        ) : (
+          <div className="space-y-3.5">
+            {ORDRE.map((type) => {
+              const cfg = PIXELS[type];
+              const Icone = cfg.icon;
+              const existant = parType[type];
+              const edition = enEdition === type;
+              const capi = type === "FACEBOOK" || type === "TIKTOK";
+              const identifiantValide = existant ? FORMATS[type].test(existant.pixelId.trim()) : true;
 
-                  {existing && !isEditing && (
-                    // flex-wrap + basis-full : sur mobile le code passe sur sa
-                    // propre ligne et le badge + boutons restent visibles en
-                    // dessous (avant, la ligne débordait et cachait les boutons).
-                    <div className="flex flex-wrap items-center gap-2 mt-3">
-                      <code className="text-xs tabular-nums bg-gray-100 px-2.5 py-1 rounded-lg text-[#191c1e] min-w-0 flex-1 basis-full sm:basis-auto truncate">
-                        {existing.pixelId}
-                      </code>
-                      {(type === "FACEBOOK" || type === "TIKTOK") && existing.hasAccessToken && (
-                        <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 whitespace-nowrap">
-                          API Conversion ✓
-                        </span>
-                      )}
-                      <div className="flex items-center gap-1 ml-auto">
-                        <button
-                          onClick={() => { setEditingType(type); setPixelInputs((p) => ({ ...p, [type]: existing.pixelId })); setTokenInputs((p) => ({ ...p, [type]: "" })); }}
-                          className="p-1.5 rounded-lg hover:bg-gray-100 text-[#5c647a] transition-colors"
-                          aria-label="Modifier"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={async () => {
-                            const ok = await confirmAction({
-                              title: "Supprimer ce pixel ?",
-                              message: "Le tracking sera désactivé pour ce canal.",
-                              confirmLabel: "Supprimer",
-                              confirmVariant: "danger",
-                              icon: "delete",
-                            });
-                            if (ok) deleteMutation.mutate(type);
-                          }}
-                          className="p-1.5 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-500 transition-colors"
-                          aria-label="Supprimer"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+              return (
+                <StCard key={type}>
+                  <div className="flex items-start gap-4">
+                    <div
+                      className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[13px]"
+                      style={{ background: cfg.fond, color: cfg.couleur }}
+                    >
+                      <Icone size={21} />
                     </div>
-                  )}
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-1 flex items-center justify-between gap-2">
+                        <h3 className="text-[14px] font-extrabold" style={{ color: ST.text }}>
+                          {cfg.label}
+                        </h3>
+                        {isLoading ? (
+                          <span className="h-4 w-20 animate-pulse rounded" style={{ background: "#eef2ef" }} />
+                        ) : existant ? (
+                          identifiantValide ? (
+                            <StChip tone="green">Connecté</StChip>
+                          ) : (
+                            <StChip tone="rose">Identifiant invalide</StChip>
+                          )
+                        ) : (
+                          <StChip tone="neutral">Non connecté</StChip>
+                        )}
+                      </div>
+                      <p className="text-[12px] font-semibold leading-snug" style={{ color: ST.textSecondary }}>
+                        {cfg.desc}
+                      </p>
 
-                  {isEditing && (
-                    <div className="mt-3 space-y-2">
-                      <input
-                        type="text"
-                        value={pixelInputs[type] ?? ""}
-                        onChange={(e) => setPixelInputs((p) => ({ ...p, [type]: e.target.value }))}
-                        placeholder={cfg.placeholder}
-                        className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm tabular-nums text-[#191c1e] placeholder-[#5c647a]/50 focus:outline-none focus:border-[#006e2f]/40 focus:ring-2 focus:ring-[#006e2f]/10"
-                      />
-                      {(type === "FACEBOOK" || type === "TIKTOK") && (
-                        <div>
-                          <input
-                            type="password"
-                            value={tokenInputs[type] ?? ""}
-                            onChange={(e) => setTokenInputs((p) => ({ ...p, [type]: e.target.value }))}
-                            placeholder="Clé API de Conversion (token d'accès) — optionnel"
-                            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-[#5c647a]/50 focus:outline-none focus:border-[#006e2f]/40 focus:ring-2 focus:ring-[#006e2f]/10"
-                          />
-                          <p className="text-[10.5px] text-[#5c647a] mt-1 leading-snug">
-                            <strong>API de Conversion (server-side)</strong> — remonte les achats en serveur-à-serveur (fiable, résiste aux bloqueurs et à iOS).{" "}
-                            {CAPI_HELP[type]}{" "}
-                            {existing?.hasAccessToken && <span className="text-purple-700 font-semibold">Déjà configurée — laissez vide pour ne pas la changer.</span>}
-                          </p>
+                      {existant && !identifiantValide && !edition && (
+                        <p
+                          className="mt-2 rounded-[10px] p-2.5 text-[11.5px] font-semibold"
+                          style={{ background: ST.roseSoft, color: ST.roseText }}
+                        >
+                          Cet identifiant n&apos;a pas la forme attendue ({cfg.exemple}) : la régie l&apos;ignore et
+                          aucune conversion ne remonte. Corrigez-le pour que le suivi reparte.
+                        </p>
+                      )}
+
+                      {existant && !edition && (
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <code
+                            className="min-w-0 flex-1 basis-full truncate rounded-[10px] px-2.5 py-1.5 text-[12px] font-semibold tabular-nums sm:basis-auto"
+                            style={{ background: "#f4f7f5", color: ST.text }}
+                          >
+                            {existant.pixelId}
+                          </code>
+                          {capi && existant.hasAccessToken && (
+                            <StChip tone="blue" icon={ShieldCheck}>
+                              API Conversion
+                            </StChip>
+                          )}
+                          <div className="ml-auto flex items-center gap-1">
+                            <button
+                              type="button"
+                              aria-label={`Modifier le pixel ${cfg.label}`}
+                              onClick={() => {
+                                setEnEdition(type);
+                                setIdentifiants((p) => ({ ...p, [type]: existant.pixelId }));
+                                setTokens((p) => ({ ...p, [type]: "" }));
+                              }}
+                              className="flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-black/[.05]"
+                              style={{ color: ST.textSecondary }}
+                            >
+                              <Pencil size={16} />
+                            </button>
+                            <button
+                              type="button"
+                              aria-label={`Supprimer le pixel ${cfg.label}`}
+                              onClick={async () => {
+                                const ok = await confirmAction({
+                                  title: `Supprimer le pixel ${cfg.label} ?`,
+                                  message: "Le suivi des conversions s'arrêtera immédiatement pour cette régie.",
+                                  confirmLabel: "Supprimer",
+                                  confirmVariant: "danger",
+                                  icon: "delete",
+                                });
+                                if (ok) suppression.mutate(type);
+                              }}
+                              className="flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-[#fceef2]"
+                              style={{ color: ST.textSecondary }}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                         </div>
                       )}
-                      <div className="flex gap-2">
+
+                      {edition && (
+                        <div className="mt-3 space-y-2.5">
+                          <div>
+                            <label
+                              htmlFor={`pixel-${type}`}
+                              className="mb-[6px] block text-[11.5px] font-extrabold"
+                              style={{ color: ST.textLabel }}
+                            >
+                              Identifiant du pixel
+                            </label>
+                            <input
+                              id={`pixel-${type}`}
+                              type="text"
+                              value={identifiants[type] ?? ""}
+                              onChange={(e) => setIdentifiants((p) => ({ ...p, [type]: e.target.value }))}
+                              placeholder={cfg.exemple}
+                              className="w-full rounded-[12px] bg-white px-[14px] py-[10px] text-[13px] font-semibold tabular-nums focus:outline-none"
+                              style={{ color: ST.text, border: "1px solid #dde6e0" }}
+                            />
+                          </div>
+
+                          {capi && (
+                            <div>
+                              <label
+                                htmlFor={`token-${type}`}
+                                className="mb-[6px] block text-[11.5px] font-extrabold"
+                                style={{ color: ST.textLabel }}
+                              >
+                                Token API de Conversion (facultatif)
+                              </label>
+                              <input
+                                id={`token-${type}`}
+                                type="password"
+                                autoComplete="off"
+                                value={tokens[type] ?? ""}
+                                onChange={(e) => setTokens((p) => ({ ...p, [type]: e.target.value }))}
+                                placeholder="Token d'accès"
+                                className="w-full rounded-[12px] bg-white px-[14px] py-[10px] text-[13px] font-semibold focus:outline-none"
+                                style={{ color: ST.text, border: "1px solid #dde6e0" }}
+                              />
+                              <p className="mt-1 text-[11px] font-semibold leading-snug" style={{ color: ST.textSecondary }}>
+                                Remonte les achats de serveur à serveur : fiable, insensible aux bloqueurs de publicité
+                                et à iOS. {AIDE_CAPI[type]}{" "}
+                                {existant?.hasAccessToken && (
+                                  <span className="font-extrabold" style={{ color: ST.blueText }}>
+                                    Déjà configuré — laissez vide pour le conserver.
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                          )}
+
+                          <div className="flex gap-2">
+                            <StButton
+                              size="sm"
+                              disabled={!identifiants[type]?.trim() || enregistrement.isPending}
+                              onClick={() =>
+                                enregistrement.mutate({
+                                  type,
+                                  pixelId: identifiants[type] ?? "",
+                                  accessToken: capi && tokens[type]?.trim() ? tokens[type].trim() : undefined,
+                                })
+                              }
+                            >
+                              {enregistrement.isPending ? "Enregistrement…" : "Enregistrer"}
+                            </StButton>
+                            <StButton size="sm" variant="secondary" onClick={() => setEnEdition(null)}>
+                              Annuler
+                            </StButton>
+                          </div>
+                        </div>
+                      )}
+
+                      {!existant && !edition && !isLoading && (
                         <button
-                          onClick={() => saveMutation.mutate({
-                            type,
-                            pixelId: pixelInputs[type] ?? "",
-                            accessToken: (type === "FACEBOOK" || type === "TIKTOK") && tokenInputs[type]?.trim() ? tokenInputs[type].trim() : undefined,
-                          })}
-                          disabled={!pixelInputs[type]?.trim() || saveMutation.isPending}
-                          className="flex-1 sm:flex-initial px-4 py-2 rounded-xl text-white text-sm font-bold disabled:opacity-50 hover:opacity-90"
-                          style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+                          type="button"
+                          onClick={() => {
+                            setEnEdition(type);
+                            setIdentifiants((p) => ({ ...p, [type]: "" }));
+                          }}
+                          className="mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-extrabold hover:underline"
+                          style={{ color: ST.green }}
                         >
-                          {saveMutation.isPending ? "…" : "Sauvegarder"}
+                          <PlusCircle size={15} />
+                          Connecter {cfg.label}
                         </button>
-                        <button onClick={() => setEditingType(null)} className="px-3 py-2 rounded-xl border border-gray-200 text-sm text-[#5c647a] hover:bg-gray-50">
-                          Annuler
-                        </button>
-                      </div>
+                      )}
                     </div>
-                  )}
+                  </div>
+                </StCard>
+              );
+            })}
+          </div>
+        )}
 
-                  {!existing && !isEditing && (
-                    <button
-                      onClick={() => { setEditingType(type); setPixelInputs((p) => ({ ...p, [type]: "" })); }}
-                      className="mt-3 flex items-center gap-1.5 text-[12px] font-semibold text-[#006e2f] hover:underline"
-                    >
-                      <PlusCircle className="w-4 h-4" />
-                      Connecter
-                    </button>
-                  )}
+        <StCard className="mt-4">
+          <StSectionTitle>Évènements envoyés automatiquement</StSectionTitle>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {EVENEMENTS.map((e) => {
+              const Icone = e.icon;
+              return (
+                <div
+                  key={e.nom}
+                  className="flex items-start gap-2.5 rounded-[12px] px-3 py-2.5"
+                  style={{ background: "#f4f7f5", border: `1px solid ${ST.divider}` }}
+                >
+                  <Icone size={16} className="mt-0.5 flex-shrink-0" style={{ color: ST.green }} />
+                  <div className="min-w-0">
+                    <p className="text-[12.5px] font-extrabold" style={{ color: ST.text }}>
+                      {e.nom}
+                    </p>
+                    <p className="text-[11px] font-semibold leading-snug" style={{ color: ST.textSecondary }}>
+                      {e.quand}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Events tracked */}
-      <div className="mt-8 bg-gray-50 rounded-2xl border border-gray-100 p-5">
-        <h3 className="text-sm font-bold text-[#191c1e] mb-3">Événements suivis automatiquement</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {[
-            { icon: Eye, label: "Vue formation" },
-            { icon: ShoppingCart, label: "Ajout au panier" },
-            { icon: CreditCard, label: "Achat complété" },
-            { icon: UserPlus, label: "Inscription" },
-            { icon: GraduationCap, label: "Leçon commencée" },
-            { icon: BadgeCheck, label: "Cours terminé" },
-          ].map((ev) => {
-            const EvIcon = ev.icon;
-            return (
-              <div key={ev.label} className="flex items-center gap-2 bg-white rounded-xl border border-gray-100 px-3 py-2">
-                <EvIcon className="w-4 h-4 text-[#006e2f]" />
-                <span className="text-[11px] font-medium text-[#191c1e]">{ev.label}</span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+              );
+            })}
+          </div>
+          <p className="mt-3 text-[11.5px] font-semibold" style={{ color: ST.textSecondary }}>
+            Ce sont les quatre évènements standards dont les régies ont besoin pour optimiser vos campagnes sur les
+            ventes réelles. Vérifiez-les avec l&apos;outil « Évènements de test » de votre régie.
+          </p>
+        </StCard>
+      </main>
     </div>
   );
 }

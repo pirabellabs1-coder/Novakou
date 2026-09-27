@@ -4,6 +4,7 @@ import { useToastStore } from "@/store/toast";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { confirmAction } from "@/store/confirm";
+import { safeFetch } from "@/lib/safe-fetch";
 import {
   Tag,
   Plus,
@@ -20,6 +21,7 @@ import {
   StKpiCompact,
   ST,
 } from "@/components/stitch";
+import { StSwitch, StErreur, StVide, StRetourMarketing } from "@/components/formations/dashboard/MarketingKit";
 
 type DiscountCode = {
   id: string;
@@ -67,47 +69,61 @@ export default function CodesPromoPage() {
     expiresAt: "",
   });
 
-  const { data: response, isLoading } = useQuery<{ data: DiscountCode[] }>({
+  const { data: response, isLoading, isError, refetch } = useQuery<{ data: DiscountCode[] }>({
     queryKey: ["vendeur-codes-promo"],
-    queryFn: () => fetch("/api/formations/vendeur/marketing/codes-promo").then((r) => r.json()),
+    queryFn: async () => {
+      const { data, error } = await safeFetch<{ data: DiscountCode[] }>("/api/formations/vendeur/marketing/codes-promo");
+      if (error || !data) throw new Error(error ?? "Chargement impossible");
+      return data;
+    },
     staleTime: 30_000,
   });
 
   const codes = response?.data ?? [];
 
   const createMutation = useMutation({
-    mutationFn: (body: typeof form) =>
-      fetch("/api/formations/vendeur/marketing/codes-promo", {
+    mutationFn: async (body: typeof form) => {
+      const { error } = await safeFetch("/api/formations/vendeur/marketing/codes-promo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
-      }).then((r) => r.json()),
-    onSuccess: (res) => {
-      if (res.error) { useToastStore.getState().addToast("error", res.error); return; }
-      qc.invalidateQueries({ queryKey: ["vendeur-codes-promo"] });
-      qc.invalidateQueries({ queryKey: ["vendeur-marketing-hub"] });
-      setShowForm(false);
-      setForm({ code: "", discountType: "PERCENTAGE", discountValue: "", scope: "ALL", maxUses: "", expiresAt: "" });
+      });
+      if (error) throw new Error(error);
     },
-  });
-
-  const toggleMutation = useMutation({
-    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
-      fetch(`/api/formations/vendeur/marketing/codes-promo/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isActive }),
-      }).then((r) => r.json()),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["vendeur-codes-promo"] }),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) =>
-      fetch(`/api/formations/vendeur/marketing/codes-promo/${id}`, { method: "DELETE" }).then((r) => r.json()),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["vendeur-codes-promo"] });
       qc.invalidateQueries({ queryKey: ["vendeur-marketing-hub"] });
+      useToastStore.getState().addToast("success", "Code promo créé.");
+      setShowForm(false);
+      setForm({ code: "", discountType: "PERCENTAGE", discountValue: "", scope: "ALL", maxUses: "", expiresAt: "" });
     },
+    onError: (e: Error) => useToastStore.getState().addToast("error", e.message),
+  });
+
+  const toggleMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      const { error } = await safeFetch(`/api/formations/vendeur/marketing/codes-promo/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive }),
+      });
+      if (error) throw new Error(error);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["vendeur-codes-promo"] }),
+    onError: (e: Error) => useToastStore.getState().addToast("error", e.message),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await safeFetch(`/api/formations/vendeur/marketing/codes-promo/${id}`, { method: "DELETE" });
+      if (error) throw new Error(error);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["vendeur-codes-promo"] });
+      qc.invalidateQueries({ queryKey: ["vendeur-marketing-hub"] });
+      useToastStore.getState().addToast("success", "Code supprimé.");
+    },
+    onError: (e: Error) => useToastStore.getState().addToast("error", e.message),
   });
 
   function generateCode() {
@@ -122,6 +138,8 @@ export default function CodesPromoPage() {
   return (
     <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
       <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1200px] mx-auto">
+        <StRetourMarketing />
+
         <StPageHeader
           title="Codes promo"
           subtitle={`${codes.length} code${codes.length !== 1 ? "s" : ""} · ${activeCodes} actif${activeCodes !== 1 ? "s" : ""}`}
@@ -196,7 +214,7 @@ export default function CodesPromoPage() {
                       onChange={(e) => setForm((f) => ({ ...f, discountValue: e.target.value }))}
                       placeholder={form.discountType === "PERCENTAGE" ? "20" : "5000"}
                       min="1"
-                      max={form.discountType === "PERCENTAGE" ? "100" : undefined}
+                      max={form.discountType === "PERCENTAGE" ? "95" : undefined}
                       className="w-full rounded-[12px] bg-white px-[14px] py-[11px] text-[13.5px] font-semibold focus:outline-none"
                       style={{ color: ST.text, border: "1px solid #dde6e0" }}
                     />
@@ -247,7 +265,9 @@ export default function CodesPromoPage() {
         )}
 
         {/* Codes list */}
-        {isLoading ? (
+        {isError ? (
+          <StErreur onRetry={() => refetch()} />
+        ) : isLoading ? (
           <StCard noPadding>
             <div>
               {[0, 1, 2].map((i) => (
@@ -262,21 +282,17 @@ export default function CodesPromoPage() {
             </div>
           </StCard>
         ) : codes.length === 0 ? (
-          <StCard className="text-center py-12">
-            <Tag size={44} style={{ color: "#d6e0da" }} className="mx-auto" />
-            <h3 className="text-[15px] font-extrabold mt-3" style={{ color: ST.text }}>Aucun code promo</h3>
-            <p className="text-[12.5px] font-semibold mt-1.5 max-w-md mx-auto" style={{ color: ST.textSecondary }}>
-              Créez votre premier code pour booster vos ventes : -20%, -5000 FCFA ou code de lancement limité.
-            </p>
-            <div className="mt-4 flex justify-center">
-              <StButton onClick={() => setShowForm(true)} icon={Plus}>Créer un code</StButton>
-            </div>
-          </StCard>
+          <StVide
+            icon={Tag}
+            titre="Aucun code promo"
+            message="Un code de lancement (« -20 % les 48 premières heures ») crée l'urgence qui débloque les premières ventes. Vous pourrez le désactiver à tout moment."
+            action={<StButton onClick={() => setShowForm(true)} icon={Plus}>Créer un code</StButton>}
+          />
         ) : (
           <StCard noPadding>
             <div className="hidden md:grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-6 py-3.5" style={{ borderBottom: `1px solid ${ST.divider}` }}>
               {["Code", "Réduction", "Utilisations", "Revenus", ""].map((h) => (
-                <span key={h} className="text-[10.5px] font-extrabold uppercase tracking-[.06em]" style={{ color: ST.textMuted }}>{h}</span>
+                <span key={h} className="text-[10.5px] font-extrabold uppercase tracking-[.06em]" style={{ color: ST.textSecondary }}>{h}</span>
               ))}
             </div>
             <div>
@@ -291,7 +307,7 @@ export default function CodesPromoPage() {
                           <code className="text-[13px] font-extrabold tabular-nums px-2 py-0.5 rounded" style={{ color: ST.text, background: "#f1efe8" }}>{code.code}</code>
                           {expired && <StChip tone="rose">Expiré</StChip>}
                         </div>
-                        <p className="text-[10.5px] font-semibold mt-0.5" style={{ color: ST.textFaint }}>{timeAgo(code.createdAt)}</p>
+                        <p className="text-[10.5px] font-semibold mt-0.5" style={{ color: ST.textSecondary }}>{timeAgo(code.createdAt)}</p>
                       </div>
                     </div>
 
@@ -301,14 +317,14 @@ export default function CodesPromoPage() {
                           ? `-${code.discountValue}%`
                           : `-${formatFCFA(code.discountValue)} FCFA`}
                       </p>
-                      <p className="text-[10.5px] font-semibold" style={{ color: ST.textFaint }}>{code.scope === "ALL" ? "Tous produits" : code.scope}</p>
+                      <p className="text-[10.5px] font-semibold" style={{ color: ST.textSecondary }}>{code.scope === "ALL" ? "Tous produits" : code.scope}</p>
                     </div>
 
                     <div>
                       <p className="text-[13.5px] font-extrabold" style={{ color: ST.text }}>
                         {code.usedCount}{code.maxUses ? `/${code.maxUses}` : ""}
                       </p>
-                      <p className="text-[10.5px] font-semibold" style={{ color: ST.textFaint }}>utilisations</p>
+                      <p className="text-[10.5px] font-semibold" style={{ color: ST.textSecondary }}>utilisations</p>
                       {code.maxUses && (
                         <div className="mt-1 w-16 h-1 rounded-full overflow-hidden" style={{ background: ST.divider }}>
                           <div
@@ -321,18 +337,18 @@ export default function CodesPromoPage() {
 
                     <div>
                       <p className="text-[13.5px] font-extrabold" style={{ color: ST.green }}>{formatFCFA(code.revenue)}</p>
-                      <p className="text-[10.5px] font-semibold" style={{ color: ST.textFaint }}>FCFA générés</p>
+                      <p className="text-[10.5px] font-semibold" style={{ color: ST.textSecondary }}>FCFA générés</p>
                     </div>
 
                     <div className="flex items-center gap-2">
+                      <StSwitch
+                        checked={effective}
+                        onChange={(v) => toggleMutation.mutate({ id: code.id, isActive: v })}
+                        label={`${effective ? "Désactiver" : "Activer"} le code ${code.code}`}
+                      />
                       <button
-                        onClick={() => toggleMutation.mutate({ id: code.id, isActive: !code.isActive })}
-                        className="relative w-10 h-5 rounded-full transition-colors flex-shrink-0"
-                        style={{ background: effective ? ST.greenBright : "#dbe3dd" }}
-                      >
-                        <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${effective ? "left-5" : "left-0.5"}`} />
-                      </button>
-                      <button
+                        type="button"
+                        aria-label={`Supprimer le code ${code.code}`}
                         onClick={async () => {
                           const ok = await confirmAction({
                             title: "Supprimer ce code promo ?",

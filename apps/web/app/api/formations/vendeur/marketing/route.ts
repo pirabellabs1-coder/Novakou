@@ -97,8 +97,11 @@ export async function GET() {
     const funnelRevenue = funnels.reduce((s, f) => s + f.totalRevenue, 0);
     const funnelConversions = funnels.reduce((s, f) => s + f.totalConversions, 0);
 
-    const totalMarketingRevenue =
-      discountRevenue + campaignRevenue + affiliateRevenue + funnelRevenue;
+    // Revenu ATTRIBUÉ aux outils marketing. `affiliateRevenue` en est exclu :
+    // c'est le cumul des commissions gagnées par les affiliés, donc une CHARGE
+    // pour le vendeur, pas une recette. L'additionner gonflait le chiffre
+    // affiché sur le hub (et le rendait incomparable avec les finances).
+    const totalMarketingRevenue = discountRevenue + campaignRevenue + funnelRevenue;
     const activeTools =
       (activeDiscounts > 0 ? 1 : 0) +
       (activePopups > 0 ? 1 : 0) +
@@ -144,7 +147,8 @@ export async function GET() {
           hasProgram: affiliatePrograms.length > 0,
           totalAffiliates: allAffiliates.length,
           activeAffiliates,
-          revenue: affiliateRevenue,
+          // Commissions cumulées des affiliés (à verser), pas un revenu.
+          commissions: affiliateRevenue,
         },
         sequences: {
           total: sequences.length,

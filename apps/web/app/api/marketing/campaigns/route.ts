@@ -6,33 +6,26 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { getOrCreateInstructeurProfile } from "@/lib/formations/prisma-helpers";
 
-const DEV_MODE = process.env.DEV_MODE === "true" || !process.env.DATABASE_URL;
-
-// ── Types ────────────────────────────────────────────────────────────────────
-
-interface MockCampaign {
-  id: string;
-  slug: string;
-  name: string;
-  destinationUrl: string;
-  utmSource: string;
-  utmMedium: string;
-  utmCampaign: string;
-  utmContent: string | null;
-  isActive: boolean;
-  clicks: number;
-  uniqueClicks: number;
-  conversions: number;
-  revenue: number;
-  lastClickAt: string | null;
-  createdAt: string;
+/**
+ * Une `destinationUrl` finit dans un `NextResponse.redirect` servi par notre
+ * domaine (/api/marketing/campaigns/[slug]). On n'accepte donc que http(s) :
+ * un schéma exotique (javascript:, data:) ou une chaîne non parsable n'a rien
+ * à faire dans une redirection signée Novakou.
+ */
+function normalizeDestination(value: unknown): { ok: true; url: string } | { ok: false; error: string } {
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (!raw) return { ok: false, error: "URL de destination requise" };
+  if (raw.startsWith("/")) return { ok: true, url: raw };
+  try {
+    const parsed = new URL(raw);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return { ok: false, error: "L'URL doit commencer par http:// ou https://" };
+    }
+    return { ok: true, url: parsed.toString() };
+  } catch {
+    return { ok: false, error: "URL de destination invalide" };
+  }
 }
-
-// ── Mock data ────────────────────────────────────────────────────────────────
-
-const MOCK_CAMPAIGNS: MockCampaign[] = [];
-
-const devCampaigns = [...MOCK_CAMPAIGNS];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -54,25 +47,6 @@ function buildTrackingUrl(baseUrl: string, slug: string): string {
 
 export async function GET(req: NextRequest) {
   try {
-    if (DEV_MODE) {
-      const stats = {
-        totalCampaigns: devCampaigns.length,
-        activeCampaigns: devCampaigns.filter((c) => c.isActive).length,
-        totalClicks: devCampaigns.reduce((sum, c) => sum + c.clicks, 0),
-        totalConversions: devCampaigns.reduce((sum, c) => sum + c.conversions, 0),
-        totalRevenue: devCampaigns.reduce((sum, c) => sum + c.revenue, 0),
-      };
-
-      const origin = new URL(req.url).origin;
-      const campaigns = devCampaigns.map((c) => ({
-        ...c,
-        trackingUrl: buildTrackingUrl(origin, c.slug),
-        conversionRate: c.clicks > 0 ? Math.round((c.conversions / c.clicks) * 1000) / 10 : 0,
-      }));
-
-      return NextResponse.json({ campaigns, stats });
-    }
-
     // ── Production ──
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -140,36 +114,6 @@ export async function POST(req: NextRequest) {
     const slug = generateSlug(`${name}-${Date.now().toString(36)}`);
     const origin = new URL(req.url).origin;
 
-    if (DEV_MODE) {
-      const newCampaign: MockCampaign = {
-        id: `camp_${String(devCampaigns.length + 1).padStart(3, "0")}`,
-        slug,
-        name: name.trim(),
-        destinationUrl: destinationUrl.trim(),
-        utmSource: utmSource.trim(),
-        utmMedium: utmMedium.trim(),
-        utmCampaign: utmCampaign.trim(),
-        utmContent: utmContent?.trim() || null,
-        isActive: true,
-        clicks: 0,
-        uniqueClicks: 0,
-        conversions: 0,
-        revenue: 0,
-        lastClickAt: null,
-        createdAt: new Date().toISOString(),
-      };
-
-      devCampaigns.push(newCampaign);
-
-      return NextResponse.json({
-        campaign: {
-          ...newCampaign,
-          trackingUrl: buildTrackingUrl(origin, slug),
-          conversionRate: 0,
-        },
-      }, { status: 201 });
-    }
-
     // ── Production ──
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -188,11 +132,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Un lien de tracking avec ce slug existe deja" }, { status: 409 });
     }
 
+    const dest = normalizeDestination(destinationUrl);
+    if (!dest.ok) return NextResponse.json({ error: dest.error }, { status: 400 });
+
     const campaign = await prisma.campaignTracker.create({
       data: {
         slug,
         name: name.trim(),
-        destinationUrl: destinationUrl.trim(),
+        destinationUrl: dest.url,
         utmSource: utmSource.trim(),
         utmMedium: utmMedium.trim(),
         utmCampaign: utmCampaign.trim(),
@@ -222,34 +169,11 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, isActive, name, destinationUrl, utmSource, utmMedium, utmCampaign, utmContent } = body;
+    // Le PUT ne met a jour que ces champs-la (cf. updateData plus bas).
+    const { id, isActive, name, destinationUrl } = body;
 
     if (!id) {
       return NextResponse.json({ error: "ID requis" }, { status: 400 });
-    }
-
-    if (DEV_MODE) {
-      const index = devCampaigns.findIndex((c) => c.id === id);
-      if (index === -1) {
-        return NextResponse.json({ error: "Campagne non trouvée" }, { status: 404 });
-      }
-
-      if (isActive !== undefined) devCampaigns[index].isActive = isActive;
-      if (name !== undefined) devCampaigns[index].name = name;
-      if (destinationUrl !== undefined) devCampaigns[index].destinationUrl = destinationUrl;
-      if (utmSource !== undefined) devCampaigns[index].utmSource = utmSource;
-      if (utmMedium !== undefined) devCampaigns[index].utmMedium = utmMedium;
-      if (utmCampaign !== undefined) devCampaigns[index].utmCampaign = utmCampaign;
-      if (utmContent !== undefined) devCampaigns[index].utmContent = utmContent;
-
-      const origin = new URL(req.url).origin;
-      return NextResponse.json({
-        campaign: {
-          ...devCampaigns[index],
-          trackingUrl: buildTrackingUrl(origin, devCampaigns[index].slug),
-          conversionRate: devCampaigns[index].clicks > 0 ? Math.round((devCampaigns[index].conversions / devCampaigns[index].clicks) * 1000) / 10 : 0,
-        },
-      });
     }
 
     const session = await getServerSession(authOptions);
@@ -258,10 +182,30 @@ export async function PUT(req: NextRequest) {
     }
 
     const prisma = (await import("@freelancehigh/db")).default;
+
+    // La campagne doit appartenir au vendeur connecté. Sans ce contrôle,
+    // n'importe quel compte connecté pouvait réécrire la `destinationUrl` du
+    // lien tracké d'un AUTRE vendeur : le lien déjà partagé sur les réseaux
+    // continuait de pointer sur novakou.com mais redirigeait où l'attaquant
+    // voulait (hameçonnage sous notre nom).
+    const instructeur = await getOrCreateInstructeurProfile(session.user.id);
+    const owned = await prisma.campaignTracker.findFirst({
+      where: { id, instructeurId: instructeur.id },
+      select: { id: true },
+    });
+    if (!owned) {
+      return NextResponse.json({ error: "Campagne introuvable" }, { status: 404 });
+    }
+
     const updateData: Record<string, unknown> = {};
     if (isActive !== undefined) updateData.isActive = isActive;
     if (name !== undefined) updateData.name = name;
-    if (destinationUrl !== undefined) updateData.destinationUrl = destinationUrl;
+    if (destinationUrl !== undefined) {
+      // Même validation qu'à la création : http(s) uniquement.
+      const check = normalizeDestination(destinationUrl);
+      if (!check.ok) return NextResponse.json({ error: check.error }, { status: 400 });
+      updateData.destinationUrl = check.url;
+    }
 
     const campaign = await prisma.campaignTracker.update({ where: { id }, data: updateData });
     return NextResponse.json({ campaign });
@@ -282,21 +226,23 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "ID requis" }, { status: 400 });
     }
 
-    if (DEV_MODE) {
-      const index = devCampaigns.findIndex((c) => c.id === id);
-      if (index === -1) {
-        return NextResponse.json({ error: "Campagne non trouvée" }, { status: 404 });
-      }
-      devCampaigns.splice(index, 1);
-      return NextResponse.json({ success: true });
-    }
-
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
     const prisma = (await import("@freelancehigh/db")).default;
+
+    // Même garde-fou qu'au PUT : un vendeur ne supprime que SES campagnes.
+    const instructeur = await getOrCreateInstructeurProfile(session.user.id);
+    const owned = await prisma.campaignTracker.findFirst({
+      where: { id, instructeurId: instructeur.id },
+      select: { id: true },
+    });
+    if (!owned) {
+      return NextResponse.json({ error: "Campagne introuvable" }, { status: 404 });
+    }
+
     await prisma.campaignTracker.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {

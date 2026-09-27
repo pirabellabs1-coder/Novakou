@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { promptAction } from "@/store/prompt";
 import { confirmAction } from "@/store/confirm";
 import { useActiveShop } from "@/components/formations/ShopProvider";
+import { safeFetch } from "@/lib/safe-fetch";
+import { StErreur } from "@/components/formations/dashboard/MarketingKit";
 import {
   Network,
   Sparkles,
@@ -68,13 +70,20 @@ export default function FunnelsListPage() {
   const [newKind, setNewKind] = useState<"funnel" | "capture">("funnel");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Distinct de `funnels.length === 0` : un chargement en echec ne doit pas
+  // s'afficher comme « vous n'avez aucun tunnel ».
+  const [erreurChargement, setErreurChargement] = useState(false);
 
   async function load() {
     setLoading(true);
+    setErreurChargement(false);
     try {
-      const res = await fetch("/api/formations/vendeur/funnels");
-      const json = await res.json();
-      setFunnels(json.data ?? []);
+      const { data, error: err } = await safeFetch<{ data: Funnel[] }>("/api/formations/vendeur/funnels");
+      if (err || !data) {
+        setErreurChargement(true);
+        return;
+      }
+      setFunnels(data.data ?? []);
     } finally {
       setLoading(false);
     }
@@ -230,6 +239,12 @@ export default function FunnelsListPage() {
               <div key={i} className="h-40 rounded-[18px]" style={{ background: "#f3f6f4" }} />
             ))}
           </div>
+        ) : erreurChargement ? (
+          <StErreur
+            titre="Tunnels indisponibles"
+            message="Impossible de récupérer vos tunnels. Ils ne sont pas perdus : réessayez."
+            onRetry={() => load()}
+          />
         ) : funnels.length === 0 ? (
           <StCard className="text-center py-12">
             <Network size={44} style={{ color: "#d6e0da" }} className="mx-auto" />
@@ -247,13 +262,17 @@ export default function FunnelsListPage() {
             {funnels.map((f) => {
               const conversionRate = f.totalViews > 0 ? (f.totalConversions / f.totalViews) * 100 : 0;
               return (
-                <Link
-                  key={f.id}
-                  href={`/vendeur/marketing/funnels/${f.id}`}
-                  className="block group"
-                >
+                <div key={f.id} className="group relative">
                   <StCard className="transition-transform hover:-translate-y-0.5 h-full">
-                    <div className="flex items-start justify-between gap-3 mb-3">
+                    {/* Calque de navigation : la carte entiere reste cliquable
+                        sans imbriquer de boutons dans un lien (HTML invalide,
+                        et le lecteur d'ecran annoncait un seul lien confus). */}
+                    <Link
+                      href={`/vendeur/marketing/funnels/${f.id}`}
+                      aria-label={`Ouvrir le tunnel ${f.name}`}
+                      className="absolute inset-0 z-0 rounded-[18px]"
+                    />
+                    <div className="relative z-10 flex items-start justify-between gap-3 mb-3 pointer-events-none">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 mb-1.5">
                           <h3 className="text-[15px] font-extrabold truncate" style={{ color: ST.text }}>{f.name}</h3>
@@ -265,11 +284,12 @@ export default function FunnelsListPage() {
                         </div>
                         <p className="text-[12px] font-semibold truncate" style={{ color: ST.textSecondary }}>/{f.slug}</p>
                       </div>
-                      <div className="flex items-center gap-1 flex-shrink-0">
+                      <div className="pointer-events-auto flex items-center gap-1 flex-shrink-0">
                         <button
                           type="button"
                           onClick={(e) => handleDuplicate(e, f.id)}
                           disabled={duplicating !== null}
+                          aria-label={`Dupliquer le tunnel ${f.name}`}
                           title="Dupliquer ce tunnel (copie en brouillon)"
                           className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-40"
                           style={{ color: ST.textFaint }}
@@ -280,6 +300,7 @@ export default function FunnelsListPage() {
                           type="button"
                           onClick={(e) => handleDelete(e, f)}
                           disabled={deleting !== null}
+                          aria-label={`Supprimer le tunnel ${f.name}`}
                           title="Supprimer ce tunnel"
                           className="p-1.5 rounded-lg hover:bg-rose-50 transition-colors disabled:opacity-40"
                           style={{ color: ST.roseText }}
@@ -290,7 +311,7 @@ export default function FunnelsListPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1 mb-4 overflow-x-auto">
+                    <div className="relative z-10 flex items-center gap-1 mb-4 overflow-x-auto pointer-events-none">
                       {f.steps.map((s, i) => (
                         <div key={s.id} className="flex items-center gap-1 flex-shrink-0">
                           <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full whitespace-nowrap" style={{ background: ST.greenSoft, color: ST.green }}>
@@ -303,7 +324,7 @@ export default function FunnelsListPage() {
                       ))}
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2 pt-3" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                    <div className="relative z-10 grid grid-cols-3 gap-2 pt-3 pointer-events-none" style={{ borderTop: `1px solid ${ST.divider}` }}>
                       <div>
                         <p className="text-[10px] font-extrabold uppercase" style={{ color: ST.textMuted }}>Vues</p>
                         <p className="text-[13.5px] font-extrabold tabular-nums" style={{ color: ST.text }}>{fmt(f.totalViews)}</p>
@@ -318,9 +339,9 @@ export default function FunnelsListPage() {
                       </div>
                     </div>
 
-                    <p className="text-[10.5px] font-semibold mt-3" style={{ color: ST.textFaint }}>Modifié {timeAgo(f.updatedAt)}</p>
+                    <p className="relative z-10 text-[10.5px] font-semibold mt-3 pointer-events-none" style={{ color: ST.textFaint }}>Modifié {timeAgo(f.updatedAt)}</p>
                   </StCard>
-                </Link>
+                </div>
               );
             })}
           </div>
@@ -332,11 +353,14 @@ export default function FunnelsListPage() {
             onClick={() => !creating && setShowCreate(false)}
           >
             <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="funnel-modal-titre"
               className="bg-white rounded-[20px] max-w-md w-full p-7 shadow-2xl"
               style={{ border: `1px solid ${ST.cardBorder}` }}
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-[19px] font-extrabold mb-2" style={{ color: ST.text }}>Créer une nouvelle page</h2>
+              <h2 id="funnel-modal-titre" className="text-[19px] font-extrabold mb-2" style={{ color: ST.text }}>Créer une nouvelle page</h2>
               <p className="text-[13px] font-semibold mb-4" style={{ color: ST.textSecondary }}>
                 Choisissez le type, donnez un nom — vous personnalisez tout ensuite (design, blocs, produits).
               </p>

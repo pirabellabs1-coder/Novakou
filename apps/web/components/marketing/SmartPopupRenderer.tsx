@@ -90,15 +90,37 @@ function incrementPageViews(): void {
 
 // ── Impression tracker (fire-and-forget) ───────────────────────────────────
 
-function trackImpression(popupId: string, action: "view" | "click" | "close" | "convert") {
+type ReponseImpression = { success?: boolean; captured?: boolean; error?: string };
+
+/**
+ * Enregistre un évènement de pop-up. `email` n'est transmis que pour une
+ * capture d'email : c'est ce qui rend le lead récupérable par le vendeur.
+ *
+ * Renvoie la réponse du serveur pour les appels où le résultat compte
+ * (formulaire) ; les appels « vue / clic / fermeture » restent en
+ * fire-and-forget et n'attendent rien.
+ */
+async function trackImpression(
+  popupId: string,
+  action: "view" | "click" | "close" | "convert",
+  email?: string,
+): Promise<ReponseImpression> {
   const visitorId = getVisitorId();
-  fetch("/api/marketing/popups/impression", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ popupId, action, visitorId }),
-  }).catch(() => {
-    // Fire-and-forget: silently ignore errors
-  });
+  try {
+    const res = await fetch("/api/marketing/popups/impression", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ popupId, action, visitorId, ...(email ? { email } : {}) }),
+    });
+    return (await res.json()) as ReponseImpression;
+  } catch {
+    return { success: false, error: "reseau" };
+  }
+}
+
+/** Version « je m'en vais » : on n'attend pas la réponse. */
+function trackImpressionSansAttendre(popupId: string, action: "view" | "click" | "close") {
+  void trackImpression(popupId, action);
 }
 
 // ── Countdown Hook ─────────────────────────────────────────────────────────
@@ -212,7 +234,7 @@ export default function SmartPopupRenderer({
     incrementShowCount(popup.id);
     setVisiblePopup(popup);
     setAnimating(true);
-    trackImpression(popup.id, "view");
+    trackImpressionSansAttendre(popup.id, "view");
 
     // Small delay for enter animation
     requestAnimationFrame(() => {
@@ -305,7 +327,7 @@ export default function SmartPopupRenderer({
 
   const handleClose = useCallback(() => {
     if (visiblePopup) {
-      trackImpression(visiblePopup.id, "close");
+      trackImpressionSansAttendre(visiblePopup.id, "close");
     }
     setAnimating(true);
     setTimeout(() => {
@@ -317,7 +339,7 @@ export default function SmartPopupRenderer({
   const handleDismissForever = useCallback(() => {
     if (visiblePopup) {
       dismissPopup(visiblePopup.id);
-      trackImpression(visiblePopup.id, "close");
+      trackImpressionSansAttendre(visiblePopup.id, "close");
     }
     setAnimating(true);
     setTimeout(() => {
@@ -328,7 +350,7 @@ export default function SmartPopupRenderer({
 
   const handleCtaClick = useCallback(() => {
     if (visiblePopup) {
-      trackImpression(visiblePopup.id, "click");
+      trackImpressionSansAttendre(visiblePopup.id, "click");
     }
   }, [visiblePopup]);
 
@@ -362,21 +384,71 @@ function PopupOverlay({
   onDismiss: () => void;
   onCtaClick: () => void;
 }) {
+  const boite = useRef<HTMLDivElement>(null);
+  const titreId = `popup-titre-${popup.id}`;
+
+  // Un pop-up est une boîte de dialogue : Échap doit la fermer, le focus doit
+  // y entrer et ne pas s'en échapper, puis revenir d'où il venait. Sans ça, un
+  // visiteur au clavier restait piégé derrière un voile qu'il ne pouvait pas
+  // fermer.
+  useEffect(() => {
+    const precedent = document.activeElement as HTMLElement | null;
+    const focalisables = () =>
+      Array.from(
+        boite.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), textarea, select, [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      );
+
+    focalisables()[0]?.focus();
+
+    const auClavier = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const cibles = focalisables();
+      if (cibles.length === 0) return;
+      const premier = cibles[0];
+      const dernier = cibles[cibles.length - 1];
+      if (e.shiftKey && document.activeElement === premier) {
+        e.preventDefault();
+        dernier.focus();
+      } else if (!e.shiftKey && document.activeElement === dernier) {
+        e.preventDefault();
+        premier.focus();
+      }
+    };
+
+    document.addEventListener("keydown", auClavier);
+    return () => {
+      document.removeEventListener("keydown", auClavier);
+      precedent?.focus?.();
+    };
+  }, [onClose]);
+
   return (
     <div
-      className={`fixed inset-0 z-[9999] flex items-end sm:items-center justify-center transition-opacity duration-200 ${
+      className={`fixed inset-0 z-[9999] flex items-end sm:items-center justify-center transition-opacity duration-200 motion-reduce:transition-none ${
         animating ? "opacity-0" : "opacity-100"
       }`}
     >
-      {/* Backdrop */}
+      {/* Voile : cliquable a la souris, double par la touche Echap au clavier. */}
       <div
         className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
         onClick={onClose}
+        aria-hidden="true"
       />
 
       {/* Popup container */}
       <div
-        className={`relative w-full sm:w-auto sm:max-w-md mx-auto transition-transform duration-300 ease-out ${
+        ref={boite}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titreId}
+        className={`relative w-full sm:w-auto sm:max-w-md mx-auto transition-transform duration-300 ease-out motion-reduce:transition-none motion-reduce:transform-none ${
           animating
             ? "translate-y-full sm:translate-y-0 sm:scale-95"
             : "translate-y-0 sm:scale-100"
@@ -409,7 +481,7 @@ function PopupOverlay({
             <PopupTypeBadge type={popup.type} />
 
             {/* Headline */}
-            <h3 className="text-xl sm:text-2xl font-bold mt-3 pr-6 leading-tight">
+            <h3 id={titreId} className="text-xl sm:text-2xl font-bold mt-3 pr-6 leading-tight">
               {popup.headlineFr}
             </h3>
 
@@ -536,28 +608,22 @@ function EmailCaptureContent({ popup, onCtaClick }: { popup: ActivePopup; onCtaC
     setSubmitting(true);
     setError("");
 
-    try {
-      // Track the conversion
-      trackImpression(popup.id, "convert");
-      onCtaClick();
+    // Un SEUL appel : l'adresse part avec la conversion.
+    //
+    // Avant, deux requêtes partaient (une « convert » à vide + une seconde
+    // identique) : chaque inscription comptait DEUX conversions, et l'adresse
+    // saisie n'était envoyée à personne — le visiteur lisait « Merci pour
+    // votre inscription » alors que le vendeur ne récupérait rien.
+    const reponse = await trackImpression(popup.id, "convert", email.trim().toLowerCase());
+    setSubmitting(false);
 
-      // Submit email capture
-      await fetch("/api/marketing/popups/impression", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          popupId: popup.id,
-          action: "convert",
-          visitorId: getVisitorId(),
-        }),
-      });
-
-      setSubmitted(true);
-    } catch {
-      setError("Erreur lors de l'inscription. Reessayez.");
-    } finally {
-      setSubmitting(false);
+    if (!reponse.captured) {
+      setError(reponse.error ?? "Enregistrement impossible. Réessayez.");
+      return;
     }
+
+    onCtaClick();
+    setSubmitted(true);
   };
 
   if (submitted) {
@@ -570,7 +636,7 @@ function EmailCaptureContent({ popup, onCtaClick }: { popup: ActivePopup; onCtaC
           Merci pour votre inscription !
         </p>
         <p className="text-xs text-slate-500 mt-1">
-          Verifiez votre boite mail pour confirmer.
+          Votre adresse est bien enregistrée.
         </p>
       </div>
     );
@@ -628,6 +694,10 @@ function AnnouncementContent({ popup, onCtaClick }: { popup: ActivePopup; onCtaC
 
 // ── UPSELL content ─────────────────────────────────────────────────────────
 
+function fcfa(n: number): string {
+  return `${new Intl.NumberFormat("fr-FR").format(Math.round(n))} FCFA`;
+}
+
 function UpsellContent({ popup, onCtaClick }: { popup: ActivePopup; onCtaClick: () => void }) {
   const savings = (popup.upsellOriginalPrice || 0) - (popup.upsellDiscountedPrice || 0);
   const savingsPct = popup.upsellOriginalPrice
@@ -636,24 +706,26 @@ function UpsellContent({ popup, onCtaClick }: { popup: ActivePopup; onCtaClick: 
 
   return (
     <div className="space-y-4">
-      {/* Price display */}
-      <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 flex items-center justify-between">
-        <div>
-          {popup.upsellOriginalPrice != null && (
-            <span className="text-slate-400 line-through text-base mr-2">
-              {popup.upsellOriginalPrice.toFixed(2)} EUR
+      {/* Prix — en FCFA (devise du produit), et seulement s'il y en a un. */}
+      {popup.upsellDiscountedPrice != null && (
+        <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 flex items-center justify-between">
+          <div>
+            {popup.upsellOriginalPrice != null && (
+              <span className="text-slate-400 line-through text-base mr-2">
+                {fcfa(popup.upsellOriginalPrice)}
+              </span>
+            )}
+            <span className="text-2xl font-bold text-green-600">
+              {fcfa(popup.upsellDiscountedPrice)}
+            </span>
+          </div>
+          {savingsPct > 0 && (
+            <span className="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+              -{savingsPct}%
             </span>
           )}
-          <span className="text-2xl font-bold text-green-600">
-            {popup.upsellDiscountedPrice != null ? `${popup.upsellDiscountedPrice.toFixed(2)} EUR` : "---"}
-          </span>
         </div>
-        {savingsPct > 0 && (
-          <span className="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-            -{savingsPct}%
-          </span>
-        )}
-      </div>
+      )}
 
       {popup.ctaUrl ? (
         <a
@@ -680,10 +752,28 @@ function UpsellContent({ popup, onCtaClick }: { popup: ActivePopup; onCtaClick: 
 function CountdownContent({ popup, onCtaClick }: { popup: ActivePopup; onCtaClick: () => void }) {
   const { hours, minutes, seconds, expired } = useCountdown(popup.countdownEndsAt);
 
+  // Pas de date de fin = pas de compte à rebours, mais le message et le bouton
+  // restent utiles : on ne montre surtout pas « offre expirée » à un visiteur
+  // pour une offre qui n'a jamais eu d'échéance.
+  if (!popup.countdownEndsAt) {
+    return (
+      <div className="space-y-4">
+        {popup.discountCode && <DiscountCodeBadge code={popup.discountCode} />}
+        <button
+          onClick={onCtaClick}
+          className="flex items-center justify-center gap-2 w-full py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-colors shadow-sm"
+        >
+          <Timer className="w-4 h-4" />
+          {popup.ctaTextFr}
+        </button>
+      </div>
+    );
+  }
+
   if (expired) {
     return (
       <div className="text-center py-4">
-        <p className="text-sm font-bold text-slate-500">Cette offre a expire.</p>
+        <p className="text-sm font-bold text-slate-500">Cette offre a expiré.</p>
       </div>
     );
   }
@@ -703,10 +793,10 @@ function CountdownContent({ popup, onCtaClick }: { popup: ActivePopup; onCtaClic
       {popup.upsellOriginalPrice != null && popup.upsellDiscountedPrice != null && (
         <div className="text-center">
           <span className="text-slate-400 line-through text-sm mr-2">
-            {popup.upsellOriginalPrice.toFixed(2)} EUR
+            {fcfa(popup.upsellOriginalPrice)}
           </span>
           <span className="text-xl font-bold text-green-600">
-            {popup.upsellDiscountedPrice.toFixed(2)} EUR
+            {fcfa(popup.upsellDiscountedPrice)}
           </span>
         </div>
       )}

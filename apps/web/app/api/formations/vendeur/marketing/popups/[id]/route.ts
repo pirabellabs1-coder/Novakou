@@ -7,6 +7,24 @@ import { IS_DEV } from "@/lib/env";
 import { getInstructeurId as _gii } from "@/lib/formations/instructeur";
 async function getProfileId(userId: string) { return _gii(userId); }
 
+/**
+ * Vérifie qu'un `discountCodeId` fourni par le client appartient bien au
+ * vendeur. Sans ce contrôle, un créateur pouvait rattacher le code promo privé
+ * d'un AUTRE vendeur à son pop-up — et le diffuser sur sa vitrine.
+ * Renvoie l'identifiant validé, `null` pour « aucun code », "INVALIDE" sinon.
+ */
+async function codePromoDuVendeur(
+  discountCodeId: unknown,
+  instructeurId: string,
+): Promise<string | null | "INVALIDE"> {
+  if (!discountCodeId || typeof discountCodeId !== "string") return null;
+  const code = await prisma.discountCode.findFirst({
+    where: { id: discountCodeId, instructeurId },
+    select: { id: true },
+  });
+  return code ? code.id : "INVALIDE";
+}
+
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
@@ -22,15 +40,25 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (!existing) return NextResponse.json({ error: "Popup introuvable" }, { status: 404 });
 
     const body = await request.json();
+
+    let codeId: string | null | undefined;
+    if (body.discountCodeId !== undefined) {
+      const verifie = await codePromoDuVendeur(body.discountCodeId, pid);
+      if (verifie === "INVALIDE") {
+        return NextResponse.json({ error: "Code promo introuvable" }, { status: 404 });
+      }
+      codeId = verifie;
+    }
+
     const updated = await prisma.smartPopup.update({
       where: { id },
       data: {
         isActive: body.isActive !== undefined ? body.isActive : undefined,
-        name: body.name?.trim() || undefined,
+        name: typeof body.name === "string" && body.name.trim() ? body.name.trim().slice(0, 120) : undefined,
         headlineFr: body.headlineFr !== undefined ? body.headlineFr?.trim() || null : undefined,
         bodyFr: body.bodyFr !== undefined ? body.bodyFr?.trim() || null : undefined,
         ctaTextFr: body.ctaTextFr !== undefined ? body.ctaTextFr?.trim() || null : undefined,
-        discountCodeId: body.discountCodeId !== undefined ? body.discountCodeId || null : undefined,
+        discountCodeId: codeId,
       },
     });
     return NextResponse.json({ data: updated });

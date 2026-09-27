@@ -22,12 +22,29 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (!existing) return NextResponse.json({ error: "Programme introuvable" }, { status: 404 });
 
     const body = await request.json();
+
+    // Mêmes bornes qu'à la création : la commission se paie en argent réel.
+    let commission: number | undefined;
+    if (body.commissionPct !== undefined) {
+      commission = Number(body.commissionPct);
+      if (!Number.isFinite(commission) || commission < 1 || commission > 80) {
+        return NextResponse.json({ error: "La commission doit être entre 1 et 80 %" }, { status: 400 });
+      }
+    }
+    let cookie: number | undefined;
+    if (body.cookieDays !== undefined) {
+      cookie = Number(body.cookieDays);
+      if (!Number.isInteger(cookie) || cookie < 1 || cookie > 365) {
+        return NextResponse.json({ error: "La durée du cookie doit être entre 1 et 365 jours" }, { status: 400 });
+      }
+    }
+
     const updated = await prisma.affiliateProgram.update({
       where: { id },
       data: {
         isActive: body.isActive !== undefined ? body.isActive : undefined,
-        commissionPct: body.commissionPct !== undefined ? parseFloat(body.commissionPct) : undefined,
-        cookieDays: body.cookieDays !== undefined ? parseInt(body.cookieDays) : undefined,
+        commissionPct: commission,
+        cookieDays: cookie,
         autoApprove: body.autoApprove !== undefined ? body.autoApprove : undefined,
       },
     });

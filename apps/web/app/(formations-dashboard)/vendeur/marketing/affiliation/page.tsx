@@ -1,16 +1,28 @@
 "use client";
-import { useToastStore } from "@/store/toast";
+
+/**
+ * Programme d'affiliation — espace vendeur. Design system « Stitch ».
+ *
+ * Trois corrections de fond héritées de la version précédente :
+ *   - le lien copié pour un affilié pointait sur /ref/{code}, une route qui
+ *     n'existe pas : tout lien partagé menait à une 404, donc zéro vente
+ *     attribuée. La vitrine publique d'un affilié est /a/{code}.
+ *   - « Versement à 20 affiliés validés » était écrit en dur, quel que soit le
+ *     nombre réel d'affiliés.
+ *   - le seuil de retrait proposé par défaut valait 20 (un reliquat en dollars)
+ *     alors que la plateforme compte en FCFA.
+ */
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToastStore } from "@/store/toast";
+import { safeFetch } from "@/lib/safe-fetch";
 import {
   type LucideIcon,
-  ChevronRight,
   Plus,
-  PlusCircle,
   UserPlus,
   MousePointerClick,
-  GitBranch,
+  ShoppingCart,
   Banknote,
   Users,
   Percent,
@@ -19,10 +31,28 @@ import {
   UserCheck,
   Check,
   Copy,
-  X,
 } from "lucide-react";
+import { ST, StCard, StPageHeader, StButton, StChip, StKpiCompact, StSectionTitle } from "@/components/stitch";
+import {
+  StSwitch,
+  StModal,
+  StErreur,
+  StVide,
+  StRetourMarketing,
+} from "@/components/formations/dashboard/MarketingKit";
 
-type AffiliateProgram = {
+type Affilie = {
+  id: string;
+  affiliateCode: string;
+  status: string;
+  totalClicks: number;
+  totalConversions: number;
+  totalEarned: number;
+  pendingEarnings: number;
+  user: { name: string | null; email: string };
+};
+
+type Programme = {
   id: string;
   name: string;
   description: string | null;
@@ -32,21 +62,12 @@ type AffiliateProgram = {
   minPayoutAmount: number;
   autoApprove: boolean;
   applyToAll: boolean;
-  affiliates: {
-    id: string;
-    affiliateCode: string;
-    status: string;
-    totalClicks: number;
-    totalConversions: number;
-    totalEarned: number;
-    pendingEarnings: number;
-    user: { name: string | null; email: string };
-  }[];
+  affiliates: Affilie[];
   createdAt: string;
 };
 
-type AffiliateData = {
-  programs: AffiliateProgram[];
+type Donnees = {
+  programs: Programme[];
   stats: {
     totalAffiliates: number;
     activeAffiliates: number;
@@ -57,331 +78,491 @@ type AffiliateData = {
   };
 };
 
-function formatFCFA(n: number) {
+function fcfa(n: number) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(n));
 }
 
-const GRADIENTS = ["from-[#006e2f] to-[#22c55e]","from-emerald-400 to-teal-600","from-teal-400 to-emerald-600","from-amber-400 to-orange-500","from-green-400 to-emerald-600"];
-
-const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  ACTIVE: { bg: "bg-[#006e2f]/10", text: "text-[#006e2f]", label: "Actif" },
-  PENDING: { bg: "bg-amber-50", text: "text-amber-700", label: "En attente" },
-  SUSPENDED: { bg: "bg-red-50", text: "text-red-600", label: "Suspendu" },
-  BANNED: { bg: "bg-gray-100", text: "text-gray-500", label: "Banni" },
+const STATUTS: Record<string, { libelle: string; tone: "green" | "amber" | "rose" | "neutral" }> = {
+  ACTIVE: { libelle: "Actif", tone: "green" },
+  PENDING: { libelle: "En attente", tone: "amber" },
+  SUSPENDED: { libelle: "Suspendu", tone: "rose" },
+  BANNED: { libelle: "Banni", tone: "neutral" },
 };
+
+const DEGRADES = [
+  "linear-gradient(135deg,#006e2f,#22c55e)",
+  "linear-gradient(135deg,#0f766e,#22c55e)",
+  "linear-gradient(135deg,#1d4ed8,#3e8998)",
+  "linear-gradient(135deg,#b45309,#f59e0b)",
+  "linear-gradient(135deg,#7c64b4,#a78bfa)",
+];
+
+function initiales(a: Affilie) {
+  const base = a.user.name ?? a.user.email;
+  return base
+    .split(/[\s@.]+/)
+    .filter(Boolean)
+    .map((m) => m[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
 
 export default function AffiliationPage() {
   const qc = useQueryClient();
   const [showCreate, setShowCreate] = useState(false);
-  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [copie, setCopie] = useState<string | null>(null);
   const [form, setForm] = useState({
-    name: "Programme Affiliation",
+    name: "Programme d'affiliation",
     description: "",
     commissionPct: "20",
     cookieDays: "30",
-    minPayoutAmount: "20",
+    // FCFA : le minimum accepté côté serveur est 1 000 FCFA.
+    minPayoutAmount: "13120",
     autoApprove: true,
   });
 
-  const { data: response, isLoading } = useQuery<{ data: AffiliateData }>({
+  const { data: reponse, isLoading, isError, refetch } = useQuery<{ data: Donnees }>({
     queryKey: ["vendeur-affiliation"],
-    queryFn: () => fetch("/api/formations/vendeur/marketing/affiliation").then((r) => r.json()),
+    queryFn: async () => {
+      const { data, error } = await safeFetch<{ data: Donnees }>("/api/formations/vendeur/marketing/affiliation");
+      if (error || !data?.data) throw new Error(error ?? "Chargement impossible");
+      return data;
+    },
     staleTime: 30_000,
   });
 
-  const d = response?.data;
-  const programs = d?.programs ?? [];
-  const stats = d?.stats;
-  const mainProgram = programs[0] ?? null;
+  const donnees = reponse?.data;
+  const programmes = donnees?.programs ?? [];
+  const stats = donnees?.stats;
+  const programme = programmes[0] ?? null;
 
-  const createMutation = useMutation({
-    mutationFn: (body: typeof form) =>
-      fetch("/api/formations/vendeur/marketing/affiliation", {
+  const creation = useMutation({
+    mutationFn: async (corps: typeof form) => {
+      const { data, error } = await safeFetch<{ data: Programme }>("/api/formations/vendeur/marketing/affiliation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      }).then((r) => r.json()),
-    onSuccess: (res) => {
-      if (res.error) { useToastStore.getState().addToast("error", res.error); return; }
+        body: JSON.stringify(corps),
+      });
+      if (error) throw new Error(error);
+      return data;
+    },
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["vendeur-affiliation"] });
       qc.invalidateQueries({ queryKey: ["vendeur-marketing-hub"] });
+      useToastStore.getState().addToast("success", "Programme créé.");
       setShowCreate(false);
     },
+    onError: (e: Error) => useToastStore.getState().addToast("error", e.message),
   });
 
-  const toggleMutation = useMutation({
-    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
-      fetch(`/api/formations/vendeur/marketing/affiliation/${id}`, {
+  const bascule = useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      const { error } = await safeFetch(`/api/formations/vendeur/marketing/affiliation/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isActive }),
-      }).then((r) => r.json()),
+      });
+      if (error) throw new Error(error);
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["vendeur-affiliation"] }),
+    onError: (e: Error) => useToastStore.getState().addToast("error", e.message),
   });
 
-  function copyAffiliateLink(code: string) {
-    const url = `${window.location.origin}/ref/${code}`;
-    navigator.clipboard.writeText(url);
-    setCopiedCode(code);
-    setTimeout(() => setCopiedCode(null), 2000);
+  /** Vitrine publique d'un affilié : /a/{code} (compte le clic, pose le cookie). */
+  function lienAffilie(code: string) {
+    const origine =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (typeof window !== "undefined" ? window.location.origin : "https://novakou.com");
+    return `${origine}/a/${code}`;
   }
 
+  async function copierLien(code: string) {
+    try {
+      await navigator.clipboard.writeText(lienAffilie(code));
+      setCopie(code);
+      setTimeout(() => setCopie(null), 2000);
+    } catch {
+      useToastStore.getState().addToast("error", "Copie impossible : sélectionnez le lien à la main.");
+    }
+  }
+
+  const lienRecrutement =
+    (process.env.NEXT_PUBLIC_APP_URL || (typeof window !== "undefined" ? window.location.origin : "https://novakou.com")) +
+    "/apprenant/affiliation";
+
   return (
-    <div className="p-5 md:p-8 max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <div>
-          <div className="flex items-center gap-2 text-sm text-[#5c647a] mb-2">
-            <a href="/vendeur/marketing" className="hover:text-[#006e2f] transition-colors">Marketing</a>
-            <ChevronRight size={14} />
-            <span className="text-[#191c1e] font-medium">Programme Affiliation</span>
-          </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Programme d'Affiliation</h1>
-          <p className="text-sm text-[#5c647a] mt-1">Laissez vos affiliés promouvoir vos formations et gagnez ensemble</p>
+    <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1200px] mx-auto">
+        <StRetourMarketing />
+
+        <StPageHeader
+          title="Programme d'affiliation"
+          subtitle="Des ambassadeurs vendent pour vous, et ne sont payés qu'à la vente."
+          actions={
+            !programme && !isLoading && !isError ? (
+              <StButton icon={Plus} onClick={() => setShowCreate(true)}>
+                Créer mon programme
+              </StButton>
+            ) : undefined
+          }
+        />
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-4">
+          <StKpiCompact label="Affiliés actifs" value={isLoading ? "…" : stats?.activeAffiliates ?? 0} icon={UserPlus} tone="green" />
+          <StKpiCompact label="Clics apportés" value={isLoading ? "…" : fcfa(stats?.totalClicks ?? 0)} icon={MousePointerClick} tone="blue" />
+          <StKpiCompact label="Ventes générées" value={isLoading ? "…" : stats?.totalConversions ?? 0} icon={ShoppingCart} tone="green" />
+          <StKpiCompact
+            label="Commissions dues"
+            value={isLoading ? "…" : fcfa(stats?.totalEarned ?? 0)}
+            unit="FCFA"
+            icon={Banknote}
+            tone="amber"
+          />
         </div>
-        {!mainProgram && !isLoading && (
-          <button
-            onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90"
-            style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-          >
-            <Plus size={18} />
-            Créer mon programme
-          </button>
-        )}
-      </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        {([
-          { label: "Affiliés actifs", value: stats?.activeAffiliates ?? 0, icon: UserPlus, color: "text-[#006e2f]", bg: "bg-[#e6f5eb]" },
-          { label: "Clics générés", value: (stats?.totalClicks ?? 0).toLocaleString("fr-FR"), icon: MousePointerClick, color: "text-blue-600", bg: "bg-blue-50" },
-          { label: "Conversions", value: stats?.totalConversions ?? 0, icon: GitBranch, color: "text-[#22c55e]", bg: "bg-[#e6f5eb]" },
-          { label: "Revenus affiliation", value: `${formatFCFA(stats?.totalEarned ?? 0)} FCFA`, icon: Banknote, color: "text-[#006e2f]", bg: "bg-[#006e2f]/10" },
-        ] as { label: string; value: number | string; icon: LucideIcon; color: string; bg: string }[]).map((kpi, i) => (
-          <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-2 ${kpi.bg}`}>
-              <kpi.icon size={20} className={kpi.color} />
+        {isError ? (
+          <StErreur onRetry={() => refetch()} />
+        ) : isLoading ? (
+          <StCard>
+            <div className="animate-pulse space-y-3">
+              <div className="h-4 w-48 rounded" style={{ background: "#eef2ef" }} />
+              <div className="h-24 w-full rounded" style={{ background: "#eef2ef" }} />
             </div>
-            <p className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wide">{kpi.label}</p>
-            <p className="text-base font-extrabold text-[#191c1e] mt-0.5">{isLoading ? "…" : kpi.value}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* No program */}
-      {!isLoading && !mainProgram && (
-        <div className="bg-gradient-to-br from-[#e6f5eb] to-[#f0faf3] border border-[#bfe6cd] rounded-2xl p-10 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center mx-auto mb-4">
-            <Users size={32} className="text-[#006e2f]" />
-          </div>
-          <h2 className="text-xl font-extrabold text-[#191c1e] mb-2">Lancez votre programme d'affiliation</h2>
-          <p className="text-sm text-[#5c647a] max-w-md mx-auto mb-6">
-            Vos apprenants satisfaits sont vos meilleurs ambassadeurs. Offrez-leur une commission sur chaque vente générée et regardez votre audience grandir.
-          </p>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white font-bold transition-opacity hover:opacity-90"
-            style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-          >
-            <PlusCircle size={18} />
-            Créer mon programme
-          </button>
-        </div>
-      )}
-
-      {/* Program settings */}
-      {mainProgram && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          {/* Config card */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-[#191c1e] text-sm">Mon programme</h3>
-              <button
-                onClick={() => toggleMutation.mutate({ id: mainProgram.id, isActive: !mainProgram.isActive })}
-                className={`relative w-10 h-5 rounded-full transition-colors ${mainProgram.isActive ? "bg-[#006e2f]" : "bg-gray-200"}`}
-              >
-                <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${mainProgram.isActive ? "left-5" : "left-0.5"}`} />
-              </button>
-            </div>
-            <div className="space-y-3">
-              {([
-                { label: "Commission", value: `${mainProgram.commissionPct}% par vente`, icon: Percent },
-                { label: "Cookie tracking", value: `${mainProgram.cookieDays} jours`, icon: Cookie },
-                { label: "Seuil retrait", value: `${formatFCFA(mainProgram.minPayoutAmount)} FCFA`, icon: Wallet },
-                { label: "Approbation", value: mainProgram.autoApprove ? "Automatique" : "Manuelle", icon: UserCheck },
-              ] as { label: string; value: string; icon: LucideIcon }[]).map((item) => (
-                <div key={item.label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                  <div className="flex items-center gap-2">
-                    <item.icon size={16} className="text-[#5c647a]" />
-                    <span className="text-xs text-[#5c647a]">{item.label}</span>
-                  </div>
-                  <span className="text-xs font-bold text-[#191c1e]">{item.value}</span>
+          </StCard>
+        ) : !programme ? (
+          <StVide
+            icon={Users}
+            titre="Lancez votre programme d'affiliation"
+            message="Vos apprenants satisfaits sont vos meilleurs vendeurs. Fixez une commission, ils partagent votre boutique, et vous ne payez que lorsqu'une vente est confirmée."
+            action={
+              <StButton icon={Plus} onClick={() => setShowCreate(true)}>
+                Créer mon programme
+              </StButton>
+            }
+          />
+        ) : (
+          <>
+            <div className="mb-3.5 grid grid-cols-1 lg:grid-cols-3 gap-3.5">
+              {/* Réglages */}
+              <StCard>
+                <StSectionTitle
+                  action={
+                    <StSwitch
+                      checked={programme.isActive}
+                      onChange={(v) => bascule.mutate({ id: programme.id, isActive: v })}
+                      label={`${programme.isActive ? "Mettre en pause" : "Activer"} le programme d'affiliation`}
+                    />
+                  }
+                >
+                  Mon programme
+                </StSectionTitle>
+                <div>
+                  {(
+                    [
+                      { label: "Commission", valeur: `${programme.commissionPct} % par vente`, icon: Percent },
+                      { label: "Attribution", valeur: `${programme.cookieDays} jours`, icon: Cookie },
+                      { label: "Seuil de retrait", valeur: `${fcfa(programme.minPayoutAmount)} FCFA`, icon: Wallet },
+                      { label: "Approbation", valeur: programme.autoApprove ? "Automatique" : "Manuelle", icon: UserCheck },
+                    ] as { label: string; valeur: string; icon: LucideIcon }[]
+                  ).map((l, i) => {
+                    const Icone = l.icon;
+                    return (
+                      <div
+                        key={l.label}
+                        className="flex items-center justify-between py-2.5"
+                        style={i ? { borderTop: `1px solid ${ST.divider}` } : undefined}
+                      >
+                        <span className="flex items-center gap-2 text-[12.5px] font-bold" style={{ color: ST.textSecondary }}>
+                          <Icone size={15} style={{ color: ST.textSecondary }} />
+                          {l.label}
+                        </span>
+                        <span className="text-[12.5px] font-extrabold tabular-nums" style={{ color: ST.text }}>
+                          {l.valeur}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
-          </div>
+                {!programme.isActive && (
+                  <p
+                    className="mt-3 rounded-[10px] p-2.5 text-[11.5px] font-semibold"
+                    style={{ background: ST.amberSoft, color: ST.amberText }}
+                  >
+                    Programme en pause : les liens de vos affiliés n&apos;ouvrent plus de commission.
+                  </p>
+                )}
+              </StCard>
 
-          {/* Pending earnings */}
-          <div className="lg:col-span-2 bg-gradient-to-br from-[#006e2f]/5 to-emerald-50 border border-[#006e2f]/10 rounded-2xl p-5 flex flex-col justify-between">
-            <div>
-              <p className="text-xs font-semibold text-[#5c647a] uppercase tracking-wide mb-1">Commissions en attente</p>
-              <p className="text-3xl font-extrabold text-[#006e2f]">{formatFCFA(stats?.pendingEarnings ?? 0)} <span className="text-lg">FCFA</span></p>
-              <p className="text-xs text-[#5c647a] mt-1">Versement à 20 affiliés validés</p>
-            </div>
-            <div className="flex gap-3 mt-4">
-              <div className="flex-1 bg-white rounded-xl p-3 text-center border border-[#006e2f]/10">
-                <p className="text-lg font-extrabold text-[#191c1e]">{stats?.totalAffiliates ?? 0}</p>
-                <p className="text-[10px] text-[#5c647a]">Total affiliés</p>
-              </div>
-              <div className="flex-1 bg-white rounded-xl p-3 text-center border border-[#006e2f]/10">
-                <p className="text-lg font-extrabold text-[#006e2f]">{stats?.activeAffiliates ?? 0}</p>
-                <p className="text-[10px] text-[#5c647a]">Actifs</p>
-              </div>
-              <div className="flex-1 bg-white rounded-xl p-3 text-center border border-[#006e2f]/10">
-                <p className="text-lg font-extrabold text-[#191c1e]">
-                  {stats?.totalClicks && stats.totalConversions
-                    ? `${Math.round((stats.totalConversions / stats.totalClicks) * 100)}%`
-                    : "0%"}
-                </p>
-                <p className="text-[10px] text-[#5c647a]">Taux conv.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Affiliates list */}
-      {mainProgram && mainProgram.affiliates.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="hidden md:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] gap-4 px-6 py-3.5 bg-gray-50 border-b border-gray-100">
-            {["Affilié", "Clics", "Conv.", "Gagné", "Statut", "Lien"].map((h) => (
-              <span key={h} className="text-[11px] font-bold text-[#5c647a] uppercase tracking-wide">{h}</span>
-            ))}
-          </div>
-          <div className="divide-y divide-gray-50">
-            {mainProgram.affiliates.map((aff, idx) => {
-              const st = STATUS_STYLES[aff.status] ?? STATUS_STYLES.PENDING;
-              const initials = (aff.user.name ?? aff.user.email).split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
-              return (
-                <div key={aff.id} className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] gap-4 px-6 py-4 hover:bg-gray-50/50 transition-colors items-center">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${GRADIENTS[idx % GRADIENTS.length]} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
-                      {initials}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-[#191c1e] truncate">{aff.user.name ?? "—"}</p>
-                      <p className="text-[10px] text-[#5c647a] truncate">{aff.user.email}</p>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-[#191c1e]">{aff.totalClicks.toLocaleString("fr-FR")}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-[#191c1e]">{aff.totalConversions}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-[#006e2f]">{formatFCFA(aff.totalEarned)}</p>
-                    <p className="text-[10px] text-[#5c647a]">FCFA</p>
-                  </div>
-                  <div>
-                    <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${st.bg} ${st.text}`}>
-                      {st.label}
-                    </span>
-                  </div>
-                  <div>
-                    <button
-                      onClick={() => copyAffiliateLink(aff.affiliateCode)}
-                      className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
-                        copiedCode === aff.affiliateCode ? "bg-[#006e2f]/10 text-[#006e2f]" : "bg-gray-100 text-[#5c647a] hover:bg-gray-200"
-                      }`}
+              {/* Commissions en attente */}
+              <StCard className="lg:col-span-2 flex flex-col justify-between">
+                <div>
+                  <p className="text-[11.5px] font-extrabold uppercase tracking-[.06em]" style={{ color: ST.textSecondary }}>
+                    Commissions en attente de versement
+                  </p>
+                  <p className="mt-1 text-[30px] font-extrabold tabular-nums leading-none" style={{ color: ST.green }}>
+                    {fcfa(stats?.pendingEarnings ?? 0)}
+                    <span className="ml-1.5 text-[15px]">FCFA</span>
+                  </p>
+                  <p className="mt-1.5 text-[12px] font-bold" style={{ color: ST.textSecondary }}>
+                    {(stats?.activeAffiliates ?? 0) === 0
+                      ? "Aucun affilié actif pour l'instant."
+                      : `Réparties sur ${stats?.activeAffiliates} affilié${(stats?.activeAffiliates ?? 0) > 1 ? "s" : ""} actif${(stats?.activeAffiliates ?? 0) > 1 ? "s" : ""} · versées après confirmation du paiement.`}
+                  </p>
+                </div>
+                <div className="mt-4 grid grid-cols-3 gap-3">
+                  {[
+                    { label: "Total affiliés", valeur: String(stats?.totalAffiliates ?? 0), couleur: ST.text },
+                    { label: "Actifs", valeur: String(stats?.activeAffiliates ?? 0), couleur: ST.green },
+                    {
+                      label: "Taux de conversion",
+                      valeur:
+                        (stats?.totalClicks ?? 0) > 0
+                          ? `${Math.round(((stats?.totalConversions ?? 0) / (stats?.totalClicks ?? 1)) * 1000) / 10} %`
+                          : "—",
+                      couleur: ST.text,
+                    },
+                  ].map((b) => (
+                    <div
+                      key={b.label}
+                      className="rounded-[14px] p-3 text-center"
+                      style={{ background: "#f4f7f5", border: `1px solid ${ST.divider}` }}
                     >
-                      {copiedCode === aff.affiliateCode ? <Check size={14} /> : <Copy size={14} />}
-                      {copiedCode === aff.affiliateCode ? "Copié" : aff.affiliateCode}
-                    </button>
-                  </div>
+                      <p className="text-[17px] font-extrabold tabular-nums" style={{ color: b.couleur }}>
+                        {b.valeur}
+                      </p>
+                      <p className="text-[10.5px] font-bold" style={{ color: ST.textSecondary }}>
+                        {b.label}
+                      </p>
+                    </div>
+                  ))}
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Create program modal */}
-      {showCreate && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold text-[#191c1e]">Créer mon programme</h2>
-              <button onClick={() => setShowCreate(false)} className="p-1.5 rounded-lg hover:bg-gray-100">
-                <X size={20} className="text-[#5c647a]" />
-              </button>
+              </StCard>
             </div>
+
+            {/* Liste des affiliés */}
+            {programme.affiliates.length === 0 ? (
+              <StVide
+                icon={UserPlus}
+                titre="Aucun affilié inscrit"
+                message={`Vos apprenants deviennent affiliés depuis leur espace, page « Affiliation ». Partagez-leur ce lien : ${lienRecrutement}`}
+                action={
+                  <StButton
+                    variant="secondary"
+                    icon={Copy}
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(lienRecrutement);
+                        useToastStore.getState().addToast("success", "Lien d'inscription copié.");
+                      } catch {
+                        useToastStore.getState().addToast("error", "Copie impossible.");
+                      }
+                    }}
+                  >
+                    Copier le lien d&apos;inscription
+                  </StButton>
+                }
+              />
+            ) : (
+              <StCard noPadding>
+                <div
+                  className="hidden md:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] gap-4 px-6 py-3.5"
+                  style={{ borderBottom: `1px solid ${ST.divider}` }}
+                >
+                  {["Affilié", "Clics", "Ventes", "Gagné", "Statut", "Lien"].map((h) => (
+                    <span key={h} className="text-[10.5px] font-extrabold uppercase tracking-[.06em]" style={{ color: ST.textSecondary }}>
+                      {h}
+                    </span>
+                  ))}
+                </div>
+                <div>
+                  {programme.affiliates.map((a, i) => {
+                    const st = STATUTS[a.status] ?? { libelle: a.status, tone: "neutral" as const };
+                    return (
+                      <div
+                        key={a.id}
+                        className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] gap-2 md:gap-4 px-5 md:px-6 py-4 items-center"
+                        style={i ? { borderTop: `1px solid ${ST.divider}` } : undefined}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-extrabold text-white"
+                            style={{ background: DEGRADES[i % DEGRADES.length] }}
+                            aria-hidden="true"
+                          >
+                            {initiales(a)}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate text-[13px] font-extrabold" style={{ color: ST.text }}>
+                              {a.user.name ?? "Sans nom"}
+                            </p>
+                            <p className="truncate text-[10.5px] font-semibold" style={{ color: ST.textSecondary }}>
+                              {a.user.email}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-[13px] font-extrabold tabular-nums" style={{ color: ST.text }}>
+                            {fcfa(a.totalClicks)}
+                          </span>
+                          <span className="text-[10.5px] font-bold md:hidden" style={{ color: ST.textSecondary }}>
+                            clics
+                          </span>
+                        </div>
+
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-[13px] font-extrabold tabular-nums" style={{ color: ST.text }}>
+                            {a.totalConversions}
+                          </span>
+                          <span className="text-[10.5px] font-bold md:hidden" style={{ color: ST.textSecondary }}>
+                            ventes
+                          </span>
+                        </div>
+
+                        <div>
+                          <span className="text-[13px] font-extrabold tabular-nums" style={{ color: ST.green }}>
+                            {fcfa(a.totalEarned)}
+                          </span>
+                          <span className="ml-1 text-[10.5px] font-bold" style={{ color: ST.textSecondary }}>
+                            FCFA
+                          </span>
+                        </div>
+
+                        <div>
+                          <StChip tone={st.tone}>{st.libelle}</StChip>
+                        </div>
+
+                        <div>
+                          <StButton
+                            size="sm"
+                            variant={copie === a.affiliateCode ? "ghost-green" : "secondary"}
+                            icon={copie === a.affiliateCode ? Check : Copy}
+                            onClick={() => copierLien(a.affiliateCode)}
+                          >
+                            <span translate="no">{copie === a.affiliateCode ? "Copié !" : a.affiliateCode}</span>
+                          </StButton>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </StCard>
+            )}
+          </>
+        )}
+
+        {showCreate && (
+          <StModal
+            titre="Créer mon programme d'affiliation"
+            onClose={() => setShowCreate(false)}
+            pied={
+              <>
+                <StButton variant="secondary" className="flex-1" onClick={() => setShowCreate(false)}>
+                  Annuler
+                </StButton>
+                <StButton
+                  className="flex-1"
+                  disabled={form.name.trim().length < 2 || creation.isPending}
+                  onClick={() => creation.mutate(form)}
+                >
+                  {creation.isPending ? "Création…" : "Créer le programme"}
+                </StButton>
+              </>
+            }
+          >
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[#5c647a] mb-1.5 uppercase tracking-wide">Nom du programme</label>
+                <label htmlFor="aff-nom" className="mb-[7px] block text-[12px] font-extrabold" style={{ color: ST.textLabel }}>
+                  Nom du programme <span style={{ color: ST.roseText }}>*</span>
+                </label>
                 <input
+                  id="aff-nom"
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-[#191c1e] focus:outline-none focus:border-[#006e2f]/40 focus:ring-2 focus:ring-[#006e2f]/10"
+                  className="w-full rounded-[12px] bg-white px-[14px] py-[11px] text-[13.5px] font-semibold focus:outline-none"
+                  style={{ color: ST.text, border: "1px solid #dde6e0" }}
                 />
               </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-[#5c647a] mb-1.5 uppercase tracking-wide">Commission (%)</label>
+                  <label htmlFor="aff-commission" className="mb-[7px] block text-[12px] font-extrabold" style={{ color: ST.textLabel }}>
+                    Commission (%)
+                  </label>
                   <input
-                    type="number" value={form.commissionPct} onChange={(e) => setForm((f) => ({ ...f, commissionPct: e.target.value }))}
-                    min="1" max="80" placeholder="20"
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#006e2f]/40"
+                    id="aff-commission"
+                    type="number"
+                    min={1}
+                    max={80}
+                    value={form.commissionPct}
+                    onChange={(e) => setForm((f) => ({ ...f, commissionPct: e.target.value }))}
+                    className="w-full rounded-[12px] bg-white px-[14px] py-[11px] text-[13.5px] font-semibold tabular-nums focus:outline-none"
+                    style={{ color: ST.text, border: "1px solid #dde6e0" }}
                   />
+                  <p className="mt-1.5 text-[11.5px] font-bold" style={{ color: ST.textSecondary }}>
+                    Entre 1 et 80 %. Prélevée sur chaque vente apportée.
+                  </p>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-[#5c647a] mb-1.5 uppercase tracking-wide">Cookie (jours)</label>
+                  <label htmlFor="aff-cookie" className="mb-[7px] block text-[12px] font-extrabold" style={{ color: ST.textLabel }}>
+                    Attribution (jours)
+                  </label>
                   <input
-                    type="number" value={form.cookieDays} onChange={(e) => setForm((f) => ({ ...f, cookieDays: e.target.value }))}
-                    min="1" max="365" placeholder="30"
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#006e2f]/40"
+                    id="aff-cookie"
+                    type="number"
+                    min={1}
+                    max={365}
+                    value={form.cookieDays}
+                    onChange={(e) => setForm((f) => ({ ...f, cookieDays: e.target.value }))}
+                    className="w-full rounded-[12px] bg-white px-[14px] py-[11px] text-[13.5px] font-semibold tabular-nums focus:outline-none"
+                    style={{ color: ST.text, border: "1px solid #dde6e0" }}
                   />
+                  <p className="mt-1.5 text-[11.5px] font-bold" style={{ color: ST.textSecondary }}>
+                    Durée pendant laquelle une visite reste créditée à l&apos;affilié.
+                  </p>
                 </div>
               </div>
+
               <div>
-                <label className="block text-xs font-semibold text-[#5c647a] mb-1.5 uppercase tracking-wide">Seuil de paiement (FCFA)</label>
+                <label htmlFor="aff-seuil" className="mb-[7px] block text-[12px] font-extrabold" style={{ color: ST.textLabel }}>
+                  Seuil de retrait (FCFA)
+                </label>
                 <input
-                  type="number" value={form.minPayoutAmount} onChange={(e) => setForm((f) => ({ ...f, minPayoutAmount: e.target.value }))}
-                  min="1000" placeholder="13120"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#006e2f]/40"
+                  id="aff-seuil"
+                  type="number"
+                  min={1000}
+                  step={500}
+                  value={form.minPayoutAmount}
+                  onChange={(e) => setForm((f) => ({ ...f, minPayoutAmount: e.target.value }))}
+                  className="w-full rounded-[12px] bg-white px-[14px] py-[11px] text-[13.5px] font-semibold tabular-nums focus:outline-none"
+                  style={{ color: ST.text, border: "1px solid #dde6e0" }}
+                />
+                <p className="mt-1.5 text-[11.5px] font-bold" style={{ color: ST.textSecondary }}>
+                  Montant minimum avant qu&apos;un affilié puisse demander son versement (1 000 FCFA minimum).
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between gap-4 rounded-[14px] px-4 py-3" style={{ background: "#f4f7f5" }}>
+                <div>
+                  <p className="text-[13px] font-extrabold" style={{ color: ST.text }}>
+                    Approbation automatique
+                  </p>
+                  <p className="text-[11.5px] font-semibold" style={{ color: ST.textSecondary }}>
+                    Les nouveaux affiliés démarrent sans validation de votre part.
+                  </p>
+                </div>
+                <StSwitch
+                  checked={form.autoApprove}
+                  onChange={(v) => setForm((f) => ({ ...f, autoApprove: v }))}
+                  label="Approuver automatiquement les nouveaux affiliés"
                 />
               </div>
-              <div className="flex items-center justify-between py-2 bg-gray-50 rounded-xl px-4">
-                <div>
-                  <p className="text-sm font-semibold text-[#191c1e]">Approbation automatique</p>
-                  <p className="text-[11px] text-[#5c647a]">Les nouveaux affiliés sont approuvés automatiquement</p>
-                </div>
-                <button
-                  onClick={() => setForm((f) => ({ ...f, autoApprove: !f.autoApprove }))}
-                  className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ml-4 ${form.autoApprove ? "bg-[#006e2f]" : "bg-gray-200"}`}
-                >
-                  <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${form.autoApprove ? "left-5" : "left-0.5"}`} />
-                </button>
-              </div>
             </div>
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowCreate(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#5c647a] hover:bg-gray-50">
-                Annuler
-              </button>
-              <button
-                onClick={() => createMutation.mutate(form)}
-                disabled={!form.name || createMutation.isPending}
-                className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50 hover:opacity-90"
-                style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-              >
-                {createMutation.isPending ? "Création…" : "Créer le programme"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </StModal>
+        )}
+      </main>
     </div>
   );
 }

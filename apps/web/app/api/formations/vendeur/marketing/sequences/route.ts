@@ -7,8 +7,6 @@ import { resolveVendorContext } from "@/lib/formations/active-user";
 import { getActiveShopId } from "@/lib/formations/active-shop";
 import { EmailSequenceTrigger } from "@prisma/client";
 
-import { getInstructeurId as _gii } from "@/lib/formations/instructeur";
-async function getProfileId(userId: string) { return _gii(userId); }
 
 export async function POST(request: Request) {
   try {
@@ -25,11 +23,22 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, description, trigger } = body;
 
-    if (!name || !trigger) return NextResponse.json({ error: "Nom et déclencheur requis" }, { status: 400 });
+    if (!name || typeof name !== "string" || name.trim().length < 2) {
+      return NextResponse.json({ error: "Le nom doit contenir au moins 2 caractères" }, { status: 400 });
+    }
+    // Un déclencheur hors enum Prisma renvoyait une 500 illisible au vendeur
+    // (« Erreur serveur ») au lieu de dire ce qui n'allait pas.
+    const DECLENCHEURS: EmailSequenceTrigger[] = [
+      "PURCHASE", "ENROLLMENT", "ABANDONED_CART", "USER_INACTIVITY",
+      "COURSE_COMPLETION", "SIGNUP", "MANUAL", "TAG_ADDED",
+    ];
+    if (typeof trigger !== "string" || !(DECLENCHEURS as string[]).includes(trigger)) {
+      return NextResponse.json({ error: "Déclencheur invalide" }, { status: 400 });
+    }
 
     const sequence = await prisma.emailSequence.create({
       data: { instructeurId: pid, shopId: activeShopId,
-        name: name.trim(),
+        name: name.trim().slice(0, 140),
         description: description?.trim() || null,
         trigger: trigger as EmailSequenceTrigger,
         isActive: false,

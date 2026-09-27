@@ -63,18 +63,35 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, description, commissionPct, cookieDays, minPayoutAmount, autoApprove } = body;
 
-    if (!name) return NextResponse.json({ error: "Nom requis" }, { status: 400 });
+    if (!name || typeof name !== "string" || name.trim().length < 2) {
+      return NextResponse.json({ error: "Le nom doit contenir au moins 2 caractères" }, { status: 400 });
+    }
+
+    // Bornes côté serveur : une commission à 150 % (ou négative) se paie sur de
+    // l'argent réel, et un cookie à 10 000 jours attribue une vente à vie.
+    const commission = Number(commissionPct);
+    if (!Number.isFinite(commission) || commission < 1 || commission > 80) {
+      return NextResponse.json({ error: "La commission doit être entre 1 et 80 %" }, { status: 400 });
+    }
+    const cookie = Number(cookieDays);
+    if (!Number.isInteger(cookie) || cookie < 1 || cookie > 365) {
+      return NextResponse.json({ error: "La durée du cookie doit être entre 1 et 365 jours" }, { status: 400 });
+    }
+    const seuil = Number(minPayoutAmount);
+    if (!Number.isFinite(seuil) || seuil < 1000) {
+      return NextResponse.json({ error: "Le seuil de retrait doit être d'au moins 1 000 FCFA" }, { status: 400 });
+    }
 
     const existing = await prisma.affiliateProgram.findFirst({ where: { instructeurId: pid, ...(activeShopId ? { OR: [{ shopId: activeShopId }, { shopId: null }] } : {}) } });
     if (existing) return NextResponse.json({ error: "Vous avez déjà un programme actif" }, { status: 409 });
 
     const program = await prisma.affiliateProgram.create({
       data: { instructeurId: pid, shopId: activeShopId,
-        name: name.trim(),
+        name: name.trim().slice(0, 140),
         description: description?.trim() || null,
-        commissionPct: parseFloat(commissionPct) || 20,
-        cookieDays: parseInt(cookieDays) || 30,
-        minPayoutAmount: parseFloat(minPayoutAmount) || 13120,
+        commissionPct: commission,
+        cookieDays: cookie,
+        minPayoutAmount: seuil,
         autoApprove: autoApprove ?? true,
         isActive: true,
         applyToAll: true,

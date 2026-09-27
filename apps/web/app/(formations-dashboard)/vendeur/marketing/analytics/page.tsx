@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { safeFetch } from "@/lib/safe-fetch";
 import {
   ST,
   StPageHeader,
@@ -18,11 +18,11 @@ import {
   ShoppingCart,
   Percent,
   Receipt,
-  ArrowLeft,
   Globe,
   Megaphone,
   FileText,
 } from "lucide-react";
+import { StErreur, StRetourMarketing } from "@/components/formations/dashboard/MarketingKit";
 
 // ── Types (miroir de /api/marketing/analytics) ──────────────────────────────
 interface AnalyticsData {
@@ -67,9 +67,13 @@ function monthLabel(ym: string): string {
 export default function MarketingAnalyticsPage() {
   const [period, setPeriod] = useState("30d");
 
-  const { data: resp, isLoading } = useQuery<AnalyticsData>({
+  const { data: resp, isLoading, isError, refetch } = useQuery<AnalyticsData>({
     queryKey: ["marketing-analytics", period],
-    queryFn: () => fetch(`/api/marketing/analytics?period=${period}`).then((r) => r.json()),
+    queryFn: async () => {
+      const { data, error } = await safeFetch<AnalyticsData>(`/api/marketing/analytics?period=${period}`);
+      if (error || !data?.overview) throw new Error(error ?? "Chargement impossible");
+      return data;
+    },
   });
 
   const d = resp;
@@ -83,13 +87,7 @@ export default function MarketingAnalyticsPage() {
   return (
     <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
       <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1200px] mx-auto">
-        <Link
-          href="/vendeur/marketing"
-          className="inline-flex items-center gap-1.5 text-[12.5px] font-bold mb-3 hover:underline"
-          style={{ color: ST.green }}
-        >
-          <ArrowLeft size={15} /> Marketing
-        </Link>
+        <StRetourMarketing />
 
         <StPageHeader
           title="Analytics marketing"
@@ -97,10 +95,22 @@ export default function MarketingAnalyticsPage() {
           actions={<StTabs tabs={PERIODS} active={period} onChange={setPeriod} />}
         />
 
+        {isError && (
+          <div className="mb-4">
+            <StErreur
+              titre="Analytics indisponibles"
+              message="Impossible de récupérer vos chiffres pour cette période. Les valeurs ci-dessous ne sont pas à zéro : elles sont inconnues."
+              onRetry={() => refetch()}
+            />
+          </div>
+        )}
+
         {/* ── KPIs ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-5">
+          {/* Montants réellement encaissés (paidAmount), remboursements exclus :
+              même règle que le tableau de bord et les finances. */}
           <StKpi
-            label="Revenu total"
+            label="Revenu encaissé"
             value={isLoading ? "…" : fcfa(ov?.totalRevenue ?? 0)}
             icon={Banknote}
             chip={<StDeltaChip pct={ov?.revenueChange ?? null} />}

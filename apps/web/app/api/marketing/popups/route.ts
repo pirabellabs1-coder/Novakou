@@ -1,536 +1,130 @@
-// @ts-nocheck
-// Legacy file with type drift - runtime behavior preserved, type checking skipped.
-
-// GET /api/marketing/popups — List popups (instructor gets all with stats, public gets active only)
-// POST /api/marketing/popups — Create a new popup
-// PUT /api/marketing/popups — Update a popup (toggle active, update content)
-// DELETE /api/marketing/popups — Delete a popup
+// GET /api/marketing/popups?scope=public&instructeurId=…&shopId=… — pop-ups
+// actifs d'UNE boutique, pour le rendu public (components/marketing/SmartPopupRenderer).
+//
+// Les écritures (création / modification / suppression) ne vivent PAS ici :
+// elles passent par /api/formations/vendeur/marketing/popups, seul chemin qui
+// filtre sur l'instructeur connecté. Les anciens POST/PUT/DELETE de ce fichier
+// écrivaient sur des colonnes inexistantes (`type`, `triggerValue`,
+// `impressions`…) : ils levaient une PrismaClientValidationError à chaque appel,
+// masquée par un `@ts-nocheck`. Ils répondent désormais 410.
 
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/config";
+import { prisma } from "@/lib/prisma";
 
-// ── DEV MOCK DATA ──────────────────────────────────────────────────────────
-
-const DEV_MODE = process.env.DEV_MODE === "true" || !process.env.DATABASE_URL;
-
-type PopupType = "DISCOUNT" | "EMAIL_CAPTURE" | "ANNOUNCEMENT" | "UPSELL" | "COUNTDOWN";
-type PopupTrigger = "EXIT_INTENT" | "TIME_DELAY" | "SCROLL_PERCENT" | "PAGE_VIEW_COUNT" | "MANUAL";
-
-interface MockPopup {
-  id: string;
-  instructeurId: string;
-  name: string;
-  type: PopupType;
-  trigger: PopupTrigger;
-  triggerValue: number | null;
-  headlineFr: string;
-  headlineEn: string;
-  bodyFr: string;
-  bodyEn: string;
-  ctaTextFr: string;
-  ctaTextEn: string;
-  imageBannerUrl: string | null;
-  // Type-specific fields
-  discountCode: string | null;
-  emailCaptureTag: string | null;
-  countdownEndsAt: string | null;
-  upsellProductId: string | null;
-  upsellOriginalPrice: number | null;
-  upsellDiscountedPrice: number | null;
-  ctaUrl: string | null;
-  // Targeting
-  showOnPages: string[];
-  excludePages: string[];
-  newVisitorsOnly: boolean;
-  maxShowsPerUser: number;
-  // Stats
-  impressions: number;
-  clicks: number;
-  conversions: number;
-  // Status
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-const MOCK_POPUPS: MockPopup[] = [];
-
-const devPopups = [...MOCK_POPUPS];
-
-// ── GET ──────────────────────────────────────────────────────────────────────
+const DEPRECATED = {
+  error: "Endpoint déprécié",
+  message: "La gestion des pop-ups passe par /api/formations/vendeur/marketing/popups.",
+  replacedBy: [
+    "/api/formations/vendeur/marketing/popups",
+    "/api/formations/vendeur/marketing/popups/[id]",
+  ],
+};
 
 export async function GET(req: NextRequest) {
   try {
-    const scope = req.nextUrl.searchParams.get("scope");
+    // Un pop-up appartient à UN vendeur. Sans cette restriction, chaque vitrine
+    // affichait les pop-ups actifs de tous les vendeurs — le code promo d'un
+    // créateur s'ouvrait chez un autre (constaté le 2026-09-27 : 10 pop-ups
+    // actifs, 7 vendeurs). Sans vendeur précisé, on ne renvoie rien : mieux vaut
+    // aucun pop-up que ceux d'autrui.
+    const instructeurId = req.nextUrl.searchParams.get("instructeurId");
+    const shopId = req.nextUrl.searchParams.get("shopId");
+    if (!instructeurId) return NextResponse.json({ popups: [] });
 
-    if (DEV_MODE) {
-      // Public scope: return only active popups with minimal data
-      if (scope === "public") {
-        const activePopups = devPopups
-          .filter((p) => p.isActive)
-          .map((p) => ({
-            id: p.id,
-            type: p.type,
-            trigger: p.trigger,
-            triggerValue: p.triggerValue,
-            headlineFr: p.headlineFr,
-            headlineEn: p.headlineEn,
-            bodyFr: p.bodyFr,
-            bodyEn: p.bodyEn,
-            ctaTextFr: p.ctaTextFr,
-            ctaTextEn: p.ctaTextEn,
-            imageBannerUrl: p.imageBannerUrl,
-            discountCode: p.discountCode,
-            emailCaptureTag: p.emailCaptureTag,
-            countdownEndsAt: p.countdownEndsAt,
-            upsellProductId: p.upsellProductId,
-            upsellOriginalPrice: p.upsellOriginalPrice,
-            upsellDiscountedPrice: p.upsellDiscountedPrice,
-            ctaUrl: p.ctaUrl,
-            showOnPages: p.showOnPages,
-            excludePages: p.excludePages,
-            newVisitorsOnly: p.newVisitorsOnly,
-            maxShowsPerUser: p.maxShowsPerUser,
-          }));
-
-        return NextResponse.json({ popups: activePopups });
-      }
-
-      // Instructor scope: return all popups with stats
-      const totalImpressions = devPopups.reduce((s, p) => s + p.impressions, 0);
-      const totalConversions = devPopups.reduce((s, p) => s + p.conversions, 0);
-
-      return NextResponse.json({
-        popups: devPopups,
-        stats: {
-          totalPopups: devPopups.length,
-          activePopups: devPopups.filter((p) => p.isActive).length,
-          totalImpressions,
-          totalConversions,
-          avgConversionRate:
-            totalImpressions > 0
-              ? ((totalConversions / totalImpressions) * 100).toFixed(1)
-              : "0",
-        },
-      });
-    }
-
-    // Production
-    const session = await getServerSession(authOptions);
-
-    if (scope === "public") {
-      try {
-        // Un popup appartient a UN vendeur. Sans cette restriction, chaque
-        // vitrine affichait les popups actifs de tous les vendeurs — le code
-        // promo d'un createur s'ouvrait chez un autre (constate le
-        // 2026-09-27 : 10 popups actifs, 7 vendeurs). Sans vendeur precise,
-        // on ne renvoie rien : mieux vaut aucun popup que ceux d'autrui.
-        const instructeurId = req.nextUrl.searchParams.get("instructeurId");
-        const shopId = req.nextUrl.searchParams.get("shopId");
-        if (!instructeurId) return NextResponse.json({ popups: [] });
-
-        const prisma = (await import("@freelancehigh/db")).default;
-        const popupsRaw = await prisma.smartPopup.findMany({
-          where: {
-            isActive: true,
-            instructeurId,
-            // Un popup sans boutique vaut pour toutes celles du vendeur.
-            ...(shopId ? { OR: [{ shopId: null }, { shopId }] } : {}),
-          },
-          select: {
-            id: true,
-            popupType: true,
-            trigger: true,
-            delaySeconds: true,
-            scrollPercent: true,
-            pageViewCount: true,
-            headlineFr: true, headlineEn: true,
-            bodyFr: true, bodyEn: true,
-            ctaTextFr: true, ctaTextEn: true,
-            imageBanner: true,
-            discountCodeId: true,
-            emailListTag: true,
-            showOnPages: true,
-            excludePages: true,
-            showToNewOnly: true,
-            maxShowsPerUser: true,
-          },
-        });
-        // Map to the shape expected by SmartPopupRenderer
-        const popups = popupsRaw.map((p) => ({
-          id: p.id,
-          type: p.popupType,
-          trigger: p.trigger,
-          triggerValue: p.delaySeconds ?? p.scrollPercent ?? p.pageViewCount,
-          headlineFr: p.headlineFr,
-          headlineEn: p.headlineEn,
-          bodyFr: p.bodyFr,
-          bodyEn: p.bodyEn,
-          ctaTextFr: p.ctaTextFr,
-          ctaTextEn: p.ctaTextEn,
-          imageBannerUrl: p.imageBanner,
-          discountCode: null,
-          emailCaptureTag: p.emailListTag,
-          countdownEndsAt: null,
-          upsellProductId: null,
-          upsellOriginalPrice: null,
-          upsellDiscountedPrice: null,
-          ctaUrl: null,
-          showOnPages: p.showOnPages,
-          excludePages: p.excludePages,
-          newVisitorsOnly: p.showToNewOnly,
-          maxShowsPerUser: p.maxShowsPerUser,
-        }));
-        return NextResponse.json({ popups });
-      } catch {
-        // Model may not exist yet in production schema — return empty
-        return NextResponse.json({ popups: [] });
-      }
-    }
-
-    if (!session?.user) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
-    }
-
-    const prisma = (await import("@freelancehigh/db")).default;
-
-    const instructeur = await prisma.instructeurProfile.findUnique({
-      where: { userId: session.user.id },
-    });
-    if (!instructeur) {
-      return NextResponse.json({ error: "Instructeur non trouve" }, { status: 403 });
-    }
-
-    const popups = await prisma.smartPopup.findMany({
-      where: { instructeurId: instructeur.id },
-      orderBy: { createdAt: "desc" },
-    });
-
-    const totalImpressions = popups.reduce((s, p) => s + p.impressions, 0);
-    const totalConversions = popups.reduce((s, p) => s + p.conversions, 0);
-
-    return NextResponse.json({
-      popups,
-      stats: {
-        totalPopups: popups.length,
-        activePopups: popups.filter((p) => p.isActive).length,
-        totalImpressions,
-        totalConversions,
-        avgConversionRate:
-          totalImpressions > 0
-            ? ((totalConversions / totalImpressions) * 100).toFixed(1)
-            : "0",
+    const popupsRaw = await prisma.smartPopup.findMany({
+      where: {
+        isActive: true,
+        instructeurId,
+        // Un pop-up sans boutique vaut pour toutes celles du vendeur.
+        ...(shopId ? { OR: [{ shopId: null }, { shopId }] } : {}),
       },
+      select: {
+        id: true,
+        popupType: true,
+        trigger: true,
+        delaySeconds: true,
+        scrollPercent: true,
+        pageViewCount: true,
+        headlineFr: true, headlineEn: true,
+        bodyFr: true, bodyEn: true,
+        ctaTextFr: true, ctaTextEn: true,
+        imageBanner: true,
+        discountCodeId: true,
+        emailListTag: true,
+        showOnPages: true,
+        excludePages: true,
+        showToNewOnly: true,
+        maxShowsPerUser: true,
+      },
+      take: 20,
     });
+
+    // Le code promo lié : un pop-up « DISCOUNT » sans code affiché ne sert à
+    // rien (le visiteur n'a rien à copier). On résout le libellé du code, mais
+    // UNIQUEMENT parmi les codes de ce vendeur, encore actifs, non expirés et
+    // non épuisés — un identifiant pointant vers le code d'un autre créateur
+    // (ou vers un code mort) ne doit jamais s'afficher.
+    const codeIds = [...new Set(popupsRaw.map((p) => p.discountCodeId).filter((v): v is string => !!v))];
+    const codesById = new Map<string, string>();
+    if (codeIds.length > 0) {
+      const now = new Date();
+      const codes = await prisma.discountCode.findMany({
+        where: {
+          id: { in: codeIds },
+          instructeurId,
+          isActive: true,
+          OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+        },
+        select: { id: true, code: true, maxUses: true, usedCount: true },
+      });
+      for (const c of codes) {
+        if (c.maxUses !== null && c.usedCount >= c.maxUses) continue;
+        codesById.set(c.id, c.code);
+      }
+    }
+
+    // Forme attendue par SmartPopupRenderer.
+    const popups = popupsRaw.map((p) => ({
+      id: p.id,
+      type: p.popupType,
+      trigger: p.trigger,
+      triggerValue: p.delaySeconds ?? p.scrollPercent ?? p.pageViewCount,
+      headlineFr: p.headlineFr,
+      headlineEn: p.headlineEn,
+      bodyFr: p.bodyFr,
+      bodyEn: p.bodyEn,
+      ctaTextFr: p.ctaTextFr,
+      ctaTextEn: p.ctaTextEn,
+      imageBannerUrl: p.imageBanner,
+      discountCode: p.discountCodeId ? codesById.get(p.discountCodeId) ?? null : null,
+      emailCaptureTag: p.emailListTag,
+      countdownEndsAt: null,
+      upsellProductId: null,
+      upsellOriginalPrice: null,
+      upsellDiscountedPrice: null,
+      ctaUrl: null,
+      showOnPages: p.showOnPages,
+      excludePages: p.excludePages,
+      newVisitorsOnly: p.showToNewOnly,
+      maxShowsPerUser: p.maxShowsPerUser,
+    }));
+
+    return NextResponse.json({ popups });
   } catch (error) {
     console.error("[GET /api/marketing/popups]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    // Le rendu public ne doit jamais casser une vitrine pour un pop-up.
+    return NextResponse.json({ popups: [] });
   }
 }
 
-// ── POST ─────────────────────────────────────────────────────────────────────
-
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const {
-      name,
-      type,
-      trigger,
-      triggerValue,
-      headlineFr,
-      headlineEn,
-      bodyFr,
-      bodyEn,
-      ctaTextFr,
-      ctaTextEn,
-      imageBannerUrl,
-      discountCode,
-      emailCaptureTag,
-      countdownEndsAt,
-      upsellProductId,
-      upsellOriginalPrice,
-      upsellDiscountedPrice,
-      ctaUrl,
-      showOnPages,
-      excludePages,
-      newVisitorsOnly,
-      maxShowsPerUser,
-    } = body;
-
-    // Validation
-    if (!name || typeof name !== "string" || name.length < 2) {
-      return NextResponse.json(
-        { error: "Le nom du popup doit contenir au moins 2 caracteres" },
-        { status: 400 },
-      );
-    }
-
-    const validTypes: PopupType[] = ["DISCOUNT", "EMAIL_CAPTURE", "ANNOUNCEMENT", "UPSELL", "COUNTDOWN"];
-    if (!type || !validTypes.includes(type)) {
-      return NextResponse.json({ error: "Type de popup invalide" }, { status: 400 });
-    }
-
-    const validTriggers: PopupTrigger[] = ["EXIT_INTENT", "TIME_DELAY", "SCROLL_PERCENT", "PAGE_VIEW_COUNT", "MANUAL"];
-    if (!trigger || !validTriggers.includes(trigger)) {
-      return NextResponse.json({ error: "Declencheur invalide" }, { status: 400 });
-    }
-
-    if (["TIME_DELAY", "SCROLL_PERCENT", "PAGE_VIEW_COUNT"].includes(trigger)) {
-      if (typeof triggerValue !== "number" || triggerValue <= 0) {
-        return NextResponse.json(
-          { error: "La valeur du declencheur doit etre un nombre positif" },
-          { status: 400 },
-        );
-      }
-    }
-
-    if (!headlineFr || !ctaTextFr) {
-      return NextResponse.json(
-        { error: "Le titre et le texte du CTA en francais sont obligatoires" },
-        { status: 400 },
-      );
-    }
-
-    if (type === "DISCOUNT" && !discountCode) {
-      return NextResponse.json(
-        { error: "Un code de reduction est requis pour un popup de type DISCOUNT" },
-        { status: 400 },
-      );
-    }
-
-    if (type === "EMAIL_CAPTURE" && !emailCaptureTag) {
-      return NextResponse.json(
-        { error: "Un tag de capture est requis pour un popup de type EMAIL_CAPTURE" },
-        { status: 400 },
-      );
-    }
-
-    if (type === "COUNTDOWN" && !countdownEndsAt) {
-      return NextResponse.json(
-        { error: "Une date de fin est requise pour un popup de type COUNTDOWN" },
-        { status: 400 },
-      );
-    }
-
-    if (DEV_MODE) {
-      const newPopup: MockPopup = {
-        id: `popup_${String(devPopups.length + 1).padStart(3, "0")}`,
-        instructeurId: "inst_001",
-        name,
-        type,
-        trigger,
-        triggerValue: triggerValue ?? null,
-        headlineFr,
-        headlineEn: headlineEn || "",
-        bodyFr: bodyFr || "",
-        bodyEn: bodyEn || "",
-        ctaTextFr,
-        ctaTextEn: ctaTextEn || "",
-        imageBannerUrl: imageBannerUrl || null,
-        discountCode: discountCode || null,
-        emailCaptureTag: emailCaptureTag || null,
-        countdownEndsAt: countdownEndsAt || null,
-        upsellProductId: upsellProductId || null,
-        upsellOriginalPrice: upsellOriginalPrice || null,
-        upsellDiscountedPrice: upsellDiscountedPrice || null,
-        ctaUrl: ctaUrl || null,
-        showOnPages: showOnPages || [],
-        excludePages: excludePages || [],
-        newVisitorsOnly: newVisitorsOnly ?? false,
-        maxShowsPerUser: maxShowsPerUser ?? 3,
-        impressions: 0,
-        clicks: 0,
-        conversions: 0,
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      devPopups.push(newPopup);
-      return NextResponse.json({ popup: newPopup }, { status: 201 });
-    }
-
-    // Production
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
-    }
-
-    const prisma = (await import("@freelancehigh/db")).default;
-
-    const instructeur = await prisma.instructeurProfile.findUnique({
-      where: { userId: session.user.id },
-    });
-    if (!instructeur) {
-      return NextResponse.json({ error: "Instructeur non trouve" }, { status: 403 });
-    }
-
-    const popup = await prisma.smartPopup.create({
-      data: {
-        instructeurId: instructeur.id,
-        name,
-        type,
-        trigger,
-        triggerValue: triggerValue ?? null,
-        headlineFr,
-        headlineEn: headlineEn || "",
-        bodyFr: bodyFr || "",
-        bodyEn: bodyEn || "",
-        ctaTextFr,
-        ctaTextEn: ctaTextEn || "",
-        imageBannerUrl: imageBannerUrl || null,
-        discountCode: discountCode || null,
-        emailCaptureTag: emailCaptureTag || null,
-        countdownEndsAt: countdownEndsAt ? new Date(countdownEndsAt) : null,
-        upsellProductId: upsellProductId || null,
-        upsellOriginalPrice: upsellOriginalPrice || null,
-        upsellDiscountedPrice: upsellDiscountedPrice || null,
-        ctaUrl: ctaUrl || null,
-        showOnPages: showOnPages || [],
-        excludePages: excludePages || [],
-        newVisitorsOnly: newVisitorsOnly ?? false,
-        maxShowsPerUser: maxShowsPerUser ?? 3,
-      },
-    });
-
-    return NextResponse.json({ popup }, { status: 201 });
-  } catch (error) {
-    console.error("[POST /api/marketing/popups]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-  }
+export async function POST() {
+  return NextResponse.json(DEPRECATED, { status: 410 });
 }
 
-// ── PUT ──────────────────────────────────────────────────────────────────────
-
-export async function PUT(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const { id, ...updates } = body;
-
-    if (!id || typeof id !== "string") {
-      return NextResponse.json({ error: "ID du popup requis" }, { status: 400 });
-    }
-
-    if (DEV_MODE) {
-      const idx = devPopups.findIndex((p) => p.id === id);
-      if (idx === -1) {
-        return NextResponse.json({ error: "Popup non trouve" }, { status: 404 });
-      }
-
-      devPopups[idx] = {
-        ...devPopups[idx],
-        ...updates,
-        updatedAt: new Date().toISOString(),
-      };
-
-      return NextResponse.json({ popup: devPopups[idx] });
-    }
-
-    // Production
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
-    }
-
-    const prisma = (await import("@freelancehigh/db")).default;
-
-    const instructeur = await prisma.instructeurProfile.findUnique({
-      where: { userId: session.user.id },
-    });
-    if (!instructeur) {
-      return NextResponse.json({ error: "Instructeur non trouve" }, { status: 403 });
-    }
-
-    const existing = await prisma.smartPopup.findFirst({
-      where: { id, instructeurId: instructeur.id },
-    });
-    if (!existing) {
-      return NextResponse.json({ error: "Popup non trouve" }, { status: 404 });
-    }
-
-    // Build safe update object
-    const allowedFields = [
-      "name", "type", "trigger", "triggerValue",
-      "headlineFr", "headlineEn", "bodyFr", "bodyEn",
-      "ctaTextFr", "ctaTextEn", "imageBannerUrl",
-      "discountCode", "emailCaptureTag", "countdownEndsAt",
-      "upsellProductId", "upsellOriginalPrice", "upsellDiscountedPrice",
-      "ctaUrl", "showOnPages", "excludePages",
-      "newVisitorsOnly", "maxShowsPerUser", "isActive",
-    ];
-
-    const safeUpdates: Record<string, unknown> = {};
-    for (const key of allowedFields) {
-      if (key in updates) {
-        safeUpdates[key] = updates[key];
-      }
-    }
-
-    if (safeUpdates.countdownEndsAt && typeof safeUpdates.countdownEndsAt === "string") {
-      safeUpdates.countdownEndsAt = new Date(safeUpdates.countdownEndsAt as string);
-    }
-
-    const popup = await prisma.smartPopup.update({
-      where: { id },
-      data: safeUpdates,
-    });
-
-    return NextResponse.json({ popup });
-  } catch (error) {
-    console.error("[PUT /api/marketing/popups]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-  }
+export async function PUT() {
+  return NextResponse.json(DEPRECATED, { status: 410 });
 }
 
-// ── DELETE ────────────────────────────────────────────────────────────────────
-
-export async function DELETE(req: NextRequest) {
-  try {
-    const { searchParams } = req.nextUrl;
-    const id = searchParams.get("id");
-
-    if (!id) {
-      return NextResponse.json({ error: "ID du popup requis" }, { status: 400 });
-    }
-
-    if (DEV_MODE) {
-      const idx = devPopups.findIndex((p) => p.id === id);
-      if (idx === -1) {
-        return NextResponse.json({ error: "Popup non trouve" }, { status: 404 });
-      }
-
-      devPopups.splice(idx, 1);
-      return NextResponse.json({ success: true });
-    }
-
-    // Production
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
-    }
-
-    const prisma = (await import("@freelancehigh/db")).default;
-
-    const instructeur = await prisma.instructeurProfile.findUnique({
-      where: { userId: session.user.id },
-    });
-    if (!instructeur) {
-      return NextResponse.json({ error: "Instructeur non trouve" }, { status: 403 });
-    }
-
-    const existing = await prisma.smartPopup.findFirst({
-      where: { id, instructeurId: instructeur.id },
-    });
-    if (!existing) {
-      return NextResponse.json({ error: "Popup non trouve" }, { status: 404 });
-    }
-
-    await prisma.smartPopup.delete({ where: { id } });
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("[DELETE /api/marketing/popups]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-  }
+export async function DELETE() {
+  return NextResponse.json(DEPRECATED, { status: 410 });
 }

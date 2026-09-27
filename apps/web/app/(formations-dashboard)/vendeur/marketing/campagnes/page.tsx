@@ -1,22 +1,42 @@
 "use client";
-import { useToastStore } from "@/store/toast";
+
+/**
+ * Liens de campagne (UTM) — espace vendeur. Design system « Stitch ».
+ *
+ * Ce qu'on partage est le LIEN TRACKÉ, pas l'URL brute : c'est l'endpoint
+ * /api/marketing/campaigns/[slug] qui compte le clic, pose le cookie
+ * d'attribution `fh_campaign`, puis redirige vers la destination avec les UTM.
+ * Partager l'URL brute contournait le tracker → 0 clic.
+ *
+ * Les clics sont mesurés à chaque ouverture du lien. Les ventes attribuées, en
+ * revanche, ne sont créditées qu'au paiement confirmé : l'affichage le dit au
+ * lieu de présenter un « 0 % de conversion » qui ressemble à un échec.
+ */
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToastStore } from "@/store/toast";
 import { confirmAction } from "@/store/confirm";
+import { safeFetch } from "@/lib/safe-fetch";
 import {
-  type LucideIcon,
-  ChevronRight,
   Link2,
   MousePointerClick,
-  GitBranch,
-  Percent,
-  X,
+  Plus,
   Trash2,
   Check,
   Copy,
   Banknote,
+  ShoppingCart,
+  Info,
 } from "lucide-react";
+import { ST, StCard, StPageHeader, StButton, StChip, StKpiCompact } from "@/components/stitch";
+import {
+  StSwitch,
+  StModal,
+  StErreur,
+  StVide,
+  StRetourMarketing,
+} from "@/components/formations/dashboard/MarketingKit";
 
 type Campaign = {
   id: string;
@@ -34,39 +54,37 @@ type Campaign = {
   createdAt: string;
 };
 
-function formatFCFA(n: number) {
+function fcfa(n: number) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(n));
 }
 
-// On partage le LIEN TRACKÉ (et non l'URL brute) : c'est l'endpoint
-// /api/marketing/campaigns/[slug] qui compte le clic, pose le cookie
-// d'attribution `fh_campaign`, puis redirige vers la destination avec les UTM.
-// Partager l'URL brute (ancien comportement) contournait le tracker → 0 clic.
-function buildUtmUrl(campaign: Campaign): string {
-  const origin =
+const SOURCES = ["facebook", "instagram", "tiktok", "youtube", "email", "whatsapp", "twitter", "linkedin", "google", "autre"];
+const SUPPORTS = ["social", "email", "cpc", "organic", "referral", "influencer", "direct"];
+
+/** Lien à partager : toujours l'endpoint tracké, jamais la destination brute. */
+function lienTracke(slug: string): string {
+  const origine =
     process.env.NEXT_PUBLIC_APP_URL ||
     (typeof window !== "undefined" ? window.location.origin : "https://novakou.com");
-  if (!campaign.slug) {
-    // Avant l'enregistrement (aperçu live) : on montre l'URL brute + UTM.
-    const base = campaign.destinationUrl;
-    const params = new URLSearchParams();
-    if (campaign.utmSource) params.set("utm_source", campaign.utmSource);
-    if (campaign.utmMedium) params.set("utm_medium", campaign.utmMedium);
-    if (campaign.utmCampaign) params.set("utm_campaign", campaign.utmCampaign);
-    if (campaign.utmContent) params.set("utm_content", campaign.utmContent);
-    const qs = params.toString();
-    return qs ? `${base}${base.includes("?") ? "&" : "?"}${qs}` : base;
-  }
-  return `${origin}/api/marketing/campaigns/${campaign.slug}`;
+  return `${origine}/api/marketing/campaigns/${slug}`;
 }
 
-const SOURCE_OPTIONS = ["facebook", "instagram", "tiktok", "youtube", "email", "whatsapp", "twitter", "linkedin", "google", "autre"];
-const MEDIUM_OPTIONS = ["social", "email", "cpc", "organic", "referral", "influencer", "direct"];
+/** Aperçu avant enregistrement (pas encore de slug) : destination + UTM. */
+function apercuUtm(form: { destinationUrl: string; utmSource: string; utmMedium: string; utmCampaign: string; utmContent: string }): string {
+  const base = form.destinationUrl;
+  const params = new URLSearchParams();
+  if (form.utmSource) params.set("utm_source", form.utmSource);
+  if (form.utmMedium) params.set("utm_medium", form.utmMedium);
+  if (form.utmCampaign) params.set("utm_campaign", form.utmCampaign);
+  if (form.utmContent) params.set("utm_content", form.utmContent);
+  const qs = params.toString();
+  return qs ? `${base}${base.includes("?") ? "&" : "?"}${qs}` : base;
+}
 
 export default function CampagnesPage() {
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
-  const [copied, setCopied] = useState<string | null>(null);
+  const [copie, setCopie] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     destinationUrl: "",
@@ -76,322 +94,376 @@ export default function CampagnesPage() {
     utmContent: "",
   });
 
-  const { data: response, isLoading } = useQuery<{ data: Campaign[] }>({
+  const { data: reponse, isLoading, isError, refetch } = useQuery<{ data: Campaign[] }>({
     queryKey: ["vendeur-campagnes"],
-    queryFn: () => fetch("/api/formations/vendeur/marketing/campagnes").then((r) => r.json()),
+    queryFn: async () => {
+      const { data, error } = await safeFetch<{ data: Campaign[] }>("/api/formations/vendeur/marketing/campagnes");
+      if (error || !data) throw new Error(error ?? "Chargement impossible");
+      return data;
+    },
     staleTime: 30_000,
   });
 
-  const campaigns = response?.data ?? [];
+  const campagnes = reponse?.data ?? [];
 
-  const createMutation = useMutation({
-    mutationFn: (body: typeof form) =>
-      fetch("/api/formations/vendeur/marketing/campagnes", {
+  const creation = useMutation({
+    mutationFn: async (corps: typeof form) => {
+      const { data, error } = await safeFetch<{ data: Campaign }>("/api/formations/vendeur/marketing/campagnes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      }).then((r) => r.json()),
-    onSuccess: (res) => {
-      if (res.error) { useToastStore.getState().addToast("error", res.error); return; }
-      qc.invalidateQueries({ queryKey: ["vendeur-campagnes"] });
-      qc.invalidateQueries({ queryKey: ["vendeur-marketing-hub"] });
-      setShowForm(false);
-      setForm({ name: "", destinationUrl: "", utmSource: "", utmMedium: "", utmCampaign: "", utmContent: "" });
+        body: JSON.stringify(corps),
+      });
+      if (error) throw new Error(error);
+      return data;
     },
-  });
-
-  const toggleMutation = useMutation({
-    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
-      fetch(`/api/formations/vendeur/marketing/campagnes/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isActive }),
-      }).then((r) => r.json()),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["vendeur-campagnes"] }),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) =>
-      fetch(`/api/formations/vendeur/marketing/campagnes/${id}`, { method: "DELETE" }).then((r) => r.json()),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["vendeur-campagnes"] });
       qc.invalidateQueries({ queryKey: ["vendeur-marketing-hub"] });
+      useToastStore.getState().addToast("success", "Lien de campagne créé.");
+      setShowForm(false);
+      setForm({ name: "", destinationUrl: "", utmSource: "", utmMedium: "", utmCampaign: "", utmContent: "" });
     },
+    onError: (e: Error) => useToastStore.getState().addToast("error", e.message),
   });
 
-  function copyUrl(campaign: Campaign) {
-    const url = buildUtmUrl(campaign);
-    navigator.clipboard.writeText(url);
-    setCopied(campaign.id);
-    setTimeout(() => setCopied(null), 2000);
+  const bascule = useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      const { error } = await safeFetch(`/api/formations/vendeur/marketing/campagnes/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive }),
+      });
+      if (error) throw new Error(error);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["vendeur-campagnes"] }),
+    onError: (e: Error) => useToastStore.getState().addToast("error", e.message),
+  });
+
+  const suppression = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await safeFetch(`/api/formations/vendeur/marketing/campagnes/${id}`, { method: "DELETE" });
+      if (error) throw new Error(error);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["vendeur-campagnes"] });
+      qc.invalidateQueries({ queryKey: ["vendeur-marketing-hub"] });
+      useToastStore.getState().addToast("success", "Lien supprimé.");
+    },
+    onError: (e: Error) => useToastStore.getState().addToast("error", e.message),
+  });
+
+  async function copier(c: Campaign) {
+    try {
+      await navigator.clipboard.writeText(lienTracke(c.slug));
+      setCopie(c.id);
+      setTimeout(() => setCopie(null), 2000);
+    } catch {
+      useToastStore.getState().addToast("error", "Copie impossible : sélectionnez le lien à la main.");
+    }
   }
 
-  const totalClicks = campaigns.reduce((s, c) => s + c.totalClicks, 0);
-  const totalConversions = campaigns.reduce((s, c) => s + c.totalConversions, 0);
-  const totalRevenue = campaigns.reduce((s, c) => s + c.totalRevenue, 0);
-  const conversionRate = totalClicks > 0 ? Math.round((totalConversions / totalClicks) * 100) : 0;
+  const clics = campagnes.reduce((s, c) => s + c.totalClicks, 0);
+  const ventes = campagnes.reduce((s, c) => s + c.totalConversions, 0);
+  const revenus = campagnes.reduce((s, c) => s + c.totalRevenue, 0);
+  const actifs = campagnes.filter((c) => c.isActive).length;
+
+  const destinationValide = /^(https?:\/\/|\/)/.test(form.destinationUrl.trim());
 
   return (
-    <div className="p-5 md:p-8 max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <div>
-          <div className="flex items-center gap-2 text-sm text-[#5c647a] mb-2">
-            <a href="/vendeur/marketing" className="hover:text-[#006e2f] transition-colors">Marketing</a>
-            <ChevronRight size={14} />
-            <span className="text-[#191c1e] font-medium">Liens de Campagne</span>
-          </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Liens de Campagne</h1>
-          <p className="text-sm text-[#5c647a] mt-1">Générez des liens UTM pour tracer vos sources de trafic et de revenus</p>
+    <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1200px] mx-auto">
+        <StRetourMarketing />
+
+        <StPageHeader
+          title="Liens de campagne"
+          subtitle="Un lien par publication : vous saurez lequel amène vraiment des visiteurs."
+          actions={
+            <StButton icon={Plus} onClick={() => setShowForm(true)}>
+              Créer un lien
+            </StButton>
+          }
+        />
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-4">
+          <StKpiCompact label="Liens actifs" value={isLoading ? "…" : actifs} icon={Link2} tone="green" />
+          <StKpiCompact label="Clics mesurés" value={isLoading ? "…" : fcfa(clics)} icon={MousePointerClick} tone="blue" />
+          <StKpiCompact label="Ventes attribuées" value={isLoading ? "…" : ventes} icon={ShoppingCart} tone="green" />
+          <StKpiCompact label="Revenus attribués" value={isLoading ? "…" : fcfa(revenus)} unit="FCFA" icon={Banknote} tone="amber" />
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90"
-          style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-        >
-          <Link2 size={18} />
-          Créer un lien
-        </button>
-      </div>
 
-      {/* Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4 mb-6">
-        {([
-          { label: "Liens actifs", value: campaigns.filter((c) => c.isActive).length, icon: Link2, color: "text-teal-600", bg: "bg-teal-50" },
-          { label: "Clics totaux", value: totalClicks.toLocaleString("fr-FR"), icon: MousePointerClick, color: "text-blue-600", bg: "bg-blue-50" },
-          { label: "Conversions", value: totalConversions, icon: GitBranch, color: "text-[#22c55e]", bg: "bg-[#e6f5eb]" },
-          { label: "Taux conversion", value: `${conversionRate}%`, icon: Percent, color: "text-[#006e2f]", bg: "bg-[#006e2f]/10" },
-        ] as { label: string; value: number | string; icon: LucideIcon; color: string; bg: string }[]).map((kpi, i) => (
-          <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-2 ${kpi.bg}`}>
-              <kpi.icon size={18} className={kpi.color} />
-            </div>
-            <p className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wide">{kpi.label}</p>
-            <p className="text-base font-extrabold text-[#191c1e] mt-0.5">{isLoading ? "…" : kpi.value}</p>
+        {isError ? (
+          <StErreur onRetry={() => refetch()} />
+        ) : isLoading ? (
+          <div className="space-y-3.5">
+            {[0, 1, 2].map((i) => (
+              <StCard key={i}>
+                <div className="animate-pulse">
+                  <div className="h-3.5 w-48 rounded" style={{ background: "#eef2ef" }} />
+                  <div className="mt-3 h-8 w-full rounded" style={{ background: "#eef2ef" }} />
+                  <div className="mt-3 flex gap-6">
+                    {[0, 1, 2].map((j) => (
+                      <div key={j} className="h-3 w-20 rounded" style={{ background: "#eef2ef" }} />
+                    ))}
+                  </div>
+                </div>
+              </StCard>
+            ))}
           </div>
-        ))}
-      </div>
+        ) : campagnes.length === 0 ? (
+          <StVide
+            icon={Link2}
+            titre="Aucun lien de campagne"
+            message="Créez un lien par publication (story Instagram, message WhatsApp, vidéo TikTok). Vous verrez lequel amène des visiteurs — et vous arrêterez de deviner où investir votre temps."
+            action={
+              <StButton icon={Plus} onClick={() => setShowForm(true)}>
+                Créer mon premier lien
+              </StButton>
+            }
+          />
+        ) : (
+          <div className="space-y-3.5">
+            {campagnes.map((c) => (
+              <StCard key={c.id}>
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-1 flex items-center gap-2">
+                      <h3 className="truncate text-[14px] font-extrabold" style={{ color: ST.text }}>
+                        {c.name}
+                      </h3>
+                      {c.isActive ? <StChip tone="green">Actif</StChip> : <StChip tone="neutral">En pause</StChip>}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {c.utmSource && <StChip tone="blue">{c.utmSource}</StChip>}
+                      {c.utmMedium && <StChip tone="green">{c.utmMedium}</StChip>}
+                      {c.utmCampaign && <StChip tone="neutral">{c.utmCampaign}</StChip>}
+                    </div>
+                  </div>
+                  <div className="flex flex-shrink-0 items-center gap-1">
+                    <StSwitch
+                      checked={c.isActive}
+                      onChange={(v) => bascule.mutate({ id: c.id, isActive: v })}
+                      label={`${c.isActive ? "Mettre en pause" : "Activer"} le lien ${c.name}`}
+                    />
+                    <button
+                      type="button"
+                      aria-label={`Supprimer le lien ${c.name}`}
+                      onClick={async () => {
+                        const ok = await confirmAction({
+                          title: "Supprimer ce lien ?",
+                          message: "Le lien déjà partagé cessera de fonctionner et ses statistiques seront perdues.",
+                          confirmLabel: "Supprimer",
+                          confirmVariant: "danger",
+                          icon: "delete",
+                        });
+                        if (ok) suppression.mutate(c.id);
+                      }}
+                      className="flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-[#fceef2]"
+                      style={{ color: ST.textSecondary }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
 
-      {/* Create form modal */}
-      {showForm && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold text-[#191c1e]">Nouveau lien de campagne</h2>
-              <button onClick={() => setShowForm(false)} className="p-1.5 rounded-lg hover:bg-gray-100">
-                <X size={20} className="text-[#5c647a]" />
-              </button>
-            </div>
+                <div className="mb-3 flex items-center gap-2">
+                  <code
+                    className="min-w-0 flex-1 truncate rounded-[10px] px-3 py-2 text-[11.5px] font-semibold tabular-nums"
+                    style={{ background: "#f4f7f5", color: ST.textSecondary }}
+                  >
+                    {lienTracke(c.slug)}
+                  </code>
+                  <StButton
+                    size="sm"
+                    variant={copie === c.id ? "ghost-green" : "secondary"}
+                    icon={copie === c.id ? Check : Copy}
+                    onClick={() => copier(c)}
+                  >
+                    <span translate="no">{copie === c.id ? "Copié !" : "Copier"}</span>
+                  </StButton>
+                </div>
 
+                <div className="grid grid-cols-3 gap-3 pt-3" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                  {[
+                    { label: "Clics", valeur: fcfa(c.totalClicks) },
+                    { label: "Ventes attribuées", valeur: String(c.totalConversions) },
+                    { label: "Revenus", valeur: `${fcfa(c.totalRevenue)} FCFA` },
+                  ].map((s) => (
+                    <div key={s.label}>
+                      <p className="text-[14px] font-extrabold tabular-nums" style={{ color: ST.text }}>
+                        {s.valeur}
+                      </p>
+                      <p className="text-[10.5px] font-bold" style={{ color: ST.textSecondary }}>
+                        {s.label}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                {c.totalClicks > 0 && c.totalConversions === 0 && (
+                  <p
+                    className="mt-3 flex items-start gap-2 rounded-[10px] p-2.5 text-[11.5px] font-semibold"
+                    style={{ background: ST.blueSoft, color: ST.blueText }}
+                  >
+                    <Info size={14} className="mt-px flex-shrink-0" aria-hidden="true" />
+                    Des visiteurs cliquent, mais aucune vente n&apos;est encore attribuée à ce lien : une vente
+                    n&apos;est comptée ici qu&apos;après un paiement confirmé.
+                  </p>
+                )}
+              </StCard>
+            ))}
+          </div>
+        )}
+
+        {showForm && (
+          <StModal
+            titre="Nouveau lien de campagne"
+            onClose={() => setShowForm(false)}
+            pied={
+              <>
+                <StButton variant="secondary" className="flex-1" onClick={() => setShowForm(false)}>
+                  Annuler
+                </StButton>
+                <StButton
+                  className="flex-1"
+                  disabled={form.name.trim().length < 2 || !destinationValide || creation.isPending}
+                  onClick={() => creation.mutate(form)}
+                >
+                  {creation.isPending ? "Création…" : "Créer le lien"}
+                </StButton>
+              </>
+            }
+          >
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[#5c647a] mb-1.5 uppercase tracking-wide">Nom de la campagne *</label>
+                <label htmlFor="camp-nom" className="mb-[7px] block text-[12px] font-extrabold" style={{ color: ST.textLabel }}>
+                  Nom de la campagne <span style={{ color: ST.roseText }}>*</span>
+                </label>
                 <input
+                  id="camp-nom"
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  placeholder="Ex: Lancement Formation React - Instagram Stories"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-[#5c647a]/60 focus:outline-none focus:border-[#006e2f]/40 focus:ring-2 focus:ring-[#006e2f]/10"
+                  placeholder="Ex. Story Instagram — lancement formation React"
+                  className="w-full rounded-[12px] bg-white px-[14px] py-[11px] text-[13.5px] font-semibold focus:outline-none"
+                  style={{ color: ST.text, border: "1px solid #dde6e0" }}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#5c647a] mb-1.5 uppercase tracking-wide">URL de destination *</label>
+                <label htmlFor="camp-url" className="mb-[7px] block text-[12px] font-extrabold" style={{ color: ST.textLabel }}>
+                  Page de destination <span style={{ color: ST.roseText }}>*</span>
+                </label>
                 <input
+                  id="camp-url"
                   type="url"
+                  inputMode="url"
                   value={form.destinationUrl}
                   onChange={(e) => setForm((f) => ({ ...f, destinationUrl: e.target.value }))}
-                  placeholder="https://novakou.com/formations/react-complet"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-[#5c647a]/60 focus:outline-none focus:border-[#006e2f]/40 focus:ring-2 focus:ring-[#006e2f]/10"
+                  placeholder="https://novakou.com/formation/mon-cours"
+                  aria-invalid={form.destinationUrl.length > 0 && !destinationValide}
+                  className="w-full rounded-[12px] bg-white px-[14px] py-[11px] text-[13.5px] font-semibold focus:outline-none"
+                  style={{
+                    color: ST.text,
+                    border: form.destinationUrl.length > 0 && !destinationValide ? `1px solid ${ST.roseText}` : "1px solid #dde6e0",
+                  }}
                 />
+                <p
+                  className="mt-1.5 text-[11.5px] font-bold"
+                  style={{ color: form.destinationUrl.length > 0 && !destinationValide ? ST.roseText : ST.textMuted }}
+                >
+                  {form.destinationUrl.length > 0 && !destinationValide
+                    ? "L'adresse doit commencer par https:// (ou par / pour une page Novakou)."
+                    : "La page où arrive le visiteur : votre formation, votre boutique, un tunnel…"}
+                </p>
               </div>
 
-              <div className="pt-1">
-                <p className="text-xs font-bold text-[#191c1e] mb-3">Paramètres UTM</p>
+              <fieldset className="pt-1">
+                <legend className="mb-2.5 text-[12px] font-extrabold" style={{ color: ST.textLabel }}>
+                  Étiquettes UTM (facultatif, pour vos statistiques)
+                </legend>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] font-semibold text-[#5c647a] mb-1 uppercase tracking-wide">Source</label>
+                    <label htmlFor="camp-source" className="mb-1 block text-[11px] font-extrabold" style={{ color: ST.textSecondary }}>
+                      Source
+                    </label>
                     <select
+                      id="camp-source"
                       value={form.utmSource}
                       onChange={(e) => setForm((f) => ({ ...f, utmSource: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-[#191c1e] focus:outline-none focus:border-[#006e2f]/40 bg-white"
+                      className="w-full rounded-[12px] bg-white px-[12px] py-[10px] text-[13px] font-semibold focus:outline-none"
+                      style={{ color: ST.text, border: "1px solid #dde6e0" }}
                     >
                       <option value="">Choisir…</option>
-                      {SOURCE_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+                      {SOURCES.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-semibold text-[#5c647a] mb-1 uppercase tracking-wide">Support</label>
+                    <label htmlFor="camp-support" className="mb-1 block text-[11px] font-extrabold" style={{ color: ST.textSecondary }}>
+                      Support
+                    </label>
                     <select
+                      id="camp-support"
                       value={form.utmMedium}
                       onChange={(e) => setForm((f) => ({ ...f, utmMedium: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-[#191c1e] focus:outline-none focus:border-[#006e2f]/40 bg-white"
+                      className="w-full rounded-[12px] bg-white px-[12px] py-[10px] text-[13px] font-semibold focus:outline-none"
+                      style={{ color: ST.text, border: "1px solid #dde6e0" }}
                     >
                       <option value="">Choisir…</option>
-                      {MEDIUM_OPTIONS.map((m) => <option key={m} value={m}>{m}</option>)}
+                      {SUPPORTS.map((m) => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-semibold text-[#5c647a] mb-1 uppercase tracking-wide">Campagne</label>
+                    <label htmlFor="camp-campagne" className="mb-1 block text-[11px] font-extrabold" style={{ color: ST.textSecondary }}>
+                      Campagne
+                    </label>
                     <input
+                      id="camp-campagne"
                       type="text"
                       value={form.utmCampaign}
                       onChange={(e) => setForm((f) => ({ ...f, utmCampaign: e.target.value }))}
-                      placeholder="promo-noel-2026"
-                      className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-[#5c647a]/60 focus:outline-none focus:border-[#006e2f]/40"
+                      placeholder="promo-rentree"
+                      className="w-full rounded-[12px] bg-white px-[12px] py-[10px] text-[13px] font-semibold focus:outline-none"
+                      style={{ color: ST.text, border: "1px solid #dde6e0" }}
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-semibold text-[#5c647a] mb-1 uppercase tracking-wide">Contenu</label>
+                    <label htmlFor="camp-contenu" className="mb-1 block text-[11px] font-extrabold" style={{ color: ST.textSecondary }}>
+                      Contenu
+                    </label>
                     <input
+                      id="camp-contenu"
                       type="text"
                       value={form.utmContent}
                       onChange={(e) => setForm((f) => ({ ...f, utmContent: e.target.value }))}
-                      placeholder="story-video-1"
-                      className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-[#5c647a]/60 focus:outline-none focus:border-[#006e2f]/40"
+                      placeholder="story-1"
+                      className="w-full rounded-[12px] bg-white px-[12px] py-[10px] text-[13px] font-semibold focus:outline-none"
+                      style={{ color: ST.text, border: "1px solid #dde6e0" }}
                     />
                   </div>
                 </div>
-              </div>
+              </fieldset>
 
-              {/* Preview URL */}
-              {form.destinationUrl && (
-                <div className="bg-gray-50 rounded-xl p-3">
-                  <p className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wide mb-1">Aperçu du lien</p>
-                  <p className="text-[11px] tabular-nums text-[#191c1e] break-all">
-                    {buildUtmUrl({
-                      ...form,
-                      id: "", slug: "", totalClicks: 0, totalConversions: 0, totalRevenue: 0, isActive: true, createdAt: "",
-                    } as Campaign)}
+              {destinationValide && (
+                <div className="rounded-[12px] p-3" style={{ background: "#f4f7f5" }}>
+                  <p className="mb-1 text-[11px] font-extrabold" style={{ color: ST.textSecondary }}>
+                    Le visiteur atterrira sur
+                  </p>
+                  <p className="break-all text-[11.5px] font-semibold tabular-nums" style={{ color: ST.text }}>
+                    {apercuUtm(form)}
+                  </p>
+                  <p className="mt-2 text-[11px] font-bold" style={{ color: ST.textSecondary }}>
+                    Le lien à partager, lui, passera par Novakou pour compter les clics — il s&apos;affichera ici après création.
                   </p>
                 </div>
               )}
             </div>
-
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowForm(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#5c647a] hover:bg-gray-50">
-                Annuler
-              </button>
-              <button
-                onClick={() => createMutation.mutate(form)}
-                disabled={!form.name || !form.destinationUrl || createMutation.isPending}
-                className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50 hover:opacity-90"
-                style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-              >
-                {createMutation.isPending ? "Création…" : "Créer le lien"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Campaigns list */}
-      <div className="space-y-3">
-        {isLoading ? (
-          [0, 1, 2].map((i) => (
-            <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 animate-pulse">
-              <div className="flex items-center justify-between mb-3">
-                <div className="h-4 bg-gray-100 rounded w-40" />
-                <div className="h-4 bg-gray-100 rounded w-16" />
-              </div>
-              <div className="h-3 bg-gray-100 rounded w-64 mb-3" />
-              <div className="flex gap-4">
-                <div className="h-3 bg-gray-100 rounded w-20" />
-                <div className="h-3 bg-gray-100 rounded w-20" />
-                <div className="h-3 bg-gray-100 rounded w-20" />
-              </div>
-            </div>
-          ))
-        ) : campaigns.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm py-16 text-center">
-            <Link2 size={40} className="text-gray-300 mx-auto mb-3" />
-            <p className="font-semibold text-[#191c1e]">Aucun lien de campagne</p>
-            <p className="text-sm text-[#5c647a] mt-1">Créez votre premier lien pour tracker vos sources de trafic</p>
-          </div>
-        ) : (
-          campaigns.map((c) => (
-            <div key={c.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <h3 className="font-bold text-[#191c1e] text-sm truncate">{c.name}</h3>
-                    {c.isActive ? (
-                      <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#006e2f]/10 text-[#006e2f] flex-shrink-0">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#006e2f]" />Actif
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-[#5c647a] flex-shrink-0">
-                        Inactif
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {c.utmSource && <span className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">{c.utmSource}</span>}
-                    {c.utmMedium && <span className="text-[10px] bg-[#e6f5eb] text-[#006e2f] px-2 py-0.5 rounded-full font-medium">{c.utmMedium}</span>}
-                    {c.utmCampaign && <span className="text-[10px] bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full font-medium">{c.utmCampaign}</span>}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <button
-                    onClick={() => toggleMutation.mutate({ id: c.id, isActive: !c.isActive })}
-                    className={`relative w-10 h-5 rounded-full transition-colors ${c.isActive ? "bg-[#006e2f]" : "bg-gray-200"}`}
-                  >
-                    <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${c.isActive ? "left-5" : "left-0.5"}`} />
-                  </button>
-                  <button
-                    onClick={async () => {
-                      const ok = await confirmAction({
-                        title: "Supprimer cette campagne ?",
-                        message: "Cette action est irréversible.",
-                        confirmLabel: "Supprimer",
-                        confirmVariant: "danger",
-                        icon: "delete",
-                      });
-                      if (ok) deleteMutation.mutate(c.id);
-                    }}
-                    className="p-1.5 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-500"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-
-              {/* URL row */}
-              <div className="flex items-center gap-2 mb-4">
-                <code className="flex-1 text-[11px] tabular-nums text-[#5c647a] bg-gray-50 px-3 py-1.5 rounded-lg truncate">
-                  {buildUtmUrl(c)}
-                </code>
-                <button
-                  onClick={() => copyUrl(c)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
-                    copied === c.id ? "bg-[#006e2f]/10 text-[#006e2f]" : "bg-gray-100 text-[#5c647a] hover:bg-gray-200"
-                  }`}
-                >
-                  {copied === c.id ? <Check size={14} /> : <Copy size={14} />}
-                  <span translate="no">{copied === c.id ? "Copié !" : "Copier"}</span>
-                </button>
-              </div>
-
-              {/* Stats */}
-              <div className="grid grid-cols-3 gap-3 pt-3 border-t border-gray-50">
-                {([
-                  { label: "Clics", value: c.totalClicks.toLocaleString("fr-FR"), icon: MousePointerClick, color: "text-blue-600" },
-                  { label: "Conversions", value: c.totalConversions, icon: GitBranch, color: "text-[#22c55e]" },
-                  { label: "Revenus", value: `${formatFCFA(c.totalRevenue)} FCFA`, icon: Banknote, color: "text-[#006e2f]" },
-                ] as { label: string; value: number | string; icon: LucideIcon; color: string }[]).map((stat) => (
-                  <div key={stat.label} className="flex items-center gap-2">
-                    <stat.icon size={16} className={stat.color} />
-                    <div>
-                      <p className="text-sm font-bold text-[#191c1e]">{stat.value}</p>
-                      <p className="text-[10px] text-[#5c647a]">{stat.label}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))
+          </StModal>
         )}
-      </div>
+      </main>
     </div>
   );
 }

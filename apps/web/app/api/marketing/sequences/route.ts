@@ -407,7 +407,7 @@ export async function PUT(req: NextRequest) {
     if (triggerConfig !== undefined) updateData.triggerConfig = triggerConfig;
     if (isActive !== undefined) updateData.isActive = isActive;
 
-    const sequence = await prisma.emailSequence.update({
+    await prisma.emailSequence.update({
       where: { id },
       data: updateData,
     });

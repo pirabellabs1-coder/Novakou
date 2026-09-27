@@ -6,56 +6,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { getOrCreateInstructeurProfile } from "@/lib/formations/prisma-helpers";
 
-// ── DEV MOCK DATA ──────────────────────────────────────────────────────────
-
-const DEV_MODE = process.env.DEV_MODE === "true" || !process.env.DATABASE_URL;
-
-interface MockDiscountCode {
-  id: string;
-  instructeurId: string;
-  code: string;
-  discountType: "PERCENTAGE" | "FIXED_AMOUNT";
-  discountValue: number;
-  scope: "ALL" | "FORMATIONS" | "PRODUCTS" | "SPECIFIC";
-  formationIds: string[];
-  productIds: string[];
-  maxUses: number | null;
-  usedCount: number;
-  maxUsesPerUser: number | null;
-  minOrderAmount: number | null;
-  expiresAt: string | null;
-  isActive: boolean;
-  totalDiscounted: number;
-  revenue: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-const MOCK_DISCOUNTS: MockDiscountCode[] = [];
-
-const devDiscounts = [...MOCK_DISCOUNTS];
-
 // ── GET ──────────────────────────────────────────────────────────────────────
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    if (DEV_MODE) {
-      return NextResponse.json({
-        discounts: devDiscounts,
-        stats: {
-          totalCodes: devDiscounts.length,
-          activeCodes: devDiscounts.filter(
-            (d) =>
-              d.isActive &&
-              !(d.maxUses !== null && d.usedCount >= d.maxUses) &&
-              !(d.expiresAt && new Date(d.expiresAt) < new Date()),
-          ).length,
-          totalUses: devDiscounts.reduce((sum, d) => sum + d.usedCount, 0),
-          totalRevenue: devDiscounts.reduce((sum, d) => sum + d.revenue, 0),
-        },
-      });
-    }
-
     // Production: authenticate + query DB
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -140,37 +94,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Portee invalide" }, { status: 400 });
     }
 
-    if (DEV_MODE) {
-      // Check for duplicate code
-      if (devDiscounts.some((d) => d.code === code.toUpperCase())) {
-        return NextResponse.json({ error: "Ce code existe deja" }, { status: 409 });
-      }
-
-      const newDiscount: MockDiscountCode = {
-        id: `disc_${String(devDiscounts.length + 1).padStart(3, "0")}`,
-        instructeurId: "inst_001",
-        code: code.toUpperCase(),
-        discountType,
-        discountValue,
-        scope,
-        formationIds: formationIds || [],
-        productIds: productIds || [],
-        maxUses: maxUses || null,
-        usedCount: 0,
-        maxUsesPerUser: maxUsesPerUser || null,
-        minOrderAmount: minOrderAmount || null,
-        expiresAt: expiresAt || null,
-        isActive: true,
-        totalDiscounted: 0,
-        revenue: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      devDiscounts.push(newDiscount);
-      return NextResponse.json({ discount: newDiscount }, { status: 201 });
-    }
-
     // Production
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -215,7 +138,9 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, isActive, code, discountValue, discountType, scope, maxUses, maxUsesPerUser, minOrderAmount, expiresAt, formationIds, productIds } = body;
+    // Le PUT ne met a jour que ces champs-la (cf. updateData plus bas) :
+    // inutile de faire croire au client qu'il peut en changer d'autres.
+    const { id, isActive, discountValue, discountType, scope, maxUses, expiresAt } = body;
 
     if (!id) {
       return NextResponse.json({ error: "ID requis" }, { status: 400 });
@@ -243,34 +168,26 @@ export async function PUT(req: NextRequest) {
       }
     }
 
-    if (DEV_MODE) {
-      const index = devDiscounts.findIndex((d) => d.id === id);
-      if (index === -1) {
-        return NextResponse.json({ error: "Code non trouvé" }, { status: 404 });
-      }
-
-      if (isActive !== undefined) devDiscounts[index].isActive = isActive;
-      if (code !== undefined) devDiscounts[index].code = code.toUpperCase();
-      if (discountValue !== undefined) devDiscounts[index].discountValue = discountValue;
-      if (discountType !== undefined) devDiscounts[index].discountType = discountType;
-      if (scope !== undefined) devDiscounts[index].scope = scope;
-      if (maxUses !== undefined) devDiscounts[index].maxUses = maxUses;
-      if (maxUsesPerUser !== undefined) devDiscounts[index].maxUsesPerUser = maxUsesPerUser;
-      if (minOrderAmount !== undefined) devDiscounts[index].minOrderAmount = minOrderAmount;
-      if (expiresAt !== undefined) devDiscounts[index].expiresAt = expiresAt;
-      if (formationIds !== undefined) devDiscounts[index].formationIds = formationIds;
-      if (productIds !== undefined) devDiscounts[index].productIds = productIds;
-      devDiscounts[index].updatedAt = new Date().toISOString();
-
-      return NextResponse.json({ discount: devDiscounts[index] });
-    }
-
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
     const prisma = (await import("@freelancehigh/db")).default;
+
+    // Le code promo doit appartenir au vendeur connecté. Sans ce contrôle,
+    // n'importe quel compte connecté pouvait réactiver, prolonger ou passer à
+    // -95 % le code d'un AUTRE vendeur (argent réel) : `update({ where: { id } })`
+    // ne regarde que l'identifiant fourni par l'appelant.
+    const instructeur = await getOrCreateInstructeurProfile(session.user.id);
+    const owned = await prisma.discountCode.findFirst({
+      where: { id, instructeurId: instructeur.id },
+      select: { id: true },
+    });
+    if (!owned) {
+      return NextResponse.json({ error: "Code introuvable" }, { status: 404 });
+    }
+
     const updateData: Record<string, unknown> = {};
     if (isActive !== undefined) updateData.isActive = isActive;
     if (discountValue !== undefined) updateData.discountValue = discountValue;
@@ -298,21 +215,23 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "ID requis" }, { status: 400 });
     }
 
-    if (DEV_MODE) {
-      const index = devDiscounts.findIndex((d) => d.id === id);
-      if (index === -1) {
-        return NextResponse.json({ error: "Code non trouvé" }, { status: 404 });
-      }
-      devDiscounts.splice(index, 1);
-      return NextResponse.json({ success: true });
-    }
-
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
     const prisma = (await import("@freelancehigh/db")).default;
+
+    // Même garde-fou qu'au PUT : un vendeur ne supprime que SES codes.
+    const instructeur = await getOrCreateInstructeurProfile(session.user.id);
+    const owned = await prisma.discountCode.findFirst({
+      where: { id, instructeurId: instructeur.id },
+      select: { id: true },
+    });
+    if (!owned) {
+      return NextResponse.json({ error: "Code introuvable" }, { status: 404 });
+    }
+
     await prisma.discountCode.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {

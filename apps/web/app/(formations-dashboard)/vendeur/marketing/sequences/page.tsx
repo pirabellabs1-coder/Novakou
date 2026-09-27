@@ -1,10 +1,20 @@
 "use client";
-import { useToastStore } from "@/store/toast";
-import { safeFetch } from "@/lib/safe-fetch";
+
+/**
+ * Séquences email — espace vendeur. Design system « Stitch ».
+ *
+ * Une séquence créée ici démarre INACTIVE et sans étape : tant qu'aucun email
+ * n'y est ajouté, rien ne part. L'écran le dit explicitement plutôt que
+ * d'afficher « 0 abonné » comme si la séquence tournait à vide.
+ */
 
 import { useState } from "react";
+import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToastStore } from "@/store/toast";
+import { safeFetch } from "@/lib/safe-fetch";
 import {
+  type LucideIcon,
   ShoppingCart,
   GraduationCap,
   ShoppingBag,
@@ -13,7 +23,6 @@ import {
   UserPlus,
   MousePointerClick,
   Tag,
-  ChevronRight,
   Plus,
   MailCheck,
   Users,
@@ -21,15 +30,26 @@ import {
   Mail,
   RefreshCw,
   Pencil,
-  X,
-  type LucideIcon,
+  AlertTriangle,
 } from "lucide-react";
+import { ST, StCard, StPageHeader, StButton, StChip, StKpiCompact, StSectionTitle } from "@/components/stitch";
+import { StModal, StErreur, StVide, StRetourMarketing } from "@/components/formations/dashboard/MarketingKit";
 
-type EmailSequence = {
+type Declencheur =
+  | "PURCHASE"
+  | "ENROLLMENT"
+  | "ABANDONED_CART"
+  | "USER_INACTIVITY"
+  | "COURSE_COMPLETION"
+  | "SIGNUP"
+  | "MANUAL"
+  | "TAG_ADDED";
+
+type Sequence = {
   id: string;
   name: string;
   description: string | null;
-  trigger: string;
+  trigger: Declencheur;
   isActive: boolean;
   totalEnrolled: number;
   totalCompleted: number;
@@ -37,266 +57,299 @@ type EmailSequence = {
   _count: { steps: number; enrollments: number };
 };
 
-const TRIGGERS: Record<string, { label: string; icon: LucideIcon; color: string }> = {
-  PURCHASE: { label: "Après achat", icon: ShoppingCart, color: "text-[#006e2f]" },
-  ENROLLMENT: { label: "Inscription formation", icon: GraduationCap, color: "text-blue-600" },
-  ABANDONED_CART: { label: "Panier abandonné", icon: ShoppingBag, color: "text-orange-500" },
-  USER_INACTIVITY: { label: "Inactivité utilisateur", icon: Clock, color: "text-amber-600" },
-  COURSE_COMPLETION: { label: "Cours terminé", icon: BadgeCheck, color: "text-purple-600" },
-  SIGNUP: { label: "Nouvelle inscription liste", icon: UserPlus, color: "text-indigo-600" },
-  MANUAL: { label: "Déclenchement manuel", icon: MousePointerClick, color: "text-gray-500" },
-  TAG_ADDED: { label: "Tag ajouté", icon: Tag, color: "text-pink-500" },
+const DECLENCHEURS: Record<Declencheur, { label: string; icon: LucideIcon; aide: string }> = {
+  PURCHASE: { label: "Après un achat", icon: ShoppingCart, aide: "Dès qu'un paiement est confirmé." },
+  ENROLLMENT: { label: "Inscription à une formation", icon: GraduationCap, aide: "À l'entrée dans une formation." },
+  ABANDONED_CART: { label: "Panier abandonné", icon: ShoppingBag, aide: "Quand un panier reste en plan." },
+  USER_INACTIVITY: { label: "Inactivité", icon: Clock, aide: "Quand l'apprenant ne revient plus." },
+  COURSE_COMPLETION: { label: "Formation terminée", icon: BadgeCheck, aide: "À la dernière leçon validée." },
+  SIGNUP: { label: "Nouvelle inscription", icon: UserPlus, aide: "À la création du compte." },
+  MANUAL: { label: "Déclenchement manuel", icon: MousePointerClick, aide: "Vous décidez du moment." },
+  TAG_ADDED: { label: "Étiquette ajoutée", icon: Tag, aide: "Quand une étiquette est posée sur un contact." },
 };
 
-type AutoData = { workflows: unknown[]; sequences: EmailSequence[] };
+const ETAPES_EXPLICATION = [
+  { n: "1", label: "Déclencheur", desc: "Achat, inscription, inactivité…", icon: Zap },
+  { n: "2", label: "Délai", desc: "Par exemple : attendre 1 jour", icon: Clock },
+  { n: "3", label: "Email", desc: "Votre message, personnalisé", icon: Mail },
+  { n: "4", label: "Répéter", desc: "Autant d'étapes que nécessaire", icon: RefreshCw },
+];
+
+function nombre(n: number) {
+  return new Intl.NumberFormat("fr-FR").format(n);
+}
 
 export default function SequencesPage() {
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: "", description: "", trigger: "PURCHASE" });
+  const [form, setForm] = useState({ name: "", description: "", trigger: "PURCHASE" as Declencheur });
 
-  const { data: response, isLoading } = useQuery<{ data: AutoData } | null>({
+  const { data: reponse, isLoading, isError, refetch } = useQuery<{ data: { sequences: Sequence[] } }>({
     queryKey: ["vendeur-automatisations"],
     queryFn: async () => {
-      const { data, error } = await safeFetch<{ data: AutoData }>("/api/formations/vendeur/automatisations");
-      if (error) useToastStore.getState().addToast("error", error);
+      const { data, error } = await safeFetch<{ data: { sequences: Sequence[] } }>(
+        "/api/formations/vendeur/automatisations",
+      );
+      if (error || !data) throw new Error(error ?? "Chargement impossible");
       return data;
     },
     staleTime: 30_000,
   });
 
-  const sequences = response?.data?.sequences ?? [];
+  const sequences = reponse?.data?.sequences ?? [];
 
-  const createMutation = useMutation({
-    mutationFn: async (body: typeof form) => {
-      const { data, error } = await safeFetch<{ data: EmailSequence; error?: string }>(
-        "/api/formations/vendeur/marketing/sequences",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        }
-      );
-      return { data, error };
+  const creation = useMutation({
+    mutationFn: async (corps: typeof form) => {
+      const { error } = await safeFetch("/api/formations/vendeur/marketing/sequences", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(corps),
+      });
+      if (error) throw new Error(error);
     },
-    onSuccess: (res) => {
-      if (res.error) { useToastStore.getState().addToast("error", res.error); return; }
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["vendeur-automatisations"] });
+      qc.invalidateQueries({ queryKey: ["vendeur-marketing-hub"] });
+      useToastStore.getState().addToast("success", "Séquence créée. Ajoutez-y vos emails pour la lancer.");
       setShowForm(false);
       setForm({ name: "", description: "", trigger: "PURCHASE" });
     },
+    onError: (e: Error) => useToastStore.getState().addToast("error", e.message),
   });
 
-  const activeCount = sequences.filter((s) => s.isActive).length;
-  const totalEnrolled = sequences.reduce((s, seq) => s + seq.totalEnrolled, 0);
-  const totalCompleted = sequences.reduce((s, seq) => s + seq.totalCompleted, 0);
+  const actives = sequences.filter((s) => s.isActive).length;
+  const inscrits = sequences.reduce((s, q) => s + q.totalEnrolled, 0);
+  const terminees = sequences.reduce((s, q) => s + q.totalCompleted, 0);
 
   return (
-    <div className="p-5 md:p-8 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <div>
-          <div className="flex items-center gap-2 text-sm text-[#5c647a] mb-2">
-            <a href="/vendeur/marketing" className="hover:text-[#006e2f] transition-colors">Marketing</a>
-            <ChevronRight className="w-3.5 h-3.5" />
-            <span className="text-[#191c1e] font-medium">Séquences Email</span>
-          </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Séquences Email</h1>
-          <p className="text-sm text-[#5c647a] mt-1">Automatisez vos emails pour accompagner chaque apprenant</p>
-        </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90"
-          style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-        >
-          <Plus className="w-[18px] h-[18px]" />
-          Créer une séquence
-        </button>
-      </div>
+    <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1000px] mx-auto">
+        <StRetourMarketing />
 
-      {/* Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-        {[
-          { label: "Séquences actives", value: activeCount, icon: MailCheck, color: "text-orange-500", bg: "bg-orange-50" },
-          { label: "Abonnés totaux", value: totalEnrolled.toLocaleString("fr-FR"), icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
-          { label: "Séquences complétées", value: totalCompleted.toLocaleString("fr-FR"), icon: BadgeCheck, color: "text-[#006e2f]", bg: "bg-[#006e2f]/10" },
-        ].map((kpi, i) => {
-          const KpiIcon = kpi.icon;
-          return (
-            <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-2 ${kpi.bg}`}>
-                <KpiIcon className={`w-5 h-5 ${kpi.color}`} />
-              </div>
-              <p className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wide">{kpi.label}</p>
-              <p className="text-lg font-extrabold text-[#191c1e] mt-0.5">{isLoading ? "…" : kpi.value}</p>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* How it works */}
-      <div className="bg-orange-50 border border-orange-100 rounded-2xl p-5 mb-6">
-        <h3 className="text-sm font-bold text-orange-800 mb-3">Comment fonctionnent les séquences ?</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-          {[
-            { step: "1", label: "Déclencheur", desc: "Achat, inscription, inactivité…", icon: Zap },
-            { step: "2", label: "Délai", desc: "Ex : attendre 1 jour", icon: Clock },
-            { step: "3", label: "Email envoyé", desc: "Message personnalisé", icon: Mail },
-            { step: "4", label: "Répéter", desc: "Autant d'étapes que voulu", icon: RefreshCw },
-          ].map((s) => {
-            const StepIcon = s.icon;
-            return (
-              <div key={s.step} className="flex items-start gap-3">
-                <div className="w-7 h-7 rounded-full bg-orange-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
-                  {s.step}
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-orange-900 inline-flex items-center gap-1">
-                    <StepIcon className="w-3 h-3" />
-                    {s.label}
-                  </p>
-                  <p className="text-[10px] text-orange-700">{s.desc}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Sequences list */}
-      <div className="space-y-3">
-        {isLoading ? (
-          [0, 1].map((i) => (
-            <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 animate-pulse">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-gray-100 rounded-xl" />
-                <div className="flex-1"><div className="h-4 bg-gray-100 rounded w-40 mb-1" /><div className="h-3 bg-gray-100 rounded w-24" /></div>
-              </div>
-            </div>
-          ))
-        ) : sequences.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm py-16 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-orange-50 flex items-center justify-center mx-auto mb-4">
-              <MailCheck className="w-7 h-7 text-orange-500" />
-            </div>
-            <p className="font-semibold text-[#191c1e]">Aucune séquence email</p>
-            <p className="text-sm text-[#5c647a] mt-1 mb-4">Créez votre première séquence automatique</p>
-            <button
-              onClick={() => setShowForm(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold hover:opacity-90"
-              style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-            >
+        <StPageHeader
+          title="Séquences email"
+          subtitle="Les emails qui partent tout seuls, au bon moment, sans vous."
+          actions={
+            <StButton icon={Plus} onClick={() => setShowForm(true)}>
               Créer une séquence
-            </button>
+            </StButton>
+          }
+        />
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-4">
+          <StKpiCompact label="Séquences actives" value={isLoading ? "…" : actives} icon={MailCheck} tone="green" />
+          <StKpiCompact label="Contacts inscrits" value={isLoading ? "…" : nombre(inscrits)} icon={Users} tone="blue" />
+          <StKpiCompact label="Séquences terminées" value={isLoading ? "…" : nombre(terminees)} icon={BadgeCheck} tone="amber" />
+        </div>
+
+        <StCard className="mb-4">
+          <StSectionTitle>Comment ça marche</StSectionTitle>
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            {ETAPES_EXPLICATION.map((e) => {
+              const Icone = e.icon;
+              return (
+                <div key={e.n} className="flex items-start gap-2.5">
+                  <span
+                    className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-extrabold text-white"
+                    style={{ background: ST.gradient }}
+                    aria-hidden="true"
+                  >
+                    {e.n}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="inline-flex items-center gap-1 text-[12.5px] font-extrabold" style={{ color: ST.text }}>
+                      <Icone size={13} style={{ color: ST.green }} />
+                      {e.label}
+                    </p>
+                    <p className="text-[11px] font-semibold leading-snug" style={{ color: ST.textSecondary }}>
+                      {e.desc}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
+        </StCard>
+
+        {isError ? (
+          <StErreur onRetry={() => refetch()} />
+        ) : isLoading ? (
+          <div className="space-y-3.5">
+            {[0, 1].map((i) => (
+              <StCard key={i}>
+                <div className="flex animate-pulse items-center gap-3">
+                  <div className="h-10 w-10 rounded-[12px]" style={{ background: "#eef2ef" }} />
+                  <div className="flex-1">
+                    <div className="h-3.5 w-40 rounded" style={{ background: "#eef2ef" }} />
+                    <div className="mt-1.5 h-3 w-24 rounded" style={{ background: "#eef2ef" }} />
+                  </div>
+                </div>
+              </StCard>
+            ))}
+          </div>
+        ) : sequences.length === 0 ? (
+          <StVide
+            icon={MailCheck}
+            titre="Aucune séquence email"
+            message="Une séquence « après achat » rassure l'acheteur, réduit les demandes de remboursement et prépare la vente suivante. Trois emails suffisent pour commencer."
+            action={
+              <StButton icon={Plus} onClick={() => setShowForm(true)}>
+                Créer ma première séquence
+              </StButton>
+            }
+          />
         ) : (
-          sequences.map((seq) => {
-            const trig = TRIGGERS[seq.trigger] ?? { label: seq.trigger, icon: Zap, color: "text-gray-500" };
-            const TrigIcon = trig.icon;
-            return (
-              <div key={seq.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-orange-50`}>
-                      <TrigIcon className={`w-5 h-5 ${trig.color}`} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-bold text-[#191c1e] text-sm truncate">{seq.name}</p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] text-[#5c647a]">{trig.label}</span>
-                        <span className="text-[10px] text-[#5c647a]">·</span>
-                        <span className="text-[10px] text-[#5c647a]">{seq._count.steps} étape{seq._count.steps !== 1 ? "s" : ""}</span>
+          <div className="space-y-3.5">
+            {sequences.map((s) => {
+              const d = DECLENCHEURS[s.trigger] ?? { label: s.trigger, icon: Zap, aide: "" };
+              const Icone = d.icon;
+              const taux = s.totalEnrolled > 0 ? Math.round((s.totalCompleted / s.totalEnrolled) * 1000) / 10 : 0;
+              const sansEtape = s._count.steps === 0;
+              return (
+                <StCard key={s.id}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                      <div
+                        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[12px]"
+                        style={{ background: ST.greenSoft, color: ST.green }}
+                      >
+                        <Icone size={19} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-[14px] font-extrabold" style={{ color: ST.text }}>
+                          {s.name}
+                        </p>
+                        <p className="text-[11px] font-bold" style={{ color: ST.textSecondary }}>
+                          {d.label} · {s._count.steps} étape{s._count.steps !== 1 ? "s" : ""}
+                        </p>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${seq.isActive ? "bg-[#006e2f]/10 text-[#006e2f]" : "bg-gray-100 text-[#5c647a]"}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${seq.isActive ? "bg-[#006e2f]" : "bg-gray-300"}`} />
-                      {seq.isActive ? "Active" : "Inactive"}
-                    </span>
-                    <a
-                      href={`/vendeur/marketing/sequences/${seq.id}`}
-                      className="p-1.5 rounded-lg hover:bg-gray-100 text-[#5c647a] hover:text-[#191c1e] transition-colors"
-                      title="Éditer la séquence"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </a>
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-3 mt-4 pt-3 border-t border-gray-50">
-                  {[
-                    { label: "Abonnés", value: seq.totalEnrolled },
-                    { label: "Complétées", value: seq.totalCompleted },
-                    { label: "Taux", value: seq.totalEnrolled > 0 ? `${Math.round((seq.totalCompleted / seq.totalEnrolled) * 100)}%` : "0%" },
-                  ].map((s) => (
-                    <div key={s.label}>
-                      <p className="text-sm font-bold text-[#191c1e]">{s.value}</p>
-                      <p className="text-[10px] text-[#5c647a]">{s.label}</p>
+                    <div className="flex flex-shrink-0 items-center gap-2">
+                      {s.isActive ? <StChip tone="green">Active</StChip> : <StChip tone="neutral">Inactive</StChip>}
+                      <Link
+                        href={`/vendeur/marketing/sequences/${s.id}`}
+                        aria-label={`Modifier la séquence ${s.name}`}
+                        className="flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-black/[.05]"
+                        style={{ color: ST.textSecondary }}
+                      >
+                        <Pencil size={16} />
+                      </Link>
                     </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
+                  </div>
 
-      {/* Create modal */}
-      {showForm && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold text-[#191c1e]">Nouvelle séquence</h2>
-              <button onClick={() => setShowForm(false)} className="p-1.5 rounded-lg hover:bg-gray-100">
-                <X className="w-5 h-5 text-[#5c647a]" />
-              </button>
-            </div>
+                  {sansEtape && (
+                    <p
+                      className="mt-3 flex items-start gap-2 rounded-[10px] p-2.5 text-[11.5px] font-semibold"
+                      style={{ background: ST.amberSoft, color: ST.amberText }}
+                    >
+                      <AlertTriangle size={14} className="mt-px flex-shrink-0" aria-hidden="true" />
+                      Cette séquence n&apos;a encore aucun email : rien ne partira tant que vous n&apos;en aurez pas
+                      ajouté.
+                    </p>
+                  )}
+
+                  <div className="mt-3.5 grid grid-cols-3 gap-3 pt-3" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                    {[
+                      { label: "Inscrits", valeur: nombre(s.totalEnrolled) },
+                      { label: "Terminées", valeur: nombre(s.totalCompleted) },
+                      { label: "Achèvement", valeur: s.totalEnrolled > 0 ? `${taux} %` : "—" },
+                    ].map((k) => (
+                      <div key={k.label}>
+                        <p className="text-[14px] font-extrabold tabular-nums" style={{ color: ST.text }}>
+                          {k.valeur}
+                        </p>
+                        <p className="text-[10.5px] font-bold" style={{ color: ST.textSecondary }}>
+                          {k.label}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </StCard>
+              );
+            })}
+          </div>
+        )}
+
+        {showForm && (
+          <StModal
+            titre="Nouvelle séquence"
+            onClose={() => setShowForm(false)}
+            pied={
+              <>
+                <StButton variant="secondary" className="flex-1" onClick={() => setShowForm(false)}>
+                  Annuler
+                </StButton>
+                <StButton
+                  className="flex-1"
+                  disabled={form.name.trim().length < 2 || creation.isPending}
+                  onClick={() => creation.mutate(form)}
+                >
+                  {creation.isPending ? "Création…" : "Créer la séquence"}
+                </StButton>
+              </>
+            }
+          >
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[#5c647a] mb-1.5 uppercase tracking-wide">Nom de la séquence *</label>
+                <label htmlFor="seq-nom" className="mb-[7px] block text-[12px] font-extrabold" style={{ color: ST.textLabel }}>
+                  Nom de la séquence <span style={{ color: ST.roseText }}>*</span>
+                </label>
                 <input
-                  type="text" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  placeholder="Ex: Bienvenue après achat React"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-[#5c647a]/60 focus:outline-none focus:border-[#006e2f]/40 focus:ring-2 focus:ring-[#006e2f]/10"
+                  id="seq-nom"
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                  placeholder="Ex. Bienvenue après achat"
+                  className="w-full rounded-[12px] bg-white px-[14px] py-[11px] text-[13.5px] font-semibold focus:outline-none"
+                  style={{ color: ST.text, border: "1px solid #dde6e0" }}
                 />
               </div>
+
               <div>
-                <label className="block text-xs font-semibold text-[#5c647a] mb-1.5 uppercase tracking-wide">Déclencheur *</label>
+                <label htmlFor="seq-declencheur" className="mb-[7px] block text-[12px] font-extrabold" style={{ color: ST.textLabel }}>
+                  Déclencheur <span style={{ color: ST.roseText }}>*</span>
+                </label>
                 <select
-                  value={form.trigger} onChange={(e) => setForm((f) => ({ ...f, trigger: e.target.value }))}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-[#191c1e] focus:outline-none focus:border-[#006e2f]/40 bg-white"
+                  id="seq-declencheur"
+                  value={form.trigger}
+                  onChange={(e) => setForm((f) => ({ ...f, trigger: e.target.value as Declencheur }))}
+                  className="w-full rounded-[12px] bg-white px-[14px] py-[11px] text-[13.5px] font-semibold focus:outline-none"
+                  style={{ color: ST.text, border: "1px solid #dde6e0" }}
                 >
-                  {Object.entries(TRIGGERS).map(([key, t]) => (
-                    <option key={key} value={key}>{t.label}</option>
+                  {(Object.keys(DECLENCHEURS) as Declencheur[]).map((k) => (
+                    <option key={k} value={k}>
+                      {DECLENCHEURS[k].label}
+                    </option>
                   ))}
                 </select>
+                <p className="mt-1.5 text-[11.5px] font-bold" style={{ color: ST.textSecondary }}>
+                  {DECLENCHEURS[form.trigger].aide}
+                </p>
               </div>
+
               <div>
-                <label className="block text-xs font-semibold text-[#5c647a] mb-1.5 uppercase tracking-wide">Description</label>
+                <label htmlFor="seq-desc" className="mb-[7px] block text-[12px] font-extrabold" style={{ color: ST.textLabel }}>
+                  Description
+                </label>
                 <textarea
-                  value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                  placeholder="Décrivez l'objectif de cette séquence"
+                  id="seq-desc"
                   rows={2}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-[#5c647a]/60 focus:outline-none focus:border-[#006e2f]/40 resize-none"
+                  value={form.description}
+                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                  placeholder="À quoi sert cette séquence ? (note interne)"
+                  className="w-full resize-none rounded-[12px] bg-white px-[14px] py-[11px] text-[13.5px] font-medium leading-relaxed focus:outline-none"
+                  style={{ color: "#33453b", border: "1px solid #dde6e0" }}
                 />
               </div>
+
+              <p className="text-[11.5px] font-semibold" style={{ color: ST.textSecondary }}>
+                La séquence est créée en pause : vous ajouterez ses emails à l&apos;étape suivante, puis vous
+                l&apos;activerez.
+              </p>
             </div>
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowForm(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#5c647a] hover:bg-gray-50">
-                Annuler
-              </button>
-              <button
-                onClick={() => createMutation.mutate(form)}
-                disabled={!form.name || createMutation.isPending}
-                className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50 hover:opacity-90"
-                style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-              >
-                {createMutation.isPending ? "Création…" : "Créer la séquence"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </StModal>
+        )}
+      </main>
     </div>
   );
 }

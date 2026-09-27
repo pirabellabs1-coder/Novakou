@@ -197,7 +197,11 @@ export default function OrderBumpsPage() {
   return (
     <div className="p-5 md:p-8 max-w-6xl mx-auto">
       {toast && (
-        <div className="fixed top-20 right-6 z-50 bg-zinc-900 text-white px-5 py-3 text-xs font-bold uppercase tracking-widest shadow-2xl">
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed top-20 right-6 z-50 bg-zinc-900 text-white px-5 py-3 text-xs font-bold uppercase tracking-widest shadow-2xl"
+        >
           {toast}
         </div>
       )}
@@ -302,24 +306,32 @@ export default function OrderBumpsPage() {
                   </div>
                   <div className="flex gap-1">
                     <button
+                      type="button"
                       onClick={() => openEdit(b)}
                       className="p-2 rounded-lg hover:bg-gray-100 text-[#5c647a] hover:text-[#006e2f]"
+                      aria-label={`Modifier l'order bump ${b.title}`}
                       title="Modifier"
                     >
                       <Pencil className="w-[18px] h-[18px]" />
                     </button>
                     <button
+                      type="button"
+                      role="switch"
+                      aria-checked={b.isActive}
                       onClick={() => toggleMut.mutate({ id: b.id, isActive: !b.isActive })}
                       disabled={toggleMut.isPending}
-                      className="p-2 rounded-lg hover:bg-gray-100 text-[#5c647a] hover:text-[#191c1e]"
+                      className="p-2 rounded-lg hover:bg-gray-100 text-[#5c647a] hover:text-[#191c1e] disabled:opacity-50"
+                      aria-label={`${b.isActive ? "Désactiver" : "Activer"} l'order bump ${b.title}`}
                       title={b.isActive ? "Désactiver" : "Activer"}
                     >
                       {b.isActive ? <ToggleRight className="w-[18px] h-[18px]" /> : <ToggleLeft className="w-[18px] h-[18px]" />}
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleDelete(b)}
                       disabled={deleteMut.isPending}
-                      className="p-2 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-500"
+                      className="p-2 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-500 disabled:opacity-50"
+                      aria-label={`Supprimer l'order bump ${b.title}`}
                       title="Supprimer"
                     >
                       <Trash2 className="w-[18px] h-[18px]" />
@@ -339,10 +351,13 @@ export default function OrderBumpsPage() {
           onClick={() => !saveMut.isPending && setShowCreate(false)}
         >
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="bump-modal-titre"
             className="bg-white rounded-3xl max-w-xl w-full p-7 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-xl font-extrabold text-[#191c1e] mb-2">
+            <h2 id="bump-modal-titre" className="text-xl font-extrabold text-[#191c1e] mb-2">
               {editingId ? "Modifier l'Order Bump" : "Nouveau Order Bump"}
             </h2>
             <p className="text-sm text-[#5c647a] mb-5">
