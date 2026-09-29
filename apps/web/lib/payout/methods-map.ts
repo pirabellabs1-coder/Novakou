@@ -66,8 +66,11 @@ export const PAYOUT_METHOD_MAP: Record<string, PayoutMethodMapping> = {
   // deux sens — mtn_open et moov le montrent. Si leur API le refusait malgre
   // tout, le versement echouerait sans deplacer d'argent : le reseau vise est
   // le bon, seule l'acceptation reste a confirmer par un vrai retrait.
+  // Endpoint et réseau relevés dans la documentation officielle FeexPay V2
+  // (Benin → CELTIIS BJ), le 2026-09-29.
   celtiis_bj: {
     country: "bj", currency: "XOF",
+    feexpay: { endpoint: "celtiis_bj", network: "CELTIIS BJ" },
     fedapay: { mode: "sbin" },
   },
 

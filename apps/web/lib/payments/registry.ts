@@ -202,12 +202,17 @@ export const OPERATORS: Record<string, OperatorEntry> = {
       feexpay: { code: "transfer/global", params: { network: "MOOV" } } } },
   celtiis_bj: {
     label: "Celtiis Cash (Bénin)", country: "bj", currency: "XOF", family: "mobile_money",
-    // Route fedapay retirée le 2026-09-24. ATTENTION : Celtiis Bénin n'est
-    // couvert QUE par FeexPay en collect maintenant. Versement Celtiis :
-    // AUCUNE passerelle branchée ne le sait — Celtiis n'est plus proposé au
-    // retrait tant qu'une passerelle payante ne l'ouvre pas explicitement.
+    // Route fedapay retirée le 2026-09-24. Celtiis Bénin est couvert par
+    // FeexPay dans les deux sens.
+    // VERSEMENT ouvert le 2026-09-29 : la documentation officielle FeexPay V2
+    // (docs.feexpay.me, « API - Payout » → Benin → CELTIIS BJ) décrit un
+    // endpoint dédié POST /api/payouts/public/celtiis_bj, réseau « CELTIIS BJ »,
+    // numéro à 10 chiffres préfixé 229, minimum 50 F. FeexPay encaisse déjà
+    // Celtiis pour notre boutique. Le premier retrait réel confirmera
+    // l'activation : s'il est refusé, aucun argent ne bouge et le solde reste
+    // disponible.
     collect: { feexpay: { code: "CELTIIS BJ" } },
-    payout: {} },
+    payout: { feexpay: { code: "celtiis_bj" } } },
   coris_bj: {
     label: "Coris Money (Bénin)", country: "bj", currency: "XOF", family: "mobile_money",
     collect: { feexpay: { code: "CORIS" } },
