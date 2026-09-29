@@ -418,17 +418,9 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
           </aside>
 
           <div className="grid gap-6 lg:col-start-1 lg:row-start-3 lg:self-start">
-            <SectionFiche id="description" eyebrow="À propos de ce produit">
-              {product.description ? (
-                <div className="nkf-prose">
-                  {/* Rendu unifié HTML/Markdown — identique à l'éditeur (nk-rich) */}
-                  <TiptapRenderer content={product.description} />
-                </div>
-              ) : (
-                <p className="text-sm text-[#5c6b62]">Aucune description fournie pour ce produit.</p>
-              )}
-            </SectionFiche>
-
+            {/* « Ce que vous obtenez » juste après la couverture, AVANT la
+                description : l'acheteur voit d'abord ce qu'il reçoit (format,
+                accès, aperçu) — demande du fondateur, 2026-09-29. */}
             <SectionFiche id="inclus" titre="Ce que vous obtenez" eyebrow="Inclus">
               <ListeCoches
                 items={[
@@ -459,6 +451,17 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                     <div className="mt-4">{apercuOuvert && <ApercuPdf produitId={product.id} titre={product.title} />}</div>
                   </Accordeon>
                 </div>
+              )}
+            </SectionFiche>
+
+            <SectionFiche id="description" eyebrow="À propos de ce produit">
+              {product.description ? (
+                <div className="nkf-prose">
+                  {/* Rendu unifié HTML/Markdown — identique à l'éditeur (nk-rich) */}
+                  <TiptapRenderer content={product.description} />
+                </div>
+              ) : (
+                <p className="text-sm text-[#5c6b62]">Aucune description fournie pour ce produit.</p>
               )}
             </SectionFiche>
 

@@ -228,14 +228,8 @@ export default function BundlePageClient({ bundle }: { bundle: Bundle }) {
           </div>
 
           <div className="grid gap-6 lg:col-start-1 lg:row-start-3 lg:self-start">
-            {bundle.description && (
-              <SectionFiche id="description" eyebrow="À propos de ce pack">
-                <div className="nkf-prose">
-                  <TiptapRenderer content={bundle.description} />
-                </div>
-              </SectionFiche>
-            )}
-
+            {/* Le contenu du pack avant sa description : l'acheteur voit d'abord
+                ce qu'il reçoit — même ordre que la fiche produit (2026-09-29). */}
             <SectionFiche id="contenu" titre={`Ce pack contient (${n})`} eyebrow="Inclus" meta={`Valeur séparée : ${fmtFCFA(bundle.itemsSum)}`}>
               <ul className="m-0 grid list-none gap-2.5 p-0">
                 {bundle.items.map((it) => {
@@ -275,6 +269,14 @@ export default function BundlePageClient({ bundle }: { bundle: Bundle }) {
                 })}
               </ul>
             </SectionFiche>
+
+            {bundle.description && (
+              <SectionFiche id="description" eyebrow="À propos de ce pack">
+                <div className="nkf-prose">
+                  <TiptapRenderer content={bundle.description} />
+                </div>
+              </SectionFiche>
+            )}
 
             <SectionFiche id="faq" titre="Questions fréquentes" eyebrow="Avant d'acheter">
               <FaqFiche items={FAQ_PACK} />
