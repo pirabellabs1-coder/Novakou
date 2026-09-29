@@ -50,7 +50,17 @@ export async function GET(request: NextRequest) {
 
   // ── 1. Le trajet FeexPay ─────────────────────────────────────────────────
   let trajet: { ok: boolean; detail: string } = { ok: true, detail: "proxy non configuré — contrôle sauté" };
-  if (isPayoutProxyConfigured()) {
+  // Ce contrôle consomme une requête du forfait du proxy (Fixie Commuter :
+  // 2 500 par mois). Lancé chaque heure, il en coûtait environ 720 par mois,
+  // près d'un tiers du forfait pour un simple contrôle de santé. Toutes les
+  // 6 h suffisent : un versement réel alerte de lui-même si le proxy tombe
+  // (lib/payout/proxy-fetch.ts). Le reste de la sonde (retraits bloqués)
+  // continue de tourner chaque heure.
+  const heureDeControle = new Date().getUTCHours() % 6 === 0;
+  if (isPayoutProxyConfigured() && !heureDeControle) {
+    trajet = { ok: true, detail: "contrôle du proxy espacé — toutes les 6 h" };
+  }
+  if (isPayoutProxyConfigured() && heureDeControle) {
     try {
       const r = await payoutFetch("https://api-v2.feexpay.me/api/payouts/status/public/sonde-novakou", {
         method: "GET",
