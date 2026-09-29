@@ -35,7 +35,11 @@ export const maxDuration = 60;
 const FEEXPAY_COLLECT = "https://api-v2.feexpay.me/api/transactions/requesttopay/integration";
 
 /** Numéros syntaxiquement valides, jamais attribués à un vrai client. */
-const NUMERO_TEST: Record<string, string> = { "WAVE CI": "2250700000000", "WAVE SN": "221770000000" };
+const NUMERO_TEST: Record<string, string> = {
+  "WAVE CI": "2250700000000",
+  "WAVE SN": "221770000000",
+  "WAVE BF": "22670000000",
+};
 
 type SondeFeexpay = {
   reseau: string;
@@ -43,13 +47,19 @@ type SondeFeexpay = {
   code: string | null;
   message: string | null;
   referenceRecue: boolean;
+  /**
+   * Wave ne sonne pas sur le téléphone : l'acheteur doit OUVRIR un lien de
+   * paiement Wave. Une référence sans lien = une vente qui attend un paiement
+   * que personne ne peut faire. C'est donc le vrai critère d'ouverture.
+   */
+  lienDePaiement: string | null;
   verdict: "ACTIF" | "NON_ACTIVE_SUR_LE_COMPTE" | "INDETERMINE";
 };
 
 async function sonderWaveFeexpay(reseau: string): Promise<SondeFeexpay> {
   const [apiKey, shop] = await Promise.all([credential("feexpay", "apiKey"), credential("feexpay", "shopId")]);
   if (!apiKey || !shop) {
-    return { reseau, http: null, code: null, message: "identifiants FeexPay absents", referenceRecue: false, verdict: "INDETERMINE" };
+    return { reseau, http: null, code: null, message: "identifiants FeexPay absents", referenceRecue: false, lienDePaiement: null, verdict: "INDETERMINE" };
   }
   try {
     const res = await fetch(FEEXPAY_COLLECT, {
@@ -69,19 +79,28 @@ async function sonderWaveFeexpay(reseau: string): Promise<SondeFeexpay> {
         first_name: "Diagnostic",
         email: "",
         otp: "",
+        // Comme le vrai paiement (lib/feexpay.ts) : les réseaux à page de
+        // confirmation s'en servent comme point de retour.
+        merchant_domain: "www.novakou.com",
       }),
     });
-    const json = (await res.json().catch(() => ({}))) as { reference?: string; transaction_id?: string; code?: string; message?: string };
+    const json = (await res.json().catch(() => ({}))) as {
+      reference?: string; transaction_id?: string; code?: string; message?: string; payment_url?: string;
+    };
     const referenceRecue = Boolean(json.reference || json.transaction_id);
+    // On ne garde que l'hôte du lien : la preuve, pas la session de paiement.
+    const lienDePaiement = (() => {
+      try { return json.payment_url ? new URL(json.payment_url).host : null; } catch { return null; }
+    })();
     const texte = `${json.code ?? ""} ${json.message ?? ""}`;
     const verdict: SondeFeexpay["verdict"] = referenceRecue
       ? "ACTIF"
       : /aggregated|not configured|not enabled|not_enabled|non activ/i.test(texte)
         ? "NON_ACTIVE_SUR_LE_COMPTE"
         : "INDETERMINE";
-    return { reseau, http: res.status, code: json.code ?? null, message: (json.message ?? null)?.slice(0, 200) ?? null, referenceRecue, verdict };
+    return { reseau, http: res.status, code: json.code ?? null, message: (json.message ?? null)?.slice(0, 200) ?? null, referenceRecue, lienDePaiement, verdict };
   } catch (e) {
-    return { reseau, http: null, code: null, message: e instanceof Error ? e.message : String(e), referenceRecue: false, verdict: "INDETERMINE" };
+    return { reseau, http: null, code: null, message: e instanceof Error ? e.message : String(e), referenceRecue: false, lienDePaiement: null, verdict: "INDETERMINE" };
   }
 }
 
@@ -126,7 +145,7 @@ export async function GET(request: NextRequest) {
   // ── FeexPay : Wave, la question ouverte depuis le 2026-08-08 ─────────────
   let feexpay: unknown = { erreur: "non configuré" };
   if (await hasCredentials("feexpay")) {
-    feexpay = { wave: await Promise.all(["WAVE CI", "WAVE SN"].map(sonderWaveFeexpay)) };
+    feexpay = { wave: await Promise.all(["WAVE CI", "WAVE SN", "WAVE BF"].map(sonderWaveFeexpay)) };
   }
 
   return NextResponse.json({ genereLe: new Date().toISOString(), pawapay, feexpay });
