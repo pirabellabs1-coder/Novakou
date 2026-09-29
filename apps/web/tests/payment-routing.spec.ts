@@ -27,6 +27,11 @@ const FEEXPAY_NETWORKS = new Set([
   "ORANGE BF", "MOOV BF",                  // Burkina Faso
   "MTN CG",                                // Congo Brazzaville
   "ORANGE SN", "FREE SN",                  // Sénégal
+  // Wave Sénégal : absent de NETWORK_API_MAPPING, mais listé par la
+  // documentation officielle V2 (API - Payin → Senegal → WAVE SENEGAL, et
+  // table des réseaux du SDK JavaScript). Libellé « WAVE SN » confirmé par la
+  // sonde du 2026-09-29 : demande acceptée ET vrai lien pay.wave.com renvoyé.
+  "WAVE SN",
   "MOOV TG", "TOGOCOM TG",                 // Togo
 ]);
 

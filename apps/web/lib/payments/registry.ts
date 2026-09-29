@@ -288,7 +288,15 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     // À rouvrir avec `feexpay: { code: "WAVE SN" }` dès qu'un paiement de test
     // validé SUR UN TÉLÉPHONE Wave Sénégal a abouti — ou qu'une liste FeexPay
     // porte ce code.
-    collect: {},
+    //
+    // ROUVERT le 2026-09-29, critère rempli : la documentation officielle
+    // FeexPay V2 liste désormais WAVE SENEGAL à l'encaissement (endpoint dédié
+    // requesttopay/wave_sn, et table des réseaux du SDK JavaScript). La sonde
+    // du jour (cron/diagnostic-couverture) a obtenu, sur NOTRE boutique, une
+    // référence ET un vrai lien de paiement pay.wave.com. Le pire cas redouté —
+    // « transaction initiée » sans rien à payer — est écarté : l'acheteur est
+    // envoyé sur la page Wave elle-même (payment/init → checkout_url).
+    collect: { feexpay: { code: "WAVE SN" } },
     payout: { feexpay: { code: "wave_sn" } } },
   freemoney_sn: {
     label: "YAS (ex-Free Money, Sénégal)", country: "sn", currency: "XOF", family: "mobile_money",
