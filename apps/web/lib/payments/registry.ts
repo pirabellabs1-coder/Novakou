@@ -466,6 +466,16 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     label: "Africell Money (RD Congo)", country: "cd", currency: "CDF", family: "mobile_money",
     collect: {},
     payout: {} },
+  // Ouvert le 2026-09-29. Code relevé dans la configuration ACTIVE de notre
+  // compte PawaPay (/v2/active-conf) : VODACOM_MPESA_COD, dépôt OPERATIONAL en
+  // CDF et en USD. C'était le seul opérateur actif chez PawaPay que Novakou ne
+  // proposait pas — alors que M-Pesa est le premier réseau de la RD Congo.
+  // Facturé en CDF, comme Orange et Airtel RD Congo.
+  vodacom_cd: {
+    label: "Vodacom M-Pesa (RD Congo)", country: "cd", currency: "CDF", family: "mobile_money",
+    collect: { pawapay: { code: "VODACOM_MPESA_COD" } },
+    // Versement : fermé, comme tout PawaPay (aucun PAYOUT sur le compte).
+    payout: {} },
   airtel_ug: {
     label: "Airtel Money (Ouganda)", country: "ug", currency: "UGX", family: "mobile_money",
     collect: {
