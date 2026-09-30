@@ -192,55 +192,87 @@ export default function TresoreriePage() {
           </div>
         </div>
 
+        {/* Toutes les passerelles sont des cartes. Celles qui exposent un solde
+            l'affichent (compté dans le total en tête) ; FeexPay et Monetbil ne
+            l'exposent pas — on montre alors leur FLUX sur la période (encaissé
+            moins versé), clairement distinct d'un solde et jamais ajouté au
+            total « disponible ». Demande du fondateur : voir FeexPay ici. */}
         <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x" style={{ borderColor: ST.divider }}>
-          {(data?.soldes ?? []).filter((x) => x.disponible).map((x) => (
-            <div key={x.passerelle} className="px-5 py-4">
-              <div className="flex items-center gap-2.5">
-                <Pastille p={x.passerelle} taille={30} />
-                <div className="min-w-0">
-                  <div className="text-[14px] font-extrabold" style={{ color: ST.text }}>{nom(x.passerelle)}</div>
-                  <div className="text-[11px] font-semibold" style={{ color: ST.textMuted }}>solde lu chez la passerelle</div>
-                </div>
-                <div className="ml-auto text-[22px] font-extrabold tabular-nums whitespace-nowrap" style={{ color: ST.text }}>
-                  {fmtCourt(x.totalFcfa)} <span className="text-[12px] font-bold" style={{ color: ST.textMuted }}>F</span>
-                </div>
-              </div>
-              {x.lignes.length > 1 || (x.lignes[0] && x.lignes[0].devise !== "XOF") ? (
-                <ul className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
-                  {x.lignes.map((l, i) => (
-                    <li key={i} className="flex items-baseline justify-between gap-2 text-[12px]">
-                      <span className="font-semibold truncate" style={{ color: ST.textSecondary }}>{l.libelle}</span>
-                      <span className="tabular-nums font-bold whitespace-nowrap" style={{ color: ST.text }}>
-                        {fmtCourt(l.solde)} {l.devise}
-                        {l.devise !== "XOF" && l.devise !== "XAF" && (
-                          <span className="ml-1 font-semibold" style={{ color: ST.textMuted }}>≈ {fmtCourt(l.soldeFcfa)} F</span>
-                        )}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </div>
-          ))}
-          {!isLoading && (data?.soldes ?? []).filter((x) => x.disponible).length === 0 && (
-            <div className="px-5 py-6 text-[13px] font-semibold md:col-span-2" style={{ color: ST.textMuted }}>
-              Aucune passerelle n'a pu être lue — les cartes ci-dessous indiquent pourquoi.
-            </div>
-          )}
-        </div>
+          {[...(data?.soldes ?? [])]
+            .sort((a, b) => Number(b.disponible) - Number(a.disponible))
+            .map((x) => {
+              if (x.disponible) {
+                return (
+                  <div key={x.passerelle} className="px-5 py-4">
+                    <div className="flex items-center gap-2.5">
+                      <Pastille p={x.passerelle} taille={30} />
+                      <div className="min-w-0">
+                        <div className="text-[14px] font-extrabold" style={{ color: ST.text }}>{nom(x.passerelle)}</div>
+                        <div className="text-[11px] font-semibold" style={{ color: ST.textMuted }}>solde lu chez la passerelle</div>
+                      </div>
+                      <div className="ml-auto text-[22px] font-extrabold tabular-nums whitespace-nowrap" style={{ color: ST.text }}>
+                        {fmtCourt(x.totalFcfa)} <span className="text-[12px] font-bold" style={{ color: ST.textMuted }}>F</span>
+                      </div>
+                    </div>
+                    {x.lignes.length > 1 || (x.lignes[0] && x.lignes[0].devise !== "XOF") ? (
+                      <ul className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                        {x.lignes.map((l, i) => (
+                          <li key={i} className="flex items-baseline justify-between gap-2 text-[12px]">
+                            <span className="font-semibold truncate" style={{ color: ST.textSecondary }}>{l.libelle}</span>
+                            <span className="tabular-nums font-bold whitespace-nowrap" style={{ color: ST.text }}>
+                              {fmtCourt(l.solde)} {l.devise}
+                              {l.devise !== "XOF" && l.devise !== "XAF" && (
+                                <span className="ml-1 font-semibold" style={{ color: ST.textMuted }}>≈ {fmtCourt(l.soldeFcfa)} F</span>
+                              )}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
+                );
+              }
 
-        {(data?.soldes ?? []).some((x) => !x.disponible) && (
-          <div className="px-5 py-3 border-t flex flex-wrap items-center gap-x-5 gap-y-1.5" style={{ borderColor: ST.divider, background: "#fafbfa" }}>
-            <span className="text-[11px] font-extrabold uppercase tracking-wide" style={{ color: ST.textMuted }}>Non lisible par API</span>
-            {(data?.soldes ?? []).filter((x) => !x.disponible).map((x) => (
-              <span key={x.passerelle} className="inline-flex items-center gap-1.5 text-[12px]" title={x.note ?? ""}>
-                <Pastille p={x.passerelle} taille={18} />
-                <span className="font-bold" style={{ color: ST.textSecondary }}>{nom(x.passerelle)}</span>
-                <span style={{ color: ST.textMuted }}>— {x.note?.startsWith("injoignable") ? "injoignable" : x.note?.startsWith("non configur") ? "non configurée" : "à voir sur son tableau de bord"}</span>
-              </span>
-            ))}
-          </div>
-        )}
+              // Passerelle sans solde par API : injoignable, non configurée, ou
+              // simplement muette (FeexPay, Monetbil) → on montre le flux.
+              const injoignable = x.note?.startsWith("injoignable") ?? false;
+              const nonConfig = x.note?.startsWith("non configur") ?? false;
+              const muette = !injoignable && !nonConfig;
+              const t = (data?.totaux ?? []).find((u) => u.passerelle === x.passerelle);
+              const flux = t ? t.entrees - t.sorties : null;
+              return (
+                <div key={x.passerelle} className="px-5 py-4">
+                  <div className="flex items-center gap-2.5">
+                    <Pastille p={x.passerelle} taille={30} />
+                    <div className="min-w-0">
+                      <div className="text-[14px] font-extrabold" style={{ color: ST.text }}>{nom(x.passerelle)}</div>
+                      <div className="text-[11px] font-semibold" style={{ color: ST.textMuted }}>
+                        {injoignable ? "passerelle injoignable" : nonConfig ? "non configurée" : "solde non exposé — flux sur la période"}
+                      </div>
+                    </div>
+                    <div className="ml-auto text-[22px] font-extrabold tabular-nums whitespace-nowrap" style={{ color: ST.textMuted }}>
+                      {muette && flux != null ? (
+                        <>{fmtCourt(flux)} <span className="text-[12px] font-bold">F</span></>
+                      ) : (
+                        "—"
+                      )}
+                    </div>
+                  </div>
+                  {muette && (
+                    <div className="mt-2 text-[11px] font-semibold" style={{ color: ST.textMuted }}>
+                      {t
+                        ? `Encaissé ${fmtCourt(t.entrees)} F · versé ${fmtCourt(t.sorties)} F sur la période. `
+                        : "Aucun mouvement sur la période. "}
+                      Solde réel à lire sur le tableau de bord {nom(x.passerelle)}.
+                    </div>
+                  )}
+                  {!muette && x.note && (
+                    <div className="mt-2 text-[11px] font-semibold" style={{ color: ST.textMuted }}>{x.note}</div>
+                  )}
+                </div>
+              );
+            })}
+        </div>
       </StCard>
 
       {/* ── 2. Filtres ───────────────────────────────────────────────── */}
