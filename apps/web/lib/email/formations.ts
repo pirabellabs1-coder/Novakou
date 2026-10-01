@@ -11,32 +11,37 @@ function emailLayout(content: string, lang: "fr" | "en" = "fr", variant: "defaul
   const headerBg = variant === "celebration"
     ? "linear-gradient(135deg,#22c55e 0%,#10b981 50%,#06b6d4 100%)"
     : "linear-gradient(135deg,#006e2f,#22c55e)";
+  // Largeur 600 px : la norme des emails (Gmail/Outlook la rendent sans la
+  // compresser). L'ancien 720 px s'affichait étriqué, le contenu « serré au
+  // milieu » entouré de blanc. En-tête en bandeau de marque plutôt que blanc
+  // plat, et plus de respiration verticale.
   return `
 <!DOCTYPE html>
 <html lang="${lang}">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-  <div style="max-width:720px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;margin-top:40px;margin-bottom:40px;box-shadow:0 8px 24px rgba(0,110,47,0.12);">
-    <!-- Header -->
-    <div style="background:#ffffff;padding:28px 40px;text-align:center;border-bottom:1px solid #e5e7eb;">
-      <img src="${APP_URL}/apple-icon" alt="Novakou" width="56" height="56" style="display:inline-block;border-radius:12px;vertical-align:middle;" />
-      <span style="display:inline-block;vertical-align:middle;margin-left:12px;color:#111827;font-size:24px;font-weight:800;letter-spacing:-0.5px;">Novakou</span>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light only"></head>
+<body style="margin:0;padding:0;background:#eef2f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <div style="width:100%;background:#eef2f0;padding:32px 16px;">
+  <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(3,35,20,0.10);">
+    <!-- Header : bandeau de marque -->
+    <div style="background:${headerBg};padding:30px 40px;text-align:center;">
+      <img src="${APP_URL}/apple-icon" alt="Novakou" width="46" height="46" style="display:inline-block;border-radius:11px;vertical-align:middle;background:#ffffff;" />
+      <span style="display:inline-block;vertical-align:middle;margin-left:12px;color:#ffffff;font-size:23px;font-weight:800;letter-spacing:-0.5px;">Novakou</span>
     </div>
     <!-- Content -->
-    <div style="padding:40px;">
+    <div style="padding:36px 40px;">
       ${content}
     </div>
     <!-- Footer -->
-    <div style="padding:28px 40px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center;">
-      <p style="color:#6b7280;font-size:13px;font-weight:600;margin:0 0 12px;">${lang === "fr" ? "— L'équipe Novakou 💚" : "— The Novakou Team 💚"}</p>
-      <p style="color:#9ca3af;font-size:11px;margin:0 0 8px;">
+    <div style="padding:26px 40px;background:#f6f8f7;border-top:1px solid #e9eeeb;text-align:center;">
+      <p style="color:#5c6b62;font-size:13px;font-weight:600;margin:0 0 12px;">${lang === "fr" ? "— L'équipe Novakou 💚" : "— The Novakou Team 💚"}</p>
+      <p style="color:#9ca3af;font-size:11px;margin:0 0 8px;line-height:1.8;">
         <a href="${APP_URL}" style="color:#006e2f;text-decoration:none;font-weight:600;">Accueil</a> ·
-        <a href="${APP_URL}/apprenant/mes-formations" style="color:#006e2f;text-decoration:none;font-weight:600;">${lang === "fr" ? "Mes formations" : "My courses"}</a> ·
-        <a href="${APP_URL}/vendeur/dashboard" style="color:#006e2f;text-decoration:none;font-weight:600;">${lang === "fr" ? "Mes ventes" : "My sales"}</a> ·
+        <a href="${APP_URL}/apprenant/mes-formations" style="color:#006e2f;text-decoration:none;font-weight:600;">${lang === "fr" ? "Mes achats" : "My purchases"}</a> ·
         <a href="${APP_URL}/contact" style="color:#006e2f;text-decoration:none;font-weight:600;">Support</a>
       </p>
-      <p style="color:#d1d5db;font-size:10px;margin:8px 0 0;">© 2026 Novakou — ${lang === "fr" ? "Édité par" : "Published by"} Pirabel Labs</p>
+      <p style="color:#c5ccc8;font-size:10px;margin:8px 0 0;">© 2026 Novakou — ${lang === "fr" ? "Édité par" : "Published by"} Pirabel Labs</p>
     </div>
+  </div>
   </div>
 </body>
 </html>`;
@@ -1292,3 +1297,66 @@ export async function sendSubscriptionRenewedEmail(params: {
   });
 }
 
+
+// ── Demande d'avis après achat (relance 1, ~5 jours) ──
+//
+// Un acheteur satisfait ne pense pas spontanément à laisser un avis ; sans
+// relance, une fiche reste à « 0 avis » et vend moins. Le lien magic connecte
+// l'acheteur et ouvre directement la fenêtre d'avis (param `avis=<id>`).
+
+export async function sendReviewRequestEmail(params: {
+  email: string;
+  name: string;
+  itemTitle: string;
+  kind: "product" | "formation";
+  itemId: string;
+  final?: boolean; // true = dernière relance (~10 j)
+  locale?: "fr" | "en";
+}) {
+  const { email, name, itemTitle, kind, itemId, final = false, locale = "fr" } = params;
+  const isFr = locale === "fr";
+  const path = kind === "product"
+    ? `/apprenant/mes-produits?avis=${itemId}`
+    : `/apprenant/mes-formations?avis=${itemId}`;
+  const lien = buyerMagicLink(email, path);
+
+  const etoiles = `<div style="text-align:center;font-size:30px;letter-spacing:6px;margin:0 0 6px;color:#f5b301;">★★★★★</div>`;
+
+  const titre = final
+    ? (isFr ? "Un dernier mot sur votre achat ?" : "One last word about your purchase?")
+    : (isFr ? "Votre avis compte énormément" : "Your review means a lot");
+
+  const intro = final
+    ? (isFr
+        ? `Nous n'allons plus vous déranger après ce message. Si vous avez un instant, votre avis sur <strong style="color:#111827;">« ${itemTitle} »</strong> aiderait d'autres acheteurs à se décider — et le créateur à progresser.`
+        : `We won't bother you again after this. If you have a moment, your review of <strong style="color:#111827;">"${itemTitle}"</strong> would help other buyers decide — and the creator improve.`)
+    : (isFr
+        ? `Vous avez obtenu <strong style="color:#111827;">« ${itemTitle} »</strong> il y a quelques jours. Vous a-t-il été utile ? Partagez votre expérience en une minute : votre avis guide les prochains acheteurs.`
+        : `You got <strong style="color:#111827;">"${itemTitle}"</strong> a few days ago. Was it useful? Share your experience in a minute: your review guides the next buyers.`);
+
+  const html = emailLayout(
+    `
+    ${etoiles}
+    <h2 style="color:#111827;font-size:22px;font-weight:800;margin:0 0 14px;letter-spacing:-0.3px;text-align:center;">${titre}</h2>
+    <p style="color:#4b5563;line-height:1.7;font-size:15px;margin:0 0 10px;">${isFr ? `Bonjour ${name},` : `Hello ${name},`}</p>
+    <p style="color:#4b5563;line-height:1.7;font-size:15px;margin:0 0 26px;">${intro}</p>
+    <div style="text-align:center;margin:0 0 26px;">
+      ${button(isFr ? "Laisser mon avis" : "Leave my review", lien)}
+    </div>
+    <p style="color:#9ca3af;font-size:12px;line-height:1.6;margin:0;text-align:center;">
+      ${isFr
+        ? "Le bouton vous connecte et ouvre directement la note à attribuer. Une ou deux phrases suffisent."
+        : "The button logs you in and opens the rating directly. One or two sentences are enough."}
+    </p>`,
+    locale,
+  );
+
+  return resend.emails.send({
+    from: FROM,
+    to: email,
+    subject: final
+      ? (isFr ? `Dernière chance de noter « ${itemTitle} »` : `Last chance to rate "${itemTitle}"`)
+      : (isFr ? `Qu'avez-vous pensé de « ${itemTitle} » ?` : `What did you think of "${itemTitle}"?`),
+    html,
+  });
+}

@@ -2,7 +2,7 @@
 "use client";
 import { useToastStore } from "@/store/toast";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ReviewModal } from "@/components/formations/ReviewModal";
 import {
@@ -115,6 +115,8 @@ export default function ProduitsPage() {
   const [filter, setFilter] = useState<FilterType>("tous");
   const [downloaded, setDownloaded] = useState<Set<string>>(new Set());
   const [reviewTarget, setReviewTarget] = useState<{ id: string; title: string; existing?: { rating: number; comment: string } } | null>(null);
+  // Un seul auto-ouverture par visite : évite de rouvrir la modale si l'acheteur la ferme.
+  const [avisAutoOpened, setAvisAutoOpened] = useState(false);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["apprenant-products"],
@@ -129,6 +131,25 @@ export default function ProduitsPage() {
 
   const purchases: Purchase[] = data?.data ?? [];
   const filtered = filter === "tous" ? purchases : purchases.filter((p) => p.product?.productType === filter);
+
+  // Les emails « laissez un avis » arrivent avec ?avis=<productId> : on ouvre
+  // directement la modale de notation sur le bon produit. On lit l'URL côté
+  // navigateur (pas useSearchParams) pour éviter la bailout Suspense au build.
+  useEffect(() => {
+    if (avisAutoOpened || purchases.length === 0) return;
+    const avisId = new URLSearchParams(window.location.search).get("avis");
+    if (!avisId) return;
+    const cible = purchases.find((p) => p.product?.id === avisId);
+    if (cible?.product) {
+      const dejaNote = cible.product.reviews?.[0];
+      setReviewTarget({
+        id: cible.product.id,
+        title: cible.product.title,
+        existing: dejaNote ? { rating: dejaNote.rating, comment: dejaNote.comment } : undefined,
+      });
+      setAvisAutoOpened(true);
+    }
+  }, [purchases, avisAutoOpened]);
 
   const downloadedCount = purchases.filter((p) => p.downloadCount > 0 || downloaded.has(p.id)).length;
 

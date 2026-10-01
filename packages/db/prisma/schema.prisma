@@ -1366,6 +1366,10 @@ model Enrollment {
   refundReason    String?
   refundedAt      DateTime?
 
+  // Relances « laissez un avis » (même logique que les produits).
+  reviewAskedAt    DateTime?
+  reviewReminderAt DateTime?
+
   user           User             @relation("UserEnrollments", fields: [userId], references: [id], onDelete: Cascade)
   formation      Formation        @relation(fields: [formationId], references: [id], onDelete: Cascade)
   cohort         FormationCohort? @relation(fields: [cohortId], references: [id], onDelete: SetNull)
@@ -1733,6 +1737,11 @@ model DigitalProductPurchase {
   licenseKey      String? // clé de licence unique si type LICENCE
   downloadCount   Int     @default(0)
   maxDownloads    Int     @default(5)
+
+  // Relances « laissez un avis » : quand chaque email a été envoyé (null = pas
+  // encore). Pilote le cron review-request, idempotent.
+  reviewAskedAt    DateTime?
+  reviewReminderAt DateTime?
 
   user    User           @relation("UserProductPurchases", fields: [userId], references: [id], onDelete: Cascade)
   product DigitalProduct @relation(fields: [productId], references: [id], onDelete: Cascade)

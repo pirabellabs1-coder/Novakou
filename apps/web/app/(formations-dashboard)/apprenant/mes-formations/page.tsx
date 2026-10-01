@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ReviewModal } from "@/components/formations/ReviewModal";
 import {
@@ -82,6 +82,8 @@ export default function MesFormationsPage() {
     title: string;
     existing?: { rating: number; comment: string };
   } | null>(null);
+  // Un seul auto-ouverture par visite (voir mes-produits pour le détail).
+  const [avisAutoOpened, setAvisAutoOpened] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["apprenant-enrollments"],
@@ -90,6 +92,24 @@ export default function MesFormationsPage() {
   });
 
   const enrollments: Enrollment[] = data?.data ?? [];
+
+  // Email « laissez un avis » → ?avis=<formationId> : ouvre la modale sur la
+  // bonne formation. Lecture via window pour éviter la bailout Suspense au build.
+  useEffect(() => {
+    if (avisAutoOpened || enrollments.length === 0) return;
+    const avisId = new URLSearchParams(window.location.search).get("avis");
+    if (!avisId) return;
+    const cible = enrollments.find((e) => e.formation?.id === avisId);
+    if (cible?.formation) {
+      const dejaNote = cible.formation.reviews?.[0];
+      setReviewTarget({
+        id: cible.formation.id,
+        title: cible.formation.title,
+        existing: dejaNote ? { rating: dejaNote.rating, comment: dejaNote.comment } : undefined,
+      });
+      setAvisAutoOpened(true);
+    }
+  }, [enrollments, avisAutoOpened]);
 
   const byStatus = {
     all: enrollments,
