@@ -48,7 +48,7 @@ export async function GET(request: Request, { params }: Params) {
         },
         bookings: {
           where: {
-            status: { in: ["PENDING", "CONFIRMED"] },
+            status: { in: ["PENDING", "CONFIRMED", "PAYMENT_PENDING"] }, // un paiement en cours tient le créneau
             scheduledAt: {
               gte: new Date(fromDate.getTime() - 4 * 60 * 60 * 1000), // extra margin for buffer logic
               lte: new Date(toDate.getTime() + 4 * 60 * 60 * 1000),

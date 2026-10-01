@@ -139,9 +139,13 @@ export function computeAvailableSlots(input: SlotsInput): Slot[] {
     return [];
   }
 
-  // Active bookings (CONFIRMED + PENDING block a slot)
+  // Un créneau est pris par une séance CONFIRMED ou PENDING, ET par un
+  // PAYMENT_PENDING (paiement en cours) : sinon deux acheteurs pouvaient payer
+  // le même créneau en même temps. Les PAYMENT_PENDING abandonnés sont
+  // expirés par le cron mentor-bookings-expire, donc ils ne bloquent jamais
+  // un créneau plus de ~2 h.
   const activeBookings = bookings.filter(
-    (b) => b.status === "CONFIRMED" || b.status === "PENDING",
+    (b) => b.status === "CONFIRMED" || b.status === "PENDING" || b.status === "PAYMENT_PENDING",
   );
 
   const slots: Slot[] = [];

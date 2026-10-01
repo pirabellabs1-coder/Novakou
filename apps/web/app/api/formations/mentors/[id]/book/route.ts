@@ -106,7 +106,7 @@ export async function POST(request: Request, { params }: Params) {
     const activeBookings = await prisma.mentorBooking.findMany({
       where: {
         mentorId: mentor.id,
-        status: { in: ["PENDING", "CONFIRMED"] },
+        status: { in: ["PENDING", "CONFIRMED", "PAYMENT_PENDING"] },
         scheduledAt: {
           gte: new Date(slotDate.getTime() - 4 * 60 * 60 * 1000),
           lte: new Date(slotDate.getTime() + 4 * 60 * 60 * 1000),
