@@ -262,6 +262,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         thumbnail: body.thumbnail !== undefined ? (body.thumbnail || null) : undefined,
         banner: body.banner !== undefined ? (body.banner || null) : undefined,
         price: priceVal,
+        // `isFree` DÉRIVE du prix : sans cette ligne, un produit créé gratuit
+        // (isFree=true) le restait après un passage à un prix payant, et la
+        // fiche l'offrait en « Télécharger » gratuit — 5 produits payants
+        // donnés gratuitement (constaté le 2026-10-01). On ne touche au drapeau
+        // que si le prix change dans cette requête.
+        isFree: priceVal !== undefined ? priceVal <= 0 : undefined,
         originalPrice: originalPriceVal,
         productType: body.productType ?? undefined,
         tags: Array.isArray(body.tags) ? body.tags : undefined,
