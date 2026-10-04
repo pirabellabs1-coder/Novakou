@@ -43,9 +43,10 @@ async function deposerSecret() {
     return;
   }
   if (existant) {
-    await prisma.$queryRaw`select vault.update_secret(${existant.id}::uuid, ${secret})`;
+    // `$executeRaw` : update_secret renvoie `void`, que `$queryRaw` ne sait pas lire.
+    await prisma.$executeRaw`select vault.update_secret(${existant.id}::uuid, ${secret})`;
   } else {
-    await prisma.$queryRaw`
+    await prisma.$executeRaw`
       select vault.create_secret(${secret}, 'novakou_cron_secret',
         'CRON_SECRET de production — utilisé par bouclier.reveiller()')`;
   }
@@ -53,8 +54,11 @@ async function deposerSecret() {
 }
 
 try {
-  // Le fichier crée les extensions et le schéma : il passe en premier, le
-  // coffre (supabase_vault) étant déjà installé sur tout projet Supabase.
+  // Le secret D'ABORD : sans lui, chaque réveil planifié échouerait. Le coffre
+  // (supabase_vault) est installé d'office sur tout projet Supabase, il ne
+  // dépend pas de bouclier.sql.
+  await deposerSecret();
+
   // Le CLI Prisma est lancé par `node` directement : passer par le .CMD de
   // Windows exigerait un shell, qui recollerait l'URL de la base sans échappement.
   const prismaCli = createRequire(import.meta.url).resolve("prisma/build/index.js");
@@ -64,8 +68,6 @@ try {
     { stdio: "inherit", cwd: dbDir },
   );
   if (r.status !== 0) throw new Error("échec de bouclier.sql");
-
-  await deposerSecret();
 
   const jobs = await prisma.$queryRaw`
     select jobname, schedule from cron.job where jobname like 'nk-%' order by jobname`;

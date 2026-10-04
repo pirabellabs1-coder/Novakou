@@ -70,6 +70,12 @@ declare
   secret text;
   rid    bigint;
 begin
+  -- Le Bearer ne doit partir QUE vers notre domaine : un chemin comme
+  -- '@autre-hote.tld/' ferait de la base l'expéditrice du secret ailleurs.
+  if chemin !~ '^/[^/@]' then
+    raise exception 'bouclier : chemin refusé (%)', chemin;
+  end if;
+
   select decrypted_secret into secret
     from vault.decrypted_secrets
    where name = 'novakou_cron_secret';
@@ -88,6 +94,34 @@ begin
 end
 $$;
 revoke all on function bouclier.reveiller(text, text, int) from public, anon, authenticated;
+
+-- Réveille la route SI son portier dit qu'il y a du travail.
+--
+-- Un portier qui PLANTE (colonne renommée par une migration Prisma, valeur de
+-- configuration illisible…) réveille QUAND MÊME : la route fait son propre
+-- tri, on retombe sur le comportement d'avant le Bouclier au lieu d'arrêter
+-- en silence la livraison des ventes. Le motif garde l'erreur, et
+-- /api/cron/garde-conso alerte dessus.
+create or replace function bouclier.reveiller_si(condition text, chemin text, motif text default 'travail', delai_ms int default 60000)
+returns bigint
+language plpgsql
+set search_path = ''
+as $$
+declare
+  ouvert boolean;
+begin
+  begin
+    execute 'select ' || condition into ouvert;
+  exception when others then
+    return bouclier.reveiller(chemin, left('portier en erreur : ' || sqlerrm, 300), delai_ms);
+  end;
+  if ouvert then
+    return bouclier.reveiller(chemin, motif, delai_ms);
+  end if;
+  return null;
+end
+$$;
+revoke all on function bouclier.reveiller_si(text, text, text, int) from public, anon, authenticated;
 
 -- ════════════════════════════════════════════════════════════════════════════
 -- PORTIERS — chacun recopie le `where` de la route qu'il garde
@@ -119,7 +153,8 @@ language sql stable set search_path = '' set timezone = 'UTC' as $$
 $$;
 
 -- app/api/cron/auto-payout : retraits jamais envoyés, passé le délai de grâce
--- (AUTO_PAYOUT_DELAY_MINUTES, 10 min par défaut). `recents` = moins de 2 h,
+-- (AUTO_PAYOUT_DELAY_MINUTES, absente sur Vercel au 2026-10-04 → 10 min ; à
+-- reporter ici si on la pose). `recents` = moins de 2 h,
 -- repris toutes les 10 min ; plus anciens (passerelle en panne, solde
 -- insuffisant…) repris toutes les heures au lieu de marteler le fournisseur.
 create or replace function bouclier.retraits_a_envoyer(recents boolean) returns boolean
@@ -188,32 +223,104 @@ language sql stable set search_path = '' set timezone = 'UTC' as $$
   )
 $$;
 
--- Agents KYC / fiches : un dossier ou une fiche EN_ATTENTE arrivé(e) depuis le
--- dernier passage de l'agent. Les dossiers déjà examinés et laissés à l'humain
--- ne réveillent plus Vercel toutes les 15 min (mesuré : ~5 réexamens par
--- passage, 5 s chacun, pour 17 décisions en 14 jours) ; le passage complet
--- toutes les 6 h les reprend quand même.
+-- ── Agents ──────────────────────────────────────────────────────────────────
+-- Chaque agent est réveillé dès qu'un élément NOUVEAU pour lui est apparu
+-- depuis son dernier passage ; le passage complet (toutes les 2 h) reprend le
+-- reste — éléments laissés à l'humain, échecs IA à retenter. Avant : les huit
+-- agents toutes les 15 min, dont ~5 réexamens de dossiers déjà vus par passage.
+
+-- Début du dernier passage TERMINÉ (AgentRun.startedAt) — pas lastRunAt, écrit
+-- à la FIN : un dossier arrivé pendant un passage, après la lecture de l'agent,
+-- serait sinon resté invisible jusqu'au passage complet. NULL si l'agent est
+-- désactivé (recordRun ne fait alors rien : inutile de réveiller Vercel).
+create or replace function bouclier.dernier_passage(cle text) returns timestamp
+language sql stable set search_path = '' set timezone = 'UTC' as $$
+  select case
+           when not exists (select 1 from public."AiAgent" where key = cle and not enabled)
+           then coalesce((select max("startedAt") from public."AgentRun"
+                           where "agentKey" = cle and "finishedAt" is not null),
+                         '-infinity'::timestamp)
+         end
+$$;
+
+-- lib/agents/impl/kyc-verification.ts : dossiers EN_ATTENTE.
 create or replace function bouclier.kyc_nouveaux() returns boolean
 language sql stable set search_path = '' set timezone = 'UTC' as $$
   select exists (
-    select 1 from public."KycRequest" k
-     where k.status = 'EN_ATTENTE'
-       and k."createdAt" > coalesce(
-             (select "lastRunAt" from public."AiAgent" where key = 'kyc_verification'),
-             '-infinity')
+    select 1 from public."KycRequest"
+     where status = 'EN_ATTENTE'
+       and "createdAt" > bouclier.dernier_passage('kyc_verification')
   )
 $$;
 
+-- lib/agents/impl/product-verification.ts : formations et produits EN_ATTENTE.
 create or replace function bouclier.fiches_nouvelles() returns boolean
 language sql stable set search_path = '' set timezone = 'UTC' as $$
-  with dernier as (
-    select coalesce((select "lastRunAt" from public."AiAgent" where key = 'product_verification'),
-                    '-infinity'::timestamp) t
+  select exists (select 1 from public."Formation"
+                  where status = 'EN_ATTENTE' and "updatedAt" > bouclier.dernier_passage('product_verification'))
+      or exists (select 1 from public."DigitalProduct"
+                  where status = 'EN_ATTENTE' and "updatedAt" > bouclier.dernier_passage('product_verification'))
+$$;
+
+-- lib/agents/impl/fraud-detection.ts : un nouveau retrait. Vérifié toutes les
+-- 5 min : l'agent doit passer AVANT le versement automatique (délai de grâce
+-- de 10 min, cf. retraits_a_envoyer).
+create or replace function bouclier.retraits_nouveaux() returns boolean
+language sql stable set search_path = '' set timezone = 'UTC' as $$
+  select exists (select 1 from public."InstructorWithdrawal"
+                  where "createdAt" > bouclier.dernier_passage('fraud_detection'))
+      or exists (select 1 from public."AffiliateWithdrawal"
+                  where "createdAt" > bouclier.dernier_passage('fraud_detection'))
+$$;
+
+-- lib/agents/impl/dispute-resolution.ts : demandes de remboursement PENDING.
+create or replace function bouclier.litiges_nouveaux() returns boolean
+language sql stable set search_path = '' set timezone = 'UTC' as $$
+  select exists (
+    select 1 from public."RefundRequest"
+     where status = 'PENDING'
+       and "createdAt" > bouclier.dernier_passage('dispute_resolution')
   )
-  select exists (select 1 from public."Formation", dernier
-                  where status = 'EN_ATTENTE' and "updatedAt" > dernier.t)
-      or exists (select 1 from public."DigitalProduct", dernier
-                  where status = 'EN_ATTENTE' and "updatedAt" > dernier.t)
+$$;
+
+-- lib/agents/impl/account-deletion.ts : demandes AWAITING_REVIEW.
+create or replace function bouclier.suppressions_a_examiner() returns boolean
+language sql stable set search_path = '' set timezone = 'UTC' as $$
+  select exists (
+    select 1 from public."AccountDeletionRequest"
+     where status = 'AWAITING_REVIEW'
+       and "updatedAt" > bouclier.dernier_passage('account_deletion')
+  )
+$$;
+
+-- lib/agents/impl/reviews-moderation.ts : avis publiés.
+create or replace function bouclier.avis_nouveaux() returns boolean
+language sql stable set search_path = '' set timezone = 'UTC' as $$
+  select exists (select 1 from public."DigitalProductReview"
+                  where "createdAt" > bouclier.dernier_passage('reviews_moderation'))
+      or exists (select 1 from public."FormationReview"
+                  where "createdAt" > bouclier.dernier_passage('reviews_moderation'))
+$$;
+
+-- lib/agents/impl/buyer-support.ts : messages texte non lus depuis
+-- `unrepliedHours` (réglage de l'agent, 2 h par défaut, 1 h minimum) devenus
+-- éligibles depuis le dernier passage — créés dans ]passage − délai, maintenant − délai].
+create or replace function bouclier.messages_sans_reponse() returns boolean
+language sql stable set search_path = '' set timezone = 'UTC' as $$
+  with delai as (
+    select make_interval(hours => greatest(1, coalesce(
+             (select case when (config->>'unrepliedHours') ~ '^[0-9]+([.][0-9]+)?$'
+                               and (config->>'unrepliedHours')::numeric > 0
+                          then (config->>'unrepliedHours')::numeric end
+                from public."AiAgent" where key = 'buyer_support'),
+             2))::int) d
+  )
+  select exists (
+    select 1 from public."Message", delai
+     where read = false and "deletedAt" is null and type = 'TEXT'
+       and "createdAt" <= now() - delai.d
+       and "createdAt" >  bouclier.dernier_passage('buyer_support') - delai.d
+  )
 $$;
 
 -- ════════════════════════════════════════════════════════════════════════════
@@ -227,18 +334,27 @@ begin
   for t in
     select * from (values
       -- ── Fréquentes, gardées par un portier ──────────────────────────────
-      ('nk-collect-reconcile',          '*/5 * * * *',  $c$select bouclier.reveiller('/api/cron/collect-reconcile', 'travail') where bouclier.encaissements_ouverts(true)$c$),
-      ('nk-collect-reconcile-anciennes','17 * * * *',   $c$select bouclier.reveiller('/api/cron/collect-reconcile', 'anciennes') where bouclier.encaissements_ouverts(false)$c$),
-      ('nk-alerte-ventes-bloquees',     '*/15 * * * *', $c$select bouclier.reveiller('/api/cron/alerte-ventes-bloquees', 'travail') where bouclier.ventes_bloquees()$c$),
-      ('nk-auto-payout',                '*/10 * * * *', $c$select bouclier.reveiller('/api/cron/auto-payout', 'travail') where bouclier.retraits_a_envoyer(true)$c$),
-      ('nk-auto-payout-anciens',        '5 * * * *',    $c$select bouclier.reveiller('/api/cron/auto-payout', 'anciens') where bouclier.retraits_a_envoyer(false)$c$),
-      ('nk-payout-reconcile',           '*/10 * * * *', $c$select bouclier.reveiller('/api/cron/payout-reconcile', 'travail') where bouclier.versements_a_verifier()$c$),
-      ('nk-mentor-bookings-expire',     '*/15 * * * *', $c$select bouclier.reveiller('/api/cron/mentor-bookings-expire', 'travail') where bouclier.reservations_expirees()$c$),
-      ('nk-automation-scheduled',       '*/15 * * * *', $c$select bouclier.reveiller('/api/cron/automation-scheduled', 'travail') where bouclier.automatisations_echues()$c$),
-      ('nk-agent-kyc',                  '*/15 * * * *', $c$select bouclier.reveiller('/api/cron/agents?agent=kyc_verification', 'travail', 300000) where bouclier.kyc_nouveaux()$c$),
-      ('nk-agent-fiches',               '*/15 * * * *', $c$select bouclier.reveiller('/api/cron/agents?agent=product_verification', 'travail', 300000) where bouclier.fiches_nouvelles()$c$),
+      ('nk-collect-reconcile',          '*/5 * * * *',  $c$select bouclier.reveiller_si('bouclier.encaissements_ouverts(true)', '/api/cron/collect-reconcile', 'travail')$c$),
+      ('nk-collect-reconcile-anciennes','17 * * * *',   $c$select bouclier.reveiller_si('bouclier.encaissements_ouverts(false)', '/api/cron/collect-reconcile', 'anciennes')$c$),
+      ('nk-alerte-ventes-bloquees',     '*/15 * * * *', $c$select bouclier.reveiller_si('bouclier.ventes_bloquees()', '/api/cron/alerte-ventes-bloquees', 'travail')$c$),
+      ('nk-auto-payout',                '*/10 * * * *', $c$select bouclier.reveiller_si('bouclier.retraits_a_envoyer(true)', '/api/cron/auto-payout', 'travail')$c$),
+      ('nk-auto-payout-anciens',        '5 * * * *',    $c$select bouclier.reveiller_si('bouclier.retraits_a_envoyer(false)', '/api/cron/auto-payout', 'anciens')$c$),
+      ('nk-payout-reconcile',           '*/10 * * * *', $c$select bouclier.reveiller_si('bouclier.versements_a_verifier()', '/api/cron/payout-reconcile', 'travail')$c$),
+      ('nk-mentor-bookings-expire',     '*/15 * * * *', $c$select bouclier.reveiller_si('bouclier.reservations_expirees()', '/api/cron/mentor-bookings-expire', 'travail')$c$),
+      ('nk-automation-scheduled',       '*/15 * * * *', $c$select bouclier.reveiller_si('bouclier.automatisations_echues()', '/api/cron/automation-scheduled', 'travail')$c$),
+      ('nk-agent-kyc',                  '*/15 * * * *', $c$select bouclier.reveiller_si('bouclier.kyc_nouveaux()', '/api/cron/agents?agent=kyc_verification', 'travail', 300000)$c$),
+      ('nk-agent-fiches',               '*/15 * * * *', $c$select bouclier.reveiller_si('bouclier.fiches_nouvelles()', '/api/cron/agents?agent=product_verification', 'travail', 300000)$c$),
+      ('nk-agent-fraude',               '*/5 * * * *',  $c$select bouclier.reveiller_si('bouclier.retraits_nouveaux()', '/api/cron/agents?agent=fraud_detection', 'travail', 300000)$c$),
+      ('nk-agent-litiges',              '*/15 * * * *', $c$select bouclier.reveiller_si('bouclier.litiges_nouveaux()', '/api/cron/agents?agent=dispute_resolution', 'travail', 300000)$c$),
+      ('nk-agent-suppressions',         '*/15 * * * *', $c$select bouclier.reveiller_si('bouclier.suppressions_a_examiner()', '/api/cron/agents?agent=account_deletion', 'travail', 300000)$c$),
+      ('nk-agent-avis',                 '*/15 * * * *', $c$select bouclier.reveiller_si('bouclier.avis_nouveaux()', '/api/cron/agents?agent=reviews_moderation', 'travail', 300000)$c$),
+      ('nk-agent-support',              '*/15 * * * *', $c$select bouclier.reveiller_si('bouclier.messages_sans_reponse()', '/api/cron/agents?agent=buyer_support', 'travail', 300000)$c$),
       -- ── Sans condition ──────────────────────────────────────────────────
-      ('nk-agents',                     '0 */6 * * *',  $c$select bouclier.reveiller('/api/cron/agents', 'planifie', 300000)$c$),
+      -- Passage complet des huit agents (dont vendor_coach, purement périodique).
+      -- Minute 7 : jamais en même temps qu'un portier d'agent (0/15/30/45, ni
+      -- les 5 min de la fraude) — deux passages simultanés paieraient l'IA deux
+      -- fois et pourraient rendre deux décisions sur un même dossier.
+      ('nk-agents',                     '7 */2 * * *',  $c$select bouclier.reveiller('/api/cron/agents', 'planifie', 300000)$c$),
       -- Sonde de santé du trajet de versement : son rôle est justement de
       -- tourner quand il ne se passe rien.
       ('nk-sonde-versements',           '30 * * * *',   $c$select bouclier.reveiller('/api/cron/sonde-versements')$c$),

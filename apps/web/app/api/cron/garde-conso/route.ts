@@ -130,14 +130,25 @@ export async function GET(request: NextRequest) {
   // ── 1. Consommation Vercel ───────────────────────────────────────────────
   try {
     const lignes = await lireUsage(il30j, maintenant);
+    // Réponse vide ou sans compteur d'invocations (format changé par Vercel) :
+    // des totaux à zéro passeraient pour « tout va bien ». C'est un aveuglement.
+    if (!lignes.some((l) => typeof l.function_invocation_successful_count === "number")) {
+      throw new Error(`réponse sans données exploitables (${lignes.length} ligne(s))`);
+    }
     const sur30j = totaliser(lignes);
-    const sur7j = totaliser(lignes.filter((l) => new Date(l.date) >= il7j));
-    // Projection : le rythme des 7 derniers jours tenu pendant 30 jours. Plus
-    // juste que le cumul pour un compte récent ou qui vient d'être allégé.
+    const recentes = lignes.filter((l) => new Date(l.date) >= il7j);
+    const sur7j = totaliser(recentes);
+    // Projection : le rythme récent tenu pendant 30 jours — plus juste que le
+    // cumul pour un compte qui vient d'être allégé. Diviser par 7 jours pour un
+    // compte qui n'en a que quelques heures écraserait le rythme réel : on
+    // divise par la durée réellement observée (1 jour au minimum, pour ne pas
+    // extrapoler une seule heure agitée).
+    const premiere = Math.min(...recentes.map((l) => new Date(l.date).getTime()));
+    const joursObserves = Math.min(7, Math.max(1, (maintenant.getTime() - premiere) / 86_400_000));
     const projete = {
-      invocations: (sur7j.invocations / 7) * 30,
-      gbHeures: (sur7j.gbHeures / 7) * 30,
-      transfertGo: (sur7j.transfertGo / 7) * 30,
+      invocations: (sur7j.invocations / joursObserves) * 30,
+      gbHeures: (sur7j.gbHeures / joursObserves) * 30,
+      transfertGo: (sur7j.transfertGo / joursObserves) * 30,
     };
 
     const postes = (Object.keys(PLAFONDS) as (keyof typeof PLAFONDS)[]).map((cle) => ({
@@ -157,6 +168,7 @@ export async function GET(request: NextRequest) {
       },
       partDuPlafond: Object.fromEntries(postes.map((p) => [p.cle, { consomme: pct(p.consomme), projete: pct(p.projete) }])),
       partServieParLeCache: sur30j.requetes ? pct(sur30j.servisParLeCache / sur30j.requetes) : null,
+      joursObserves: +joursObserves.toFixed(2),
     };
 
     if (niveau >= SEUIL_ALERTE) {
@@ -182,33 +194,75 @@ export async function GET(request: NextRequest) {
   }
 
   // ── 2. Santé du Bouclier (tâches planifiées) ────────────────────────────
-  const reveils = await prisma
-    .$queryRaw<{ chemin: string; total: number; echecs: number; dernier_echec: string | null }[]>`
-      select chemin,
-             count(*)::int as total,
-             count(*) filter (where statut >= 400 or erreur is not null)::int as echecs,
-             max(coalesce(statut::text, '') || ' ' || coalesce(erreur, '')) filter (where statut >= 400 or erreur is not null) as dernier_echec
-        from bouclier.reveil
-       where le >= now() - interval '24 hours'
-       group by chemin
-       order by total desc`
-    .catch(() => null);
+  // Trois pannes possibles, invisibles partout ailleurs :
+  //  - la route réveillée répond en erreur (401 après un changement de
+  //    CRON_SECRET, 500…) → statut dans bouclier.reveil ;
+  //  - un portier plante → il réveille quand même (bouclier.reveiller_si),
+  //    motif « portier en erreur » ;
+  //  - le passage pg_cron échoue avant tout réveil (secret absent du coffre…)
+  //    → seule trace : cron.job_run_details.
+  const echec = (r: { statut: number | null; erreur: string | null; motif: string }) =>
+    (r.statut ?? 0) >= 400 || r.erreur !== null || r.motif.startsWith("portier en erreur");
+  type LigneReveil = { chemin: string; motif: string; statut: number | null; erreur: string | null };
+  const [reveils, passagesRates] = await Promise.all([
+    prisma
+      .$queryRaw<LigneReveil[]>`
+        select chemin, motif, statut, erreur
+          from bouclier.reveil
+         where le >= now() - interval '24 hours'
+         order by le desc`
+      .catch(() => null),
+    prisma
+      .$queryRaw<{ tache: string; echecs: number; message: string | null }[]>`
+        select j.jobname as tache,
+               count(*)::int as echecs,
+               (array_agg(d.return_message order by d.start_time desc))[1] as message
+          from cron.job_run_details d
+          join cron.job j using (jobid)
+         where j.jobname like 'nk-%'
+           and d.status = 'failed'
+           and d.start_time >= now() - interval '24 hours'
+         group by j.jobname`
+      .catch(() => null),
+  ]);
 
-  const enEchec = (reveils ?? []).filter((r) => r.echecs > 0);
-  if (enEchec.length > 0) {
-    const titre = "Tâches planifiées en échec";
-    const detail = enEchec.map((r) => `${r.chemin} : ${r.echecs}/${r.total} (${(r.dernier_echec ?? "").trim().slice(0, 80)})`).join(" · ");
-    if (await alerter(titre, `Sur 24 h : ${detail}. Un 401 signale un CRON_SECRET désaligné avec le coffre Supabase.`)) {
-      alertes.push(titre);
+  const problemes: string[] = [];
+  if (!reveils || !passagesRates) {
+    problemes.push("journal du Bouclier illisible (bouclier.reveil ou cron.job_run_details)");
+  }
+  const parChemin = new Map<string, { total: number; echecs: number; dernier: string }>();
+  for (const r of reveils ?? []) {
+    const c = parChemin.get(r.chemin) ?? { total: 0, echecs: 0, dernier: "" };
+    c.total++;
+    if (echec(r)) {
+      c.echecs++;
+      // Lignes triées du plus récent au plus ancien : le premier échec vu est le dernier survenu.
+      if (!c.dernier) c.dernier = [r.statut, r.erreur, r.motif.startsWith("portier") ? r.motif : null].filter(Boolean).join(" ");
     }
+    parChemin.set(r.chemin, c);
+  }
+  for (const [chemin, c] of parChemin) {
+    if (c.echecs > 0) problemes.push(`${chemin} : ${c.echecs}/${c.total} en échec (${c.dernier.slice(0, 100)})`);
+  }
+  for (const p of passagesRates ?? []) {
+    problemes.push(`${p.tache} : ${p.echecs} passage(s) pg_cron échoué(s) (${(p.message ?? "").slice(0, 100)})`);
+  }
+  if (problemes.length > 0) {
+    const titre = "Tâches planifiées en échec";
+    const message =
+      `Sur 24 h : ${problemes.join(" · ")}. Un 401 signale un CRON_SECRET désaligné avec le coffre Supabase ; ` +
+      "un « portier en erreur » une colonne renommée (relire packages/db/supabase/bouclier.sql).";
+    if (await alerter(titre, message)) alertes.push(titre);
   }
 
   return NextResponse.json({
     ok: true,
     conso,
-    bouclier: reveils
-      ? { reveils24h: reveils.reduce((s, r) => s + r.total, 0), parTache: reveils }
-      : { erreur: "journal bouclier.reveil illisible" },
+    bouclier: {
+      reveils24h: reveils?.length ?? null,
+      parTache: Object.fromEntries(parChemin),
+      passagesRates: passagesRates ?? null,
+    },
     alertes,
   });
 }
