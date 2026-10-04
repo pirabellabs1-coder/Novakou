@@ -656,6 +656,7 @@ bash scripts/post-deploy-smoke.sh         # smoke test post-déploiement
 
 # Planning des crons dans Supabase (depuis packages/db, idempotent) — secret = CRON_SECRET de PROD
 BOUCLIER_CRON_SECRET=… node --env-file=../../.env.local scripts/appliquer-bouclier.mjs
+node --env-file=../../.env.local scripts/verifier-bouclier.mjs   # portiers vs routes (après toute migration)
 ```
 
 ### ⚠️ Pièges de commandes
