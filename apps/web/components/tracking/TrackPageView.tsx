@@ -92,17 +92,28 @@ function envoyer(body: string) {
   }).catch(() => null);
 }
 
+// Fenêtre de regroupement : les deux traceurs ne s'hydratent PAS dans le même
+// tick (chacun derrière sa propre frontière Suspense) — mesuré en production,
+// un délai de 0 ms laissait partir deux requêtes. 1 s les réunit ; si le
+// visiteur quitte la page avant, `pagehide` vide la file aussitôt.
+const FENETRE_REGROUPEMENT_MS = 1000;
+
+function viderFile() {
+  const file = fileSuivi();
+  if (file.evenements.length === 0) return;
+  const lot = file.evenements;
+  file.evenements = [];
+  file.planifie = false;
+  envoyer(JSON.stringify(lot.length === 1 ? lot[0] : { events: lot }));
+}
+
 function planifierEnvoi(evenement: Record<string, unknown>) {
   const file = fileSuivi();
   file.evenements.push(evenement);
   if (file.planifie) return;
   file.planifie = true;
-  setTimeout(() => {
-    const lot = file.evenements;
-    file.evenements = [];
-    file.planifie = false;
-    envoyer(JSON.stringify(lot.length === 1 ? lot[0] : { events: lot }));
-  }, 0);
+  window.addEventListener("pagehide", viderFile, { once: true });
+  setTimeout(viderFile, FENETRE_REGROUPEMENT_MS);
 }
 
 function readUTM(searchParams: URLSearchParams) {
