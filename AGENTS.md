@@ -445,6 +445,11 @@ Monorepo pnpm 9.15.9 + Turborepo
 > Next.js sous `apps/web/app/api/**`. Ni Fastify, ni tRPC, ni Socket.io, ni BullMQ, ni
 > ioredis ne sont installés. Ne pas en introduire sans décision explicite du fondateur.
 > Les traitements récurrents passent par `apps/web/app/api/cron/**` (protégés par `CRON_SECRET`).
+> Ils sont déclenchés par **pg_cron dans Supabase**, pas par Vercel (plan Hobby) :
+> `packages/db/supabase/bouclier.sql` définit le planning et, pour les tâches fréquentes,
+> un **portier SQL** qui ne réveille Vercel que s'il y a du travail. Le portier recopie
+> le `where` de la route : modifier l'un impose de relire l'autre. Journal des réveils :
+> table `bouclier.reveil` (code HTTP rapatrié toutes les 15 min).
 
 ### Stack validée — NE PAS SUBSTITUER
 
@@ -648,6 +653,9 @@ pnpm indexnow                             # soumission IndexNow (Bing, Yandex, N
 node scripts/seo-validate.mjs             # valide le JSON-LD (serveur doit tourner)
 node scripts/smoke-test-api.mjs           # smoke test des endpoints
 bash scripts/post-deploy-smoke.sh         # smoke test post-déploiement
+
+# Planning des crons dans Supabase (depuis packages/db, idempotent) — secret = CRON_SECRET de PROD
+BOUCLIER_CRON_SECRET=… node --env-file=../../.env.local scripts/appliquer-bouclier.mjs
 ```
 
 ### ⚠️ Pièges de commandes
