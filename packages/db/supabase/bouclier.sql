@@ -242,6 +242,9 @@ begin
       -- Sonde de santé du trajet de versement : son rôle est justement de
       -- tourner quand il ne se passe rien.
       ('nk-sonde-versements',           '30 * * * *',   $c$select bouclier.reveiller('/api/cron/sonde-versements')$c$),
+      -- Garde de consommation Vercel + santé de ce Bouclier : alerte avant
+      -- que le plan gratuit ne suspende le site.
+      ('nk-garde-conso',                '15 7 * * *',   $c$select bouclier.reveiller('/api/cron/garde-conso')$c$),
       -- Bloquée tant que novakou.com n'est pas réclamé par l'équipe Vercel :
       -- quotidienne en attendant (23 s d'appels à l'API Vercel par passage).
       ('nk-sous-domaines-boutiques',    '20 5 * * *',   $c$select bouclier.reveiller('/api/cron/sous-domaines-boutiques')$c$),

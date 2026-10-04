@@ -21,13 +21,17 @@ export async function notifyAdmins(opts: {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
   if (token && chatId) {
+    // Markdown de Telegram : un seul `_` ou `*` non apparié (CRON_SECRET,
+    // kyc_verification…) fait REFUSER tout le message — l'alerte se perdait
+    // sans bruit. On échappe le texte ; le lien reste brut pour rester cliquable.
+    const echapper = (s: string) => s.replace(/([_*`[])/g, "\\$1");
     try {
       await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           chat_id: chatId,
-          text: `🤖 *${opts.subject}*\n\n${opts.body}\n\n${link}`,
+          text: `🤖 *${echapper(opts.subject)}*\n\n${echapper(opts.body)}\n\n${link}`,
           parse_mode: "Markdown",
           disable_web_page_preview: true,
         }),
