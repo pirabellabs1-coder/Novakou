@@ -1,39 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { ShoppingCart } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useCompteurPanier } from "@/lib/hooks/use-compteur-panier";
 
 /**
- * Panier dans l'île de la boutique. Même source que le badge de la plateforme
- * (`/api/formations/apprenant/cart`, invités compris), rafraîchi au retour sur
- * l'onglet et quand une carte ajoute un article (`nk:cart-change`) — sans
- * interrogation périodique : rien ne change dans le panier sans action ici.
+ * Panier dans l'île de la boutique. Même source et même logique économe que
+ * le badge de la plateforme (`useCompteurPanier`) : le serveur n'est appelé
+ * que pour un visiteur connecté ou porteur d'un panier invité. `useSession`
+ * lit la session déjà chargée par le fournisseur — aucun appel en plus.
  */
 export function ShopCartButton() {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    let actif = true;
-    const charger = () => {
-      fetch("/api/formations/apprenant/cart")
-        .then((r) => r.json())
-        .then((j) => {
-          if (actif) setCount(Number(j?.count ?? 0));
-        })
-        .catch(() => {
-          // Panier indisponible : le lien reste utilisable, sans compteur.
-        });
-    };
-    charger();
-    window.addEventListener("focus", charger);
-    window.addEventListener("nk:cart-change", charger);
-    return () => {
-      actif = false;
-      window.removeEventListener("focus", charger);
-      window.removeEventListener("nk:cart-change", charger);
-    };
-  }, []);
+  const { status } = useSession();
+  const { count } = useCompteurPanier(status === "authenticated");
 
   const libelle = count > 0 ? `Panier, ${count} article${count > 1 ? "s" : ""}` : "Panier";
   return (

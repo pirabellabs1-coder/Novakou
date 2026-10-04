@@ -63,8 +63,17 @@ function getOrCreateSessionId(): string {
 // + vue produit/formation/boutique de la page) : ils partaient en deux
 // requêtes, soit deux exécutions de fonction par visite. On les met en file
 // et on les envoie en UNE requête au tick suivant (`{ events: [...] }`).
-let fileEvenements: Record<string, unknown>[] = [];
-let envoiPlanifie = false;
+//
+// La file vit sur `window`, PAS dans le module : le bundler embarque ce
+// fichier dans deux paquets distincts (layout racine et page), donc deux
+// copies du module — une file par copie n'aurait jamais rien regroupé
+// (constaté en production le 2026-10-04).
+type FileSuivi = { evenements: Record<string, unknown>[]; planifie: boolean };
+function fileSuivi(): FileSuivi {
+  const w = window as unknown as { __nkFileSuivi?: FileSuivi };
+  if (!w.__nkFileSuivi) w.__nkFileSuivi = { evenements: [], planifie: false };
+  return w.__nkFileSuivi;
+}
 
 function envoyer(body: string) {
   // sendBeacon survit à la navigation / fermeture de l'onglet.
@@ -84,13 +93,14 @@ function envoyer(body: string) {
 }
 
 function planifierEnvoi(evenement: Record<string, unknown>) {
-  fileEvenements.push(evenement);
-  if (envoiPlanifie) return;
-  envoiPlanifie = true;
+  const file = fileSuivi();
+  file.evenements.push(evenement);
+  if (file.planifie) return;
+  file.planifie = true;
   setTimeout(() => {
-    const lot = fileEvenements;
-    fileEvenements = [];
-    envoiPlanifie = false;
+    const lot = file.evenements;
+    file.evenements = [];
+    file.planifie = false;
     envoyer(JSON.stringify(lot.length === 1 ? lot[0] : { events: lot }));
   }, 0);
 }
