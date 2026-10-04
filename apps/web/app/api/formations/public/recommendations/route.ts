@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { FILTRE_PRIX_MARKETPLACE } from "@/lib/formations/seuils";
+import { CACHE_PUBLIC } from "@/lib/cache-cdn";
 
 /**
  * GET /api/formations/public/recommendations
@@ -19,7 +20,9 @@ import { FILTRE_PRIX_MARKETPLACE } from "@/lib/formations/seuils";
  *   excludeId  : id de l'élément courant à exclure
  *   limit      : nombre de recos (défaut 4, max 8)
  */
-export const revalidate = 300;
+// Le `revalidate = 300` d'origine n'avait aucun effet (la route lit l'URL,
+// elle est donc dynamique). Le cache passe par les en-têtes CDN : mêmes
+// recommandations pour tous les visiteurs d'une fiche, mises en cache par URL.
 
 type Reco = {
   id: string;
@@ -127,7 +130,7 @@ export async function GET(request: Request) {
       .sort((a, b) => b.salesCount - a.salesCount)
       .slice(0, limit);
 
-    return NextResponse.json({ data: items });
+    return NextResponse.json({ data: items }, { headers: CACHE_PUBLIC });
   } catch (err) {
     console.error("[recommendations]", err);
     return NextResponse.json({ data: [] });

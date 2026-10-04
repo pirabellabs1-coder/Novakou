@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { resolveStorageFields } from "@/lib/storage-resolver";
+import { CACHE_PUBLIC } from "@/lib/cache-cdn";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -72,16 +73,9 @@ export async function GET(_req: Request, { params }: Params) {
       }
     }
 
-    // Compteur de vues : uniquement pour le public sur une fiche publiée. Un
-    // aperçu admin ne doit pas gonfler les statistiques du vendeur.
-    if (formation.status === "ACTIF") {
-      prisma.formation
-        .update({
-          where: { id: formation.id },
-          data: { viewsCount: { increment: 1 } },
-        })
-        .catch(() => null);
-    }
+    // Compteur de vues : plus incrémenté ici (réponse mise en cache CDN, la
+    // route ne tourne plus à chaque visite) mais par /api/track, sur
+    // l'événement formation_view — robots exclus.
 
     // Compute total lessons + duration
     const totalLessons = formation.sections.reduce(
@@ -158,7 +152,12 @@ export async function GET(_req: Request, { params }: Params) {
       createdAt: formation.createdAt,
     };
 
-    return NextResponse.json({ data: await resolveStorageFields(payload) });
+    // Formation publiée = même réponse pour tous → cache CDN (lib/cache-cdn.ts).
+    // Aperçu admin d'une formation non publiée : jamais en cache.
+    return NextResponse.json(
+      { data: await resolveStorageFields(payload) },
+      { headers: formation.status === "ACTIF" ? CACHE_PUBLIC : { "Cache-Control": "private, no-store" } },
+    );
   } catch (err) {
     console.error("[public/formation/[slug]]", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

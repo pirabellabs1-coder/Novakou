@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { resolveStorageFields } from "@/lib/storage-resolver";
+import { CACHE_PUBLIC } from "@/lib/cache-cdn";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -62,16 +63,10 @@ export async function GET(_req: Request, { params }: Params) {
       }
     }
 
-    // Compteur de vues : uniquement pour le public sur une fiche publiée. Un
-    // aperçu admin ne doit pas gonfler les statistiques du vendeur.
-    if (product.status === "ACTIF") {
-      prisma.digitalProduct
-        .update({
-          where: { id: product.id },
-          data: { viewsCount: { increment: 1 } },
-        })
-        .catch(() => null);
-    }
+    // Le compteur de vues n'est PLUS incrémenté ici : cette réponse est mise en
+    // cache par le CDN (voir plus bas), donc la route ne s'exécute pas à chaque
+    // visite. Il l'est par /api/track (événement product_view), qui reçoit
+    // chaque vue réelle — robots exclus.
 
     // L'onglet Aperçu s'affiche dès qu'un PDF est joint : depuis la règle
     // plateforme (lib/formations/apercu.ts), ce n'est plus un opt-in vendeur.
@@ -137,7 +132,14 @@ export async function GET(_req: Request, { params }: Params) {
     };
 
     // Résout thumbnail, banner, instructeur.image, reviews[].user.image en signed URLs.
-    return NextResponse.json({ data: await resolveStorageFields(payload) });
+    // Fiche publiée = même réponse pour tous → cache CDN (5 min, servie
+    // « stale » 10 min de plus pendant le rafraîchissement). Les URL signées
+    // valent 1 h : aucune image expirée. L'aperçu admin d'une fiche non
+    // publiée n'est JAMAIS mis en cache.
+    return NextResponse.json(
+      { data: await resolveStorageFields(payload) },
+      { headers: product.status === "ACTIF" ? CACHE_PUBLIC : { "Cache-Control": "private, no-store" } },
+    );
   } catch (err) {
     console.error("[public/produit/[slug]]", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

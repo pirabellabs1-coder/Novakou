@@ -22,6 +22,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { trackingStore, type DeviceType } from "@/lib/tracking/tracking-store";
+import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 // Avoid Vercel caching this endpoint.
@@ -65,15 +66,40 @@ interface TrackBody {
   metadata?: Record<string, unknown>;
 }
 
+/**
+ * Compteur de vues d'une fiche (produit / formation) — déplacé ici depuis les
+ * API publiques de fiche, désormais mises en cache CDN (elles ne s'exécutent
+ * plus à chaque visite). `updateMany` + statut ACTIF : une fiche non publiée
+ * (aperçu admin) ou un id inconnu n'incrémente rien.
+ */
+function compterVue(evt: TrackBody) {
+  if (!evt.entityId) return;
+  if (evt.type === "product_view" && evt.entityType === "product") {
+    prisma.digitalProduct
+      .updateMany({ where: { id: evt.entityId, status: "ACTIF" }, data: { viewsCount: { increment: 1 } } })
+      .catch(() => null);
+  } else if (evt.type === "formation_view" && evt.entityType === "formation") {
+    prisma.formation
+      .updateMany({ where: { id: evt.entityId, status: "ACTIF" }, data: { viewsCount: { increment: 1 } } })
+      .catch(() => null);
+  }
+}
+
 export async function POST(req: NextRequest) {
-  let body: TrackBody = {};
+  let brut: unknown;
   try {
-    body = (await req.json()) as TrackBody;
+    brut = await req.json();
   } catch {
     return NextResponse.json({ ok: false, error: "Invalid body" }, { status: 400 });
   }
 
-  if (!body.type || !body.sessionId || !body.path) {
+  // Accepte un événement seul OU un lot `{ events: [...] }` : une fiche émet
+  // « vue de page » + « vue produit » au même instant, envoyées en UNE requête
+  // (chaque requête est une exécution de fonction facturée).
+  const lot = (brut as { events?: unknown })?.events;
+  const evenements = (Array.isArray(lot) ? lot.slice(0, 10) : [brut]) as TrackBody[];
+  const valides = evenements.filter((e) => e && e.type && e.sessionId && e.path);
+  if (valides.length === 0) {
     return NextResponse.json({ ok: false, error: "Missing fields" }, { status: 400 });
   }
 
@@ -88,39 +114,43 @@ export async function POST(req: NextRequest) {
 
   const country = detectCountry(req);
   const deviceType = detectDevice(ua);
+  const premier = valides[0];
 
   // Start (or upsert) the session — idempotent
   await trackingStore.startSession({
-    sessionId: body.sessionId,
+    sessionId: premier.sessionId!,
     userId,
-    entryPath: body.path,
+    entryPath: premier.path!,
     deviceType,
-    referrer: body.referrer ?? null,
-    utmSource: body.utmSource ?? null,
-    utmMedium: body.utmMedium ?? null,
-    utmCampaign: body.utmCampaign ?? null,
+    referrer: premier.referrer ?? null,
+    utmSource: premier.utmSource ?? null,
+    utmMedium: premier.utmMedium ?? null,
+    utmCampaign: premier.utmCampaign ?? null,
     country,
     userAgent: ua ?? null,
     isBot: false,
   });
 
-  await trackingStore.track({
-    eventId: body.eventId,
-    type: body.type,
-    userId,
-    sessionId: body.sessionId,
-    path: body.path,
-    entityType: body.entityType ?? null,
-    entityId: body.entityId ?? null,
-    referrer: body.referrer ?? null,
-    utmSource: body.utmSource ?? null,
-    utmMedium: body.utmMedium ?? null,
-    utmCampaign: body.utmCampaign ?? null,
-    deviceType,
-    country,
-    userAgent: ua ?? null,
-    metadata: body.metadata ?? null,
-  });
+  for (const body of valides) {
+    await trackingStore.track({
+      eventId: body.eventId,
+      type: body.type!,
+      userId,
+      sessionId: body.sessionId!,
+      path: body.path!,
+      entityType: body.entityType ?? null,
+      entityId: body.entityId ?? null,
+      referrer: body.referrer ?? null,
+      utmSource: body.utmSource ?? null,
+      utmMedium: body.utmMedium ?? null,
+      utmCampaign: body.utmCampaign ?? null,
+      deviceType,
+      country,
+      userAgent: ua ?? null,
+      metadata: body.metadata ?? null,
+    });
+    compterVue(body);
+  }
 
   return NextResponse.json({ ok: true });
 }

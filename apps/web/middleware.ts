@@ -458,13 +458,16 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-// Exclus du middleware (chaque passage est une exécution facturée) :
+// Exclus du middleware (chaque passage est une exécution facturée, MÊME quand
+// la réponse vient ensuite du cache CDN) :
 // - tout chemin contenant un point (fichiers, sitemap.xml, robots.txt…) —
 //   `isStaticAsset` les laissait déjà passer sans rien faire ;
 // - webhooks et crons : ils font leur propre authentification et étaient déjà
-//   exemptés du mode maintenance.
+//   exemptés du mode maintenance ;
+// - API publiques en lecture, suivi des vues et NextAuth : appelés à chaque
+//   visite, sans rien à contrôler ici (/api/auth était déjà exempté).
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|api/webhooks|api/cron|.*\\..*).*)",
+    "/((?!_next/static|_next/image|api/webhooks|api/cron|api/formations/public|api/track|api/auth|.*\\..*).*)",
   ],
 };

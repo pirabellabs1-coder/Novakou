@@ -33,13 +33,47 @@ export const EVENEMENT_DEVISE = "novakou:devise-changee";
 let paysDetecte: string | null = null;
 let detectionEnCours: Promise<string | null> | null = null;
 
+// Le pays détecté est gardé 24 h dans le navigateur : sans ça, CHAQUE page
+// vue relançait l'appel (une exécution de fonction par page, pour une réponse
+// qui ne change pas d'une page à l'autre). Chaîne vide = pays hors liste.
+const CLE_GEO = "nk_pays_detecte";
+const DUREE_GEO_MS = 24 * 3600_000;
+
+function lireGeoEnCache(): string | null | undefined {
+  try {
+    const brut = window.localStorage.getItem(CLE_GEO);
+    if (!brut) return undefined;
+    const { code, at } = JSON.parse(brut) as { code: string; at: number };
+    if (Date.now() - at > DUREE_GEO_MS) return undefined;
+    return code || null;
+  } catch {
+    return undefined;
+  }
+}
+
 export function detecterPaysAffichage(): Promise<string | null> {
   if (typeof window === "undefined") return Promise.resolve(null);
   if (detectionEnCours) return detectionEnCours;
+  const enCache = lireGeoEnCache();
+  if (enCache !== undefined) {
+    if (enCache && PAYS_AFFICHAGE.some((p) => p.code === enCache)) {
+      paysDetecte = enCache;
+      // Différé comme l'était la réponse réseau : laisse aux composants le
+      // temps de poser leur écouteur avant d'être prévenus.
+      setTimeout(() => window.dispatchEvent(new CustomEvent(EVENEMENT_DEVISE, { detail: enCache })), 0);
+    }
+    detectionEnCours = Promise.resolve(paysDetecte);
+    return detectionEnCours;
+  }
   detectionEnCours = fetch("/api/formations/public/geo")
     .then((r) => r.json())
     .then((j) => {
       const code = typeof j?.data?.country === "string" ? j.data.country.toUpperCase() : null;
+      try {
+        window.localStorage.setItem(CLE_GEO, JSON.stringify({ code: code ?? "", at: Date.now() }));
+      } catch {
+        /* stockage indisponible : on redemandera à la prochaine page */
+      }
       // Un pays hors de notre liste (visiteur en France, VPN…) ne change rien :
       // le FCFA par défaut reste le plus lisible pour notre marché.
       if (code && PAYS_AFFICHAGE.some((p) => p.code === code)) {

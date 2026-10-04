@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { lireTaux } from "@/lib/currency/taux-store";
+import { CACHE_COURT } from "@/lib/cache-cdn";
 
 /**
  * Taux courants, pour que le navigateur affiche les MÊMES prix que ceux qui
@@ -15,8 +16,9 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   return NextResponse.json(
     { data: { taux: await lireTaux() } },
-    // Une minute de cache : assez pour ne pas frapper la base a chaque page,
-    // assez court pour qu'une correction se propage vite.
-    { headers: { "Cache-Control": "public, max-age=60, stale-while-revalidate=300" } },
+    // Une minute de cache, désormais au niveau du CDN (le navigateur seul ne
+    // suffisait pas : chaque NOUVEAU visiteur relançait la fonction). Assez
+    // court pour qu'une correction se propage vite.
+    { headers: CACHE_COURT },
   );
 }

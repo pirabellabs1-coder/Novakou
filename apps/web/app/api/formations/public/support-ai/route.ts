@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { CACHE_PUBLIC } from "@/lib/cache-cdn";
 
 /**
  * GET /api/formations/public/support-ai?instructeurId=XXX
@@ -11,7 +12,9 @@ import { prisma } from "@/lib/prisma";
  * Retourne null si le chatbot n'est pas active.
  */
 export const dynamic = "force-dynamic";
-export const revalidate = 60; // cache 1 minute cote CDN
+// L'ancien `revalidate = 60` n'avait aucun effet (route dynamique : elle lit
+// l'URL). Le cache est désormais posé par en-têtes CDN (lib/cache-cdn.ts) :
+// configuration publique, identique pour tous, mise en cache par URL.
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,7 +23,7 @@ export async function GET(request: NextRequest) {
     const shopSlug = searchParams.get("shopSlug");
 
     if (!instructeurId && !shopSlug) {
-      return NextResponse.json({ data: null });
+      return NextResponse.json({ data: null }, { headers: CACHE_PUBLIC });
     }
 
     const where = instructeurId ? { id: instructeurId } : { shopSlug: shopSlug! };
@@ -43,7 +46,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    if (!inst) return NextResponse.json({ data: null });
+    if (!inst) return NextResponse.json({ data: null }, { headers: CACHE_PUBLIC });
 
     // Choix de la boutique : celle demandee (shopSlug) sinon la principale sinon la 1re.
     const shop =
@@ -62,7 +65,7 @@ export async function GET(request: NextRequest) {
         context: inst.supportAiContext ?? "",
         color: inst.supportAiColor ?? "#006e2f",
       },
-    });
+    }, { headers: CACHE_PUBLIC });
   } catch (err) {
     console.error("[public/support-ai GET]", err);
     return NextResponse.json({ data: null });

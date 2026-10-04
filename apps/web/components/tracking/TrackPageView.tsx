@@ -58,6 +58,43 @@ function getOrCreateSessionId(): string {
   }
 }
 
+// ─── Envoi groupé ──────────────────────────────────────────────────────────
+// Une fiche monte DEUX traceurs au même instant (vue de page du layout racine
+// + vue produit/formation/boutique de la page) : ils partaient en deux
+// requêtes, soit deux exécutions de fonction par visite. On les met en file
+// et on les envoie en UNE requête au tick suivant (`{ events: [...] }`).
+let fileEvenements: Record<string, unknown>[] = [];
+let envoiPlanifie = false;
+
+function envoyer(body: string) {
+  // sendBeacon survit à la navigation / fermeture de l'onglet.
+  try {
+    if (navigator.sendBeacon && navigator.sendBeacon("/api/track", new Blob([body], { type: "application/json" }))) {
+      return;
+    }
+  } catch {
+    /* repli fetch */
+  }
+  fetch("/api/track", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+    keepalive: true,
+  }).catch(() => null);
+}
+
+function planifierEnvoi(evenement: Record<string, unknown>) {
+  fileEvenements.push(evenement);
+  if (envoiPlanifie) return;
+  envoiPlanifie = true;
+  setTimeout(() => {
+    const lot = fileEvenements;
+    fileEvenements = [];
+    envoiPlanifie = false;
+    envoyer(JSON.stringify(lot.length === 1 ? lot[0] : { events: lot }));
+  }, 0);
+}
+
 function readUTM(searchParams: URLSearchParams) {
   return {
     utmSource: searchParams.get("utm_source") ?? undefined,
@@ -133,28 +170,7 @@ function TrackPageViewInner({
       metadata,
     };
 
-    const body = JSON.stringify(payload);
-
-    // Use sendBeacon when available — survives navigations / tab close
-    try {
-      if (navigator.sendBeacon) {
-        const ok = navigator.sendBeacon(
-          "/api/track",
-          new Blob([body], { type: "application/json" }),
-        );
-        if (ok) return;
-      }
-    } catch {
-      /* fallthrough */
-    }
-
-    // Fallback : fetch fire-and-forget
-    fetch("/api/track", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body,
-      keepalive: true,
-    }).catch(() => null);
+    planifierEnvoi(payload);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, searchParams, type, entityType, entityId]);
 
