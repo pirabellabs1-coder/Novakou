@@ -15,7 +15,7 @@
  *   - silencieux : aucune erreur ne casse la page si /api/track est down
  */
 
-import { useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { forwardToGA4 } from "@/lib/tracking/ga";
 
@@ -66,7 +66,23 @@ function readUTM(searchParams: URLSearchParams) {
   };
 }
 
-export default function TrackPageView({
+/**
+ * `useSearchParams()` exige une frontière <Suspense> dès que la page est mise
+ * en cache (statique/ISR) : sans elle, le rendu échoue
+ * (BAILOUT_TO_CLIENT_SIDE_RENDERING → page 500). Le composant s'en protège
+ * lui-même pour que TOUS les endroits qui le montent soient sûrs : les fiches
+ * produit, formation et boutique le montaient sans protection (régression du
+ * 2026-10-04, annulée par rollback).
+ */
+export default function TrackPageView(props: TrackPageViewProps) {
+  return (
+    <Suspense fallback={null}>
+      <TrackPageViewInner {...props} />
+    </Suspense>
+  );
+}
+
+function TrackPageViewInner({
   type = "page_view",
   entityType,
   entityId,

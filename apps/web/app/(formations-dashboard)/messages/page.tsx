@@ -130,7 +130,7 @@ export default function MessagesPage() {
     queryFn: () => fetch("/api/formations/messages/conversations").then((r) => r.json()),
     staleTime: 15_000,
     // Polling ralenti à 45s : le temps réel (ci-dessous) gère la fraîcheur
-    refetchInterval: 45_000,
+    refetchInterval: 2 * 60_000, // filet de secours ; le temps réel apporte les nouveaux messages
   });
 
   // Temps réel (v2 Phase 1) : la liste se rafraîchit dès qu'un nouveau

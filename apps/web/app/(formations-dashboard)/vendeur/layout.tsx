@@ -46,7 +46,10 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
     queryKey: ["vendeur-sidebar-counts", scope],
     queryFn: () => fetch(`/api/formations/vendeur/sidebar-counts?shopId=${encodeURIComponent(scope)}`).then((r) => r.json()),
     staleTime: 60_000,
-    refetchInterval: 60_000,
+    // 5 min (et rafraîchi au retour sur l'onglet) : les compteurs de la barre
+    // latérale n'ont pas besoin d'être à la minute, et chaque appel est une
+    // exécution de fonction facturée.
+    refetchInterval: 5 * 60_000,
   });
   const counts: CompteursVendeur = countsResp?.data ?? COUNTS_VIDES;
 

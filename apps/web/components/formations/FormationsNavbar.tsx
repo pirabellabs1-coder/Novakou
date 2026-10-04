@@ -124,7 +124,7 @@ export function FormationsNavbar() {
 
               {/* Côté droit */}
               <div className="flex items-center gap-1 sm:gap-2">
-                <CartBadge />
+                <CartBadge connecte={isLoggedIn} />
                 {status === "loading" ? (
                   <div className="h-9 w-9 animate-pulse rounded-full bg-[#0e1512]/[.06]" aria-hidden="true" />
                 ) : isLoggedIn ? (

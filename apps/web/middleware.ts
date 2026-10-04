@@ -458,8 +458,13 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
+// Exclus du middleware (chaque passage est une exécution facturée) :
+// - tout chemin contenant un point (fichiers, sitemap.xml, robots.txt…) —
+//   `isStaticAsset` les laissait déjà passer sans rien faire ;
+// - webhooks et crons : ils font leur propre authentification et étaient déjà
+//   exemptés du mode maintenance.
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.jpg$|.*\\.svg$).*)",
+    "/((?!_next/static|_next/image|api/webhooks|api/cron|.*\\..*).*)",
   ],
 };

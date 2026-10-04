@@ -242,10 +242,12 @@ export default function ConversationPage({
 
   const otherOnline = !!otherUser && onlineIds.includes(otherUser.id);
 
-  // ── Polling de SECOURS (30 s) : garantit la livraison même si le
-  //    broadcast temps réel échoue (réseau, onglet en veille). ──────────
+  // ── Polling de SECOURS (60 s, onglet visible seulement) : garantit la
+  //    livraison si le broadcast temps réel échoue. Un onglet en arrière-plan
+  //    ne déclenche plus d'appels (chacun coûte une exécution Vercel). ─────
   useEffect(() => {
     pollingRef.current = setInterval(async () => {
+      if (document.visibilityState !== "visible") return;
       const data = await load();
       if (data) {
         setMessages((prev) => {
@@ -258,7 +260,7 @@ export default function ConversationPage({
           return prev;
         });
       }
-    }, 30000);
+    }, 60_000);
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
     };

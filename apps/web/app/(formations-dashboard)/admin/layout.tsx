@@ -78,7 +78,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     queryFn: () => fetch("/api/formations/admin/actions-en-attente").then((r) => r.json()),
     // Rafraîchi seul : l'admin laisse souvent son onglet ouvert, et un badge
     // figé sur une valeur périmée vaut moins que pas de badge du tout.
-    refetchInterval: 60_000,
+    refetchInterval: 5 * 60_000, // compteurs : 5 min suffisent (coût par appel)
     staleTime: 30_000,
   });
   const parPage = enAttente?.data?.parPage ?? PAR_PAGE_VIDE;

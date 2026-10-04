@@ -84,7 +84,7 @@ export default function AgentsPage() {
   const { data, isLoading } = useQuery<ApiResponse>({
     queryKey: ["admin-agents"],
     queryFn: () => fetch("/api/formations/admin/agents").then((r) => r.json()),
-    refetchInterval: 30_000,
+    refetchInterval: 2 * 60_000,
   });
 
   const patch = useMutation({

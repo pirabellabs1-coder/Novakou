@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { subscribeToChannel } from "@/lib/realtime/client";
+import { useIntervalleVisible } from "@/lib/hooks/use-intervalle-visible";
 import { PushEnableBanner } from "@/components/notifications/PushEnableBanner";
 
 interface Notification {
@@ -78,12 +79,13 @@ export function NovakouNotificationBell({ tone = "slate", viewAllHref }: Novakou
     }
   }, []);
 
-  // Initial fetch + polling de SECOURS (90 s, le temps réel prend le relais)
+  // Chargement initial, puis filet de SECOURS toutes les 5 min, onglet visible
+  // uniquement : les nouveautés arrivent en direct par le canal temps réel
+  // ci-dessous. L'ancien intervalle de 90 s tournait même onglet caché.
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 90_000);
-    return () => clearInterval(interval);
   }, [fetchNotifications]);
+  useIntervalleVisible(fetchNotifications, 5 * 60_000);
 
   // Temps réel (v2 Phase 1) : à la réception d'un broadcast sur le canal
   // personnel `user:{id}`, on rafraîchit la liste + le compteur sans attendre
