@@ -344,30 +344,9 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // --- i18n : set locale cookie from Accept-Language if absent ---
-  const localeCookie = req.cookies.get("locale")?.value;
-  let needsLocaleCookie = false;
-  let detectedLocale = "fr";
-  if (!localeCookie) {
-    const acceptLang = req.headers.get("accept-language") ?? "";
-    const preferredLocale = acceptLang
-      .split(",")
-      .map((part) => part.split(";")[0].trim().slice(0, 2).toLowerCase())
-      .find((lang) => lang === "en" || lang === "fr");
-    detectedLocale = preferredLocale ?? "fr";
-    needsLocaleCookie = true;
-  }
-
-  function withLocaleCookie(res: NextResponse): NextResponse {
-    if (needsLocaleCookie) {
-      res.cookies.set("locale", detectedLocale, {
-        path: "/",
-        maxAge: 60 * 60 * 24 * 365,
-        sameSite: "lax",
-      });
-    }
-    return res;
-  }
+  // Plus de cookie « locale » posé ici : le rendu serveur est en français (voir
+  // i18n/request.ts) et un Set-Cookie sur chaque première visite empêchait les
+  // pages publiques d'être servies depuis le cache.
 
   // Routes publiques — toujours accessibles
   if (isPublicRoute(pathname)) {
@@ -383,10 +362,10 @@ export async function middleware(req: NextRequest) {
         const res = NextResponse.redirect(new URL(redirectUrl, req.url));
         // One-shot cookie — clear after use.
         if (loginIntent) res.cookies.set("nk_login_intent", "", { path: "/", maxAge: 0 });
-        return withLocaleCookie(res);
+        return res;
       }
     }
-    return withLocaleCookie(NextResponse.next());
+    return NextResponse.next();
   }
 
   // Lire le token JWT directement (compatible Edge Runtime)
@@ -406,7 +385,7 @@ export async function middleware(req: NextRequest) {
     if (impersonatedUserId && impersonationExpiresAt && Date.now() >= impersonationExpiresAt) {
       const adminUrl = new URL("/admin/dashboard", req.url);
       adminUrl.searchParams.set("impersonation_expired", "1");
-      return withLocaleCookie(NextResponse.redirect(adminUrl));
+      return NextResponse.redirect(adminUrl);
     }
   }
 
@@ -415,34 +394,34 @@ export async function middleware(req: NextRequest) {
   if (isAuthRoute(pathname)) {
     // Laisser passer /2fa si l'utilisateur attend justement la validation TOTP
     if (pathname === "/2fa" && isAuthenticated && tfaPending) {
-      return withLocaleCookie(NextResponse.next());
+      return NextResponse.next();
     }
     if (isAuthenticated && userRole) {
       // /acheteur/connexion?wrongPortal=1 must remain reachable for the
       // "wrong portal" hint flow — don't auto-redirect away.
       if (pathname === "/acheteur/connexion" && req.nextUrl.searchParams.get("wrongPortal") === "1") {
-        return withLocaleCookie(NextResponse.next());
+        return NextResponse.next();
       }
       const loginIntent = req.cookies.get("nk_login_intent")?.value;
       const excludeApprenant = loginIntent === "seller";
       const redirectUrl = getDashboardForRole(userRole, userFormationsRole, { excludeApprenant });
       const res = NextResponse.redirect(new URL(redirectUrl, req.url));
       if (loginIntent) res.cookies.set("nk_login_intent", "", { path: "/", maxAge: 0 });
-      return withLocaleCookie(res);
+      return res;
     }
-    return withLocaleCookie(NextResponse.next());
+    return NextResponse.next();
   }
 
   // Toutes les autres routes necessitent une authentification
   if (!isAuthenticated) {
     if (hasSessionCookie) {
-      return withLocaleCookie(NextResponse.next());
+      return NextResponse.next();
     }
     const callbackUrl = encodeURIComponent(pathname);
     // Route les acheteurs (espace apprenant) vers leur page de connexion dédiée
     // avec OTP par email, pas vers la page vendeur /connexion (email + password).
     const loginPath = pathname.startsWith("/apprenant") ? "/acheteur/connexion" : "/connexion";
-    return withLocaleCookie(NextResponse.redirect(new URL(`${loginPath}?callbackUrl=${callbackUrl}`, req.url)));
+    return NextResponse.redirect(new URL(`${loginPath}?callbackUrl=${callbackUrl}`, req.url));
   }
 
   // 2FA en attente : on force la page /2fa tant que le code TOTP n'a pas
@@ -451,7 +430,7 @@ export async function middleware(req: NextRequest) {
     const url = new URL("/2fa", req.url);
     // Préserver la destination initiale pour la redirection après validation
     if (pathname && pathname !== "/") url.searchParams.set("callbackUrl", pathname);
-    return withLocaleCookie(NextResponse.redirect(url));
+    return NextResponse.redirect(url);
   }
 
   // Verification du role
@@ -463,7 +442,7 @@ export async function middleware(req: NextRequest) {
       if (requiredRole !== "admin") {
         res.headers.set("x-admin-viewing", "true");
       }
-      return withLocaleCookie(res);
+      return res;
     }
 
     // Verifier que le role correspond — rediriger vers l'espace du rôle
@@ -472,11 +451,11 @@ export async function middleware(req: NextRequest) {
       const redirectUrl = getDashboardForRole(userRole, userFormationsRole);
       const url = new URL(redirectUrl, req.url);
       url.searchParams.set("access_denied", "1");
-      return withLocaleCookie(NextResponse.redirect(url));
+      return NextResponse.redirect(url);
     }
   }
 
-  return withLocaleCookie(NextResponse.next());
+  return NextResponse.next();
 }
 
 export const config = {

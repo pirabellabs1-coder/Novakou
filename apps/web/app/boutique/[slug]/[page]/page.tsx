@@ -7,6 +7,11 @@ import { shopFontHref } from "@/lib/formations/shop-fonts";
 
 export const revalidate = 600;
 
+// ISR à la demande (voir boutique/[slug]/page.tsx).
+export async function generateStaticParams() {
+  return [];
+}
+
 interface Props {
   params: Promise<{ slug: string; page: string }>;
 }

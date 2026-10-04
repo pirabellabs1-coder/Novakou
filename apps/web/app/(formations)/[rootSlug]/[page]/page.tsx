@@ -18,7 +18,13 @@ import ShopStaticRoute, { generateMetadata as shopStaticMetadata } from "@/app/b
  * indexée en double.
  */
 
-export const dynamic = "force-dynamic";
+// En cache (ISR), comme la vitrine dont c'est une page interne.
+export const revalidate = 300;
+
+// ISR à la demande (voir [rootSlug]/page.tsx).
+export async function generateStaticParams() {
+  return [];
+}
 
 type Props = { params: Promise<{ rootSlug: string; page: string }> };
 

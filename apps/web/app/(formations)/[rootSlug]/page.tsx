@@ -24,9 +24,19 @@ import FormationPage, { generateMetadata as formationMetadata } from "@/app/(for
  * résolveur ne voit que ce qui n'appartient à aucune route connue.
  */
 
-// Même contrainte que les pages déléguées : le layout racine lit la locale via
-// next-intl, ce qui rend la route dynamique de toute façon.
-export const dynamic = "force-dynamic";
+// Page en cache (ISR) : servie par le CDN, régénérée au plus toutes les 5 min,
+// et IMMÉDIATEMENT après une modification du vendeur ou une vente
+// (`revalidatePublicCatalog`). C'est la page qui reçoit le trafic des pubs :
+// la recalculer à chaque visite coûtait l'essentiel du CPU Vercel. Possible
+// depuis que le layout racine ne lit plus le cookie de langue.
+export const revalidate = 300;
+
+// Liste vide : rien n'est généré au build, mais chaque fiche est mise en cache
+// à sa première visite (ISR à la demande). Sans cette fonction, Next 15 traite
+// la route comme dynamique (ƒ) et la recalcule à chaque requête.
+export async function generateStaticParams() {
+  return [];
+}
 
 type Props = { params: Promise<{ rootSlug: string }> };
 

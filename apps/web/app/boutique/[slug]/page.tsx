@@ -9,13 +9,15 @@ import { shopFontHref } from "@/lib/formations/shop-fonts";
 import { productImageSrc } from "@/lib/utils/image-url";
 import { fusionnerAvis } from "@/components/formations/boutique/avis";
 
-// ATTENTION — ce `revalidate` n'a AUCUN effet aujourd'hui : le layout racine
-// lit le cookie de langue via next-intl (i18n/request.ts appelle `cookies()`),
-// ce qui rend TOUTE route dynamique. Vérifié en prod : la réponse porte
-// `Cache-Control: private, no-cache, no-store` et `X-Vercel-Cache: MISS` à
-// chaque requête. On le garde car il redeviendra actif si un jour la locale
-// passe par l'URL (next-intl `localePrefix: "as-needed"`) au lieu du cookie.
+// En cache (ISR, 10 min). Ce `revalidate` est effectif depuis que
+// i18n/request.ts ne lit plus le cookie de langue (il rendait tout le site
+// dynamique). Rafraîchie aussi par `revalidatePublicCatalog`.
 export const revalidate = 600;
+
+// ISR à la demande : chaque vitrine est mise en cache à sa première visite.
+export async function generateStaticParams() {
+  return [];
+}
 
 interface Props {
   params: Promise<{ slug: string }>;

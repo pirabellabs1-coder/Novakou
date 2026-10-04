@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { NextIntlClientProvider } from "next-intl";
-import { getLocale, getMessages, getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import { manrope } from "@/lib/fonts";
 import { Providers } from "./providers";
 import { ImpersonationBanner } from "@/components/admin/ImpersonationBanner";
@@ -142,12 +141,15 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const locale = await getLocale();
-  const messages = await getMessages();
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
+  // Pas de NextIntlClientProvider ni de getLocale()/getMessages() ici : aucun
+  // composant n'utilise les traductions côté client, et ce provider injectait
+  // ~52 Ko de JSON dans CHAQUE page HTML — transférés à chaque visite pour
+  // rien. getLocale() lisait en plus le cookie de langue, ce qui rendait tout
+  // le site dynamique (voir i18n/request.ts).
   return (
-    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} className={manrope.variable} suppressHydrationWarning>
+    <html lang="fr" className={manrope.variable} suppressHydrationWarning>
       <head>
         {/* Préconnexion aux CDN fonts utilisés. On retire fonts.googleapis.com
             et fonts.gstatic.com — Manrope passe désormais par next/font (self-
@@ -295,19 +297,17 @@ export default async function RootLayout({
         >
           Aller au contenu principal
         </a>
-        <NextIntlClientProvider messages={messages}>
-          <Providers>
-            <TrackingProvider>
-              <ImpersonationBanner />
-              <main id="main-content">
-                {children}
-              </main>
-              <CookieConsent />
-              <ConfirmDialog />
-              <PromptDialog />
-            </TrackingProvider>
-          </Providers>
-        </NextIntlClientProvider>
+        <Providers>
+          <TrackingProvider>
+            <ImpersonationBanner />
+            <main id="main-content">
+              {children}
+            </main>
+            <CookieConsent />
+            <ConfirmDialog />
+            <PromptDialog />
+          </TrackingProvider>
+        </Providers>
         {gaId && <GoogleAnalytics measurementId={gaId} />}
         <ServiceWorkerRegister />
         <PWAInstallPrompt />

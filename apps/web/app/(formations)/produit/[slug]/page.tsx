@@ -6,11 +6,16 @@ import { resolveOldSlug } from "@/lib/formations/slugs";
 import ProduitPageClient from "./ProduitPageClient";
 import TrackPageView from "@/components/tracking/TrackPageView";
 
-// Rendu DYNAMIQUE (SSR à chaque requête). Même contrainte que la page
-// formation : le layout racine lit les en-têtes via next-intl, donc une
-// régénération ISR plante en prod (DYNAMIC_SERVER_USAGE). force-dynamic =
-// rendu correct + compteur de ventes/prix toujours à jour.
-export const dynamic = "force-dynamic";
+// En cache (ISR, 5 min) — rafraîchie immédiatement après une modification ou
+// une vente par `revalidatePublicCatalog`. L'ancien `force-dynamic` venait du
+// layout racine qui lisait le cookie de langue (DYNAMIC_SERVER_USAGE en ISR) :
+// cause supprimée, voir i18n/request.ts.
+export const revalidate = 300;
+
+// ISR à la demande (voir [rootSlug]/page.tsx).
+export async function generateStaticParams() {
+  return [];
+}
 
 /**
  * Une seule requête produit par requête HTTP.

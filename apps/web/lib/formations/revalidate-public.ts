@@ -13,8 +13,10 @@ export function revalidatePublicCatalog() {
   try {
     revalidatePath("/");                          // home : best-sellers + catalogue
     revalidatePath("/explorer");                  // marketplace (si rendu serveur)
-    revalidatePath("/produit/[slug]", "page");    // toutes les fiches produit
-    revalidatePath("/formation/[slug]", "page");  // toutes les fiches formation
+    revalidatePath("/[rootSlug]", "page");        // adresses courtes novakou.com/<slug> (fiches + boutiques)
+    revalidatePath("/produit/[slug]", "page");    // anciennes adresses produit
+    revalidatePath("/formation/[slug]", "page");  // anciennes adresses formation
+    revalidatePath("/boutique/[slug]", "page");   // vitrines boutique
   } catch (e) {
     console.error("[revalidatePublicCatalog]", (e as Error)?.message ?? e);
   }
