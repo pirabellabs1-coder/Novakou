@@ -5,8 +5,9 @@ import { uploadFile, getSignedUrl, type StorageBucket } from "@/lib/supabase-sto
 import { promises as fs } from "fs";
 import path from "path";
 import crypto from "crypto";
+import { MODE_DEV_LOCAL } from "@/lib/env";
 
-const IS_DEV = process.env.DEV_MODE === "true";
+const IS_DEV = MODE_DEV_LOCAL;
 const IS_VERCEL = !!process.env.VERCEL;
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];

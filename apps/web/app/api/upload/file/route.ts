@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { rateLimit } from "@/lib/api-rate-limit";
+import { MODE_DEV_LOCAL } from "@/lib/env";
 import {
   uploadFile,
   getSignedUrl,
@@ -9,7 +10,7 @@ import {
 } from "@/lib/supabase-storage";
 import { uploadImage } from "@/lib/cloudinary";
 
-const IS_DEV = process.env.DEV_MODE === "true";
+const IS_DEV = MODE_DEV_LOCAL;
 
 const MAX_SIZE = 25 * 1024 * 1024; // 25MB
 

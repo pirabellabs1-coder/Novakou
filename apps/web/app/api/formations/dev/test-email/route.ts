@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
+import { MODE_DEV_LOCAL } from "@/lib/env";
 
 /**
  * GET /api/formations/dev/test-email?to=foo@example.com
  * Dev-only: tests that Resend is properly configured and can send mails.
  */
 export async function GET(request: Request) {
-  if (process.env.NODE_ENV !== "development" && process.env.DEV_MODE !== "true") {
+  if (process.env.NODE_ENV !== "development" && !MODE_DEV_LOCAL) {
     // only allow if explicitly enabled via header for safety
     if (request.headers.get("x-test-email-key") !== process.env.NEXTAUTH_SECRET?.slice(0, 16)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });

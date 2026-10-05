@@ -15,6 +15,20 @@ export const IS_DEV =
   process.env.NODE_ENV !== "production";
 
 /**
+ * LE SEUL interrupteur du mode développement — tout le code passe par lui.
+ *
+ * Vingt fichiers lisaient `process.env.DEV_MODE === "true"` directement. Lors
+ * de la migration Vercel du 2026-10-04, DEV_MODE="true" (valeur de
+ * `.env.local`) a été recopié en production : la connexion cherchait les
+ * comptes dans le magasin JSON de démo (« compte inexistant » pour TOUS les
+ * vendeurs), l'envoi de code acheteur renvoyait le code dans la réponse, des
+ * routes marketing répondaient sans authentification et les fichiers envoyés
+ * partaient sur le disque éphémère au lieu de Supabase. Ici, la variable est
+ * IGNORÉE sur Vercel et en production, quelle que soit sa valeur.
+ */
+export const MODE_DEV_LOCAL = IS_DEV;
+
+/**
  * USE_PRISMA_FOR_DATA — On Vercel, les dev stores en mémoire sont éphémères
  * (perdus entre les invocations serverless). Les APIs de données critiques
  * (services, projets, commandes) doivent utiliser Prisma même si DEV_MODE=true.

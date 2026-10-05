@@ -2,8 +2,9 @@
 // Records: IP, user-agent, referer, timestamp. Sets visitor cookie for attribution.
 
 import { NextRequest, NextResponse } from "next/server";
+import { MODE_DEV_LOCAL } from "@/lib/env";
 
-const DEV_MODE = process.env.DEV_MODE === "true" || !process.env.DATABASE_URL;
+const DEV_MODE = MODE_DEV_LOCAL || !process.env.DATABASE_URL;
 
 // ── Mock campaign lookup (references same data as parent route) ──────────────
 

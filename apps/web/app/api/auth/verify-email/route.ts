@@ -7,8 +7,9 @@ import { rateLimit } from "@/lib/api-rate-limit";
 import { storeOTP, verifyOTP } from "@/lib/auth/otp";
 import { emitEvent } from "@/lib/events/dispatcher";
 import { checkRateLimit, recordFailedAttempt } from "@/lib/auth/rate-limiter";
+import { MODE_DEV_LOCAL } from "@/lib/env";
 
-const IS_DEV_MODE = process.env.DEV_MODE === "true";
+const IS_DEV_MODE = MODE_DEV_LOCAL;
 
 const sendSchema = z.object({
   email: z.string().email("Email invalide"),

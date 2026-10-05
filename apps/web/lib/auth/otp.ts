@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { MODE_DEV_LOCAL } from "@/lib/env";
 
 /**
  * Préfixe de cloisonnement pour les codes de RÉINITIALISATION 2FA, rangés
@@ -12,7 +13,7 @@ export function generateOTP(): string {
   return crypto.randomInt(100000, 999999).toString();
 }
 
-const IS_DEV_MODE = process.env.DEV_MODE === "true";
+const IS_DEV_MODE = MODE_DEV_LOCAL;
 const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
 const MAX_ATTEMPTS = 5;
 

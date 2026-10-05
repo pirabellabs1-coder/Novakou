@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { resend } from "@/lib/email/resend-client";
 import { storeOTP } from "@/lib/auth/otp";
 import { rateLimit } from "@/lib/api-rate-limit";
+import { MODE_DEV_LOCAL } from "@/lib/env";
 
 /**
  * POST /api/auth/buyer/send-otp
@@ -113,7 +114,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       ok: true,
       message: "Code envoyé par email",
-      devCode: process.env.DEV_MODE === "true" ? code : undefined,
+      devCode: MODE_DEV_LOCAL ? code : undefined,
     });
   } catch (err) {
     console.error("[buyer/send-otp]", err);

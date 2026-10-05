@@ -9,6 +9,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { checkRateLimit, recordFailedAttempt, resetAttempts } from "./rate-limiter";
 import { uniqueSlug } from "@/lib/formations/slugs";
+import { MODE_DEV_LOCAL } from "@/lib/env";
 
 // Map legacy plan names to new elevation plan names
 const PLAN_NAME_MAP: Record<string, string> = {
@@ -71,7 +72,7 @@ declare module "next-auth/jwt" {
   }
 }
 
-const IS_DEV_MODE = process.env.DEV_MODE === "true";
+const IS_DEV_MODE = MODE_DEV_LOCAL;
 const BUILD_SAFE_AUTH_SECRET = "build-time-placeholder-secret-set-nextauth-secret-in-runtime";
 
 // Securite : le secret DOIT etre defini en production.

@@ -8,6 +8,7 @@ import { emitEvent } from "@/lib/events/dispatcher";
 import { onUserSignup } from "@/lib/marketing/hooks";
 import { checkRateLimit, recordFailedAttempt } from "@/lib/auth/rate-limiter";
 import { uniqueSlug } from "@/lib/formations/slugs";
+import { MODE_DEV_LOCAL } from "@/lib/env";
 
 const registerSchema = z.object({
   email: z.string().email("Email invalide"),
@@ -45,7 +46,7 @@ const registerSchema = z.object({
   formationsRole: z.enum(["apprenant", "instructeur", "mentor", "affilie"]).optional(),
 });
 
-const IS_DEV_MODE = process.env.DEV_MODE === "true";
+const IS_DEV_MODE = MODE_DEV_LOCAL;
 
 export async function POST(request: Request) {
   try {

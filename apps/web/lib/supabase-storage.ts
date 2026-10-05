@@ -1,10 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
 import pathModule from "path";
+import { MODE_DEV_LOCAL } from "@/lib/env";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-const IS_DEV = process.env.DEV_MODE === "true";
+const IS_DEV = MODE_DEV_LOCAL;
 
 // Service role client for server-side file operations
 const supabase =

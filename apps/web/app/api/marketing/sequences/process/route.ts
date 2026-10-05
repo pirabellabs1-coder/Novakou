@@ -3,8 +3,9 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { processPendingSteps } from "@/lib/marketing/email-sequence-processor";
+import { MODE_DEV_LOCAL } from "@/lib/env";
 
-const DEV_MODE = process.env.DEV_MODE === "true" || !process.env.DATABASE_URL;
+const DEV_MODE = MODE_DEV_LOCAL || !process.env.DATABASE_URL;
 const CRON_SECRET = process.env.CRON_SECRET || "";
 
 async function handle(req: NextRequest) {

@@ -4,11 +4,12 @@
 // les guides équivalents (cf. next.config.ts).
 
 import { MetadataRoute } from "next";
+import { MODE_DEV_LOCAL } from "@/lib/env";
 
 export const revalidate = 60;
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
-const IS_DEV = process.env.DEV_MODE === "true";
+const IS_DEV = MODE_DEV_LOCAL;
 
 /* Formations, produits et boutiques vivent a la racine : `/<slug>`.
    Declarer `/produit/<slug>` faisait pointer 1 288 des 1 511 adresses du

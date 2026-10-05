@@ -3,8 +3,9 @@
 // Returns: { valid, discountAmount, finalPrice, error? }
 
 import { NextRequest, NextResponse } from "next/server";
+import { MODE_DEV_LOCAL } from "@/lib/env";
 
-const DEV_MODE = process.env.DEV_MODE === "true" || !process.env.DATABASE_URL;
+const DEV_MODE = MODE_DEV_LOCAL || !process.env.DATABASE_URL;
 
 // DEV mock discount codes (kept in sync with the discounts route)
 const MOCK_CODES: Record<

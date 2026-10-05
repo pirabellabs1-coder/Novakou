@@ -3,8 +3,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
+import { MODE_DEV_LOCAL } from "@/lib/env";
 
-const DEV_MODE = process.env.DEV_MODE === "true" || process.env.NODE_ENV === "development";
+const DEV_MODE = MODE_DEV_LOCAL || process.env.NODE_ENV === "development";
 
 // Access the dev store from the parent funnels route
 // In dev mode, we import the mock data directly
