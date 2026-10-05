@@ -267,18 +267,15 @@ const ADAPTATEURS: Record<PayoutProviderId, AdaptateurVersement> = {
       // MEME conversion qu'a l'encaissement. L'enjeu est plus grand ici :
       // envoyer un montant FCFA brut a un vendeur ougandais lui verserait
       // 5 000 UGX au lieu de ~32 000, avec un virement marque reussi.
-      const { montantAFacturer } = await import("@/lib/currency/rates");
-      const { chargerTaux } = await import("@/lib/currency/taux-store");
-      await chargerTaux();
+      //
+      // Conversion PROPRE AU VERSEMENT (lib/currency/taux-versement.ts) : zone
+      // franc inchangée ; ailleurs, taux du jour arrondi VERS LE BAS, avec un
+      // garde-fou d'écart. Le taux et l'arrondi de l'encaissement surpayaient
+      // (100 FCFA devenaient 30 KES, +32 %). Conversion impossible en sûreté →
+      // PAYOUTS_NOT_ALLOWED : rien n'est envoyé.
+      const { montantAVerser } = await import("@/lib/currency/taux-versement");
       const { currencyForOperator } = await import("@/lib/payments/registry");
-      const aVerser = montantAFacturer(Math.round(input.amount), currencyForOperator(code));
-      // Hors zone franc, les taux sont INDICATIFS (lib/currency/rates.ts : « ils
-      // servent à afficher, jamais à décider d'un versement ») et l'arrondi va
-      // vers le haut — 100 FCFA devenaient 30 KES, +32 %. Aucun versement ne
-      // part donc dans une autre devise que XOF/XAF (parité fixe).
-      if (aVerser.devise !== "XOF" && aVerser.devise !== "XAF") {
-        throw new Error(`PAYOUTS_NOT_ALLOWED — versement en ${aVerser.devise} non ouvert (taux de change indicatifs)`);
-      }
+      const aVerser = await montantAVerser(Math.round(input.amount), currencyForOperator(code));
 
       // ── L'ARGENT DISPONIBLE DÉCIDE (règle fondateur, 2026-08-25) ────────
       // Le portefeuille PawaPay du pays est lu AVANT d'envoyer : à sec, la

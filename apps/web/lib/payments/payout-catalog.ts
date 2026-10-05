@@ -84,7 +84,7 @@ export const PAYOUT_METHODS: PayoutMethodDef[] = [
     currency: "XOF",
     countries: ["SN"],
     requiredFields: ["msisdn"],
-    placeholder: { msisdn: "221771234567", account_number: "" },
+    placeholder: { msisdn: "221761234567", account_number: "" },
     minAmount: 100,
     processingTime: "Quelques minutes",
     category: "mobile_money",
@@ -146,7 +146,7 @@ export const PAYOUT_METHODS: PayoutMethodDef[] = [
     currency: "XOF",
     countries: ["CI"],
     requiredFields: ["msisdn"],
-    placeholder: { msisdn: "2250512345678", account_number: "" },
+    placeholder: { msisdn: "2250556123456", account_number: "" },
     minAmount: 100,
     processingTime: "Quelques minutes",
     category: "mobile_money",
@@ -303,8 +303,8 @@ export const PAYOUT_METHODS: PayoutMethodDef[] = [
     currency: "KES",
     countries: ["KE"],
     requiredFields: ["msisdn"],
-    placeholder: { msisdn: "254712345678", account_number: "" },
-    minAmount: 50,
+    placeholder: { msisdn: "254722123456", account_number: "" },
+    minAmount: 100,
     processingTime: "Instantané",
     category: "mobile_money",
   },
@@ -344,7 +344,7 @@ export const PAYOUT_METHODS: PayoutMethodDef[] = [
     countries: ["UG"],
     requiredFields: ["msisdn"],
     placeholder: { msisdn: "256702345678", account_number: "" },
-    minAmount: 1000,
+    minAmount: 100,
     processingTime: "Instantané",
     category: "mobile_money",
   },
@@ -355,7 +355,7 @@ export const PAYOUT_METHODS: PayoutMethodDef[] = [
     currency: "RWF",
     countries: ["RW"],
     requiredFields: ["msisdn"],
-    placeholder: { msisdn: "250782345678", account_number: "" },
+    placeholder: { msisdn: "250731234567", account_number: "" },
     minAmount: 100,
     processingTime: "Instantané",
     category: "mobile_money",
@@ -368,18 +368,18 @@ export const PAYOUT_METHODS: PayoutMethodDef[] = [
     countries: ["ZM"],
     requiredFields: ["msisdn"],
     placeholder: { msisdn: "260972345678", account_number: "" },
-    minAmount: 5,
+    minAmount: 100,
     processingTime: "Instantané",
     category: "mobile_money",
   },
 
-  // ─── Ouverts le 2026-10-05 : versement PawaPay activé (zone franc) ──────
+  // ─── Ouverts le 2026-10-05 : versement PawaPay activé ───────────────────
   // /v2/active-conf liste PAYOUT sur ces opérateurs depuis que le compte est
   // « fully live ». Sans fiche ici, le registre les savait servis mais une
   // demande de retrait était refusée (« méthode non reconnue »). Les exemples
   // suivent les formats renvoyés par PawaPay /v2/predict-provider. Hors zone
-  // franc (RD Congo, Afrique de l'Est, Sierra Leone) : versement FERMÉ, voir
-  // le registre — taux de change indicatifs.
+  // franc, le versement est converti au taux du jour (taux-versement.ts).
+  // minAmount est en FCFA : c'est au montant FCFA du retrait qu'il est comparé.
   { id: "mtn_cg", label: "MTN Mobile Money (Congo)", icon: "phone_iphone", currency: "XAF", countries: ["CG"],
     requiredFields: ["msisdn"], placeholder: { msisdn: "242061234567", account_number: "" },
     minAmount: 100, processingTime: "Quelques minutes", category: "mobile_money" },
@@ -389,6 +389,31 @@ export const PAYOUT_METHODS: PayoutMethodDef[] = [
   { id: "airtel_ga", label: "Airtel Money (Gabon)", icon: "phone_iphone", currency: "XAF", countries: ["GA"],
     requiredFields: ["msisdn"], placeholder: { msisdn: "24107123456", account_number: "" },
     minAmount: 100, processingTime: "Quelques minutes", category: "mobile_money" },
+  { id: "orange_cd", label: "Orange Money (RD Congo)", icon: "phone_iphone", currency: "CDF", countries: ["CD"],
+    requiredFields: ["msisdn"], placeholder: { msisdn: "243891234567", account_number: "" },
+    minAmount: 100, processingTime: "Quelques minutes", category: "mobile_money" },
+  { id: "airtel_cd", label: "Airtel Money (RD Congo)", icon: "phone_iphone", currency: "CDF", countries: ["CD"],
+    requiredFields: ["msisdn"], placeholder: { msisdn: "243991234567", account_number: "" },
+    minAmount: 100, processingTime: "Quelques minutes", category: "mobile_money" },
+  // Minimum PawaPay M-Pesa RD Congo : 1 000 CDF, soit ~250 FCFA.
+  { id: "vodacom_cd", label: "Vodacom M-Pesa (RD Congo)", icon: "phone_iphone", currency: "CDF", countries: ["CD"],
+    requiredFields: ["msisdn"], placeholder: { msisdn: "243811234567", account_number: "" },
+    minAmount: 300, processingTime: "Quelques minutes", category: "mobile_money" },
+  { id: "mtn_ug", label: "MTN Mobile Money (Ouganda)", icon: "phone_iphone", currency: "UGX", countries: ["UG"],
+    requiredFields: ["msisdn"], placeholder: { msisdn: "256772345678", account_number: "" },
+    minAmount: 100, processingTime: "Instantané", category: "mobile_money" },
+  { id: "mtn_rw", label: "MTN Mobile Money (Rwanda)", icon: "phone_iphone", currency: "RWF", countries: ["RW"],
+    requiredFields: ["msisdn"], placeholder: { msisdn: "250781234567", account_number: "" },
+    minAmount: 100, processingTime: "Instantané", category: "mobile_money" },
+  { id: "mtn_zm", label: "MTN Mobile Money (Zambie)", icon: "phone_iphone", currency: "ZMW", countries: ["ZM"],
+    requiredFields: ["msisdn"], placeholder: { msisdn: "260961234567", account_number: "" },
+    minAmount: 100, processingTime: "Instantané", category: "mobile_money" },
+  { id: "zamtel_zm", label: "Zamtel Kwacha (Zambie)", icon: "phone_iphone", currency: "ZMW", countries: ["ZM"],
+    requiredFields: ["msisdn"], placeholder: { msisdn: "260951234567", account_number: "" },
+    minAmount: 100, processingTime: "Instantané", category: "mobile_money" },
+  { id: "orange_sl", label: "Orange Money (Sierra Leone)", icon: "phone_iphone", currency: "SLE", countries: ["SL"],
+    requiredFields: ["msisdn"], placeholder: { msisdn: "23276123456", account_number: "" },
+    minAmount: 100, processingTime: "Instantané", category: "mobile_money" },
 ];
 
 /**
