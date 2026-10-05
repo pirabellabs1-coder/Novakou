@@ -44,6 +44,13 @@ export type PayoutProviderId = "feexpay" | "fedapay" | "pawapay" | "monetbil";
  */
 const PROVIDER_ORDER: PayoutProviderId[] = ["pawapay", "feexpay", "fedapay", "monetbil"];
 
+/** Pays du registre (ISO-2) → pays PawaPay (ISO-3) : portefeuilles et numéros. */
+const PAYS_PAWAPAY: Record<string, string> = {
+  bj: "BEN", ci: "CIV", sn: "SEN", cm: "CMR", cg: "COG", ga: "GAB", cd: "COD",
+  ke: "KEN", rw: "RWA", sl: "SLE", ug: "UGA", zm: "ZMB", tg: "TGO", bf: "BFA",
+  ml: "MLI", ne: "NER", gn: "GIN", tz: "TZA", mw: "MWI", ng: "NGA", gh: "GHA", mz: "MOZ",
+};
+
 export type PayoutExecutionInput = {
   /** Code opérateur interne (le suffixe _mentor est toléré). */
   method: string;
@@ -246,15 +253,8 @@ const ADAPTATEURS: Record<PayoutProviderId, AdaptateurVersement> = {
         const { soldesPortefeuilles } = await import("@/lib/pawapay");
         const { getOperator } = await import("@/lib/payments/registry");
         // Les portefeuilles PawaPay sont PAR PAYS : trois pays partagent le
-        // XOF, et le solde du Sénégal ne paie pas un versement au Bénin. On
-        // fait donc correspondre le pays de l'opérateur (ISO-2 du registre)
-        // au pays du portefeuille (ISO-3 chez PawaPay).
-        const ISO3: Record<string, string> = {
-          bj: "BEN", ci: "CIV", sn: "SEN", cm: "CMR", cg: "COG", ga: "GAB", cd: "COD",
-          ke: "KEN", rw: "RWA", sl: "SLE", ug: "UGA", zm: "ZMB", tg: "TGO", bf: "BFA",
-          ml: "MLI", ne: "NER", gn: "GIN", tz: "TZA", mw: "MWI", ng: "NGA", gh: "GHA", mz: "MOZ",
-        };
-        const paysOp = ISO3[getOperator(code)?.country ?? ""] ?? null;
+        // XOF, et le solde du Sénégal ne paie pas un versement au Bénin.
+        const paysOp = PAYS_PAWAPAY[getOperator(code)?.country ?? ""] ?? null;
         if (paysOp) {
           const portefeuilles = await soldesPortefeuilles();
           const ligne = portefeuilles.find((x) => x.pays === paysOp && x.devise === aVerser.devise);
@@ -269,11 +269,22 @@ const ADAPTATEURS: Record<PayoutProviderId, AdaptateurVersement> = {
         // Lecture de solde indisponible : ne jamais bloquer un versement pour ça.
       }
 
+      // Numéro normalisé PAR PAWAPAY, retenu seulement s'il reste dans le pays
+      // de l'opérateur. On ne bloque PAS si l'opérateur prédit diffère :
+      // la prédiction se fait par préfixe, et un numéro porté d'un réseau à
+      // l'autre serait refusé à tort — PawaPay tranchera au versement.
+      const { numeroPawapay } = await import("@/lib/pawapay");
+      const { getOperator: operateurDuCode } = await import("@/lib/payments/registry");
+      const brut = input.msisdn.replace(/\D/g, "");
+      const prediction = await numeroPawapay(brut);
+      const paysAttendu = PAYS_PAWAPAY[operateurDuCode(code)?.country ?? ""];
+      const numero = prediction && prediction.pays === paysAttendu ? prediction.numero : brut;
+
       const r = await initPayout({
         provider,
         amount: aVerser.montant,
         currency: aVerser.devise,
-        phoneNumber: input.msisdn.replace(/\D/g, ""),
+        phoneNumber: numero,
         payoutRef: input.withdrawalId,
         customerMessage: motif.slice(0, 22),
       });

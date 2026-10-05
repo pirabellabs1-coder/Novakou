@@ -421,7 +421,12 @@ export async function initPayout(params: {
   payoutRef: string;
   customerMessage?: string;
 }): Promise<{ reference: string; accepted: boolean; reason?: string }> {
-  const payoutId = crypto.randomUUID();
+  // Identifiant DÉTERMINÉ par notre référence (l'id du retrait), plus tiré au
+  // hasard. Un versement dont la réponse s'est perdue (délai, fonction coupée)
+  // pouvait être renvoyé par une reprise — avec un NOUVEL identifiant, donc
+  // payé une seconde fois. Avec le même identifiant, PawaPay répond
+  // DUPLICATE_IGNORED et ne paie qu'une fois.
+  const payoutId = params.payoutRef ? uuidStable(`novakou-payout:${params.payoutRef}`) : crypto.randomUUID();
 
   type Rep = {
     payoutId?: string;
@@ -446,7 +451,18 @@ export async function initPayout(params: {
     }),
   });
 
-  const accepted = rep.status === "ACCEPTED" || rep.status === "DUPLICATE_IGNORED";
+  // Déjà reçu par PawaPay : on ne le tient pour accepté que s'il n'a pas
+  // échoué entre-temps — sinon une reprise marquerait « envoyé » un versement
+  // qui n'est jamais parti.
+  if (rep.status === "DUPLICATE_IGNORED") {
+    const etat = await checkPayoutStatus(payoutId).catch(() => null);
+    if (etat?.status === "failed") {
+      return { reference: payoutId, accepted: false, reason: "DUPLICATE_IGNORED — versement déjà reçu par PawaPay, en échec" };
+    }
+    return { reference: payoutId, accepted: true };
+  }
+
+  const accepted = rep.status === "ACCEPTED";
   return {
     reference: rep.payoutId ?? payoutId,
     accepted,
@@ -454,6 +470,39 @@ export async function initPayout(params: {
       ? undefined
       : [rep.failureReason?.failureCode, rep.failureReason?.failureMessage].filter(Boolean).join(" — ") || rep.status,
   };
+}
+
+/**
+ * Le numéro tel que PawaPay l'attend, normalisé par PawaPay lui-même
+ * (/v2/predict-provider — aucun mouvement d'argent). Il rétablit ce qu'une
+ * saisie ou une normalisation maison a pu abîmer : le 0 ivoirien ou congolais
+ * oublié, le 0 gabonais en trop. null si le service ne répond pas.
+ */
+export async function numeroPawapay(phoneNumber: string): Promise<{ pays: string; operateur: string; numero: string } | null> {
+  type Rep = { country?: string; provider?: string; phoneNumber?: string };
+  try {
+    const rep = await appel<Rep>("/v2/predict-provider", {
+      method: "POST",
+      body: JSON.stringify({ phoneNumber }),
+    });
+    if (!rep.phoneNumber || !rep.country) return null;
+    return { pays: rep.country, operateur: rep.provider ?? "", numero: rep.phoneNumber };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * UUID au format v4 (version et variante RFC 4122 posées), dérivé d'un
+ * SHA-256 : même entrée, même identifiant — c'est ce qui rend un renvoi
+ * idempotent chez le fournisseur.
+ */
+function uuidStable(graine: string): string {
+  const h = crypto.createHash("sha256").update(graine).digest();
+  h[6] = (h[6] & 0x0f) | 0x40;
+  h[8] = (h[8] & 0x3f) | 0x80;
+  const x = h.subarray(0, 16).toString("hex");
+  return `${x.slice(0, 8)}-${x.slice(8, 12)}-${x.slice(12, 16)}-${x.slice(16, 20)}-${x.slice(20, 32)}`;
 }
 
 /**
