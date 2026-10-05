@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Info,
 } from "lucide-react";
@@ -117,7 +118,7 @@ export default function CommissionsPage() {
       <div className="bg-[#22c55e]/10 border border-[#22c55e]/20 rounded-xl p-4 mb-6 flex items-start gap-3">
         <Info size={18} className="text-[#22c55e] flex-shrink-0 mt-0.5" />
         <p className="text-xs text-[#5c9e7a] leading-relaxed">
-          Les commissions <strong className="text-white">confirmées</strong> sont versées <strong className="text-white">automatiquement le 5 de chaque mois</strong> sur la méthode de retrait configurée dans vos paramètres.
+          Les commissions <strong className="text-white">confirmées</strong> sont versées <strong className="text-white">automatiquement le 5 de chaque mois</strong> sur le moyen de versement choisi dans <Link href="/affilie/retraits" className="text-[#22c55e] font-semibold hover:underline">Retraits</Link>.
           Les commissions <strong className="text-amber-400">en attente</strong> sont soumises à un délai de rétractation de 14 jours après l&apos;achat.
         </p>
       </div>

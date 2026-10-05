@@ -21,6 +21,7 @@ import { processAffiliateWithdrawalAuto } from "@/lib/payout/process-withdrawal"
 export const maxDuration = 60;
 
 const MIN_WITHDRAWAL = MIN_WITHDRAWAL_XOF;
+const RESERVATION_CONCURRENTE = "reservation-concurrente";
 
 const withdrawSchema = z.object({
   amount: z.number().min(MIN_WITHDRAWAL),
@@ -187,24 +188,39 @@ export async function POST(req: NextRequest) {
     // Transaction : créer la demande EN_ATTENTE et RÉSERVER les commissions
     // (withdrawalId) — elles restent APPROVED mais ne sont plus retirables.
     // AUCUN versement ici : l'admin validera et déclenchera le payout la passerelle.
-    const withdrawal = await prisma.$transaction(async (tx) => {
-      const wd = await tx.affiliateWithdrawal.create({
-        data: {
-          affiliateId: profile.id,
-          userId,
-          amount: reservedTotal,
-          method: methodDef.id,
-          accountDetails,
-          status: "EN_ATTENTE",
-          payoutRef,
-        },
+    // Une commission réservée entre la lecture ci-dessus et cette transaction
+    // (versement mensuel du 5, double clic…) annule TOUT : sans ce contrôle, le
+    // retrait était créé avec moins de commissions que son montant — puis versé.
+    let withdrawal;
+    try {
+      withdrawal = await prisma.$transaction(async (tx) => {
+        const wd = await tx.affiliateWithdrawal.create({
+          data: {
+            affiliateId: profile.id,
+            userId,
+            amount: reservedTotal,
+            method: methodDef.id,
+            accountDetails,
+            status: "EN_ATTENTE",
+            payoutRef,
+          },
+        });
+        const reservees = await tx.affiliateCommission.updateMany({
+          where: { id: { in: toReserve }, status: "APPROVED", withdrawalId: null },
+          data: { withdrawalId: wd.id },
+        });
+        if (reservees.count !== toReserve.length) throw new Error(RESERVATION_CONCURRENTE);
+        return wd;
       });
-      await tx.affiliateCommission.updateMany({
-        where: { id: { in: toReserve }, status: "APPROVED", withdrawalId: null },
-        data: { withdrawalId: wd.id },
-      });
-      return wd;
-    });
+    } catch (err) {
+      if (err instanceof Error && err.message === RESERVATION_CONCURRENTE) {
+        return NextResponse.json(
+          { error: "Votre solde vient d'être mis en versement. Rechargez la page pour voir votre solde à jour.", code: "SOLDE_DEJA_RESERVE" },
+          { status: 409 },
+        );
+      }
+      throw err;
+    }
 
     // ── VALIDATION AUTO : déclenche le versement fournisseur immédiatement ──
     // (plus d'attente admin). Refus provider → REFUSE + commissions re-libérées ;

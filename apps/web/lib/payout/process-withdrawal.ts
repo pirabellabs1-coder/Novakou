@@ -375,6 +375,20 @@ export async function processAffiliateWithdrawalAuto(withdrawalId: string): Prom
   const lastName = parts.slice(1).join(" ") || "Novakou";
   const email = w.affiliate?.user?.email ?? "";
 
+  // RÉSERVATION DE L'ENVOI, atomique. Une fonction coupée en plein appel (délai
+  // de 60 s dépassé, passerelle muette) laissait le retrait EN_ATTENTE sans
+  // référence : cron/auto-payout le renvoyait dix minutes plus tard, avec une
+  // NOUVELLE référence fournisseur — un second versement bien réel. Désormais
+  // un envoi commencé ne repart jamais tout seul : l'admin vérifie chez la
+  // passerelle, puis valide ou refuse (espace admin, qui ne passe pas par ici).
+  const reservation = await prisma.affiliateWithdrawal.updateMany({
+    where: { id: w.id, status: "EN_ATTENTE", paymentRef: null, envoiDemarreLe: null },
+    data: { envoiDemarreLe: new Date() },
+  });
+  if (reservation.count === 0) {
+    return { status: "PENDING_REVIEW", reason: "Envoi déjà commencé — vérifier chez la passerelle avant toute relance" };
+  }
+
   const exec = await executePayout({
     method: methodDef.id,
     amount: Math.round(w.amount),
@@ -395,8 +409,10 @@ export async function processAffiliateWithdrawalAuto(withdrawalId: string): Prom
       return { status: "PENDING_REVIEW", reason: exec.userMessage };
     }
     if (exec.terminal === "no_provider") {
+      // Aucune passerelle n'a été appelée : rien n'est parti, la reprise
+      // automatique reste permise (marqueur levé).
       await prisma.affiliateWithdrawal
-        .update({ where: { id: w.id }, data: { errorMessage: avecTrace(exec.userMessage, exec.attempts) } })
+        .update({ where: { id: w.id }, data: { errorMessage: avecTrace(exec.userMessage, exec.attempts), envoiDemarreLe: null } })
         .catch(() => null);
       await notify(w.userId, "Demande de retrait enregistrée", `Votre retrait de ${Math.round(w.amount)} FCFA est en attente de versement.`, "/affilie/retraits");
       return { status: "PENDING_MANUAL", reason: exec.userMessage };

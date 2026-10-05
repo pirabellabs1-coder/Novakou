@@ -2273,6 +2273,10 @@ model AffiliateWithdrawal {
   paymentRef      String?   // référence provider (PayGenius PYT-...)
   paymentProvider String?   // "paygenius" | "manual"
   errorMessage    String?
+  // Posé juste AVANT l'appel de versement. Présent sans paymentRef = un envoi
+  // a commencé sans qu'on sache s'il est parti (fonction coupée, réponse
+  // perdue) : AUCUNE relance automatique, l'admin vérifie chez la passerelle.
+  envoiDemarreLe  DateTime?
   createdAt       DateTime  @default(now())
 
   affiliate   AffiliateProfile      @relation(fields: [affiliateId], references: [id], onDelete: Cascade)

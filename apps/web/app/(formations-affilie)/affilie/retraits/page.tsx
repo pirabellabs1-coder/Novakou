@@ -44,6 +44,7 @@ type WithdrawalRow = {
   createdAt: string;
   processedAt: string | null;
 };
+type VersementMensuel = { method: string; libelle: string } | null;
 type RetraitsData = {
   balance: number;
   pending: number;
@@ -108,6 +109,40 @@ export default function RetraitsPage() {
   // Pays de retrait pas encore ouvert (SN / CM / CI) → bloque la demande.
   const countryDisabled = isPayoutCountryDisabled(selectedCountry);
   const isValid = !!method && amountNum >= MIN && amountNum <= available && detailsOk && !countryDisabled;
+
+  // Moyen du versement automatique du 5 du mois (cron/affiliate-payout).
+  const { data: versementData } = useQuery<{ data: VersementMensuel }>({
+    queryKey: ["affilie-versement-mensuel"],
+    queryFn: () => fetch("/api/formations/affilie/versement-mensuel").then((r) => r.json()),
+    staleTime: 60_000,
+  });
+  const versement = versementData?.data ?? null;
+  const [versementMsg, setVersementMsg] = useState<{ ok: boolean; texte: string } | null>(null);
+  const versementMutation = useMutation({
+    mutationFn: (body: { method: string; msisdn: string; country?: string } | null) =>
+      fetch(
+        "/api/formations/affilie/versement-mensuel",
+        body
+          ? { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
+          : { method: "DELETE" },
+      ).then(async (r) => {
+        const json = await r.json();
+        if (!r.ok) throw new Error(json.error ?? "Erreur serveur");
+        return json as { data: VersementMensuel };
+      }),
+    onSuccess: (json) => {
+      qc.setQueryData(["affilie-versement-mensuel"], json);
+      setVersementMsg({
+        ok: true,
+        texte: json.data ? `Enregistré : vos versements du 5 iront vers ${json.data.libelle}.` : "Versement automatique désactivé.",
+      });
+    },
+    onError: (err: Error) => setVersementMsg({ ok: false, texte: err.message }),
+  });
+  // Un moyen réellement choisi à l'écran — pas le premier de la liste, que
+  // `method` prend par défaut.
+  const peutEnregistrerVersement =
+    methods.some((m) => m.id === selectedMethod) && !!needsMsisdn && msisdn.trim().length >= 8 && !countryDisabled;
 
   const withdrawMutation = useMutation({
     mutationFn: (body: { amount: number; method: string; msisdn?: string; iban?: string; country?: string }) =>
@@ -225,12 +260,56 @@ export default function RetraitsPage() {
                     defaultCountry={selectedCountry || null}
                     onPay={() => {}}
                     onSelectionChange={(sel) => {
+                      setVersementMsg(null);
                       setSelectedMethod(sel?.operator ?? "");
                       setMsisdn(sel?.phone ?? "");
                       const pays = sel ? getOperator(sel.operator)?.country : null;
                       if (pays) setSelectedCountry(pays.toUpperCase());
                     }}
                   />
+                </div>
+
+                {/* Versement automatique du 5 : le moyen choisi juste au-dessus. */}
+                <div className="bg-[#0d1f17] rounded-2xl border border-[#1e3a2f] p-5">
+                  <p className="text-xs font-bold text-white mb-1">Versement automatique le 5 du mois</p>
+                  <p className="text-[11px] text-[#5c9e7a] mb-3">
+                    {versement ? (
+                      <>Vos commissions validées partent chaque 5 du mois vers <strong className="text-white">{versement.libelle}</strong>.</>
+                    ) : (
+                      "Aucun moyen enregistré : vos commissions attendent que vous demandiez un retrait."
+                    )}
+                  </p>
+                  {versementMsg && (
+                    <p role="status" className={`text-[11px] font-semibold mb-3 ${versementMsg.ok ? "text-[#22c55e]" : "text-red-400"}`}>
+                      {versementMsg.texte}
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      disabled={!peutEnregistrerVersement || versementMutation.isPending}
+                      onClick={() =>
+                        method &&
+                        versementMutation.mutate({ method: method.id, msisdn: msisdn.trim(), country: selectedCountry || undefined })
+                      }
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-white transition-opacity disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90"
+                      style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+                    >
+                      {peutEnregistrerVersement
+                        ? `Utiliser ${method?.label ?? ""} ••••${msisdn.trim().slice(-4)} chaque mois`
+                        : "Choisissez un Mobile Money et un numéro ci-dessus"}
+                    </button>
+                    {versement && (
+                      <button
+                        type="button"
+                        disabled={versementMutation.isPending}
+                        onClick={() => versementMutation.mutate(null)}
+                        className="px-4 py-2 rounded-xl text-xs font-semibold text-[#5c9e7a] border border-[#1e3a2f] hover:border-[#22c55e]/30 transition-colors disabled:opacity-40"
+                      >
+                        Désactiver
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Amount */}

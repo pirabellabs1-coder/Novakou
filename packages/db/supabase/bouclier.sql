@@ -164,7 +164,7 @@ language sql stable set search_path = '' set timezone = 'UTC' as $$
      where status = 'EN_ATTENTE' and "paymentRef" is null
     union all
     select "createdAt" from public."AffiliateWithdrawal"
-     where status = 'EN_ATTENTE' and "paymentRef" is null
+     where status = 'EN_ATTENTE' and "paymentRef" is null and "envoiDemarreLe" is null
   )
   select exists (
     select 1 from r
@@ -387,8 +387,11 @@ begin
       ('nk-account-deletion-cooldown',  '0 2 * * *',    $c$select bouclier.reveiller('/api/cron/account-deletion-cooldown')$c$),
       ('nk-audit-livraisons',           '0 4 * * *',    $c$select bouclier.reveiller('/api/cron/audit-livraisons')$c$),
       ('nk-chiffrer-secrets-2fa',       '40 4 * * *',   $c$select bouclier.reveiller('/api/cron/chiffrer-secrets-2fa')$c$),
-      -- `/api/cron/affiliate-payout` figurait dans vercel.json mais la route
-      -- n'existe pas (404 à chaque passage) : non reprise.
+      -- Versement mensuel automatique des affiliés (route créée le 2026-10-05 :
+      -- vercel.json l'appelait déjà, mais elle n'existait pas — 404 chaque mois).
+      -- Trois passages : chacun s'arrête à 30 s pour ne jamais être coupé en
+      -- plein versement, le suivant reprend (les affiliés déjà faits sont sautés).
+      ('nk-affiliate-payout',           '0,20,40 5 5 * *', $c$select bouclier.reveiller('/api/cron/affiliate-payout')$c$),
 
       -- ── Entretien, 100 % en base (aucun appel à Vercel) ─────────────────
       -- Rapatrie le code HTTP de chaque réveil (pg_net ne garde ses réponses

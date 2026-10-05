@@ -49,6 +49,7 @@ async function cas(nom, preparer, portier, attendu) {
 try {
   const instructeur = await prisma.instructeurProfile.findFirst({ select: { id: true } });
   const utilisateur = await prisma.user.findFirst({ select: { id: true } });
+  const affilie = await prisma.affiliateProfile.findFirst({ select: { id: true, userId: true } });
   if (!instructeur || !utilisateur) throw new Error("base vide : aucun instructeur / utilisateur pour les cas");
 
   const vente = (tx, d) => tx.checkoutAttempt.create({ data: { amount: 1000, ...d } });
@@ -56,9 +57,13 @@ try {
     tx.instructorWithdrawal.create({
       data: { instructeurId: instructeur.id, amount: 1000, method: "test", accountDetails: {}, ...d },
     });
-  // Les portiers d'agents comparent au dernier passage : on en simule un récent.
-  const passage = (tx, cle, minutes) =>
-    tx.agentRun.create({ data: { agentKey: cle, startedAt: ilYa(minutes), finishedAt: ilYa(minutes - 1) } });
+  // Les portiers d'agents comparent au dernier passage : on en simule un, SEUL
+  // (les vrais passages sont effacés dans la transaction annulée — sinon le
+  // résultat dépendrait de l'heure du dernier passage réel de l'agent).
+  const passage = async (tx, cle, minutes) => {
+    await tx.agentRun.deleteMany({ where: { agentKey: cle } });
+    await tx.agentRun.create({ data: { agentKey: cle, startedAt: ilYa(minutes), finishedAt: ilYa(minutes - 1) } });
+  };
   const agentActif = (tx, cle) =>
     tx.aiAgent.upsert({ where: { key: cle }, update: { enabled: true }, create: { key: cle, name: cle, enabled: true } });
 
@@ -73,6 +78,14 @@ try {
   // ── Versements (auto-payout, payout-reconcile) ──
   await cas("retrait non envoyé, 15 min", (tx) => retrait(tx, { createdAt: ilYa(15) }), "bouclier.retraits_a_envoyer(true)", true);
   await cas("retrait non envoyé, 5 min (délai de grâce)", (tx) => retrait(tx, { createdAt: ilYa(5) }), "bouclier.retraits_a_envoyer(true)", false);
+  if (affilie) {
+    const retraitAffilie = (tx, d) =>
+      tx.affiliateWithdrawal.create({
+        data: { affiliateId: affilie.id, userId: affilie.userId, amount: 1000, method: "test", accountDetails: {}, ...d },
+      });
+    await cas("retrait affilié non envoyé, 15 min", (tx) => retraitAffilie(tx, { createdAt: ilYa(15) }), "bouclier.retraits_a_envoyer(true)", true);
+    await cas("retrait affilié coupé en plein envoi (jamais relancé seul)", (tx) => retraitAffilie(tx, { createdAt: ilYa(15), envoiDemarreLe: ilYa(14) }), "bouclier.retraits_a_envoyer(true)", false);
+  }
   await cas("retrait non envoyé, 5 h (repris chaque heure)", (tx) => retrait(tx, { createdAt: ilYa(300) }), "bouclier.retraits_a_envoyer(false)", true);
   await cas("versement PawaPay envoyé, 2 jours", (tx) => retrait(tx, { paymentRef: "t", paymentProvider: "pawapay", createdAt: ilYa(2880) }), "bouclier.versements_a_verifier()", true);
   await cas("versement FeexPay envoyé, 20 min", (tx) => retrait(tx, { paymentRef: "t", paymentProvider: "feexpay", createdAt: ilYa(20) }), "bouclier.versements_a_verifier()", true);

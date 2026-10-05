@@ -50,7 +50,9 @@ export async function GET(request: NextRequest) {
       select: { id: true, amount: true },
     }),
     prisma.affiliateWithdrawal.findMany({
-      where: { status: "EN_ATTENTE", paymentRef: null, createdAt: { lte: cutoff } },
+      // Envoi déjà commencé (envoiDemarreLe) : peut-être parti — jamais relancé
+      // d'office, c'est l'admin qui tranche (lib/payout/process-withdrawal.ts).
+      where: { status: "EN_ATTENTE", paymentRef: null, envoiDemarreLe: null, createdAt: { lte: cutoff } },
       orderBy: { createdAt: "asc" },
       take: MAX_PER_RUN,
       select: { id: true, amount: true },
