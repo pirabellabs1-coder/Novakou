@@ -462,14 +462,14 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     label: "Orange Money (RD Congo)", country: "cd", currency: "CDF", family: "mobile_money",
     collect: {
       pawapay: { code: "ORANGE_COD" } },
-    // payout : route pawapay ROUVERTE le 2026-10-05 — /v2/active-conf liste désormais PAYOUT pour ORANGE_COD (compte « fully live » confirmé par PawaPay). Retirée le 2026-09-08 tant que seuls DEPOSIT/REFUND étaient ouverts.
-    payout: { pawapay: { code: "ORANGE_COD" } } },
+    // payout : FERMÉ volontairement. PawaPay l'a ouvert (/v2/active-conf, 2026-10-05) mais un versement en CDF passerait par des taux de change INDICATIFS arrondis vers le haut (lib/currency/rates.ts) : on paierait un montant faux. Rouvrir avec un montantAVerser() arrondi vers le bas et des taux du jour.
+    payout: {} },
   airtel_cd: {
     label: "Airtel Money (RD Congo)", country: "cd", currency: "CDF", family: "mobile_money",
     collect: {
       pawapay: { code: "AIRTEL_COD" } },
-    // payout : route pawapay ROUVERTE le 2026-10-05 — /v2/active-conf liste désormais PAYOUT pour AIRTEL_COD (compte « fully live » confirmé par PawaPay). Retirée le 2026-09-08 tant que seuls DEPOSIT/REFUND étaient ouverts.
-    payout: { pawapay: { code: "AIRTEL_COD" } } },
+    // payout : FERMÉ volontairement. PawaPay l'a ouvert (/v2/active-conf, 2026-10-05) mais un versement en CDF passerait par des taux de change INDICATIFS arrondis vers le haut (lib/currency/rates.ts) : on paierait un montant faux. Rouvrir avec un montantAVerser() arrondi vers le bas et des taux du jour.
+    payout: {} },
   africell_cd: {
     label: "Africell Money (RD Congo)", country: "cd", currency: "CDF", family: "mobile_money",
     collect: {},
@@ -482,21 +482,20 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   vodacom_cd: {
     label: "Vodacom M-Pesa (RD Congo)", country: "cd", currency: "CDF", family: "mobile_money",
     collect: { pawapay: { code: "VODACOM_MPESA_COD" } },
-    // Versement ROUVERT le 2026-10-05 : /v2/active-conf liste désormais PAYOUT
-    // pour VODACOM_MPESA_COD (CDF et USD), compte « fully live » chez PawaPay.
-    payout: { pawapay: { code: "VODACOM_MPESA_COD" } } },
+    // payout : FERMÉ volontairement. PawaPay l'a ouvert (/v2/active-conf, 2026-10-05) mais un versement en CDF passerait par des taux de change INDICATIFS arrondis vers le haut (lib/currency/rates.ts) : on paierait un montant faux. Rouvrir avec un montantAVerser() arrondi vers le bas et des taux du jour.
+    payout: {} },
   airtel_ug: {
     label: "Airtel Money (Ouganda)", country: "ug", currency: "UGX", family: "mobile_money",
     collect: {
       pawapay: { code: "AIRTEL_OAPI_UGA" } },
-    // payout : route pawapay ROUVERTE le 2026-10-05 — /v2/active-conf liste désormais PAYOUT pour AIRTEL_OAPI_UGA (compte « fully live » confirmé par PawaPay). Retirée le 2026-09-08 tant que seuls DEPOSIT/REFUND étaient ouverts.
-    payout: { pawapay: { code: "AIRTEL_OAPI_UGA" } } },
+    // payout : FERMÉ volontairement. PawaPay l'a ouvert (/v2/active-conf, 2026-10-05) mais un versement en devise hors zone franc passerait par des taux de change INDICATIFS arrondis vers le haut (lib/currency/rates.ts) : on paierait un montant faux. Rouvrir avec un montantAVerser() arrondi vers le bas et des taux du jour.
+    payout: {} },
   mtn_ug: {
     label: "MTN Mobile Money (Ouganda)", country: "ug", currency: "UGX", family: "mobile_money",
     collect: {
       pawapay: { code: "MTN_MOMO_UGA" } },
-    // payout : route pawapay ROUVERTE le 2026-10-05 — /v2/active-conf liste désormais PAYOUT pour MTN_MOMO_UGA (compte « fully live » confirmé par PawaPay). Retirée le 2026-09-08 tant que seuls DEPOSIT/REFUND étaient ouverts.
-    payout: { pawapay: { code: "MTN_MOMO_UGA" } } },
+    // payout : FERMÉ volontairement. PawaPay l'a ouvert (/v2/active-conf, 2026-10-05) mais un versement en devise hors zone franc passerait par des taux de change INDICATIFS arrondis vers le haut (lib/currency/rates.ts) : on paierait un montant faux. Rouvrir avec un montantAVerser() arrondi vers le bas et des taux du jour.
+    payout: {} },
   mtn_lr: {
     label: "Lonestar Cell MTN (Liberia)", country: "lr", currency: "LRD", family: "mobile_money",
     collect: {},
@@ -557,8 +556,8 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   mpesa_ke: {
     label: "M-Pesa (Kenya)", country: "ke", currency: "KES", family: "mobile_money",
     collect: { pawapay: { code: "MPESA_KEN" } },
-    // payout : route pawapay ROUVERTE le 2026-10-05 — /v2/active-conf liste désormais PAYOUT pour MPESA_KEN (compte « fully live » confirmé par PawaPay). Retirée le 2026-09-08 tant que seuls DEPOSIT/REFUND étaient ouverts.
-    payout: { pawapay: { code: "MPESA_KEN" } } },
+    // payout : FERMÉ volontairement. PawaPay l'a ouvert (/v2/active-conf, 2026-10-05) mais un versement en devise hors zone franc passerait par des taux de change INDICATIFS arrondis vers le haut (lib/currency/rates.ts) : on paierait un montant faux. Rouvrir avec un montantAVerser() arrondi vers le bas et des taux du jour.
+    payout: {} },
   vodacom_tz: {
     label: "Vodacom M-Pesa (Tanzanie)", country: "tz", currency: "TZS", family: "mobile_money",
     collect: {}, payout: {} },
@@ -574,28 +573,28 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   mtn_rw: {
     label: "MTN Mobile Money (Rwanda)", country: "rw", currency: "RWF", family: "mobile_money",
     collect: { pawapay: { code: "MTN_MOMO_RWA" } },
-    // payout : route pawapay ROUVERTE le 2026-10-05 — /v2/active-conf liste désormais PAYOUT pour MTN_MOMO_RWA (compte « fully live » confirmé par PawaPay). Retirée le 2026-09-08 tant que seuls DEPOSIT/REFUND étaient ouverts.
-    payout: { pawapay: { code: "MTN_MOMO_RWA" } } },
+    // payout : FERMÉ volontairement. PawaPay l'a ouvert (/v2/active-conf, 2026-10-05) mais un versement en devise hors zone franc passerait par des taux de change INDICATIFS arrondis vers le haut (lib/currency/rates.ts) : on paierait un montant faux. Rouvrir avec un montantAVerser() arrondi vers le bas et des taux du jour.
+    payout: {} },
   airtel_rw: {
     label: "Airtel Money (Rwanda)", country: "rw", currency: "RWF", family: "mobile_money",
     collect: { pawapay: { code: "AIRTEL_RWA" } },
-    // payout : route pawapay ROUVERTE le 2026-10-05 — /v2/active-conf liste désormais PAYOUT pour AIRTEL_RWA (compte « fully live » confirmé par PawaPay). Retirée le 2026-09-08 tant que seuls DEPOSIT/REFUND étaient ouverts.
-    payout: { pawapay: { code: "AIRTEL_RWA" } } },
+    // payout : FERMÉ volontairement. PawaPay l'a ouvert (/v2/active-conf, 2026-10-05) mais un versement en devise hors zone franc passerait par des taux de change INDICATIFS arrondis vers le haut (lib/currency/rates.ts) : on paierait un montant faux. Rouvrir avec un montantAVerser() arrondi vers le bas et des taux du jour.
+    payout: {} },
   mtn_zm: {
     label: "MTN Mobile Money (Zambie)", country: "zm", currency: "ZMW", family: "mobile_money",
     collect: { pawapay: { code: "MTN_MOMO_ZMB" } },
-    // payout : route pawapay ROUVERTE le 2026-10-05 — /v2/active-conf liste désormais PAYOUT pour MTN_MOMO_ZMB (compte « fully live » confirmé par PawaPay). Retirée le 2026-09-08 tant que seuls DEPOSIT/REFUND étaient ouverts.
-    payout: { pawapay: { code: "MTN_MOMO_ZMB" } } },
+    // payout : FERMÉ volontairement. PawaPay l'a ouvert (/v2/active-conf, 2026-10-05) mais un versement en devise hors zone franc passerait par des taux de change INDICATIFS arrondis vers le haut (lib/currency/rates.ts) : on paierait un montant faux. Rouvrir avec un montantAVerser() arrondi vers le bas et des taux du jour.
+    payout: {} },
   airtel_zm: {
     label: "Airtel Money (Zambie)", country: "zm", currency: "ZMW", family: "mobile_money",
     collect: { pawapay: { code: "AIRTEL_OAPI_ZMB" } },
-    // payout : route pawapay ROUVERTE le 2026-10-05 — /v2/active-conf liste désormais PAYOUT pour AIRTEL_OAPI_ZMB (compte « fully live » confirmé par PawaPay). Retirée le 2026-09-08 tant que seuls DEPOSIT/REFUND étaient ouverts.
-    payout: { pawapay: { code: "AIRTEL_OAPI_ZMB" } } },
+    // payout : FERMÉ volontairement. PawaPay l'a ouvert (/v2/active-conf, 2026-10-05) mais un versement en devise hors zone franc passerait par des taux de change INDICATIFS arrondis vers le haut (lib/currency/rates.ts) : on paierait un montant faux. Rouvrir avec un montantAVerser() arrondi vers le bas et des taux du jour.
+    payout: {} },
   zamtel_zm: {
     label: "Zamtel Kwacha (Zambie)", country: "zm", currency: "ZMW", family: "mobile_money",
     collect: { pawapay: { code: "ZAMTEL_ZMB" } },
-    // payout : route pawapay ROUVERTE le 2026-10-05 — /v2/active-conf liste désormais PAYOUT pour ZAMTEL_ZMB (compte « fully live » confirmé par PawaPay). Retirée le 2026-09-08 tant que seuls DEPOSIT/REFUND étaient ouverts.
-    payout: { pawapay: { code: "ZAMTEL_ZMB" } } },
+    // payout : FERMÉ volontairement. PawaPay l'a ouvert (/v2/active-conf, 2026-10-05) mais un versement en devise hors zone franc passerait par des taux de change INDICATIFS arrondis vers le haut (lib/currency/rates.ts) : on paierait un montant faux. Rouvrir avec un montantAVerser() arrondi vers le bas et des taux du jour.
+    payout: {} },
   airtel_mw: {
     label: "Airtel Money (Malawi)", country: "mw", currency: "MWK", family: "mobile_money",
     collect: {}, payout: {} },
@@ -611,8 +610,8 @@ export const OPERATORS: Record<string, OperatorEntry> = {
   orange_sl: {
     label: "Orange Money (Sierra Leone)", country: "sl", currency: "SLE", family: "mobile_money",
     collect: { pawapay: { code: "ORANGE_SLE" } },
-    // payout : route pawapay ROUVERTE le 2026-10-05 — /v2/active-conf liste désormais PAYOUT pour ORANGE_SLE (compte « fully live » confirmé par PawaPay). Retirée le 2026-09-08 tant que seuls DEPOSIT/REFUND étaient ouverts.
-    payout: { pawapay: { code: "ORANGE_SLE" } } } ,
+    // payout : FERMÉ volontairement. PawaPay l'a ouvert (/v2/active-conf, 2026-10-05) mais un versement en SLE passerait par des taux de change INDICATIFS arrondis vers le haut (lib/currency/rates.ts) : on paierait un montant faux. Rouvrir avec un montantAVerser() arrondi vers le bas et des taux du jour.
+    payout: {} } ,
   // ───── Éthiopie et Lesotho ───────────────────────────────────────────────
   // Absents du compte PawaPay (dashboard vérifié 2026-08-08) — voir le bloc
   // « couverture réelle » plus haut. Codes en attente : MPESA_ETH, MPESA_LSO.

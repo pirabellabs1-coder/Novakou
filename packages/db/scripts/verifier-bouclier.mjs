@@ -77,6 +77,7 @@ try {
 
   // ── Versements (auto-payout, payout-reconcile) ──
   await cas("retrait non envoyé, 15 min", (tx) => retrait(tx, { createdAt: ilYa(15) }), "bouclier.retraits_a_envoyer(true)", true);
+  await cas("retrait vendeur coupé en plein envoi (jamais relancé seul)", (tx) => retrait(tx, { createdAt: ilYa(15), envoiDemarreLe: ilYa(14) }), "bouclier.retraits_a_envoyer(true)", false);
   await cas("retrait non envoyé, 5 min (délai de grâce)", (tx) => retrait(tx, { createdAt: ilYa(5) }), "bouclier.retraits_a_envoyer(true)", false);
   if (affilie) {
     const retraitAffilie = (tx, d) =>

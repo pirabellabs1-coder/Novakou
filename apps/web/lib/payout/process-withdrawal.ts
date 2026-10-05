@@ -237,6 +237,17 @@ export async function processInstructorWithdrawalAuto(withdrawalId: string): Pro
   const firstName = parts[0] || "Vendeur";
   const lastName = parts.slice(1).join(" ") || "Novakou";
 
+  // RÉSERVATION DE L'ENVOI, atomique — même règle que pour les affiliés (voir
+  // processAffiliateWithdrawalAuto) : un envoi commencé ne repart jamais tout
+  // seul, l'admin vérifie chez la passerelle.
+  const reservation = await prisma.instructorWithdrawal.updateMany({
+    where: { id: w.id, status: "EN_ATTENTE", paymentRef: null, envoiDemarreLe: null },
+    data: { envoiDemarreLe: new Date() },
+  });
+  if (reservation.count === 0) {
+    return { status: "PENDING_REVIEW", reason: "Envoi déjà commencé — vérifier chez la passerelle avant toute relance" };
+  }
+
   const exec = await executePayout({
     method: resolvedMethod,
     amount: Math.round(w.amount),
@@ -244,6 +255,7 @@ export async function processInstructorWithdrawalAuto(withdrawalId: string): Pro
     customer: { email: w.instructeur.user.email, firstName, lastName },
     description: `Retrait Novakou - ${shortMethodLabel(resolvedMethod)}`,
     withdrawalId: w.id,
+    tentative: typeof details._retryCount === "number" ? details._retryCount : 0,
   });
 
   await enregistrerCircuit("instructeur", w.id, exec.attempts);
@@ -258,8 +270,9 @@ export async function processInstructorWithdrawalAuto(withdrawalId: string): Pro
     }
     if (exec.terminal === "no_provider") {
       // Configuré mais opérateur non routable → laisser EN_ATTENTE (admin manuel).
+      // Aucune passerelle appelée : rien n'est parti, marqueur levé.
       await prisma.instructorWithdrawal
-        .update({ where: { id: w.id }, data: { errorMessage: avecTrace(exec.userMessage, exec.attempts) } })
+        .update({ where: { id: w.id }, data: { errorMessage: avecTrace(exec.userMessage, exec.attempts), envoiDemarreLe: null } })
         .catch(() => null);
       await notify(uid, "Demande de retrait enregistrée", `Votre retrait de ${Math.round(w.amount)} FCFA est en cours de traitement (24-48h ouvrées).`, link);
       return { status: "PENDING_MANUAL", reason: exec.userMessage };

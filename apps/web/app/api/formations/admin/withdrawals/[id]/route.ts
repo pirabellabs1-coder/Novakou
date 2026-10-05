@@ -110,6 +110,12 @@ export async function PATCH(request: Request, { params }: Params) {
       return NextResponse.json({ data: { id, status: "REFUSE", refusedReason: reason } });
     }
 
+    // Rang de l'essai : il entre dans l'identifiant de versement PawaPay, pour
+    // qu'une relance délibérée reparte alors qu'une reprise du même essai ne
+    // paie jamais deux fois (lib/payout/execute.ts).
+    const rangActuel = (w.accountDetails as Record<string, unknown> | null)?._retryCount;
+    let tentative = typeof rangActuel === "number" ? rangActuel : 0;
+
     // ─── RETRY : relancer un retrait REFUSE ────────────────────────────────────
     if (action === "retry") {
       if (w.status !== "REFUSE") {
@@ -130,9 +136,13 @@ export async function PATCH(request: Request, { params }: Params) {
           errorMessage: null,
           refusedReason: null,
           paymentRef: null,
+          // Relance décidée par l'admin après un REFUS : l'ancien envoi n'est
+          // pas parti, le verrou d'envoi est levé.
+          envoiDemarreLe: null,
           accountDetails: { ...details, _retryCount: retryCount + 1 },
         },
       });
+      tentative = retryCount + 1;
       // Fall through to the approve logic below (action is "retry" but we treat it as approve)
     }
 
@@ -296,6 +306,9 @@ export async function PATCH(request: Request, { params }: Params) {
       // (réseau/timeout) l'orchestrateur s'arrête sans REFUSE, pour éviter tout
       // double paiement (le retrait reste EN_ATTENTE + errorMessage à vérifier).
       console.log(`[payout] id=${id} amount=${Math.round(w.amount)} method=${resolvedMethod}`);
+      // Verrou d'envoi posé AVANT l'appel : si la requête est coupée en plein
+      // versement, cron/auto-payout ne le relancera pas tout seul.
+      await prisma.instructorWithdrawal.update({ where: { id }, data: { envoiDemarreLe: new Date() } });
       const exec = await executePayout({
         method: resolvedMethod,
         amount: Math.round(w.amount),
@@ -303,6 +316,7 @@ export async function PATCH(request: Request, { params }: Params) {
         customer: { email: w.instructeur.user.email, firstName, lastName },
         description: `Retrait Novakou - ${shortMethodLabel(resolvedMethod)}`,
         withdrawalId: w.id,
+        tentative,
         // Test admin : mode=feexpay|fedapay force ce fournisseur, sans bascule.
         forceProvider: mode === "feexpay" || mode === "fedapay" ? mode : undefined,
       });

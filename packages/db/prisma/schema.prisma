@@ -1507,6 +1507,10 @@ model InstructorWithdrawal {
   paymentRef     String?
   paymentProvider String?  // "moneroo" | "manual"
   errorMessage   String?   // message d'erreur Moneroo si echec
+  // Posé juste AVANT l'appel de versement. Présent sans paymentRef = un envoi
+  // a commencé sans qu'on sache s'il est parti : aucune relance automatique,
+  // l'admin vérifie chez la passerelle (même règle que AffiliateWithdrawal).
+  envoiDemarreLe DateTime?
   createdAt      DateTime  @default(now())
 
   instructeur InstructeurProfile @relation("InstructeurWithdrawals", fields: [instructeurId], references: [id], onDelete: Cascade)

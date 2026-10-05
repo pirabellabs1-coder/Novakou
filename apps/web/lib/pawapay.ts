@@ -426,7 +426,7 @@ export async function initPayout(params: {
   // pouvait être renvoyé par une reprise — avec un NOUVEL identifiant, donc
   // payé une seconde fois. Avec le même identifiant, PawaPay répond
   // DUPLICATE_IGNORED et ne paie qu'une fois.
-  const payoutId = params.payoutRef ? uuidStable(`novakou-payout:${params.payoutRef}`) : crypto.randomUUID();
+  const payoutId = params.payoutRef ? payoutIdPawapay(params.payoutRef) : crypto.randomUUID();
 
   type Rep = {
     payoutId?: string;
@@ -457,7 +457,10 @@ export async function initPayout(params: {
   if (rep.status === "DUPLICATE_IGNORED") {
     const etat = await checkPayoutStatus(payoutId).catch(() => null);
     if (etat?.status === "failed") {
-      return { reference: payoutId, accepted: false, reason: "DUPLICATE_IGNORED — versement déjà reçu par PawaPay, en échec" };
+      // État FINAL chez PawaPay : rien n'est parti, la passerelle suivante
+      // peut être tentée sans risque — d'où le préfixe REJECTED, que
+      // l'orchestrateur classe en refus propre.
+      return { reference: payoutId, accepted: false, reason: "REJECTED — versement déjà reçu par PawaPay et en échec" };
     }
     return { reference: payoutId, accepted: true };
   }
@@ -466,10 +469,32 @@ export async function initPayout(params: {
   return {
     reference: rep.payoutId ?? payoutId,
     accepted,
+    // Toujours préfixé du statut : un refus dont le code n'était pas dans la
+    // liste connue (montant hors plafond de l'opérateur…) passait pour une
+    // erreur AMBIGUË — retrait bloqué en revue au lieu de passer à FeexPay.
     reason: accepted
       ? undefined
-      : [rep.failureReason?.failureCode, rep.failureReason?.failureMessage].filter(Boolean).join(" — ") || rep.status,
+      : [rep.status ?? "REJECTED", rep.failureReason?.failureCode, rep.failureReason?.failureMessage].filter(Boolean).join(" — "),
   };
+}
+
+/** Identifiant PawaPay d'un versement, dérivé de notre référence : stable d'un essai à l'autre. */
+export function payoutIdPawapay(reference: string): string {
+  return uuidStable(`novakou-payout:${reference}`);
+}
+
+/**
+ * Ce versement existe-t-il déjà chez PawaPay ? `null` = jamais reçu.
+ * Lève une erreur si PawaPay ne répond pas : dans le doute, l'appelant ne doit
+ * ni renvoyer ni passer à une autre passerelle.
+ */
+export async function versementPawapayExistant(payoutId: string): Promise<{ statut: PawapayStatut } | null> {
+  type Rep = { status?: "FOUND" | "NOT_FOUND"; data?: { status?: string } };
+  const rep = await appel<Rep>(`/v2/payouts/${encodeURIComponent(payoutId)}`, { signal: AbortSignal.timeout(8000) });
+  if (rep.status === "NOT_FOUND") return null;
+  if (rep.status !== "FOUND") throw new Error(`réponse PawaPay illisible pour ${payoutId}`);
+  const s = rep.data?.status;
+  return { statut: s === "COMPLETED" ? "success" : s === "FAILED" ? "failed" : "pending" };
 }
 
 /**
@@ -484,6 +509,9 @@ export async function numeroPawapay(phoneNumber: string): Promise<{ pays: string
     const rep = await appel<Rep>("/v2/predict-provider", {
       method: "POST",
       body: JSON.stringify({ phoneNumber }),
+      // Simple confort : sans réponse rapide, on verse avec notre propre
+      // normalisation plutôt que de consommer le temps de la fonction.
+      signal: AbortSignal.timeout(5000),
     });
     if (!rep.phoneNumber || !rep.country) return null;
     return { pays: rep.country, operateur: rep.provider ?? "", numero: rep.phoneNumber };

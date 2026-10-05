@@ -157,6 +157,9 @@ export async function PATCH(request: Request, { params }: Params) {
 
     // ── VERSEMENT via orchestrateur : FedaPay → FeexPay ──────────────
     console.log(`[affiliate payout] id=${id} amount=${Math.round(w.amount)} method=${methodDef.id}`);
+    // Verrou d'envoi posé AVANT l'appel : si la requête est coupée en plein
+    // versement, cron/auto-payout ne le relancera pas tout seul.
+    await prisma.affiliateWithdrawal.update({ where: { id }, data: { envoiDemarreLe: new Date() } });
     const exec = await executePayout({
       method: methodDef.id,
       amount: Math.round(w.amount),

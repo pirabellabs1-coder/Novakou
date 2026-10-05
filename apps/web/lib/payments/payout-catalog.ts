@@ -373,11 +373,13 @@ export const PAYOUT_METHODS: PayoutMethodDef[] = [
     category: "mobile_money",
   },
 
-  // ─── Ouverts le 2026-10-05 : versement PawaPay activé ───────────────────
+  // ─── Ouverts le 2026-10-05 : versement PawaPay activé (zone franc) ──────
   // /v2/active-conf liste PAYOUT sur ces opérateurs depuis que le compte est
   // « fully live ». Sans fiche ici, le registre les savait servis mais une
   // demande de retrait était refusée (« méthode non reconnue »). Les exemples
-  // suivent les formats renvoyés par PawaPay /v2/predict-provider.
+  // suivent les formats renvoyés par PawaPay /v2/predict-provider. Hors zone
+  // franc (RD Congo, Afrique de l'Est, Sierra Leone) : versement FERMÉ, voir
+  // le registre — taux de change indicatifs.
   { id: "mtn_cg", label: "MTN Mobile Money (Congo)", icon: "phone_iphone", currency: "XAF", countries: ["CG"],
     requiredFields: ["msisdn"], placeholder: { msisdn: "242061234567", account_number: "" },
     minAmount: 100, processingTime: "Quelques minutes", category: "mobile_money" },
@@ -385,32 +387,8 @@ export const PAYOUT_METHODS: PayoutMethodDef[] = [
     requiredFields: ["msisdn"], placeholder: { msisdn: "242051234567", account_number: "" },
     minAmount: 100, processingTime: "Quelques minutes", category: "mobile_money" },
   { id: "airtel_ga", label: "Airtel Money (Gabon)", icon: "phone_iphone", currency: "XAF", countries: ["GA"],
-    requiredFields: ["msisdn"], placeholder: { msisdn: "2417123456", account_number: "" },
+    requiredFields: ["msisdn"], placeholder: { msisdn: "24107123456", account_number: "" },
     minAmount: 100, processingTime: "Quelques minutes", category: "mobile_money" },
-  { id: "orange_cd", label: "Orange Money (RD Congo)", icon: "phone_iphone", currency: "CDF", countries: ["CD"],
-    requiredFields: ["msisdn"], placeholder: { msisdn: "243891234567", account_number: "" },
-    minAmount: 500, processingTime: "Quelques minutes", category: "mobile_money" },
-  { id: "airtel_cd", label: "Airtel Money (RD Congo)", icon: "phone_iphone", currency: "CDF", countries: ["CD"],
-    requiredFields: ["msisdn"], placeholder: { msisdn: "243991234567", account_number: "" },
-    minAmount: 500, processingTime: "Quelques minutes", category: "mobile_money" },
-  { id: "vodacom_cd", label: "Vodacom M-Pesa (RD Congo)", icon: "phone_iphone", currency: "CDF", countries: ["CD"],
-    requiredFields: ["msisdn"], placeholder: { msisdn: "243811234567", account_number: "" },
-    minAmount: 500, processingTime: "Quelques minutes", category: "mobile_money" },
-  { id: "mtn_ug", label: "MTN Mobile Money (Ouganda)", icon: "phone_iphone", currency: "UGX", countries: ["UG"],
-    requiredFields: ["msisdn"], placeholder: { msisdn: "256772345678", account_number: "" },
-    minAmount: 1000, processingTime: "Instantané", category: "mobile_money" },
-  { id: "mtn_rw", label: "MTN Mobile Money (Rwanda)", icon: "phone_iphone", currency: "RWF", countries: ["RW"],
-    requiredFields: ["msisdn"], placeholder: { msisdn: "250781234567", account_number: "" },
-    minAmount: 100, processingTime: "Instantané", category: "mobile_money" },
-  { id: "mtn_zm", label: "MTN Mobile Money (Zambie)", icon: "phone_iphone", currency: "ZMW", countries: ["ZM"],
-    requiredFields: ["msisdn"], placeholder: { msisdn: "260961234567", account_number: "" },
-    minAmount: 5, processingTime: "Instantané", category: "mobile_money" },
-  { id: "zamtel_zm", label: "Zamtel Kwacha (Zambie)", icon: "phone_iphone", currency: "ZMW", countries: ["ZM"],
-    requiredFields: ["msisdn"], placeholder: { msisdn: "260951234567", account_number: "" },
-    minAmount: 5, processingTime: "Instantané", category: "mobile_money" },
-  { id: "orange_sl", label: "Orange Money (Sierra Leone)", icon: "phone_iphone", currency: "SLE", countries: ["SL"],
-    requiredFields: ["msisdn"], placeholder: { msisdn: "23276123456", account_number: "" },
-    minAmount: 5, processingTime: "Instantané", category: "mobile_money" },
 ];
 
 /**
@@ -541,8 +519,26 @@ const COUNTRY_DIAL_CODES: Record<string, string> = {
   CG: "242", GA: "241", SL: "232",
 };
 
-/** Pays où le 0 de tête FAIT PARTIE du numéro international (voir normalizeMsisdn). */
-const ZERO_DANS_LE_NUMERO = new Set(["BJ", "CI", "CG"]);
+/**
+ * Pays où le 0 de tête fait partie du numéro (voir normalizeMsisdn). Le Gabon
+ * y figure pour rester d'accord avec la règle de SAISIE (phone-rules : 8
+ * chiffres, 0 compris) ; PawaPay, qui l'écrit sans 0, renormalise lui-même
+ * le numéro avant chaque versement (/v2/predict-provider).
+ */
+const ZERO_DANS_LE_NUMERO = new Set(["BJ", "CI", "CG", "GA"]);
+
+/**
+ * Numéros ENREGISTRÉS amputés de leur début : le 0 ivoirien ou congolais
+ * retiré par l'ancienne normalisation (jusqu'au 2026-10-05), et les numéros
+ * béninois de l'ancien plan à 8 chiffres, auxquels le régulateur a ajouté
+ * « 01 » en 2024. Longueur nationale attendue → ce qui manque devant.
+ */
+const DEBUT_MANQUANT: Record<string, { longueur: number; prefixe: string }> = {
+  CI: { longueur: 10, prefixe: "0" },
+  CG: { longueur: 9, prefixe: "0" },
+  GA: { longueur: 8, prefixe: "0" },
+  BJ: { longueur: 10, prefixe: "01" },
+};
 
 /**
  * Normalise un numéro de téléphone au format `msisdn` international :
@@ -551,10 +547,10 @@ const ZERO_DANS_LE_NUMERO = new Set(["BJ", "CI", "CG"]);
  * Si `methodId` est fourni, on détecte le pays via le catalogue et on
  * ajoute le préfixe international si le numéro est en format local.
  *
- * Ex : normalizeMsisdn("57335726", "mtn_bj")  -> "22957335726"
- * Ex : normalizeMsisdn("+229 57 33 57 26")     -> "22957335726"
- * Ex : normalizeMsisdn("22957335726")           -> "22957335726"
- * Ex : normalizeMsisdn("0157335726", "mtn_bj") -> "22957335726"  (strip leading 0, add prefix)
+ * Ex : normalizeMsisdn("0157335726", "mtn_bj")   -> "2290157335726"
+ * Ex : normalizeMsisdn("57335726", "mtn_bj")     -> "2290157335726" (ancien plan → « 01 »)
+ * Ex : normalizeMsisdn("07 07 12 34 56", "orange_ci") -> "2250707123456"
+ * Ex : normalizeMsisdn("+237 671 234 567", "mtn_cm")  -> "237671234567"
  */
 export function normalizeMsisdn(phone: string, methodId?: string): string {
   // Step 1: strip all non-digit characters
@@ -597,12 +593,15 @@ export function normalizeMsisdn(phone: string, methodId?: string): string {
         // a refusé un retrait Moov CI pour « Validation failed — vérifiez le
         // numéro ». Formats canoniques confirmés par le fournisseur lui-même
         // (PawaPay /v2/predict-provider, 2026-10-05) : 2250707123456,
-        // 242061234567, 2290157335726 — mais 2417123456 au Gabon, où le 0
-        // tombe à l'international.
+        // 242061234567, 2290157335726.
         if (!ZERO_DANS_LE_NUMERO.has(countryCode) && digits.startsWith("0")) {
           // Ailleurs, le 0 de tête est un préfixe national qui ne se
           // transporte pas à l'international.
           digits = digits.slice(1);
+        }
+        const manque = DEBUT_MANQUANT[countryCode];
+        if (manque && digits.length === manque.longueur - manque.prefixe.length && !digits.startsWith("0")) {
+          digits = manque.prefixe + digits;
         }
 
         digits = dialCode + digits;

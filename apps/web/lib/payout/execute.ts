@@ -62,6 +62,13 @@ export type PayoutExecutionInput = {
   /** Id du retrait interne — sert d'idempotence et de référence webhook. */
   withdrawalId: string;
   /**
+   * Rang de la relance admin d'un retrait REFUSÉ (0 = premier envoi). Entre
+   * dans l'identifiant PawaPay : une relance délibérée, après un refus, doit
+   * pouvoir repartir — alors qu'une simple reprise du MÊME essai ne doit
+   * jamais payer deux fois.
+   */
+  tentative?: number;
+  /**
    * Test / diagnostic admin : forcer UN fournisseur précis, SANS bascule.
    * Permet à l'admin de router délibérément un versement de test à travers
    * FeexPay ou FedaPay sans laisser l'ordre de bascule décider.
@@ -233,7 +240,30 @@ const ADAPTATEURS: Record<PayoutProviderId, AdaptateurVersement> = {
     },
     envoyer: async ({ input, route, motif }) => {
       const { provider, code } = route as { provider: string; code: string };
-      const { initPayout } = await import("@/lib/pawapay");
+      const { initPayout, payoutIdPawapay, versementPawapayExistant } = await import("@/lib/pawapay");
+
+      // ── DÉJÀ ENVOYÉ ? (avant TOUT le reste) ─────────────────────────────
+      // Une réponse perdue laisse le retrait sans référence alors que PawaPay a
+      // peut-être payé — et débité le portefeuille. La reprise lisait alors un
+      // solde insuffisant, « sautait » PawaPay et FeexPay payait une SECONDE
+      // fois. On interroge donc PawaPay sur l'identifiant de CET essai : déjà
+      // reçu et pas en échec → on rend sa référence, sans renvoyer ni basculer.
+      const reference = input.tentative ? `${input.withdrawalId}:${input.tentative}` : input.withdrawalId;
+      let existant: Awaited<ReturnType<typeof versementPawapayExistant>>;
+      try {
+        existant = await versementPawapayExistant(payoutIdPawapay(reference));
+      } catch (err) {
+        // Impossible de savoir : ni envoi ni bascule (classé ambigu → revue admin).
+        throw new Error(`VERIFICATION_IMPOSSIBLE — PawaPay injoignable avant versement : ${err instanceof Error ? err.message : String(err)}`);
+      }
+      if (existant && existant.statut !== "failed") {
+        return { ref: payoutIdPawapay(reference), statut: existant.statut === "success" ? ("success" as const) : ("pending" as const), brut: "DEJA_RECU" };
+      }
+      if (existant) {
+        // Échec FINAL chez PawaPay pour cet essai : rien n'est parti par là.
+        throw new Error("REJECTED — versement PawaPay de cet essai déjà en échec");
+      }
+
       // MEME conversion qu'a l'encaissement. L'enjeu est plus grand ici :
       // envoyer un montant FCFA brut a un vendeur ougandais lui verserait
       // 5 000 UGX au lieu de ~32 000, avec un virement marque reussi.
@@ -242,6 +272,13 @@ const ADAPTATEURS: Record<PayoutProviderId, AdaptateurVersement> = {
       await chargerTaux();
       const { currencyForOperator } = await import("@/lib/payments/registry");
       const aVerser = montantAFacturer(Math.round(input.amount), currencyForOperator(code));
+      // Hors zone franc, les taux sont INDICATIFS (lib/currency/rates.ts : « ils
+      // servent à afficher, jamais à décider d'un versement ») et l'arrondi va
+      // vers le haut — 100 FCFA devenaient 30 KES, +32 %. Aucun versement ne
+      // part donc dans une autre devise que XOF/XAF (parité fixe).
+      if (aVerser.devise !== "XOF" && aVerser.devise !== "XAF") {
+        throw new Error(`PAYOUTS_NOT_ALLOWED — versement en ${aVerser.devise} non ouvert (taux de change indicatifs)`);
+      }
 
       // ── L'ARGENT DISPONIBLE DÉCIDE (règle fondateur, 2026-08-25) ────────
       // Le portefeuille PawaPay du pays est lu AVANT d'envoyer : à sec, la
@@ -285,7 +322,7 @@ const ADAPTATEURS: Record<PayoutProviderId, AdaptateurVersement> = {
         amount: aVerser.montant,
         currency: aVerser.devise,
         phoneNumber: numero,
-        payoutRef: input.withdrawalId,
+        payoutRef: reference,
         customerMessage: motif.slice(0, 22),
       });
       if (!r.accepted) throw new Error(r.reason ?? "versement refuse");

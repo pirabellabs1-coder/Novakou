@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 
   const [instructorWithdrawals, affiliateWithdrawals] = await Promise.all([
     prisma.instructorWithdrawal.findMany({
-      where: { status: "EN_ATTENTE", paymentRef: null, createdAt: { lte: cutoff } },
+      where: { status: "EN_ATTENTE", paymentRef: null, envoiDemarreLe: null, createdAt: { lte: cutoff } },
       orderBy: { createdAt: "asc" },
       take: MAX_PER_RUN,
       select: { id: true, amount: true },

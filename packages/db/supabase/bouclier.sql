@@ -161,7 +161,7 @@ create or replace function bouclier.retraits_a_envoyer(recents boolean) returns 
 language sql stable set search_path = '' set timezone = 'UTC' as $$
   with r as (
     select "createdAt" c from public."InstructorWithdrawal"
-     where status = 'EN_ATTENTE' and "paymentRef" is null
+     where status = 'EN_ATTENTE' and "paymentRef" is null and "envoiDemarreLe" is null
     union all
     select "createdAt" from public."AffiliateWithdrawal"
      where status = 'EN_ATTENTE' and "paymentRef" is null and "envoiDemarreLe" is null
