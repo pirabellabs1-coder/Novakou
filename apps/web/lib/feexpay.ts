@@ -209,6 +209,21 @@ export function classifyFeexpayError(
     };
   }
 
+  // BOUTIQUE INCONNUE. FeexPay répond HTTP 404 « Merchant or Shop not found »
+  // quand la clé et l'identifiant de boutique ne vont pas ensemble : la
+  // demande est rejetée AVANT toute création de transfert, rien ne part.
+  // Classée « unknown », elle passait pour AMBIGUË — retrait de 1 800 F gelé
+  // le 2026-10-05 alors qu'aucun franc n'était sorti. C'est une configuration
+  // à corriger (Admin → Passerelles : clé ET identifiant de la MÊME boutique).
+  if (lower.includes("merchant or shop not found") || lower.includes("shop not found")) {
+    return {
+      category: "not_available",
+      userMessage:
+        "FeexPay ne reconnaît pas notre boutique (clé et identifiant de boutique ne correspondent pas). " +
+        "Rien n'a été envoyé. À corriger dans Admin → Passerelles — réessayer ne changera rien d'ici là.",
+    };
+  }
+
   // VERSEMENT NON ACTIVÉ SUR NOTRE COMPTE. Ce n'est PAS temporaire, et le
   // dire « temporairement indisponible » a coûté cher : quatre retraits ont
   // été refusés sous ce libellé entre le 4 et le 20 août, chacun invitant à

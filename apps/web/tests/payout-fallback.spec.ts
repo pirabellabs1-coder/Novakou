@@ -97,3 +97,15 @@ test("le code système survit jusqu'au message conservé", () => {
   expect(classifyFeexpayError("fetch failed", faux).userMessage).toContain("ECONNRESET");
   expect(classifyFedapayError("fetch failed", faux).userMessage).toContain("ECONNRESET");
 });
+
+/**
+ * « Merchant or Shop not found » (HTTP 404) : clé et boutique ne vont pas
+ * ensemble, FeexPay rejette AVANT tout transfert. C'est un refus propre, pas
+ * une erreur ambiguë — sinon le retrait est gelé alors que rien n'est parti
+ * (1 800 F bloqués le 2026-10-05).
+ */
+test("FeexPay « Merchant or Shop not found » est un refus propre, pas un doute", () => {
+  const c = classifyFeexpayError("Merchant or Shop not found — HTTP 404");
+  expect(c.category).toBe("not_available");
+  expect(c.userMessage).toContain("Rien n'a été envoyé");
+});
