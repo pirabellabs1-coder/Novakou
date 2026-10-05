@@ -156,10 +156,11 @@ test("un pays sans route reste fermé, sans liste à maintenir", () => {
  * son bouton grisé sans explication.
  */
 test("aucun moyen servable n'exige plus que le minimum global", () => {
-  // MIN_WITHDRAWAL_XOF est libelle en XOF : le comparer au minimum d'un moyen
-  // libelle en UGX ou en KES compare des grandeurs sans rapport (airtel_ug
-  // exige 1 000 UGX, soit environ 160 XOF — ce n'est pas une incoherence).
-  // On borne donc la regle aux moyens de la meme devise.
+  // minAmount est en FCFA partout (il est compare au montant FCFA du retrait).
+  // Hors zone franc, certains moyens exigent plus que le minimum global, a
+  // juste titre : minimum de l'operateur (M-Pesa RD Congo : 1 000 CDF) ou
+  // arrondi a l'unite qui pese trop sur un petit retrait (Zambie, Sierra
+  // Leone). On borne donc la regle aux moyens en XOF.
   const enXof = getAvailablePayoutMethods(null).filter((m) => m.currency === "XOF");
   expect(enXof.length, "aucun moyen en XOF : le catalogue est vide ?").toBeGreaterThan(0);
   for (const m of enXof) {

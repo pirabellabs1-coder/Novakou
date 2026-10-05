@@ -368,7 +368,7 @@ export const PAYOUT_METHODS: PayoutMethodDef[] = [
     countries: ["ZM"],
     requiredFields: ["msisdn"],
     placeholder: { msisdn: "260972345678", account_number: "" },
-    minAmount: 100,
+    minAmount: 1000,
     processingTime: "Instantané",
     category: "mobile_money",
   },
@@ -380,6 +380,8 @@ export const PAYOUT_METHODS: PayoutMethodDef[] = [
   // suivent les formats renvoyés par PawaPay /v2/predict-provider. Hors zone
   // franc, le versement est converti au taux du jour (taux-versement.ts).
   // minAmount est en FCFA : c'est au montant FCFA du retrait qu'il est comparé.
+  // Zambie et Sierra Leone : 1 000 FCFA, car le versement est arrondi à l'unité
+  // inférieure (1 ZMW ≈ 30 FCFA) — sur un petit retrait, la perte pèserait trop.
   { id: "mtn_cg", label: "MTN Mobile Money (Congo)", icon: "phone_iphone", currency: "XAF", countries: ["CG"],
     requiredFields: ["msisdn"], placeholder: { msisdn: "242061234567", account_number: "" },
     minAmount: 100, processingTime: "Quelques minutes", category: "mobile_money" },
@@ -407,13 +409,13 @@ export const PAYOUT_METHODS: PayoutMethodDef[] = [
     minAmount: 100, processingTime: "Instantané", category: "mobile_money" },
   { id: "mtn_zm", label: "MTN Mobile Money (Zambie)", icon: "phone_iphone", currency: "ZMW", countries: ["ZM"],
     requiredFields: ["msisdn"], placeholder: { msisdn: "260961234567", account_number: "" },
-    minAmount: 100, processingTime: "Instantané", category: "mobile_money" },
+    minAmount: 1000, processingTime: "Instantané", category: "mobile_money" },
   { id: "zamtel_zm", label: "Zamtel Kwacha (Zambie)", icon: "phone_iphone", currency: "ZMW", countries: ["ZM"],
     requiredFields: ["msisdn"], placeholder: { msisdn: "260951234567", account_number: "" },
-    minAmount: 100, processingTime: "Instantané", category: "mobile_money" },
+    minAmount: 1000, processingTime: "Instantané", category: "mobile_money" },
   { id: "orange_sl", label: "Orange Money (Sierra Leone)", icon: "phone_iphone", currency: "SLE", countries: ["SL"],
     requiredFields: ["msisdn"], placeholder: { msisdn: "23276123456", account_number: "" },
-    minAmount: 100, processingTime: "Instantané", category: "mobile_money" },
+    minAmount: 1000, processingTime: "Instantané", category: "mobile_money" },
 ];
 
 /**

@@ -229,6 +229,9 @@ const ADAPTATEURS: Record<PayoutProviderId, AdaptateurVersement> = {
           userMessage: "PawaPay : versement non activé sur cet opérateur pour notre compte (à demander à PawaPay).",
         };
       }
+      if (/^TAUX_INDISPONIBLE/.test(msg)) {
+        return { category: "indisponible_temporaire" as const, userMessage: `Conversion impossible pour l'instant : ${msg.replace("TAUX_INDISPONIBLE — ", "")}` };
+      }
       if (/INSUFFICIENT_WALLET/.test(msg)) {
         return { category: "insufficient_funds" as const, userMessage: `PawaPay : ${msg.replace("INSUFFICIENT_WALLET — ", "")}` };
       }
@@ -456,6 +459,15 @@ export async function executePayout(input: PayoutExecutionInput): Promise<Payout
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       const { category, userMessage } = ADAPTATEURS[provider].classer(msg, err);
+
+      // Empêchement TEMPORAIRE de notre côté (taux du jour indisponible) :
+      // rien n'a été envoyé et ce n'est pas un refus. Compté comme « sauté »,
+      // le retrait reste EN_ATTENTE s'il n'y a pas d'autre passerelle — repris
+      // plus tard au lieu d'être refusé.
+      if (category === "indisponible_temporaire") {
+        attempts.push({ provider, outcome: "skipped", detail: msg.slice(0, 300) });
+        continue;
+      }
 
       if (isSafeToFallback(category)) {
         // Refus propre (rien n'a bougé) → on note et on tente le suivant.

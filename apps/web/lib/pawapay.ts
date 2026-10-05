@@ -406,7 +406,8 @@ export async function checkCollectStatus(
 /**
  * Envoie de l'argent vers un compte Mobile Money.
  *
- * @param amount DÉJÀ converti dans `currency` par `montantAFacturer()`.
+ * @param amount DÉJÀ converti dans `currency` par `montantAVerser()`
+ *               (lib/currency/taux-versement.ts : taux du jour, arrondi vers le bas).
  *               Ici l'erreur est PIRE qu'à l'encaissement : envoyer un montant
  *               FCFA brut à un vendeur ougandais lui verserait 5 000 UGX au
  *               lieu de ~32 000 — on le paierait six fois moins que son dû, et

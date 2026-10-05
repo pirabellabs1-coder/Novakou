@@ -376,7 +376,7 @@ export async function POST(request: Request) {
         }
         if (amount < def.minAmount) {
           return NextResponse.json(
-            { error: `Montant minimum pour ${def.label} : ${def.minAmount} ${def.currency}` },
+            { error: `Montant minimum pour ${def.label} : ${def.minAmount} FCFA` },
             { status: 400 },
           );
         }
