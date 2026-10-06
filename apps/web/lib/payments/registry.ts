@@ -238,7 +238,12 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     // Tant que l'un des deux n'a pas confirmé, on ne PROPOSE pas Wave CI :
     // chaque affichage était un échec garanti au moment de payer. Rétablir la
     // route correspondante ici dès que le fournisseur a ouvert l'accès.
-    collect: {},
+    //
+    // ROUVERT côté FeexPay le 2026-10-06, même critère que Wave Sénégal : la
+    // sonde cron/diagnostic-couverture obtient sur NOTRE boutique une référence
+    // ET un vrai lien de paiement pay.wave.com (verdict ACTIF). La route
+    // PawaPay reste fermée : WAVE_CIV n'est pas sur le compte (/v2/active-conf).
+    collect: { feexpay: { code: "WAVE CI" } },
     // VERSEMENT FERMÉ AUSSI (constat production 2026-09-06). On avait laissé
     // la route de versement ouverte en supposant que le blocage ne visait que
     // l'encaissement. C'est faux : un versement Wave CI de 100 F a été refusé
@@ -246,7 +251,12 @@ export const OPERATORS: Record<string, OperatorEntry> = {
     // Wave n'est pas activé sur le compte, dans aucun des deux sens. Laisser
     // la route ouverte offrait aux vendeurs ivoiriens un moyen de retrait qui
     // ne pouvait aboutir, et déposait le retrait dans la file admin sans issue.
-    payout: {} },
+    //
+    // ROUVERT le 2026-10-06 : le marchand agrégé Wave est désormais configuré
+    // (l'encaissement passe, voir plus haut). S'il manquait encore côté
+    // versement, FeexPay refuse PROPREMENT (MISSING_WAVE_AGGREGATED_MERCHANT,
+    // classé « non disponible ») : rien ne part, le solde du vendeur revient.
+    payout: { feexpay: { code: "wave_ci" } } },
   mtn_ci: {
     label: "MTN Mobile Money (Côte d'Ivoire)", country: "ci", currency: "XOF", family: "mobile_money",
     // Routes fedapay retirées le 2026-09-24 (consolidation — FeexPay couvre).

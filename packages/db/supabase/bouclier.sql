@@ -224,10 +224,11 @@ language sql stable set search_path = '' set timezone = 'UTC' as $$
 $$;
 
 -- ── Agents ──────────────────────────────────────────────────────────────────
--- Chaque agent est réveillé dès qu'un élément NOUVEAU pour lui est apparu
--- depuis son dernier passage ; le passage complet (toutes les 2 h) reprend le
--- reste — éléments laissés à l'humain, échecs IA à retenter. Avant : les huit
--- agents toutes les 15 min, dont ~5 réexamens de dossiers déjà vus par passage.
+-- INUTILISÉS depuis le 2026-10-06 : les agents IA ne passent plus que deux
+-- fois par semaine (job nk-agents, plus bas), par décision de coût. Ces
+-- portiers réveillaient chaque agent dès qu'un élément nouveau apparaissait ;
+-- ils restent définis (et vérifiés par scripts/verifier-bouclier.mjs) pour
+-- revenir à une cadence événementielle si le budget IA le permet.
 
 -- Début du dernier passage TERMINÉ (AgentRun.startedAt) — pas lastRunAt, écrit
 -- à la FIN : un dossier arrivé pendant un passage, après la lecture de l'agent,
@@ -342,19 +343,17 @@ begin
       ('nk-payout-reconcile',           '*/10 * * * *', $c$select bouclier.reveiller_si('bouclier.versements_a_verifier()', '/api/cron/payout-reconcile', 'travail')$c$),
       ('nk-mentor-bookings-expire',     '*/15 * * * *', $c$select bouclier.reveiller_si('bouclier.reservations_expirees()', '/api/cron/mentor-bookings-expire', 'travail')$c$),
       ('nk-automation-scheduled',       '*/15 * * * *', $c$select bouclier.reveiller_si('bouclier.automatisations_echues()', '/api/cron/automation-scheduled', 'travail')$c$),
-      ('nk-agent-kyc',                  '*/15 * * * *', $c$select bouclier.reveiller_si('bouclier.kyc_nouveaux()', '/api/cron/agents?agent=kyc_verification', 'travail', 300000)$c$),
-      ('nk-agent-fiches',               '*/15 * * * *', $c$select bouclier.reveiller_si('bouclier.fiches_nouvelles()', '/api/cron/agents?agent=product_verification', 'travail', 300000)$c$),
-      ('nk-agent-fraude',               '*/5 * * * *',  $c$select bouclier.reveiller_si('bouclier.retraits_nouveaux()', '/api/cron/agents?agent=fraud_detection', 'travail', 300000)$c$),
-      ('nk-agent-litiges',              '*/15 * * * *', $c$select bouclier.reveiller_si('bouclier.litiges_nouveaux()', '/api/cron/agents?agent=dispute_resolution', 'travail', 300000)$c$),
-      ('nk-agent-suppressions',         '*/15 * * * *', $c$select bouclier.reveiller_si('bouclier.suppressions_a_examiner()', '/api/cron/agents?agent=account_deletion', 'travail', 300000)$c$),
-      ('nk-agent-avis',                 '*/15 * * * *', $c$select bouclier.reveiller_si('bouclier.avis_nouveaux()', '/api/cron/agents?agent=reviews_moderation', 'travail', 300000)$c$),
-      ('nk-agent-support',              '*/15 * * * *', $c$select bouclier.reveiller_si('bouclier.messages_sans_reponse()', '/api/cron/agents?agent=buyer_support', 'travail', 300000)$c$),
       -- ── Sans condition ──────────────────────────────────────────────────
-      -- Passage complet des huit agents (dont vendor_coach, purement périodique).
-      -- Minute 7 : jamais en même temps qu'un portier d'agent (0/15/30/45, ni
-      -- les 5 min de la fraude) — deux passages simultanés paieraient l'IA deux
-      -- fois et pourraient rendre deux décisions sur un même dossier.
-      ('nk-agents',                     '7 */2 * * *',  $c$select bouclier.reveiller('/api/cron/agents', 'planifie', 300000)$c$),
+      -- AGENTS IA : DEUX passages par semaine seulement (décision fondateur du
+      -- 2026-10-06), lundi et jeudi 06:07 UTC — 07:07 au Bénin. Chaque passage
+      -- est de l'IA payée : à 524 passages par jour, 6 000 réexamens KYC et
+      -- 13 000 éléments « coach » par mois ont épuisé le crédit OpenRouter.
+      -- Conséquence assumée : un dossier KYC, une fiche ou un litige attend
+      -- jusqu'à 3-4 jours sa décision automatique — l'admin peut toujours
+      -- valider à la main entre deux passages. Les portiers d'agents
+      -- (kyc_nouveaux, fiches_nouvelles…) restent définis plus haut, inutilisés,
+      -- pour revenir à une cadence événementielle si le budget le permet.
+      ('nk-agents',                     '7 6 * * 1,4',  $c$select bouclier.reveiller('/api/cron/agents', 'planifie', 300000)$c$),
       -- Sonde de santé du trajet de versement : son rôle est justement de
       -- tourner quand il ne se passe rien.
       ('nk-sonde-versements',           '30 * * * *',   $c$select bouclier.reveiller('/api/cron/sonde-versements')$c$),
