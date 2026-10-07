@@ -137,17 +137,15 @@ export async function PATCH(request: Request, { params }: Params) {
           refusedReason: null,
           paymentRef: null,
           // Relance décidée par l'admin après un REFUS : l'ancien envoi n'est
-          // pas parti, le verrou d'envoi est levé.
-          envoiDemarreLe: null,
+          // pas parti. Le verrou est REPOSÉ aussitôt (et non levé) : le
+          // versement part juste en dessous, dans cette même requête —
+          // cron/auto-payout ne doit pas le prendre en même temps.
+          envoiDemarreLe: new Date(),
           accountDetails: { ...details, _retryCount: retryCount + 1 },
         },
       });
       tentative = retryCount + 1;
-      // Fall through to the approve logic below (action is "retry" but we treat it as approve)
-    }
-
-    if (action !== "approve" && action !== "retry") {
-      // Only approve and retry reach the payout logic
+      // Suite : la logique de versement ci-dessous, comme pour « approve ».
     }
 
     if (action === "approve" && w.status !== "EN_ATTENTE") {
@@ -160,8 +158,12 @@ export async function PATCH(request: Request, { params }: Params) {
     const isMentor = w.method.endsWith("_mentor");
     const role = isMentor ? "mentor" : "vendeur";
 
-    // ─── APPROVE : déclencher paiement réel via provider OU manuel ──────────
-    if (action === "approve") {
+    // ─── APPROVE / RETRY : déclencher paiement réel via provider OU manuel ──
+    // « retry » DOIT entrer ici. Il n'y entrait pas : la relance remettait le
+    // retrait en attente puis tombait dans la branche REFUS, qui répondait
+    // « Un motif de refus est requis » — et le versement n'était tenté que
+    // plus tard, par le cron, sans que l'admin voie le résultat.
+    if (action === "approve" || action === "retry") {
       // Si aucun fournisseur automatique n'est configuré, on retombe en manuel.
       // Le mode "auto" (défaut) passe par l'orchestrateur, qui
       // essaie FedaPay → FeexPay : il suffit qu'UN seul soit configuré.
