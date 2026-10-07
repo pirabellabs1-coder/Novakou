@@ -2,22 +2,24 @@ import { prisma } from "@/lib/prisma";
 import { recordRun, proposeAction, getAgentConfig } from "../runtime";
 import { agentSystemUserId } from "../system-user";
 import { createAuditLog } from "@/lib/admin/audit";
-import { createNotification } from "@/lib/notifications/service";
 import { notifyAdmins } from "@/lib/agents/notify";
 
 /**
  * Agent ANTI-FRAUDE PAIEMENTS & RETRAITS.
  *
- * Surveille CheckoutAttempt et InstructorWithdrawal des dernières N heures.
- * Détecte les schémas suspects par RÈGLES (déterministes, auditables) :
- *  - Compte-relais : compte créé il y a peu, encaissement immédiat, retrait
- *    demandé aussitôt.
- *  - Multiples tentatives de paiement en échec par un même acheteur.
- *  - Retrait d'un montant > seuil sur un compte KYC niveau 1.
+ * Surveille les retraits des dernières N heures et SIGNALE à l'admin
+ * (e-mail + Telegram) les schémas suspects, par règles déterministes :
+ *  - retrait d'un montant ≥ seuil sur un compte de moins de 7 jours ;
+ *  - retrait d'un montant ≥ seuil sans identité vérifiée (KYC niveau 1).
  *
- * En cas de signal, SUSPEND le compte (statut User.status → SUSPENDU,
- * RÉVERSIBLE par l'admin), notifie l'utilisateur avec un motif, et alerte
- * l'admin par e-mail + Telegram.
+ * L'AGENT NE SUSPEND PLUS PERSONNE (décision fondateur du 2026-10-07). Il
+ * suspendait automatiquement, et ses 5 suspensions reposaient TOUTES sur une
+ * seule règle — « N tentatives de paiement échouées en 24 h » — alors que ces
+ * échecs venaient surtout de NOS passerelles (FeexPay mal configurée, Wave
+ * fermé, mode démo en production). Un vendeur s'est retrouvé bloqué au moment
+ * de retirer ses gains. Cette règle est supprimée : un paiement échoué ne
+ * prouve rien contre celui qui paie. Une suspension se décide désormais à
+ * la main, dans l'admin, sur la base du signal.
  */
 
 type Suspect = { userId: string; motifs: string[] };
@@ -53,50 +55,31 @@ export async function runFraudDetection() {
       if (kycFaible) ajouter(u.id, `retrait de ${Math.round(r.amount)} FCFA sans identité vérifiée (KYC niveau ${u.kyc ?? 1})`);
     }
 
-    // Règle 2 : ≥ 4 échecs de paiement du même acheteur (email ou userId) sur la fenêtre.
-    const echecs = await prisma.checkoutAttempt.groupBy({
-      by: ["userId"],
-      where: { status: "FAILED", createdAt: { gte: depuis }, userId: { not: null } },
-      _count: { _all: true },
-    });
-    for (const e of echecs) {
-      if ((e._count._all ?? 0) < 4 || !e.userId) continue;
-      const u = await prisma.user.findUnique({ where: { id: e.userId }, select: { id: true, status: true } });
-      if (!u || u.status !== "ACTIF") continue;
-      ajouter(u.id, `${e._count._all} tentatives de paiement échouées en ${heures} h`);
-    }
-
     let decides = 0;
 
     for (const s of suspects.values()) {
+      // Un SIGNAL pour l'admin, jamais une sanction : aucun changement de
+      // statut, rien n'est envoyé à l'utilisateur. La clé de déduplication
+      // limite l'alerte à une par compte et par jour.
       const a = await proposeAction({
         agentKey: "fraud_detection",
-        type: "user_suspended",
+        type: "fraud_signal",
         risk: "low",
-        title: `Compte suspendu — schéma suspect détecté`,
-        reasoning: `Signaux : ${s.motifs.join(" · ")}. La suspension est RÉVERSIBLE : l'admin peut réactiver le compte via /admin/utilisateurs.`,
+        title: `Signal anti-fraude à examiner`,
+        reasoning: `Signaux : ${s.motifs.join(" · ")}. Aucune mesure automatique : à examiner par l'admin.`,
         targetType: "user",
         targetId: s.userId,
         payload: { auto: true, motifs: s.motifs },
-        dedupeKey: `fraud_detection-${s.userId}-${new Date().toISOString().slice(0, 10)}`,
+        dedupeKey: `fraud_signal-${s.userId}-${new Date().toISOString().slice(0, 10)}`,
         execute: async () => {
-          await prisma.user.update({
-            where: { id: s.userId },
-            data: { status: "SUSPENDU", suspendReason: `Suspension automatique par l'agent anti-fraude — ${s.motifs.join(" · ")}` },
-          });
-          await createNotification({
-            userId: s.userId, type: "system", title: "Compte temporairement suspendu",
-            message: `Votre compte a été suspendu à la suite d'une détection automatique (${s.motifs.join(" · ")}). Notre équipe examine votre situation — contactez le support si vous pensez qu'il s'agit d'une erreur.`,
-            link: "/aide",
-          }).catch(() => null);
           await createAuditLog({
-            actorId: agentId, action: "user.suspended",
+            actorId: agentId, action: "fraud.signal",
             targetType: "user", targetId: s.userId, targetUserId: s.userId,
             details: { motifs: s.motifs, source: "fraud_detection" },
           }).catch(() => null);
           await notifyAdmins({
-            subject: `Compte suspendu (anti-fraude) — ${s.userId.slice(0, 8)}`,
-            body: `L'agent anti-fraude a suspendu automatiquement un compte. Signaux : ${s.motifs.join(" · ")}. Suspension RÉVERSIBLE via /admin/utilisateurs.`,
+            subject: `Signal anti-fraude — compte ${s.userId.slice(0, 8)}`,
+            body: `Signaux : ${s.motifs.join(" · ")}. Aucune mesure n'a été prise automatiquement : vérifiez le compte et décidez depuis /admin/utilisateurs.`,
             url: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://novakou.com"}/admin/utilisateurs`,
           }).catch(() => null);
           return { ok: true };
@@ -108,7 +91,7 @@ export async function runFraudDetection() {
     return {
       itemsProcessed: suspects.size,
       actionsCreated: decides,
-      summary: `${suspects.size} compte(s) suspect(s) · ${decides} suspendu(s) (réversible)`,
+      summary: `${suspects.size} compte(s) signalé(s) à l'admin · aucune suspension automatique`,
     };
   });
 }
