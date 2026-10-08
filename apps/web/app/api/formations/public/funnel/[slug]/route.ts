@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { nettoyerBlocsHtml } from "@/lib/marketing/nettoyer-blocs-html";
 import { prisma } from "@/lib/prisma";
 
 type Params = { params: Promise<{ slug: string }> };
@@ -60,7 +61,9 @@ export async function GET(req: Request, { params }: Params) {
     const data = { ...funnel } as Record<string, unknown>;
     delete data.totalRevenue;
     delete data.totalConversions;
-    return NextResponse.json({ data });
+    // Les blocs « HTML personnalisé » sont nettoyés avant d'être servis :
+    // les tunnels enregistrés avant le durcissement du 2026-10-08 sont couverts.
+    return NextResponse.json({ data: nettoyerBlocsHtml(data) });
   } catch (err) {
     console.error("[public/funnel/[slug] GET]", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

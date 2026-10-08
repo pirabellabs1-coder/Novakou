@@ -158,12 +158,18 @@ export async function processInstructorWithdrawalAuto(withdrawalId: string): Pro
   const w = await prisma.instructorWithdrawal.findUnique({
     where: { id: withdrawalId },
     include: {
-      instructeur: { include: { user: { select: { id: true, name: true, email: true, country: true } } } },
+      instructeur: { include: { user: { select: { id: true, name: true, email: true, country: true, status: true } } } },
     },
   });
   if (!w) return { status: "REFUSED", reason: "Retrait introuvable" };
   if (w.status !== "EN_ATTENTE" || w.paymentRef) {
     return { status: "SENT", provider: w.paymentProvider ?? "?", paymentRef: w.paymentRef ?? "" };
+  }
+  // Compte suspendu entre la demande et le versement (cron de reprise) : on
+  // n'envoie pas d'argent à un compte bloqué, et on ne refuse pas non plus —
+  // l'admin tranche.
+  if (w.instructeur.user.status !== "ACTIF") {
+    return { status: "PENDING_MANUAL", reason: "Compte suspendu — versement bloqué, décision admin requise" };
   }
 
   const isMentor = w.method.endsWith("_mentor");
@@ -345,11 +351,14 @@ async function markInstructorRefused(id: string, userId: string, isMentor: boole
 export async function processAffiliateWithdrawalAuto(withdrawalId: string): Promise<AutoPayoutResult> {
   const w = await prisma.affiliateWithdrawal.findUnique({
     where: { id: withdrawalId },
-    include: { affiliate: { select: { user: { select: { name: true, email: true } } } } },
+    include: { affiliate: { select: { user: { select: { name: true, email: true, status: true } } } } },
   });
   if (!w) return { status: "REFUSED", reason: "Retrait introuvable" };
   if (w.status !== "EN_ATTENTE" || w.paymentRef) {
     return { status: "SENT", provider: w.paymentProvider ?? "?", paymentRef: w.paymentRef ?? "" };
+  }
+  if (w.affiliate?.user?.status !== "ACTIF") {
+    return { status: "PENDING_MANUAL", reason: "Compte suspendu — versement bloqué, décision admin requise" };
   }
 
   if (!(await anyAutoProviderConfigured())) {

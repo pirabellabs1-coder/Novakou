@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { resolveOldSlug } from "@/lib/formations/slugs";
 import ProduitPageClient from "./ProduitPageClient";
 import TrackPageView from "@/components/tracking/TrackPageView";
+import { jsonLdSafe } from "@/lib/seo/json-ld";
 
 // En cache (ISR, 5 min) — rafraîchie immédiatement après une modification ou
 // une vente par `revalidatePublicCatalog`. L'ancien `force-dynamic` venait du
@@ -136,7 +137,7 @@ export default async function ProduitPage({
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
+              __html: jsonLdSafe({
                 "@context": "https://schema.org",
                 "@type": "Product",
                 name: product.title,
@@ -195,7 +196,7 @@ export default async function ProduitPage({
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
+              __html: jsonLdSafe({
                 "@context": "https://schema.org",
                 "@type": "BreadcrumbList",
                 itemListElement: [

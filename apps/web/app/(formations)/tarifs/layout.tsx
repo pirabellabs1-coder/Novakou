@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { jsonLdSafe } from "@/lib/seo/json-ld";
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
 
@@ -88,7 +89,7 @@ export default function TarifsLayout({ children }: { children: React.ReactNode }
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_SCHEMA) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdSafe(FAQ_SCHEMA) }}
       />
       {children}
     </>

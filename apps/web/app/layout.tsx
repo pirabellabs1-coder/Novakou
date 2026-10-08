@@ -12,6 +12,7 @@ import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 import { PWAInstallPrompt } from "@/components/pwa/PWAInstallPrompt";
 import { MATERIAL_SYMBOLS_URL } from "@/lib/material-symbols-subset";
 import "./globals.css";
+import { jsonLdSafe } from "@/lib/seo/json-ld";
 
 // Manrope : self-hosted via next/font → preload + display=swap automatiques,
 // pas de FOIT bloquant. Avant : chargé via FontLoader client qui injectait
@@ -234,7 +235,7 @@ export default async function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
+            __html: jsonLdSafe({
               "@context": "https://schema.org",
               "@type": "Organization",
               name: "Novakou",
@@ -272,7 +273,7 @@ export default async function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
+            __html: jsonLdSafe({
               "@context": "https://schema.org",
               "@type": "WebSite",
               name: "Novakou",

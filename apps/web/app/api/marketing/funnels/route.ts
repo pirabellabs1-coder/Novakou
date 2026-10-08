@@ -7,6 +7,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { getOrCreateInstructeurProfile } from "@/lib/formations/prisma-helpers";
 import { MODE_DEV_LOCAL } from "@/lib/env";
+import { nettoyerBlocsHtml } from "@/lib/marketing/nettoyer-blocs-html";
 
 const DEV_MODE = MODE_DEV_LOCAL || !process.env.DATABASE_URL;
 
@@ -159,6 +160,9 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    // Blocs « HTML personnalisé » nettoyés à l'entrée : aucun script ne doit
+    // pouvoir être enregistré puis servi aux visiteurs du tunnel.
+    if (body && typeof body === "object") body.steps = nettoyerBlocsHtml(body.steps);
     const { name, description, steps, isActive: activateOnCreate } = body;
 
     // Validation
@@ -273,6 +277,9 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
+    // Blocs « HTML personnalisé » nettoyés à l'entrée : aucun script ne doit
+    // pouvoir être enregistré puis servi aux visiteurs du tunnel.
+    if (body && typeof body === "object") body.steps = nettoyerBlocsHtml(body.steps);
     const { id, name, description, steps, isActive } = body;
 
     if (!id) {

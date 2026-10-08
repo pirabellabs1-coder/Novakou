@@ -4,6 +4,7 @@ import { sora } from "@/lib/fonts";
 import { BestSellers } from "@/components/formations/BestSellers";
 import HomeClient from "./HomeClient";
 import "./home.css";
+import { jsonLdSafe } from "@/lib/seo/json-ld";
 
 
 export const metadata: Metadata = {
@@ -537,7 +538,7 @@ export default function FormationsPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: jsonLdSafe({
             "@context": "https://schema.org",
             "@type": "FAQPage",
             mainEntity: FAQ_ITEMS.map((f) => ({

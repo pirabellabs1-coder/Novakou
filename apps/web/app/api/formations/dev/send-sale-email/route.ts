@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { MODE_DEV_LOCAL } from "@/lib/env";
 import { sendSaleNotificationFH } from "@/lib/email/templates-fh";
 
 /**
@@ -6,6 +7,10 @@ import { sendSaleNotificationFH } from "@/lib/email/templates-fh";
  * Dev-only: re-send the updated sale notification with different scenarios.
  */
 export async function GET(request: Request) {
+  // Route de démonstration : sans cette garde, n'importe qui envoyait des
+  // e-mails Novakou (8 modèles) à l'adresse de son choix — hameçonnage de
+  // marque gratuit, facturé sur notre compte Resend (audit du 2026-10-08).
+  if (!MODE_DEV_LOCAL) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const url = new URL(request.url);
   const to = url.searchParams.get("to");
   const scenario = url.searchParams.get("scenario") ?? "standard";

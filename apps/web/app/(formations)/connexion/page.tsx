@@ -12,6 +12,7 @@ import { AuthCard, AuthHead } from "@/components/auth/AuthCard";
 import { AuthField, PasswordField } from "@/components/auth/AuthField";
 import { AuthButton, GoogleIcon } from "@/components/auth/AuthButton";
 import { AuthAlert } from "@/components/auth/AuthAlert";
+import { urlInterneOuNull } from "@/lib/auth/url-interne";
 
 /* ─────────────────────────── Contenu du panneau ─────────────────────────── */
 
@@ -30,7 +31,9 @@ const PANNEAU = {
 function ConnexionInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrlParam = searchParams.get("callbackUrl");
+  // Chemin interne seulement : une cible externe ferait de la connexion un
+  // tremplin vers un site d'hameçonnage.
+  const callbackUrlParam = urlInterneOuNull(searchParams.get("callbackUrl"));
   const registered = searchParams.get("registered") === "1";
   const { data: existingSession, status } = useSession();
 

@@ -67,6 +67,7 @@ import {
   VisuelVideo,
   VisuelWorkflow,
 } from "@/components/formations/public/Visuels";
+import { jsonLdSafe } from "@/lib/seo/json-ld";
 
 /*
  * Page Fonctionnalités — Server Component. Les métadonnées vivent dans
@@ -416,7 +417,7 @@ export default function FonctionnalitesPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: jsonLdSafe({
             "@context": "https://schema.org",
             "@type": "FAQPage",
             mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),

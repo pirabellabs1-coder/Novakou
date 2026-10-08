@@ -18,6 +18,7 @@ import {
   ProAstuce,
   SectionGuide,
 } from "@/components/formations/public/article/EncadresGuide";
+import { jsonLdSafe } from "@/lib/seo/json-ld";
 
 const OG_TITLE = "Vendre une formation en ligne au Benin en 2026";
 const OG_SUBTITLE = "Le guide complet : MTN MoMo, Moov Money, Celtiis Cash, fiscalite, lancement 30 jours";
@@ -104,7 +105,7 @@ export default function VendreFormationBeninPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: jsonLdSafe({
             "@context": "https://schema.org",
             "@type": "Article",
             headline:
@@ -144,7 +145,7 @@ export default function VendreFormationBeninPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: jsonLdSafe({
             "@context": "https://schema.org",
             "@type": "FAQPage",
             mainEntity: FAQ_ITEMS.map((item) => ({
@@ -160,7 +161,7 @@ export default function VendreFormationBeninPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: jsonLdSafe({
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
             itemListElement: [

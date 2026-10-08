@@ -370,6 +370,18 @@ export async function middleware(req: NextRequest) {
 
   // Lire le token JWT directement (compatible Edge Runtime)
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+
+  // Compte suspendu ou banni (relu en base toutes les 5 min par le jeton) :
+  // déconnexion immédiate. Avant, la suspension ne prenait effet qu'à
+  // l'expiration du jeton, soit jusqu'à 30 jours.
+  if ((token as { suspendu?: boolean } | null)?.suspendu) {
+    const res = NextResponse.redirect(new URL("/connexion?compte=suspendu", req.url));
+    for (const nom of ["next-auth.session-token", "__Secure-next-auth.session-token"]) {
+      res.cookies.set(nom, "", { path: "/", maxAge: 0 });
+    }
+    return res;
+  }
+
   const isAuthenticated = !!token;
   const hasSessionCookie = hasNextAuthSessionCookie(req);
   const userRole = token?.role as string | undefined;

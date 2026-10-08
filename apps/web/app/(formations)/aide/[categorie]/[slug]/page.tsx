@@ -16,6 +16,7 @@ import { BoutonVerre } from "@/components/formations/public/BoutonVerre";
 import { FilAriane } from "@/components/formations/public/article/FilAriane";
 import { AvisArticle } from "@/components/formations/public/article/AvisArticle";
 import "@/components/formations/public/article/article.css";
+import { jsonLdSafe } from "@/lib/seo/json-ld";
 
 type Params = { params: Promise<{ categorie: string; slug: string }> };
 
@@ -142,11 +143,11 @@ export default async function HelpArticlePage({ params }: Params) {
     <CoquePublique>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdSafe(articleSchema) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdSafe(breadcrumbSchema) }}
       />
       <article>
         <EnTetePage

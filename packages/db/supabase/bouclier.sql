@@ -396,7 +396,7 @@ begin
       -- Rapatrie le code HTTP de chaque réveil (pg_net ne garde ses réponses
       -- que 6 h) : c'est ce qui rend visible une route en échec.
       ('nk-bilan',                      '*/15 * * * *', $c$update bouclier.reveil r set statut = h.status_code, erreur = left(coalesce(h.error_msg, case when h.status_code >= 400 then h.content end), 300) from net._http_response h where h.id = r.requete_id and r.statut is null and r.erreur is null$c$),
-      ('nk-purge',                      '50 2 * * *',   $c$delete from cron.job_run_details where end_time < now() - interval '7 days'; delete from bouclier.reveil where le < now() - interval '90 days'$c$)
+      ('nk-purge',                      '50 2 * * *',   $c$delete from cron.job_run_details where end_time < now() - interval '7 days'; delete from bouclier.reveil where le < now() - interval '90 days'; delete from public."CleValeur" where "expireLe" < timezone('utc', now()) - interval '1 day'$c$)
     ) as v(nom, quand, commande)
   loop
     perform cron.schedule(t.nom, t.quand, t.commande);

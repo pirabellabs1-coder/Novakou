@@ -138,7 +138,7 @@ export async function PUT(request: Request) {
       const { prisma } = await import("@/lib/prisma");
       await prisma.user.update({
         where: { id: session.user.id },
-        data: { twoFactorEnabled: true },
+        data: { twoFactorEnabled: true, twoFactorVerifiedAt: new Date() },
       });
     } catch {
       // DB non connectee

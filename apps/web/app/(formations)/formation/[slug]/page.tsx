@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { resolveOldSlug } from "@/lib/formations/slugs";
 import FormationPageClient from "./FormationPageClient";
 import TrackPageView from "@/components/tracking/TrackPageView";
+import { jsonLdSafe } from "@/lib/seo/json-ld";
 
 // En cache (ISR, 5 min) — rafraîchie immédiatement après une modification ou
 // une vente par `revalidatePublicCatalog`. L'ancien `force-dynamic` venait du
@@ -137,7 +138,7 @@ export default async function FormationPage({
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
+              __html: jsonLdSafe({
                 "@context": "https://schema.org",
                 "@type": "Course",
                 name: formation.title,
@@ -215,7 +216,7 @@ export default async function FormationPage({
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
+              __html: jsonLdSafe({
                 "@context": "https://schema.org",
                 "@type": "BreadcrumbList",
                 itemListElement: [

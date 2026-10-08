@@ -8,6 +8,7 @@ import TrackPageView from "@/components/tracking/TrackPageView";
 import { shopFontHref } from "@/lib/formations/shop-fonts";
 import { productImageSrc } from "@/lib/utils/image-url";
 import { fusionnerAvis } from "@/components/formations/boutique/avis";
+import { jsonLdSafe } from "@/lib/seo/json-ld";
 
 // En cache (ISR, 10 min). Ce `revalidate` est effectif depuis que
 // i18n/request.ts ne lit plus le cookie de langue (il rendait tout le site
@@ -207,7 +208,7 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: jsonLdSafe({
             "@context": "https://schema.org",
             "@type": "Store",
             name: shop.name,
@@ -224,7 +225,7 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: jsonLdSafe({
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
             itemListElement: [

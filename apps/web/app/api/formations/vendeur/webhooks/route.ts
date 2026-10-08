@@ -7,6 +7,7 @@ import { resolveVendorContext } from "@/lib/formations/active-user";
 import { getActiveShopId } from "@/lib/formations/active-shop";
 import { SUPPORTED_EVENTS, isSupportedWebhookEvent } from "@/lib/webhooks/supported-events";
 import crypto from "crypto";
+import { urlSortanteAutorisee } from "@/lib/securite/hote-interne";
 
 /**
  * GET /api/formations/vendeur/webhooks
@@ -80,6 +81,11 @@ export async function POST(request: Request) {
     // Validation URL
     if (!url || !/^https?:\/\//i.test(url)) {
       return NextResponse.json({ error: "URL invalide (doit commencer par http:// ou https://)" }, { status: 400 });
+    }
+    // Nos serveurs appelleront cette adresse à chaque événement : jamais vers
+    // le réseau interne ni les métadonnées cloud (même règle que le test).
+    if (!urlSortanteAutorisee(url)) {
+      return NextResponse.json({ error: "Cette adresse n'est pas joignable publiquement." }, { status: 400 });
     }
 
     // Validation events

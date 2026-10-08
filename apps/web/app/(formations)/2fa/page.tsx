@@ -10,6 +10,8 @@ import { AuthCard, AuthHead, AuthSuccess } from "@/components/auth/AuthCard";
 import { AuthButton } from "@/components/auth/AuthButton";
 import { AuthAlert } from "@/components/auth/AuthAlert";
 import { OtpInput } from "@/components/auth/OtpInput";
+import { urlInterne } from "@/lib/auth/url-interne";
+import TwoFactorSetup from "@/components/account/TwoFactorSetup";
 
 const PANNEAU = {
   headline: ["Une étape de plus,", "pour votre sécurité."],
@@ -25,7 +27,7 @@ function TwoFaInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { data: session, status, update } = useSession();
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/";
+  const callbackUrl = urlInterne(searchParams.get("callbackUrl"), "/");
 
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
@@ -151,6 +153,40 @@ function TwoFaInner() {
 
   const email = session?.user?.email ?? "";
   const name = (session?.user?.name ?? "").split(" ")[0] || "vous";
+
+  // Compte qui DOIT avoir la 2FA (administrateur) mais ne l'a jamais activée :
+  // la session est née « en attente » et aucun tableau de bord ne s'ouvrira
+  // tant que l'enrôlement n'est pas fait. On le propose ici même, sur place.
+  // Le bouton « Continuer » déclenche update() : le JWT ne lève l'attente que
+  // sur la preuve serveur posée par la confirmation du code (setup-2fa PUT).
+  if (session?.user?.tfaPending && session.user.twoFactorEnabled === false) {
+    const continuer = async () => {
+      await update({ tfaVerified: true });
+      router.push(callbackUrl);
+      router.refresh();
+    };
+    return (
+      <AuthShell portail="vendeur" panneau={PANNEAU}>
+        <AuthCard>
+          <AuthHead
+            icone={ShieldCheck}
+            titre="Activez la double authentification"
+            sousTitre="Elle est obligatoire pour ce compte. Scannez le code avec Google Authenticator ou une application équivalente, puis saisissez le code à 6 chiffres."
+          />
+          <TwoFactorSetup initial={{ enabled: false }} />
+          <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
+            <AuthButton type="button" onClick={continuer}>
+              J&apos;ai activé la 2FA, continuer
+            </AuthButton>
+            <button type="button" onClick={handleCancel} className="btn-glass" style={{ flex: "0 0 auto" }}>
+              <span className="lbl">Se déconnecter</span>
+              <span className="btn-ico" aria-hidden="true"><LogOut /></span>
+            </button>
+          </div>
+        </AuthCard>
+      </AuthShell>
+    );
+  }
 
   return (
     <AuthShell

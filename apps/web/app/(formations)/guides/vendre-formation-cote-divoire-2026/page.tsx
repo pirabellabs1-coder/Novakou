@@ -18,6 +18,7 @@ import {
   ProAstuce,
   SectionGuide,
 } from "@/components/formations/public/article/EncadresGuide";
+import { jsonLdSafe } from "@/lib/seo/json-ld";
 
 const OG_TITLE = "Vendre une formation en ligne en Côte d'Ivoire en 2026";
 const OG_SUBTITLE = "Le guide complet : Wave, Orange Money, MTN, Moov, fiscalite, lancement 30 jours";
@@ -105,7 +106,7 @@ export default function VendreFormationCoteDIvoirePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: jsonLdSafe({
             "@context": "https://schema.org",
             "@type": "Article",
             headline:
@@ -148,7 +149,7 @@ export default function VendreFormationCoteDIvoirePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: jsonLdSafe({
             "@context": "https://schema.org",
             "@type": "FAQPage",
             mainEntity: FAQ_ITEMS.map((item) => ({
@@ -164,7 +165,7 @@ export default function VendreFormationCoteDIvoirePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: jsonLdSafe({
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
             itemListElement: [

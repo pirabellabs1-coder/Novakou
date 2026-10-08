@@ -49,6 +49,8 @@ declare module "next-auth" {
       adminRole?: string;
       image?: string | null;
       tfaPending?: boolean;
+      twoFactorEnabled?: boolean;
+      suspendu?: boolean;
     };
   }
 }
@@ -69,6 +71,9 @@ declare module "next-auth/jwt" {
     // Automatically cleared by middleware when impersonationExpiresAt is reached.
     impersonatedUserId?: string;
     impersonationExpiresAt?: number;
+    // Compte SUSPENDU ou BANNI en base (relu toutes les 5 min) : le middleware
+    // déconnecte, la session ne porte plus aucun rôle.
+    suspendu?: boolean;
   }
 }
 
@@ -233,7 +238,10 @@ export const authOptions: NextAuthOptions = {
             plan: mapPlanName(((user.plan as string) || "gratuit").toLowerCase()),
             formationsRole: user.formationsRole?.toLowerCase() as string | undefined,
             twoFactorEnabled: !!user.twoFactorEnabled,
-            requires2FA: !!user.twoFactorEnabled,
+            // ADMIN sans 2FA : la session naît « en attente de 2FA » et la page
+            // /2fa impose l'activation. Sans cela, le mot de passe seul d'un
+            // admin jamais enrôlé ouvrait toute la plateforme.
+            requires2FA: !!user.twoFactorEnabled || user.role === "ADMIN",
           };
         } catch (err) {
           if (err instanceof Error && err.message.includes("tentatives")) throw err;
@@ -432,7 +440,7 @@ export const authOptions: NextAuthOptions = {
               const currentFormationsRole = existingRecord.formationsRole as string | undefined;
               const tfa = !!existingRecord.twoFactorEnabled;
               user.twoFactorEnabled = tfa;
-              user.requires2FA = tfa;
+              user.requires2FA = tfa || existing.role === "ADMIN";
 
               // Reject if user has a DIFFERENT formationsRole (can't be both instructeur and apprenant)
               if (pendingFormationsRole && currentFormationsRole && currentFormationsRole !== pendingFormationsRole) {
@@ -651,7 +659,7 @@ export const authOptions: NextAuthOptions = {
             user.plan = dbUser.plan.toLowerCase();
             user.formationsRole = dbUser.formationsRole?.toLowerCase() as string | undefined;
             user.twoFactorEnabled = !!dbUser.twoFactorEnabled;
-            user.requires2FA = !!dbUser.twoFactorEnabled;
+            user.requires2FA = !!dbUser.twoFactorEnabled || dbUser.role === "ADMIN";
           } catch (err) {
             console.error("[AUTH OAuth] Erreur DB lors du signIn OAuth:", err instanceof Error ? err.message : err);
             console.error("[AUTH OAuth] Stack:", err instanceof Error ? err.stack : "N/A");
@@ -776,7 +784,7 @@ export const authOptions: NextAuthOptions = {
               const { prisma } = await import("@freelancehigh/db");
               const dbUser = await prisma.user.findUnique({
                 where: { id: token.id },
-                select: { kyc: true, plan: true, role: true, formationsRole: true },
+                select: { kyc: true, plan: true, role: true, formationsRole: true, status: true, twoFactorEnabled: true },
               });
               if (dbUser) {
                 token.kyc = dbUser.kyc;
@@ -787,9 +795,17 @@ export const authOptions: NextAuthOptions = {
                 if (dbUser.formationsRole) {
                   token.formationsRole = dbUser.formationsRole.toLowerCase();
                 }
-                if (token.role === "admin" || dbUser.role === "ADMIN") {
-                  token.adminRole = "super_admin";
-                }
+                // STATUT et RÔLE relus aussi (toutes les 5 min). Avant, une
+                // suspension ou une rétrogradation décidée par l'admin ne
+                // prenait effet qu'à l'expiration du jeton — 30 jours.
+                const roleBase = dbUser.role.toLowerCase();
+                const devientAdmin = roleBase === "admin" && token.role !== "admin";
+                token.role = roleBase;
+                token.adminRole = roleBase === "admin" ? "super_admin" : undefined;
+                token.twoFactorEnabled = !!dbUser.twoFactorEnabled;
+                token.suspendu = dbUser.status !== "ACTIF";
+                // Promu admin en cours de session sans 2FA : enrôlement imposé.
+                if (devientAdmin && !dbUser.twoFactorEnabled) token.tfaPending = true;
               }
             }
             (token as Record<string, unknown>).kycRefreshedAt = now;
@@ -803,17 +819,22 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       session.user.id = token.id;
-      session.user.role = token.role;
+      // Compte suspendu : aucun rôle dans la session → tous les contrôles
+      // `role === "admin"` / `formationsRole` des routes échouent, sans
+      // attendre l'expiration du jeton.
+      session.user.suspendu = !!token.suspendu;
+      session.user.role = token.suspendu ? "suspendu" : token.role;
       session.user.kyc = token.kyc;
       session.user.plan = token.plan;
-      if (token.formationsRole) {
+      if (token.formationsRole && !token.suspendu) {
         session.user.formationsRole = token.formationsRole;
       }
-      if (token.adminRole) {
+      if (token.adminRole && !token.suspendu) {
         session.user.adminRole = token.adminRole;
       }
       // Expose the pending-2FA flag so middleware + client can gate access.
       session.user.tfaPending = !!token.tfaPending;
+      session.user.twoFactorEnabled = !!token.twoFactorEnabled;
       return session;
     },
   },

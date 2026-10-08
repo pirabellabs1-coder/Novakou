@@ -445,9 +445,15 @@ export async function POST(request: Request) {
         { status: 403 },
       );
     }
-    const otpUser = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true } });
+    const otpUser = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true, status: true } });
     if (!otpUser?.email) {
       return NextResponse.json({ error: "Aucune adresse e-mail sur le compte" }, { status: 400 });
+    }
+    // Lu en BASE, pas dans la session : un compte suspendu garde son jeton
+    // jusqu'à 5 min, et le code OTP (reçu sur sa boîte) passerait — l'argent
+    // partirait vers un compte que l'admin vient de bloquer.
+    if (otpUser.status !== "ACTIF") {
+      return NextResponse.json({ error: "Retraits indisponibles sur ce compte. Contactez le support." }, { status: 403 });
     }
     const { verifyOTP } = await import("@/lib/auth/otp");
     const otpCheck = await verifyOTP(otpUser.email, otp);

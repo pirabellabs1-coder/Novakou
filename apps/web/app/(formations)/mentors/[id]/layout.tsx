@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
+import { jsonLdSafe } from "@/lib/seo/json-ld";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -82,7 +83,7 @@ export default async function MentorLayout({ params, children }: Props) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
+            __html: jsonLdSafe({
               "@context": "https://schema.org",
               "@type": "Person",
               name: mentor.user.name,
@@ -119,7 +120,7 @@ export default async function MentorLayout({ params, children }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: jsonLdSafe({
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
             itemListElement: [

@@ -24,6 +24,7 @@ import { AuthCard, AuthHead } from "@/components/auth/AuthCard";
 import { AuthField, PasswordField } from "@/components/auth/AuthField";
 import { AuthButton, GoogleIcon } from "@/components/auth/AuthButton";
 import { AuthAlert } from "@/components/auth/AuthAlert";
+import { urlInterneOuNull } from "@/lib/auth/url-interne";
 
 type TabType = "vendeur" | "apprenant" | "mentor" | "affilie";
 const ROLE_ORDER: TabType[] = ["vendeur", "apprenant", "mentor", "affilie"];
@@ -367,7 +368,7 @@ function InscriptionInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const roleParam = searchParams.get("role");
-  const callbackUrl = searchParams.get("callbackUrl") ?? searchParams.get("returnTo") ?? undefined;
+  const callbackUrl = urlInterneOuNull(searchParams.get("callbackUrl") ?? searchParams.get("returnTo")) ?? undefined;
   const initialTab: TabType = VALID_ROLES.includes(roleParam as TabType) ? (roleParam as TabType) : "vendeur";
 
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);

@@ -1,100 +1,81 @@
 /**
- * HTML sanitizer for rich-text bio/description content produced by Tiptap.
+ * Nettoyage du HTML riche (descriptions, bios, blocs de tunnel) produit par
+ * Tiptap ou collé par un vendeur — AVANT tout rendu avec dangerouslySetInnerHTML.
  *
- * IMPORTANT : implémentation regex-based pour rester compatible avec le
- * runtime Next.js serveur (edge + node). L'alternative `isomorphic-dompurify`
- * pull `jsdom` qui cherche des fichiers CSS au runtime et casse le bundle
- * serveur (ENOENT sur default-stylesheet.css).
+ * Fondé sur `sanitize-html` (analyseur HTML réel, liste blanche), et plus sur
+ * des expressions régulières. La version regex exigeait un espace avant un
+ * attribut `on*` : `<img/src=x/onerror=alert(1)>` passait, et le script
+ * s'exécutait sur novakou.com dans le navigateur de tout visiteur — un admin
+ * connecté compris (audit du 2026-10-08). Un analyseur ne se contourne pas
+ * par une variante d'écriture : seules les balises et attributs listés ici
+ * survivent, tout le reste est retiré.
+ *
+ * `sanitize-html` ne dépend pas de jsdom (contrairement à isomorphic-dompurify,
+ * qui cassait le bundle serveur) : il fonctionne côté Node ET dans le
+ * navigateur (aperçu de l'éditeur).
  *
  * Garanties :
- *  - Supprime <script>, <style>, <object>, <embed>, <form>, <iframe> (sauf YouTube/Vimeo)
- *  - Supprime tout handler on* (onclick, onload, etc.)
- *  - Supprime javascript: / vbscript: URLs
- *  - Force target="_blank" rel="noopener noreferrer nofollow" sur tous les <a>
- *
- * C'est une défense en profondeur : Tiptap génère déjà du HTML propre côté
- * client, cette couche bloque les injections malicieuses en cas de bypass.
+ *  - aucune balise script/style/object/embed/form/svg/math, aucun `on*` ;
+ *  - URLs : http(s), mailto, tel seulement (data: toléré pour les images) ;
+ *  - iframes : YouTube et Vimeo uniquement, en https ;
+ *  - tout <a> sort avec target="_blank" rel="noopener noreferrer nofollow" ;
+ *  - styles en ligne réduits à l'alignement et aux couleurs.
  */
 
+import sanitizeHtml from "sanitize-html";
 import { marked } from "marked";
 
-const FORBIDDEN_TAGS_RE =
-  /<(script|style|object|embed|form|input|textarea|button|link|meta|base|svg|math)\b[^<]*(?:(?!<\/\1>)<[^<]*)*<\/\1\s*>/gi;
+const COULEUR = [/^#(?:[0-9a-f]{3}){1,2}$/i, /^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*(?:,\s*(?:0|1|0?\.\d+)\s*)?\)$/i];
 
-const SELF_CLOSING_FORBIDDEN_RE =
-  /<(script|link|meta|base|input)\b[^>]*\/?>/gi;
-
-/** Remove any inline event handler attribute (onclick, onerror, onload, etc.) */
-const ON_EVENT_RE = /\son[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi;
-
-/** Remove dangerous URI schemes in href/src */
-const DANGEROUS_URI_RE =
-  /\s(href|src|xlink:href|formaction|action|data|poster)\s*=\s*(?:"(?:javascript|vbscript|data:text\/html|file):[^"]*"|'(?:javascript|vbscript|data:text\/html|file):[^']*'|(?:javascript|vbscript|data:text\/html|file):[^\s>]*)/gi;
-
-function isAllowedIframeSrc(src: string): boolean {
-  try {
-    const u = new URL(src);
-    return (
-      u.protocol === "https:" &&
-      (
-        /(^|\.)youtube\.com$/.test(u.hostname) ||
-        /(^|\.)youtube-nocookie\.com$/.test(u.hostname) ||
-        /(^|\.)vimeo\.com$/.test(u.hostname) ||
-        /(^|\.)player\.vimeo\.com$/.test(u.hostname)
-      )
-    );
-  } catch {
-    return false;
-  }
-}
+const OPTIONS: sanitizeHtml.IOptions = {
+  allowedTags: [
+    "p", "h1", "h2", "h3", "h4", "h5", "h6", "br", "hr",
+    "ul", "ol", "li", "blockquote", "pre", "code",
+    "strong", "em", "b", "i", "u", "s", "del", "mark", "sub", "sup", "span", "div",
+    "a", "img", "figure", "figcaption",
+    "table", "thead", "tbody", "tr", "td", "th",
+    "iframe",
+  ],
+  allowedAttributes: {
+    a: ["href", "title", "target", "rel"],
+    img: ["src", "alt", "title", "width", "height", "loading"],
+    td: ["colspan", "rowspan"],
+    th: ["colspan", "rowspan"],
+    iframe: ["src", "width", "height", "allow", "allowfullscreen", "title", "frameborder"],
+    "*": ["class", "style"],
+  },
+  allowedStyles: {
+    "*": {
+      "text-align": [/^(left|right|center|justify)$/],
+      color: COULEUR,
+      "background-color": COULEUR,
+      "font-weight": [/^(bold|normal|[1-9]00)$/],
+      "font-style": [/^(italic|normal)$/],
+      "text-decoration": [/^(underline|line-through|none)$/],
+    },
+  },
+  allowedSchemes: ["http", "https", "mailto", "tel"],
+  allowedSchemesByTag: { img: ["http", "https", "data"] },
+  allowedSchemesAppliedToAttributes: ["href", "src"],
+  allowProtocolRelative: false,
+  allowedIframeHostnames: ["www.youtube.com", "youtube.com", "www.youtube-nocookie.com", "player.vimeo.com", "vimeo.com"],
+  allowIframeRelativeUrls: false,
+  disallowedTagsMode: "discard",
+  transformTags: {
+    // merge = true : les attributs existants (href, title) sont GARDÉS, et
+    // target/rel sont écrasés par nos valeurs. Avec merge = false, href
+    // disparaissait et chaque lien devenait inerte.
+    a: sanitizeHtml.simpleTransform("a", { target: "_blank", rel: "noopener noreferrer nofollow" }, true),
+  },
+  parser: { lowerCaseAttributeNames: true, lowerCaseTags: true },
+};
 
 /**
- * Sanitize HTML produced by the Tiptap editor.
- * Safe to call on the server (Node) and on the client.
+ * Nettoie le HTML de l'éditeur. Sûr côté serveur (Node) et côté client.
  */
 export function sanitizeRichHtml(input: string | null | undefined): string {
   if (!input || typeof input !== "string") return "";
-  let html = input;
-
-  // 1. Strip forbidden block-level tags (with content)
-  html = html.replace(FORBIDDEN_TAGS_RE, "");
-  // 2. Strip self-closing forbidden tags (meta, link, etc. that don't have content)
-  html = html.replace(SELF_CLOSING_FORBIDDEN_RE, "");
-
-  // 3. Filter iframes : keep only YouTube/Vimeo embeds
-  html = html.replace(
-    /<iframe\b([^>]*?)(?:\/>|>(?:[\s\S]*?)<\/iframe\s*>)/gi,
-    (_, attrs: string) => {
-      const srcMatch = attrs.match(/\bsrc\s*=\s*(?:"([^"]+)"|'([^']+)')/i);
-      const src = srcMatch ? (srcMatch[1] ?? srcMatch[2]) : "";
-      if (!src || !isAllowedIframeSrc(src)) return "";
-      // Rebuild a minimal safe iframe
-      const safeAttrs = attrs
-        .replace(ON_EVENT_RE, "")
-        .replace(/\s(width|height|frameborder|allow|allowfullscreen|title|class)\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, (m) => m); // keep these attrs
-      return `<iframe${safeAttrs}></iframe>`;
-    },
-  );
-
-  // 4. Remove event handlers everywhere
-  html = html.replace(ON_EVENT_RE, "");
-
-  // 5. Remove dangerous URI schemes
-  html = html.replace(DANGEROUS_URI_RE, "");
-
-  // 6. Force safe <a> attributes
-  html = html.replace(
-    /<a\b([^>]*)>/gi,
-    (_match, attrs: string) => {
-      // Remove any existing target/rel to override with safe values
-      const cleaned = attrs
-        .replace(/\starget\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "")
-        .replace(/\srel\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "");
-      return `<a${cleaned} target="_blank" rel="noopener noreferrer nofollow">`;
-    },
-  );
-
-  return html;
+  return sanitizeHtml(input, OPTIONS);
 }
 
 /**
@@ -159,15 +140,15 @@ export function renderRichContent(input: string | null | undefined): string {
 function normalizeHardSpaces(html: string): string {
   return html
     // Entité HTML → caractère, pour n'avoir qu'une seule forme à traiter.
-    .replace(/&nbsp;|&#160;|&#xA0;/gi, " ")
+    .replace(/&nbsp;|&#160;|&#xA0;/gi, " ")
     // Insécable suivi d'une ponctuation haute, ou précédant un guillemet
     // fermant : typographie française correcte, on garde.
-    .replace(/ (?![;:!?»])/g, (m, offset, str) => {
+    .replace(/ (?![;:!?»])/g, (m, offset, str) => {
       const prev = str[offset - 1];
       return prev === "«" ? m : " ";
     })
     // Insécables restants en série (indentations collées) : un seul espace.
-    .replace(/[  ]{3,}/g, " ");
+    .replace(/[  ]{3,}/g, " ");
 }
 
 /**

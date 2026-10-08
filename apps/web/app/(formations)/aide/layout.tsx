@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ARTICLES } from "@/lib/help/articles";
+import { jsonLdSafe } from "@/lib/seo/json-ld";
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
 
@@ -59,7 +60,7 @@ export default function AideLayout({ children }: { children: React.ReactNode }) 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
+            __html: jsonLdSafe({
               "@context": "https://schema.org",
               "@type": "FAQPage",
               mainEntity: faqEntries.map((a) => ({
@@ -79,7 +80,7 @@ export default function AideLayout({ children }: { children: React.ReactNode }) 
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: jsonLdSafe({
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
             itemListElement: [

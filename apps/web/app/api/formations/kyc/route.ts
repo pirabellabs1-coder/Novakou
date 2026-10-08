@@ -203,6 +203,16 @@ export async function POST(request: Request) {
     }
 
     // Les trois références sont garanties non vides par le contrôle plus haut.
+    // Et chacune doit vivre dans le dossier de CE compte : la référence est
+    // saisie côté client, et le lien signé rendu à l'admin suit la référence —
+    // sans cette garde, un chemin connu d'un autre compte y serait accepté.
+    const prefixe = `${user.id}/`;
+    const horsDossier = [documentUrl!, documentVersoUrl!, selfieUrl!]
+      .map((v) => normalizeKycDocumentReference(v))
+      .some((p) => !p.startsWith(prefixe) || p.includes(".."));
+    if (horsDossier) {
+      return NextResponse.json({ error: "Pièces invalides : relancez l'envoi de vos documents." }, { status: 400 });
+    }
     const req = await prisma.kycRequest.create({
       data: {
         userId: user.id,

@@ -5,6 +5,7 @@ import { CoquePublique } from "@/components/formations/public/CoquePublique";
 import { EnTetePage } from "@/components/formations/public/EnTetePage";
 import { BoutonVerre } from "@/components/formations/public/BoutonVerre";
 import { Accordeon } from "@/components/formations/public/Accordeon";
+import { jsonLdSafe } from "@/lib/seo/json-ld";
 
 export const metadata: Metadata = {
   title: "Confiance et sécurité",
@@ -57,7 +58,7 @@ export default function ConfianceSecuritePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: jsonLdSafe({
             "@context": "https://schema.org",
             "@graph": [
               {

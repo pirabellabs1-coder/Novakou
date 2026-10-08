@@ -220,6 +220,18 @@ export async function PATCH(
 
     if (role) {
       const prismaRole = role.toUpperCase() as "FREELANCE" | "CLIENT" | "AGENCE" | "ADMIN";
+      // La double authentification est obligatoire pour tout ADMIN : on ne
+      // promeut pas un compte qui ne l'a pas encore activée — sinon le mot de
+      // passe seul ouvrirait toute la plateforme.
+      if (prismaRole === "ADMIN") {
+        const cible = await prisma.user.findUnique({ where: { id }, select: { twoFactorEnabled: true } });
+        if (!cible?.twoFactorEnabled) {
+          return NextResponse.json(
+            { error: "Ce compte doit d'abord activer la double authentification avant de devenir administrateur." },
+            { status: 400 },
+          );
+        }
+      }
       await prisma.user.update({ where: { id }, data: { role: prismaRole } });
       await createAuditLog({ actorId: session.user.id, action: "user.role_changed", targetUserId: id, details: { from: user.role, to: prismaRole } });
       return NextResponse.json({ success: true, message: `Role de ${user.name} mis a jour: ${prismaRole}` });

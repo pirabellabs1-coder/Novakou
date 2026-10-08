@@ -19,7 +19,7 @@ const ALLOWED_MIME = new Set([
   "image/png",
   "image/webp",
   "image/gif",
-  "image/svg+xml",
+  // Pas de SVG : un SVG peut embarquer du script, et ce bucket est PUBLIC.
   "video/mp4",
   "video/webm",
   "video/quicktime",
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
 
     if (!ALLOWED_MIME.has(file.type)) {
       return NextResponse.json(
-        { error: `Type de fichier non supporté : ${file.type}. Formats acceptés : JPG, PNG, WebP, GIF, SVG, MP4, WebM, MOV, MP3, WAV, OGG.` },
+        { error: `Type de fichier non supporté : ${file.type}. Formats acceptés : JPG, PNG, WebP, GIF, MP4, WebM, MOV, MP3, WAV, OGG.` },
         { status: 400 }
       );
     }

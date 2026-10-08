@@ -14,6 +14,7 @@ import {
   ProAstuce,
   SectionGuide,
 } from "@/components/formations/public/article/EncadresGuide";
+import { jsonLdSafe } from "@/lib/seo/json-ld";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://novakou.com";
 const OG_IMAGE = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
@@ -67,7 +68,7 @@ export default function CreerSonProduitPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: jsonLdSafe({
             "@context": "https://schema.org",
             "@type": "Article",
             headline: "Créer son premier produit digital en 2026",
@@ -94,7 +95,7 @@ export default function CreerSonProduitPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: jsonLdSafe({
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
             itemListElement: [

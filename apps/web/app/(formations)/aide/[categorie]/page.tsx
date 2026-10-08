@@ -9,6 +9,7 @@ import { BoutonVerre } from "@/components/formations/public/BoutonVerre";
 import { FilAriane } from "@/components/formations/public/article/FilAriane";
 import { CarteSupport } from "@/components/formations/public/article/CarteSupport";
 import "@/components/formations/public/article/article.css";
+import { jsonLdSafe } from "@/lib/seo/json-ld";
 
 type Params = { params: Promise<{ categorie: string }> };
 
@@ -115,12 +116,12 @@ export default async function HelpCategoryPage({ params }: Params) {
       {faqSchema && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdSafe(faqSchema) }}
         />
       )}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdSafe(breadcrumbSchema) }}
       />
       <EnTetePage
         align="left"

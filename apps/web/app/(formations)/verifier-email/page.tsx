@@ -5,12 +5,13 @@ import { Suspense, useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { AlertCircle, UserPlus, MailCheck, Loader2, CheckCircle2 } from "lucide-react";
+import { urlInterne } from "@/lib/auth/url-interne";
 
 function VerifierEmailInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const email = searchParams.get("email") ?? "";
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/vendeur/dashboard";
+  const callbackUrl = urlInterne(searchParams.get("callbackUrl"), "/vendeur/dashboard");
   const password = searchParams.get("p") ?? ""; // optional — enables auto-login after verify
 
   const [code, setCode] = useState(["", "", "", "", "", ""]);

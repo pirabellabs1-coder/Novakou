@@ -4045,3 +4045,14 @@ model PaymentGateway {
 
   @@index([isActive, priority])
 }
+
+/// Clé/valeur à expiration : compteurs anti-force-brute (connexion, OTP, API)
+/// et jetons courts (réinitialisation de mot de passe). Dorsale partagée entre
+/// les instances serverless quand Upstash est absent — voir lib/rate-limit/store.ts.
+model CleValeur {
+  cle      String   @id
+  valeur   String
+  expireLe DateTime
+
+  @@index([expireLe])
+}

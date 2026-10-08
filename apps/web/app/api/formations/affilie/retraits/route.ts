@@ -155,9 +155,14 @@ export async function POST(req: NextRequest) {
 
     const profile = await prisma.affiliateProfile.findUnique({
       where: { userId },
-      select: { id: true, user: { select: { name: true, email: true } } },
+      select: { id: true, user: { select: { name: true, email: true, status: true } } },
     });
     if (!profile) return NextResponse.json({ error: "Profil affilié introuvable" }, { status: 404 });
+    // Statut lu en base : un compte suspendu ne retire pas, quel que soit
+    // l'état de sa session.
+    if (profile.user?.status !== "ACTIF") {
+      return NextResponse.json({ error: "Retraits indisponibles sur ce compte. Contactez le support." }, { status: 403 });
+    }
 
     // Commissions VALIDÉES non réservées, plus anciennes d'abord.
     const approved = await prisma.affiliateCommission.findMany({

@@ -500,8 +500,9 @@ Obligatoire et non contournable pour les comptes **ADMIN**. Le flux repose sur u
 serveur `twoFactorVerifiedAt` consommée une seule fois ; le middleware bloque les dashboards
 tant que le JWT porte `tfaPending`.
 
-> 🔴 **Dette connue :** `User.twoFactorSecret` est stocké **en clair** en base
-> (`packages/db/prisma/schema.prisma`). À chiffrer.
+> ✅ `User.twoFactorSecret` est **chiffré** en base (`lib/crypto/two-factor-secret.ts`, clé
+> `PAYMENT_CREDENTIALS_KEY`). Un ADMIN sans 2FA se voit imposer l'enrôlement sur `/2fa` dès la
+> connexion ; la promotion ADMIN d'un compte sans 2FA est refusée.
 
 ### Rôles — trois couches distinctes
 
@@ -831,6 +832,27 @@ export async function POST(req: Request) {
 
 Toute variable préfixée `NEXT_PUBLIC_` **part dans le navigateur**. Aucun secret ne doit
 porter ce préfixe.
+
+### Sécurité — règles issues de l'audit du 2026-10-08
+
+- **Mode développement** : un seul interrupteur, `MODE_DEV_LOCAL` (`lib/env.ts`), FAUX sur Vercel et en
+  production quelle que soit la valeur de `DEV_MODE`. Ne jamais lire `process.env.DEV_MODE` ailleurs :
+  recopié par erreur en prod, il avait basculé la connexion sur le magasin de démo (« compte inexistant »).
+- **HTML saisi par un utilisateur** (descriptions, bios, blocs de tunnel) → `sanitizeRichHtml` /
+  `renderRichContent` (`lib/sanitize-html.ts`, fondé sur `sanitize-html`) AVANT tout
+  `dangerouslySetInnerHTML`. Blocs `html` des tunnels : `nettoyerBlocsHtml` à l'enregistrement et à la lecture.
+- **JSON-LD** : toujours `jsonLdSafe()` (`lib/seo/json-ld.ts`), jamais `JSON.stringify` brut dans un
+  `<script type="application/ld+json">` — un titre de produit peut refermer la balise.
+- **Redirections après connexion** : `urlInterne()` / `urlInterneOuNull()` (`lib/auth/url-interne.ts`) sur
+  tout `callbackUrl` reçu dans l'adresse.
+- **URL fournie par un vendeur et appelée par nos serveurs** (webhooks, tests) : `urlSortanteAutorisee()`
+  (`lib/securite/hote-interne.ts`) — jamais vers le réseau interne ni les métadonnées cloud.
+- **Compteurs anti-force-brute et jetons courts** : `lib/rate-limit/store.ts` — Upstash si configuré,
+  sinon table Postgres `CleValeur` (partagée entre instances). Jamais de `Map` mémoire seule en prod.
+- **Suspension** : relue toutes les 5 min dans le JWT (`token.suspendu`) → déconnexion par le middleware ;
+  et lue EN BASE sur chaque retrait d'argent (wallet, affiliés, moteur de versement).
+- **Base Supabase** : rôles `anon`/`authenticated` sans aucun droit sur `public` (y compris par défaut
+  pour les futures tables) — `packages/db/supabase/durcissement-api.sql`. La base n'est pas une API publique.
 
 ### i18n
 
