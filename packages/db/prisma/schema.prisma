@@ -188,6 +188,10 @@ model User {
   // TOTP valide. Le callback JWT ne lève `tfaPending` que sur cette preuve
   // fraîche (jamais sur un booléen client) puis la consomme (null).
   twoFactorVerifiedAt DateTime?
+  // Toute session ouverte AVANT cet instant est invalide (mot de passe changé,
+  // 2FA désactivée, compte suspendu, déconnexion forcée par l'admin). Le JWT
+  // compare sa date de connexion à cette borne toutes les 5 min.
+  sessionsRevoquesLe DateTime?
 
   // Formations
   formationsRole String? // "apprenant" ou "instructeur"

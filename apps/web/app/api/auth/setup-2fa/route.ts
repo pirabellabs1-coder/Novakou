@@ -195,7 +195,9 @@ export async function DELETE(request: Request) {
       }
       await prisma.user.update({
         where: { id: session.user.id },
-        data: { twoFactorEnabled: false, twoFactorSecret: null, twoFactorVerifiedAt: null },
+        // 2FA retirée = la protection du compte baisse : les autres sessions
+        // ouvertes doivent se ré-authentifier.
+        data: { twoFactorEnabled: false, twoFactorSecret: null, twoFactorVerifiedAt: null, sessionsRevoquesLe: new Date() },
       });
     } catch {
       // DB non connectee

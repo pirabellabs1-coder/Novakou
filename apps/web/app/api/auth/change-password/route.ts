@@ -76,7 +76,9 @@ export async function POST(request: Request) {
     const newHash = await bcrypt.hash(newPassword, 12);
     await prisma.user.update({
       where: { id: user.id },
-      data: { passwordHash: newHash },
+      // Toutes les autres sessions tombent : si le mot de passe change parce
+      // qu'il a fuité, la session de l'intrus ne doit pas survivre 30 jours.
+      data: { passwordHash: newHash, sessionsRevoquesLe: new Date() },
     });
 
     // Notification in-app

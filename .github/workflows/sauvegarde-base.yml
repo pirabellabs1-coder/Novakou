@@ -1,0 +1,82 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# SAUVEGARDE NOCTURNE DE LA BASE — chiffrée, hors Supabase
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Le plan Supabase gratuit n'offre AUCUNE sauvegarde. Une suppression
+# accidentelle, un rançongiciel ou une erreur de migration seraient définitifs.
+#
+# Chaque nuit : `pg_dump` du schéma `public` (147 Mo au 2026-10-08), chiffré
+# AES-256 avec une phrase secrète, déposé comme artefact GitHub (30 jours).
+# Rien n'est lisible sans la phrase : le dépôt pouvant être public, c'est
+# indispensable.
+#
+# ACTIVATION (fondateur) — Settings → Secrets and variables → Actions :
+#   SAUVEGARDE_DATABASE_URL  = la DIRECT_URL (pooler port 5432, mode session)
+#   SAUVEGARDE_PASSPHRASE    = phrase longue et aléatoire, gardée dans un
+#                              gestionnaire de mots de passe. PERDUE = sauvegardes
+#                              inutilisables.
+# Sans ces deux secrets, le workflow se termine sans rien faire.
+#
+# RESTAURATION (sur une base vide) :
+#   openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -in sauvegarde-AAAA-MM-JJ.dump.enc -out s.dump
+#   pg_restore --no-owner --no-privileges -d "$DIRECT_URL" s.dump
+# ═══════════════════════════════════════════════════════════════════════════
+name: Sauvegarde base
+
+on:
+  schedule:
+    - cron: "17 3 * * *" # 03:17 UTC chaque nuit
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sauvegarde:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Vérifier la configuration
+        id: cfg
+        env:
+          URL: ${{ secrets.SAUVEGARDE_DATABASE_URL }}
+          PASS: ${{ secrets.SAUVEGARDE_PASSPHRASE }}
+        run: |
+          if [ -z "$URL" ] || [ -z "$PASS" ]; then
+            echo "Secrets SAUVEGARDE_DATABASE_URL / SAUVEGARDE_PASSPHRASE absents : rien à faire."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Installer pg_dump (PostgreSQL 17, version du serveur Supabase)
+        if: steps.cfg.outputs.ok == 'true'
+        run: |
+          sudo apt-get install -y curl ca-certificates gnupg
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /usr/share/keyrings/pgdg.gpg
+          echo "deb [signed-by=/usr/share/keyrings/pgdg.gpg] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update -qq && sudo apt-get install -y postgresql-client-17
+
+      - name: Exporter et chiffrer
+        if: steps.cfg.outputs.ok == 'true'
+        env:
+          URL: ${{ secrets.SAUVEGARDE_DATABASE_URL }}
+          PASS: ${{ secrets.SAUVEGARDE_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          nom="sauvegarde-$(date -u +%F).dump.enc"
+          pg_dump "$URL" --no-owner --no-privileges --schema=public --format=custom --compress=6 \
+            | openssl enc -aes-256-cbc -pbkdf2 -iter 600000 -salt -pass env:PASS -out "$nom"
+          ls -la "$nom"
+          # Contrôle : le fichier se déchiffre et contient une archive pg_dump valide.
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -pass env:PASS -in "$nom" | pg_restore --list >/dev/null
+          echo "nom=$nom" >> "$GITHUB_ENV"
+
+      - name: Déposer l'artefact (30 jours)
+        if: steps.cfg.outputs.ok == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.nom }}
+          path: ${{ env.nom }}
+          retention-days: 30
+          if-no-files-found: error

@@ -255,8 +255,55 @@ export async function GET(request: NextRequest) {
     if (await alerter(titre, message)) alertes.push(titre);
   }
 
+  // ── 3. Veille sécurité (24 h) ────────────────────────────────────────────
+  // Ce qu'un attaquant laisse comme traces : rafales de connexions ratées
+  // (bourrage d'identifiants), nouveaux administrateurs, changements de rôle,
+  // retraits refusés en série. Un résumé par jour, une alerte si ça dépasse.
+  const il24h = new Date(maintenant.getTime() - 86_400_000);
+  const securite = await (async () => {
+    try {
+      const [echecs, emailsVises, parIp, succes, actions, nouveauxAdmins, retraitsRefuses] = await Promise.all([
+        prisma.loginAttempt.count({ where: { success: false, createdAt: { gte: il24h } } }),
+        prisma.loginAttempt.findMany({ where: { success: false, createdAt: { gte: il24h } }, distinct: ["email"], select: { email: true } }),
+        prisma.loginAttempt.groupBy({ by: ["ipAddress"], where: { success: false, createdAt: { gte: il24h } }, _count: { _all: true }, orderBy: { _count: { ipAddress: "desc" } }, take: 3 }),
+        prisma.loginAttempt.count({ where: { success: true, createdAt: { gte: il24h } } }),
+        prisma.auditLog.groupBy({ by: ["action"], where: { createdAt: { gte: il24h } }, _count: { _all: true } }),
+        prisma.user.count({ where: { role: "ADMIN", OR: [{ createdAt: { gte: il24h } }, { auditLogsAsTarget: { some: { action: "user.role_changed", createdAt: { gte: il24h } } } }] } }),
+        prisma.instructorWithdrawal.count({ where: { status: "REFUSE", createdAt: { gte: il24h } } }),
+      ]);
+      const parAction = Object.fromEntries(actions.map((a) => [a.action, a._count._all]));
+      const topIps = parIp.map((p) => ({ ip: p.ipAddress ?? "?", n: p._count._all }));
+      const bilan = {
+        connexionsRatees: echecs,
+        comptesVises: emailsVises.length,
+        connexionsReussies: succes,
+        ipLesPlusActives: topIps,
+        nouveauxAdmins,
+        changementsDeRole: parAction["user.role_changed"] ?? 0,
+        suspensions: parAction["user.suspended"] ?? 0,
+        signauxFraude: parAction["fraud.signal"] ?? 0,
+        retraitsRefuses,
+      };
+      const bourrage = echecs >= 100 || emailsVises.length >= 25 || (topIps[0]?.n ?? 0) >= 50;
+      if (bourrage) {
+        const titre = "Rafale de connexions ratées";
+        const msg = `${echecs} échecs sur ${emailsVises.length} comptes en 24 h (IP la plus active : ${topIps[0]?.ip ?? "?"} × ${topIps[0]?.n ?? 0}). Bourrage d'identifiants probable : vérifiez les comptes visés et envisagez de forcer des réinitialisations.`;
+        if (await alerter(titre, msg)) alertes.push(titre);
+      }
+      if (nouveauxAdmins > 0) {
+        const titre = "Nouvel administrateur détecté";
+        const msg = `${nouveauxAdmins} compte(s) ADMIN créé(s) ou promu(s) en 24 h. Si ce n'est pas vous, retirez le rôle immédiatement (Admin → Utilisateurs) et changez vos secrets.`;
+        if (await alerter(titre, msg)) alertes.push(titre);
+      }
+      return bilan;
+    } catch (err) {
+      return { erreur: err instanceof Error ? err.message : String(err) };
+    }
+  })();
+
   return NextResponse.json({
     ok: true,
+    securite,
     conso,
     bouclier: {
       reveils24h: reveils?.length ?? null,

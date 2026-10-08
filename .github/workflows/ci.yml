@@ -30,6 +30,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Une vulnérabilité CRITIQUE connue dans une dépendance de production
+      # bloque la livraison : Next 15.5.12 a tourné un mois en production avec
+      # deux exécutions de code à distance publiées (audit du 2026-10-08).
+      - name: Audit des dépendances (critiques bloquantes)
+        working-directory: apps/web
+        run: pnpm audit --prod --audit-level=critical
+
       - name: Lint
         run: pnpm lint
 

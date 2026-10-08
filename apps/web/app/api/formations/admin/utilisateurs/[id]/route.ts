@@ -24,7 +24,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (action === "suspend") {
       updated = await prisma.user.update({
         where: { id },
-        data: { status: "SUSPENDU" as UserStatus, suspendReason: body.reason ?? "Suspendu par l'admin" },
+        data: { status: "SUSPENDU" as UserStatus, suspendReason: body.reason ?? "Suspendu par l'admin", sessionsRevoquesLe: new Date() },
       });
     } else if (action === "activate") {
       updated = await prisma.user.update({
@@ -34,8 +34,13 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     } else if (action === "ban") {
       updated = await prisma.user.update({
         where: { id },
-        data: { status: "BANNI" as UserStatus, suspendReason: body.reason ?? "Banni par l'admin" },
+        data: { status: "BANNI" as UserStatus, suspendReason: body.reason ?? "Banni par l'admin", sessionsRevoquesLe: new Date() },
       });
+    } else if (action === "deconnecter") {
+      // Déconnexion forcée (réponse à incident) : toutes les sessions de ce
+      // compte tombent au prochain rafraîchissement du jeton (≤ 5 min), sans
+      // toucher au statut ni au mot de passe.
+      updated = await prisma.user.update({ where: { id }, data: { sessionsRevoquesLe: new Date() } });
     } else if (action === "reset_2fa") {
       // ── RÉINITIALISATION DU 2FA — la porte de secours qui n'existait pas ──
       //

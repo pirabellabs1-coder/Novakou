@@ -74,6 +74,9 @@ declare module "next-auth/jwt" {
     // Compte SUSPENDU ou BANNI en base (relu toutes les 5 min) : le middleware
     // déconnecte, la session ne porte plus aucun rôle.
     suspendu?: boolean;
+    // Horodatage de la connexion (ms) et drapeau « session révoquée depuis ».
+    connecteLe?: number;
+    revoque?: boolean;
   }
 }
 
@@ -687,6 +690,9 @@ export const authOptions: NextAuthOptions = {
         // after /2fa verification succeeds.
         token.twoFactorEnabled = !!user.twoFactorEnabled;
         token.tfaPending = !!user.requires2FA;
+        // Date de connexion : comparée à User.sessionsRevoquesLe à chaque
+        // rafraîchissement (pas `iat`, que NextAuth réécrit en re-chiffrant).
+        token.connecteLe = Date.now();
 
         // Fire login-alert email if no 2FA pending (otherwise it fires
         // later from /api/auth/verify-2fa after the code is entered).
@@ -784,7 +790,7 @@ export const authOptions: NextAuthOptions = {
               const { prisma } = await import("@freelancehigh/db");
               const dbUser = await prisma.user.findUnique({
                 where: { id: token.id },
-                select: { kyc: true, plan: true, role: true, formationsRole: true, status: true, twoFactorEnabled: true },
+                select: { kyc: true, plan: true, role: true, formationsRole: true, status: true, twoFactorEnabled: true, sessionsRevoquesLe: true },
               });
               if (dbUser) {
                 token.kyc = dbUser.kyc;
@@ -804,6 +810,10 @@ export const authOptions: NextAuthOptions = {
                 token.adminRole = roleBase === "admin" ? "super_admin" : undefined;
                 token.twoFactorEnabled = !!dbUser.twoFactorEnabled;
                 token.suspendu = dbUser.status !== "ACTIF";
+                // Sessions révoquées (mot de passe changé, 2FA retirée,
+                // déconnexion forcée) : celles ouvertes avant la borne tombent.
+                const borne = dbUser.sessionsRevoquesLe ? new Date(dbUser.sessionsRevoquesLe).getTime() : 0;
+                token.revoque = borne > 0 && (token.connecteLe ?? 0) < borne;
                 // Promu admin en cours de session sans 2FA : enrôlement imposé.
                 if (devientAdmin && !dbUser.twoFactorEnabled) token.tfaPending = true;
               }
@@ -822,14 +832,15 @@ export const authOptions: NextAuthOptions = {
       // Compte suspendu : aucun rôle dans la session → tous les contrôles
       // `role === "admin"` / `formationsRole` des routes échouent, sans
       // attendre l'expiration du jeton.
-      session.user.suspendu = !!token.suspendu;
-      session.user.role = token.suspendu ? "suspendu" : token.role;
+      const bloque = !!token.suspendu || !!token.revoque;
+      session.user.suspendu = bloque;
+      session.user.role = bloque ? "suspendu" : token.role;
       session.user.kyc = token.kyc;
       session.user.plan = token.plan;
-      if (token.formationsRole && !token.suspendu) {
+      if (token.formationsRole && !bloque) {
         session.user.formationsRole = token.formationsRole;
       }
-      if (token.adminRole && !token.suspendu) {
+      if (token.adminRole && !bloque) {
         session.user.adminRole = token.adminRole;
       }
       // Expose the pending-2FA flag so middleware + client can gate access.

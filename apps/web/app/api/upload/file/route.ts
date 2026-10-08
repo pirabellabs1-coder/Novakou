@@ -9,6 +9,7 @@ import {
   type StorageBucket,
 } from "@/lib/supabase-storage";
 import { uploadImage } from "@/lib/cloudinary";
+import { analyserFichier } from "@/lib/securite/fichier-dangereux";
 
 const IS_DEV = MODE_DEV_LOCAL;
 
@@ -42,7 +43,7 @@ const MAGIC_BYTES: Record<string, MagicSignature[]> = {
 function validateMagicBytes(buffer: Buffer, extension: string): boolean {
   const signatures = MAGIC_BYTES[extension];
   // Extensions sans magic bytes connus — on accepte
-  if (!signatures) return ["txt", "rar", "7z", "xls", "xlsx", "ppt", "pptx"].includes(extension);
+  if (!signatures) return ["txt", "xls", "xlsx", "ppt", "pptx"].includes(extension);
   return signatures.some((sig) => {
     const offset = sig.offset || 0;
     return sig.bytes.every((byte, i) => buffer.length > offset + i && buffer[offset + i] === byte);
@@ -102,9 +103,12 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     // Validate file extension
+    // rar / 7z retirés (2026-10-08) : archives qu'on ne sait pas inspecter sans
+    // les décompresser — un exécutable s'y cache sans être vu. Le ZIP, lui,
+    // est lu entrée par entrée ci-dessous.
     const ALLOWED_EXTENSIONS = [
       "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt",
-      "zip", "rar", "7z",
+      "zip",
       "png", "jpg", "jpeg", "gif", "webp",
       "mp4", "webm", "mov",
       "ogg", "m4a", "mp3",
@@ -120,6 +124,15 @@ export async function POST(req: NextRequest) {
         { error: "Le contenu du fichier ne correspond pas a son extension. Upload refuse." },
         { status: 400 }
       );
+    }
+
+    // Anti-malware : exécutables, scripts et installeurs refusés — par
+    // extension, par signature binaire, et à l'intérieur des ZIP (sommaire lu
+    // sans décompression). Ces fichiers sont livrés à des acheteurs : la
+    // plateforme ne doit pas servir de canal de distribution.
+    const verdict = analyserFichier(file.name, new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength));
+    if (verdict.bloque) {
+      return NextResponse.json({ error: verdict.motif ?? "Fichier refusé." }, { status: 400 });
     }
 
     // Build a unique path scoped to the user

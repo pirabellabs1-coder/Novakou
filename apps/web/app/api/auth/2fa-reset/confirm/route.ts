@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     // redeviendrait actif à la moindre régression.
     await prisma.user.update({
       where: { id: user.id },
-      data: { twoFactorEnabled: false, twoFactorSecret: null, twoFactorVerifiedAt: null },
+      data: { twoFactorEnabled: false, twoFactorSecret: null, twoFactorVerifiedAt: null, sessionsRevoquesLe: new Date() },
     });
 
     // Trace d'audit : l'acteur est l'utilisateur lui-même — c'est ce qui
