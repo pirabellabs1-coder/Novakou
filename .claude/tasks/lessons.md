@@ -283,3 +283,20 @@
 - **Règle** : un contexte neuf par mesure ; ne jamais conclure à un bug de
   production depuis une session de test réutilisée.
 - **Priorité** : Normale.
+
+## Leçon du 2026-10-10 — une porte obligatoire sur le seul compte admin a enfermé le fondateur
+- **Problème** : la 2FA imposée aux ADMIN (lot sécurité du 08/10) renvoyait le fondateur en
+  boucle sur `/2fa` : le secret était généré, la preuve `twoFactorVerifiedAt` posée, mais
+  `twoFactorEnabled` restait `false` et la session restait `tfaPending`. Trois jours sans
+  accès à l'espace admin, 22 produits et 3 KYC en attente, 17 tickets sans réponse.
+- **Cause racine** : un garde-fou bloquant a été livré sans parcours de secours testé de bout
+  en bout en production sur le compte concerné (le flux d'enrôlement sur place n'avait été
+  vérifié qu'en lecture de code). La cause exacte de la non-bascule n'a pas été élucidée.
+- **Règle** : tout mécanisme qui peut refuser l'entrée au compte ADMIN unique (2FA, token
+  d'URL, verrou anti-force-brute) doit être testé sur ce compte en prod AVANT d'être rendu
+  bloquant, et livrer en même temps une issue de secours documentée (ex. : script de remise à
+  zéro en base, variable d'environnement de désactivation). Sinon : facultatif d'abord,
+  obligatoire ensuite.
+- **Preuve** : commit d4347fac (2FA redevenue facultative) + remise à zéro du secret orphelin
+  de `admin@novakou.com` ; décision fondateur, ne pas réimposer sans son accord.
+- **Priorité** : Haute.
