@@ -241,10 +241,11 @@ export const authOptions: NextAuthOptions = {
             plan: mapPlanName(((user.plan as string) || "gratuit").toLowerCase()),
             formationsRole: user.formationsRole?.toLowerCase() as string | undefined,
             twoFactorEnabled: !!user.twoFactorEnabled,
-            // ADMIN sans 2FA : la session naît « en attente de 2FA » et la page
-            // /2fa impose l'activation. Sans cela, le mot de passe seul d'un
-            // admin jamais enrôlé ouvrait toute la plateforme.
-            requires2FA: !!user.twoFactorEnabled || user.role === "ADMIN",
+            // 2FA FACULTATIVE, y compris pour les admins (décision fondateur du
+            // 2026-10-10 : l'enrôlement imposé l'a bloqué hors de son espace).
+            // Elle reste activable depuis les paramètres et, une fois active,
+            // exigée à chaque connexion.
+            requires2FA: !!user.twoFactorEnabled,
           };
         } catch (err) {
           if (err instanceof Error && err.message.includes("tentatives")) throw err;
@@ -443,7 +444,7 @@ export const authOptions: NextAuthOptions = {
               const currentFormationsRole = existingRecord.formationsRole as string | undefined;
               const tfa = !!existingRecord.twoFactorEnabled;
               user.twoFactorEnabled = tfa;
-              user.requires2FA = tfa || existing.role === "ADMIN";
+              user.requires2FA = tfa;
 
               // Reject if user has a DIFFERENT formationsRole (can't be both instructeur and apprenant)
               if (pendingFormationsRole && currentFormationsRole && currentFormationsRole !== pendingFormationsRole) {
@@ -662,7 +663,7 @@ export const authOptions: NextAuthOptions = {
             user.plan = dbUser.plan.toLowerCase();
             user.formationsRole = dbUser.formationsRole?.toLowerCase() as string | undefined;
             user.twoFactorEnabled = !!dbUser.twoFactorEnabled;
-            user.requires2FA = !!dbUser.twoFactorEnabled || dbUser.role === "ADMIN";
+            user.requires2FA = !!dbUser.twoFactorEnabled;
           } catch (err) {
             console.error("[AUTH OAuth] Erreur DB lors du signIn OAuth:", err instanceof Error ? err.message : err);
             console.error("[AUTH OAuth] Stack:", err instanceof Error ? err.stack : "N/A");
@@ -814,8 +815,10 @@ export const authOptions: NextAuthOptions = {
                 // déconnexion forcée) : celles ouvertes avant la borne tombent.
                 const borne = dbUser.sessionsRevoquesLe ? new Date(dbUser.sessionsRevoquesLe).getTime() : 0;
                 token.revoque = borne > 0 && (token.connecteLe ?? 0) < borne;
-                // Promu admin en cours de session sans 2FA : enrôlement imposé.
-                if (devientAdmin && !dbUser.twoFactorEnabled) token.tfaPending = true;
+                // 2FA facultative (décision fondateur du 2026-10-10) : la promotion
+                // admin n'impose plus d'enrôlement. Un futur durcissement ciblera
+                // ici : if (devientAdmin && !dbUser.twoFactorEnabled) token.tfaPending = true;
+                void devientAdmin;
               }
             }
             (token as Record<string, unknown>).kycRefreshedAt = now;

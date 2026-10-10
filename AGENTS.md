@@ -496,13 +496,13 @@ quotidienne).
 | **LinkedIn OAuth** | Actif seulement si `LINKEDIN_CLIENT_ID` + `LINKEDIN_CLIENT_SECRET` |
 
 **2FA (TOTP, `otplib`)** — `apps/web/app/api/auth/setup-2fa/route.ts`.
-Obligatoire et non contournable pour les comptes **ADMIN**. Le flux repose sur une preuve
+**Facultative pour tous les comptes, admins compris** (décision fondateur du 2026-10-10 : l'enrôlement imposé avait bloqué l'accès à l'espace admin). Une fois activée, elle est exigée à chaque connexion. Le flux repose sur une preuve
 serveur `twoFactorVerifiedAt` consommée une seule fois ; le middleware bloque les dashboards
 tant que le JWT porte `tfaPending`.
 
 > ✅ `User.twoFactorSecret` est **chiffré** en base (`lib/crypto/two-factor-secret.ts`, clé
-> `PAYMENT_CREDENTIALS_KEY`). Un ADMIN sans 2FA se voit imposer l'enrôlement sur `/2fa` dès la
-> connexion ; la promotion ADMIN d'un compte sans 2FA est refusée.
+> `PAYMENT_CREDENTIALS_KEY`). Un ADMIN sans 2FA se connecte avec son seul mot de passe ;
+> ne pas réimposer l'enrôlement sans accord explicite du fondateur.
 
 ### Rôles — trois couches distinctes
 
@@ -904,7 +904,7 @@ Le dépôt contient une soixantaine de dossiers de maquettes HTML à la racine
 2. JAMAIS deviner un code opérateur         → doc fournisseur ou on s'abstient (argent réel)
 3. JAMAIS réintroduire Moneroo               → décision fondateur, définitive
 4. JAMAIS de `any` TypeScript                → types stricts partout
-5. JAMAIS contourner 2FA/KYC                 → obligatoires, admin non négociable
+5. JAMAIS contourner le KYC ; 2FA facultative → ne pas la réimposer aux admins (fondateur, 2026-10-10)
 6. JAMAIS introduire Fastify/tRPC/Socket.io  → tout passe par les route handlers Next.js
 7. JAMAIS se fier à .env.example             → le code est la référence
 8. JAMAIS `pnpm test`                        → ne lance rien ; c'est `test:e2e`
